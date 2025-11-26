@@ -323,7 +323,7 @@
                                         </select>
                                     </div>
                                 </div>
-                                <div class="col-sm-6 col-lg-3" id="veg_input">
+                                {{-- <div class="col-sm-6 col-lg-3" id="veg_input">
                                     <div class="form-group mb-0">
                                         <label class="input-label"
                                             for="exampleFormControlInput1">{{ translate('messages.item_type') }}</label>
@@ -334,7 +334,7 @@
                                                 {{ translate('messages.veg') }}</option>
                                         </select>
                                     </div>
-                                </div>
+                                </div> --}}
                                 @if(Config::get('module.current_module_type') == 'grocery' || Config::get('module.current_module_type') == 'food')
                                     @if (isset($temp_product) && $temp_product == 1 )
                                         @php($product_nutritions = \App\Models\Nutrition::whereIn('id', json_decode($product?->nutrition_ids))->pluck('id'))
@@ -375,7 +375,7 @@
                                 @endif
 
 
-                                <div class="col-sm-6 col-lg-3" id="maximum_cart_quantity">
+                                {{-- <div class="col-sm-6 col-lg-3" id="maximum_cart_quantity">
                                     <div class="form-group mb-0">
                                         <label class="input-label"
                                             for="maximum_cart_quantity">{{ translate('messages.Maximum_Purchase_Quantity_Limit') }}
@@ -388,7 +388,7 @@
                                         </label>
                                         <input type="number" placeholder="{{ translate('messages.Ex:_10') }}" class="form-control" name="maximum_cart_quantity" min="0" value="{{ $product->maximum_cart_quantity }}" id="cart_quantity">
                                     </div>
-                                </div>
+                                </div> --}}
                                 <div class="col-sm-6 col-lg-3" id="organic">
                                     <div class="form-check mb-0 p-6">
                                         <input class="form-check-input" name="organic" type="checkbox" value="1" id="flexCheckDefault" {{ $product->organic == 1?'checked':'' }}>

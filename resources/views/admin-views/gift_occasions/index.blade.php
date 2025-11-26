@@ -102,7 +102,7 @@
                                         <div class="lang_form" id="default-form">
                                             <div class="form-group">
                                                 <label class="input-label" for="icon">icon </label>
-                                                <input type="file" name="icon" id="icon" class="form-control" >
+                                                <input type="file" name="icon[]" id="icon" class="form-control" multiple>
                                             </div>
                                         </div>
                                     </div>
@@ -151,7 +151,7 @@
                             <tr class="text-center">
                                 <th class="border-0">{{translate('sl')}}</th>
                                 <th class="border-0">Title</th>
-                                <th class="border-0">Logo</th>
+                                <th class="border-0">Gallery</th>
                                 <th class="border-0">Status</th>
                                 <th class="border-0">Action</th>
                             </tr>
@@ -177,13 +177,12 @@
                                 </td>
 
                                 {{-- Client Created At --}}
-                                <td class="text-center">
-                                    <div class="d-inline-block" style="width:50px; height:50px; cursor:pointer;">
-                                        <img src="{{ asset($item->icon) }}"
-                                            class="img-fluid rounded open-image-modal"
-                                            alt="Client Logo"
-                                            style="width:100%; height:100%; object-fit:cover;">
-                                    </div>
+
+                            <td class="text-center">
+                                <a class="btn action-btn btn--primary btn-outline-primary   " href="javascript:void(0)"  onclick="showGalleryModal({{ $item->id }})" title="View Details">
+                                        <i class="tio-visible"></i>
+                                    </a>
+
                                 </td>
                                     {{-- Status Toggle (Active/Inactive) --}}
                                 <td class="text-center">
@@ -249,6 +248,30 @@
         </div>
     </div>
 
+    <!-- Gallery Modal -->
+<div class="modal fade" id="galleryModal" tabindex="-1" role="dialog" aria-labelledby="galleryModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="galleryModalLabel">Gallery Images</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div id="gallery-content" class="row">
+                    <!-- Images yahan load hongi -->
+                    <div class="col-12 text-center">
+                        <div class="spinner-border" role="status">
+                            <span class="sr-only">Loading...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 @endsection
 
 @push('script_2')
@@ -269,6 +292,43 @@
         });
     });
 </script>
+<script>
+function showGalleryModal(occasionId) {
+    // Modal open karein
+    $('#galleryModal').modal('show');
 
+    // Gallery content load karein
+    $.ajax({
+        url: '{{ route("admin.GiftOccasions.gallery", ":id") }}'.replace(':id', occasionId),
+        type: 'GET',
+        success: function(response) {
+            let galleryHtml = '';
+
+            if(response.images && response.images.length > 0) {
+                response.images.forEach(function(image) {
+                    galleryHtml += `
+                        <div class="col-md-4 col-sm-6 mb-3">
+                            <div class="card">
+                                <img src="${image.url}" class="card-img-top" alt="Gallery Image" style="height: 200px; object-fit: cover; cursor: pointer;" onclick="viewFullImage('${image.url}')">
+                            </div>
+                        </div>
+                    `;
+                });
+            } else {
+                galleryHtml = '<div class="col-12 text-center"><p>No images found</p></div>';
+            }
+
+            $('#gallery-content').html(galleryHtml);
+        },
+        error: function() {
+            $('#gallery-content').html('<div class="col-12 text-center"><p class="text-danger">Error loading images</p></div>');
+        }
+    });
+}
+
+function viewFullImage(imageUrl) {
+    window.open(imageUrl, '_blank');
+}
+</script>
 
 @endpush

@@ -105,17 +105,28 @@
                                     <div class="lang_form" id="default-form">
                                         <div class="form-group">
                                             <label class="input-label" for="icon">icon </label>
-                                            <input type="file" name="icon" id="icon" class="form-control">
+                                            <input type="file" name="icon[]" id="icon" class="form-control" multiple>
 
                                             {{-- Agar client ka logo already hai to niche show kare --}}
-                                            @if(!empty($GiftOccasions->icon))
-                                                <div class="mt-2">
-                                                    <img src="{{ asset($GiftOccasions->icon) }}"
-                                                        alt="Client Logo"
-                                                        class="img-thumbnail"
-                                                        style="max-width: 120px; height:auto;">
-                                                </div>
-                                            @endif
+                                         @if(!empty($GiftOccasions->icon))
+                                        @php(
+
+                                            $icons = json_decode($GiftOccasions->icon, true)
+                                        )
+
+                                        @if(is_array($icons))
+                                            <div class="mt-3 d-flex flex-wrap gap-3">
+                                                @foreach($icons as $img)
+                                                    <div>
+                                                        <img src="{{ asset($img) }}"
+                                                            class="img-thumbnail"
+                                                            style="width: 120px; height:auto;">
+                                                    </div>
+                                                @endforeach
+                                            </div>
+                                        @endif
+                                    @endif
+
                                         </div>
                                     </div>
                                 </div>

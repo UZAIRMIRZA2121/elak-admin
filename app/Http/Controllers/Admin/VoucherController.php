@@ -132,6 +132,8 @@ class VoucherController extends Controller
         $productWiseTax = $taxData['productWiseTax'];
         $taxVats = $taxData['taxVats'];
 
+        // dd($taxVats);
+
             return view('admin-views.voucher.index', compact('categories', 'productWiseTax', 'taxVats'));
 
     }
@@ -231,7 +233,7 @@ class VoucherController extends Controller
         // UsageTermManagement records
         $UsageTermManagement = UsageTermManagement::get();
         // $UsageTermManagement = UsageTermManagement::where('voucher_id', $request->store_id)->get();
-    //   dd($UsageTermManagement);
+    //   dd($WorkManagement);
         // Return both in JSON as array
         return response()->json([
             'work_management' => $WorkManagement,

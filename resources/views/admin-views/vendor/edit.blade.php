@@ -1,9 +1,10 @@
 @extends('layouts.admin.app')
 
-@section('title', 'Update restaurant info')
+@section('title','Update restaurant info')
 @push('css_or_js')
     {{-- <link rel="stylesheet" href="{{asset('/public/assets/admin/css/intlTelInput.css')}}" /> --}}
-@endpush
+
+    @endpush
 
 @section('content')
     <div class="content container-fluid">
@@ -11,98 +12,95 @@
         <div class="page-header">
             <h1 class="page-header-title">
                 <span class="page-header-icon">
-                    <img src="{{ asset('public/assets/admin/img/edit.png') }}" class="w--26" alt="">
+                    <img src="{{asset('public/assets/admin/img/edit.png')}}" class="w--26" alt="">
                 </span>
-                <span>{{ translate('messages.update_store') }}</span>
+                <span>{{translate('messages.update_store')}}</span>
             </h1>
         </div>
         @php
-            $delivery_time_start = preg_match('([0-9]+[\-][0-9]+\s[min|hours|days])', $store->delivery_time ?? '')
-                ? explode('-', $store->delivery_time)[0]
-                : 10;
-            $delivery_time_end = preg_match('([0-9]+[\-][0-9]+\s[min|hours|days])', $store->delivery_time ?? '')
-                ? explode(' ', explode('-', $store->delivery_time)[1])[0]
-                : 30;
-            $delivery_time_type = preg_match('([0-9]+[\-][0-9]+\s[min|hours|days])', $store->delivery_time ?? '')
-                ? explode(' ', explode('-', $store->delivery_time)[1])[1]
-                : 'min';
-        @endphp
-        @php($language = \App\Models\BusinessSetting::where('key', 'language')->first())
+        $delivery_time_start = preg_match('([0-9]+[\-][0-9]+\s[min|hours|days])', $store->delivery_time??'')?explode('-',$store->delivery_time)[0]:10;
+        $delivery_time_end = preg_match('([0-9]+[\-][0-9]+\s[min|hours|days])', $store->delivery_time??'')?explode(' ',explode('-',$store->delivery_time)[1])[0]:30;
+        $delivery_time_type = preg_match('([0-9]+[\-][0-9]+\s[min|hours|days])', $store->delivery_time??'')?explode(' ',explode('-',$store->delivery_time)[1])[1]:'min';
+    @endphp
+        @php($language=\App\Models\BusinessSetting::where('key','language')->first())
         @php($language = $language->value ?? null)
         @php($defaultLang = 'en')
         <!-- End Page Header -->
-        <form action="{{ route('admin.store.update', [$store['id']]) }}" method="post" class="js-validate"
-            enctype="multipart/form-data" id="vendor_form">
+        <form action="{{route('admin.store.update',[$store['id']])}}" method="post" class="js-validate"
+                enctype="multipart/form-data" id="vendor_form">
             @csrf
 
             <div class="row g-2">
                 <div class="col-lg-6">
                     <div class="card shadow--card-2">
                         <div class="card-body">
-                            @if ($language)
-                                <ul class="nav nav-tabs mb-4">
+                            @if($language)
+                            <ul class="nav nav-tabs mb-4">
+                                <li class="nav-item">
+                                    <a class="nav-link lang_link active"
+                                    href="#"
+                                    id="default-link">{{ translate('Default') }}</a>
+                                </li>
+                                @foreach (json_decode($language) as $lang)
                                     <li class="nav-item">
-                                        <a class="nav-link lang_link active" href="#"
-                                            id="default-link">{{ translate('Default') }}</a>
+                                        <a class="nav-link lang_link"
+                                            href="#"
+                                            id="{{ $lang }}-link">{{ \App\CentralLogics\Helpers::get_language_name($lang) . '(' . strtoupper($lang) . ')' }}</a>
                                     </li>
-                                    @foreach (json_decode($language) as $lang)
-                                        <li class="nav-item">
-                                            <a class="nav-link lang_link" href="#"
-                                                id="{{ $lang }}-link">{{ \App\CentralLogics\Helpers::get_language_name($lang) . '(' . strtoupper($lang) . ')' }}</a>
-                                        </li>
-                                    @endforeach
-                                </ul>
+                                @endforeach
+                            </ul>
                             @endif
                             @if ($language)
-                                <div class="lang_form" id="default-form">
-                                    <div class="form-group">
-                                        <label class="input-label" for="default_name">{{ translate('messages.name') }}
-                                            ({{ translate('messages.Default') }})
-                                        </label>
-                                        <input type="text" name="name[]" id="default_name" class="form-control"
-                                            placeholder="{{ translate('messages.store_name') }}"
-                                            value="{{ $store->getRawOriginal('name') }}" required>
-                                    </div>
-                                    <input type="hidden" name="lang[]" value="default">
-                                    <div class="form-group mb-0">
-                                        <label class="input-label"
-                                            for="exampleFormControlInput1">{{ translate('messages.address') }}
-                                            ({{ translate('messages.default') }})</label>
-                                        <textarea type="text" name="address[]" placeholder="{{ translate('messages.store') }}"
-                                            class="form-control min-h-90px ckeditor">{{ $store->getRawOriginal('address') }}</textarea>
-                                    </div>
+                            <div class="lang_form"
+                            id="default-form">
+                                <div class="form-group">
+                                    <label class="input-label"
+                                        for="default_name">{{ translate('messages.name') }}
+                                        ({{ translate('messages.Default') }})
+                                    </label>
+                                    <input type="text" name="name[]" id="default_name"
+                                        class="form-control" placeholder="{{ translate('messages.store_name') }}" value="{{$store->getRawOriginal('name')}}"
+                                        required
+                                         >
                                 </div>
+                                <input type="hidden" name="lang[]" value="default">
+                                <div class="form-group mb-0">
+                                    <label class="input-label"
+                                        for="exampleFormControlInput1">{{ translate('messages.address') }} ({{ translate('messages.default') }})</label>
+                                    <textarea type="text" name="address[]" placeholder="{{translate('messages.store')}}" class="form-control min-h-90px ckeditor">{{$store->getRawOriginal('address')}}</textarea>
+                                </div>
+                            </div>
                                 @foreach (json_decode($language) as $lang)
-                                    <?php
-                                    if (count($store['translations'])) {
+                                <?php
+                                    if(count($store['translations'])){
                                         $translate = [];
-                                        foreach ($store['translations'] as $t) {
-                                            if ($t->locale == $lang && $t->key == 'name') {
+                                        foreach($store['translations'] as $t)
+                                        {
+                                            if($t->locale == $lang && $t->key=="name"){
                                                 $translate[$lang]['name'] = $t->value;
                                             }
-                                            if ($t->locale == $lang && $t->key == 'address') {
+                                            if($t->locale == $lang && $t->key=="address"){
                                                 $translate[$lang]['address'] = $t->value;
                                             }
                                         }
                                     }
-                                    ?>
-                                    <div class="d-none lang_form" id="{{ $lang }}-form">
+                                ?>
+                                    <div class="d-none lang_form"
+                                        id="{{ $lang }}-form">
                                         <div class="form-group">
                                             <label class="input-label"
                                                 for="{{ $lang }}_name">{{ translate('messages.name') }}
                                                 ({{ strtoupper($lang) }})
                                             </label>
                                             <input type="text" name="name[]" id="{{ $lang }}_name"
-                                                class="form-control" value="{{ $translate[$lang]['name'] ?? '' }}"
-                                                placeholder="{{ translate('messages.store_name') }}">
+                                                class="form-control" value="{{ $translate[$lang]['name']??'' }}" placeholder="{{ translate('messages.store_name') }}"
+                                                 >
                                         </div>
                                         <input type="hidden" name="lang[]" value="{{ $lang }}">
                                         <div class="form-group mb-0">
                                             <label class="input-label"
-                                                for="exampleFormControlInput1">{{ translate('messages.address') }}
-                                                ({{ strtoupper($lang) }})</label>
-                                            <textarea type="text" name="address[]" placeholder="{{ translate('messages.store') }}"
-                                                class="form-control min-h-90px ckeditor">{{ $translate[$lang]['address'] ?? '' }}</textarea>
+                                                for="exampleFormControlInput1">{{ translate('messages.address') }} ({{ strtoupper($lang) }})</label>
+                                            <textarea type="text" name="address[]" placeholder="{{translate('messages.store')}}" class="form-control min-h-90px ckeditor">{{ $translate[$lang]['address']??'' }}</textarea>
                                         </div>
                                     </div>
                                 @endforeach
@@ -110,8 +108,7 @@
                                 <div id="default-form">
                                     <div class="form-group">
                                         <label class="input-label"
-                                            for="exampleFormControlInput1">{{ translate('messages.name') }}
-                                            ({{ translate('messages.default') }})</label>
+                                            for="exampleFormControlInput1">{{ translate('messages.name') }} ({{ translate('messages.default') }})</label>
                                         <input type="text" name="name[]" class="form-control"
                                             placeholder="{{ translate('messages.store_name') }}" required>
                                     </div>
@@ -120,8 +117,7 @@
                                         <label class="input-label"
                                             for="exampleFormControlInput1">{{ translate('messages.address') }}
                                         </label>
-                                        <textarea type="text" name="address[]" placeholder="{{ translate('messages.store') }}"
-                                            class="form-control min-h-90px ckeditor"></textarea>
+                                        <textarea type="text" name="address[]" placeholder="{{translate('messages.store')}}" class="form-control min-h-90px ckeditor"></textarea>
                                     </div>
                                 </div>
                             @endif
@@ -133,7 +129,7 @@
                         <div class="card-header">
                             <h5 class="card-title">
                                 <span class="card-header-icon mr-1"><i class="tio-dashboard"></i></span>
-                                <span>{{ translate('Store Logo & Covers') }}</span>
+                                <span>{{translate('Store Logo & Covers')}}</span>
                             </h5>
                         </div>
                         <div class="card-body">
@@ -142,22 +138,18 @@
                                     @php($logo = \App\Models\BusinessSetting::where('key', 'logo')->first())
                                     @php($logo = $logo->value ?? '')
                                     <label class="form-label">
-                                        {{ translate('logo') }} <span
-                                            class="text--primary">({{ translate('1:1') }})</span>
+                                        {{ translate('logo') }} <span class="text--primary">({{ translate('1:1') }})</span>
                                     </label>
                                     <label class="text-center position-relative">
-                                        <img class="img--110 min-height-170px min-width-170px onerror-image image--border"
-                                            id="viewer"
-                                            data-onerror-image="{{ asset('public/assets/admin/img/upload-img.png') }}"
-                                            src="{{ $store->logo_full_url ?? asset('public/assets/admin/img/upload-img.png') }}"
+                                        <img class="img--110 min-height-170px min-width-170px onerror-image image--border" id="viewer"
+                                        data-onerror-image="{{ asset('public/assets/admin/img/upload-img.png') }}"
+                                        src="{{ $store->logo_full_url ?? asset('public/assets/admin/img/upload-img.png') }}"
                                             alt="logo image" />
                                         <div class="icon-file-group">
                                             <div class="icon-file">
                                                 <i class="tio-edit"></i>
-                                                <input type="file" name="logo" id="customFileEg1"
-                                                    class="custom-file-input"
-                                                    accept=".webp, .jpg, .png, .jpeg, .gif, .bmp, .tif, .tiff|image/*"
-                                                    required>
+                                        <input type="file" name="logo" id="customFileEg1" class="custom-file-input"
+                                        accept=".webp, .jpg, .png, .jpeg, .gif, .bmp, .tif, .tiff|image/*" required>
                                             </div>
                                         </div>
                                     </label>
@@ -167,20 +159,17 @@
                                     @php($icon = \App\Models\BusinessSetting::where('key', 'icon')->first())
                                     @php($icon = $icon->value ?? '')
                                     <label class="form-label">
-                                        {{ translate('Store Cover') }} <span
-                                            class="text--primary">({{ translate('2:1') }})</span>
+                                        {{ translate('Store Cover') }}  <span class="text--primary">({{ translate('2:1') }})</span>
                                     </label>
                                     <label class="text-center position-relative">
-                                        <img class="img--vertical min-height-170px min-width-170px onerror-image image--border"
-                                            id="coverImageViewer"
-                                            data-onerror-image="{{ asset('public/assets/admin/img/upload-img.png') }}"
-                                            src="{{ $store->cover_photo_full_url ?? asset('public/assets/admin/img/upload-img.png') }}"
+                                        <img class="img--vertical min-height-170px min-width-170px onerror-image image--border" id="coverImageViewer"
+                                        data-onerror-image="{{ asset('public/assets/admin/img/upload-img.png') }}"
+                                        src="{{ $store->cover_photo_full_url ?? asset('public/assets/admin/img/upload-img.png') }}"
                                             alt="Fav icon" />
                                         <div class="icon-file-group">
                                             <div class="icon-file">
                                                 <i class="tio-edit"></i>
-                                                <input type="file" name="cover_photo" id="coverImageUpload"
-                                                    class="custom-file-input"
+                                                <input type="file" name="cover_photo" id="coverImageUpload"  class="custom-file-input"
                                                     accept=".webp, .jpg, .png, .jpeg, .gif, .bmp, .tif, .tiff|image/*">
                                             </div>
                                         </div>
@@ -194,20 +183,16 @@
                     <div class="card">
                         <div class="card-header">
                             <h4 class="card-title m-0 d-flex align-items-center">
-                                <img class="mr-2 align-self-start w--20"
-                                    src="{{ asset('public/assets/admin/img/resturant.png') }}" alt="instructions">
-                                <span>{{ translate('store_information') }}</span>
+                                <img class="mr-2 align-self-start w--20" src="{{asset('public/assets/admin/img/resturant.png')}}" alt="instructions">
+                                <span>{{translate('store_information')}}</span>
                             </h4>
                         </div>
                         <div class="card-body">
                             <div class="row g-3 my-0">
                                 <div class="col-md-12">
                                     <div class="position-relative">
-                                        <label class="input-label"
-                                            for="tax">{{ translate('Estimated Delivery Time ( Min & Maximum Time)') }}</label>
-                                        <input type="text" id="time_view"
-                                            value="{{ $delivery_time_start }} to {{ $delivery_time_end }} {{ $delivery_time_type }}"
-                                            class="form-control" readonly>
+                                        <label class="input-label" for="tax">{{translate('Estimated Delivery Time ( Min & Maximum Time)')}}</label>
+                                        <input type="text" id="time_view" value="{{$delivery_time_start}} to {{$delivery_time_end}} {{$delivery_time_type}}" class="form-control" readonly>
                                         <a href="javascript:void(0)" class="floating-date-toggler">&nbsp;</a>
                                         <span class="offcanvas"></span>
                                         <div class="floating--date" id="floating--date">
@@ -217,42 +202,24 @@
                                                         <div class="item">
                                                             <label class="input-label"
                                                                 for="minimum_delivery_time">{{ translate('Minimum Time') }}</label>
-                                                            <input id="minimum_delivery_time" type="number"
-                                                                name="minimum_delivery_time"
-                                                                value="{{ $delivery_time_start }}"
-                                                                class="form-control h--45px"
-                                                                placeholder="{{ translate('messages.Ex :') }} 30"
-                                                                pattern="^[0-9]{2}$" required
-                                                                value="{{ old('minimum_delivery_time') }}">
+                                                            <input id="minimum_delivery_time" type="number" name="minimum_delivery_time" value="{{$delivery_time_start}}" class="form-control h--45px" placeholder="{{ translate('messages.Ex :') }} 30"
+                                                                pattern="^[0-9]{2}$" required value="{{ old('minimum_delivery_time') }}">
                                                         </div>
                                                         <div class="item">
                                                             <label class="input-label"
                                                                 for="maximum_delivery_time">{{ translate('Maximum Time') }}</label>
-                                                            <input id="maximum_delivery_time" type="number"
-                                                                name="maximum_delivery_time"
-                                                                value="{{ $delivery_time_end }}"
-                                                                class="form-control h--45px"
-                                                                placeholder="{{ translate('messages.Ex :') }} 60"
-                                                                pattern="[0-9]{2}" required
-                                                                value="{{ old('maximum_delivery_time') }}">
+                                                            <input id="maximum_delivery_time" type="number" name="maximum_delivery_time" value="{{$delivery_time_end}}" class="form-control h--45px" placeholder="{{ translate('messages.Ex :') }} 60"
+                                                                pattern="[0-9]{2}" required value="{{ old('maximum_delivery_time') }}">
                                                         </div>
                                                         <div class="item smaller">
-                                                            <select name="delivery_time_type" id="delivery_time_type"
-                                                                class="custom-select">
-                                                                <option value="min"
-                                                                    {{ $delivery_time_type == 'min' ? 'selected' : '' }}>
-                                                                    {{ translate('messages.minutes') }}</option>
-                                                                <option value="hours"
-                                                                    {{ $delivery_time_type == 'hours' ? 'selected' : '' }}>
-                                                                    {{ translate('messages.hours') }}</option>
-                                                                <option value="days"
-                                                                    {{ $delivery_time_type == 'days' ? 'selected' : '' }}>
-                                                                    {{ translate('messages.days') }}</option>
+                                                            <select name="delivery_time_type" id="delivery_time_type" class="custom-select">
+                                                                <option value="min" {{$delivery_time_type=='min'?'selected':''}}>{{translate('messages.minutes')}}</option>
+                                                                <option value="hours" {{$delivery_time_type=='hours'?'selected':''}}>{{translate('messages.hours')}}</option>
+                                                                <option value="days" {{$delivery_time_type=='days'?'selected':''}}>{{translate('messages.days')}}</option>
                                                             </select>
                                                         </div>
                                                         <div class="item smaller">
-                                                            <button type="button"
-                                                                class="btn btn--primary delivery-time">{{ translate('done') }}</button>
+                                                            <button type="button" class="btn btn--primary delivery-time">{{ translate('done') }}</button>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -264,98 +231,82 @@
                             <div class="row g-3 my-0">
                                 <div class="col-lg-4">
                                     <div class="form-group">
-                                        <label class="input-label"
-                                            for="choice_zones">{{ translate('messages.zone') }}<span
+                                        <label class="input-label" for="choice_zones">{{translate('messages.zone')}}<span
                                                 class="form-label-secondary" data-toggle="tooltip" data-placement="right"
-                                                data-original-title="{{ translate('messages.select_zone_for_map') }}"><img
-                                                    src="{{ asset('/public/assets/admin/img/info-circle.svg') }}"
-                                                    alt="{{ translate('messages.select_zone_for_map') }}"></span></label>
-                                        <select name="zone_id" id="choice_zones"
-                                            data-placeholder="{{ translate('messages.select_zone') }}"
-                                            class="form-control js-select2-custom get_zone_data">
-                                            @foreach (\App\Models\Zone::active()->get() as $zone)
-                                                @if (isset(auth('admin')->user()->zone_id))
-                                                    @if (auth('admin')->user()->zone_id == $zone->id)
-                                                        <option value="{{ $zone->id }}"
-                                                            {{ $store->zone_id == $zone->id ? 'selected' : '' }}>
-                                                            {{ $zone->name }}</option>
+        data-original-title="{{translate('messages.select_zone_for_map')}}"><img src="{{asset('/public/assets/admin/img/info-circle.svg')}}" alt="{{translate('messages.select_zone_for_map')}}"></span></label>
+                                        <select name="zone_id" id="choice_zones" data-placeholder="{{translate('messages.select_zone')}}"
+                                                class="form-control js-select2-custom get_zone_data">
+                                            @foreach(\App\Models\Zone::active()->get() as $zone)
+                                                @if(isset(auth('admin')->user()->zone_id))
+                                                    @if(auth('admin')->user()->zone_id == $zone->id)
+                                                        <option value="{{$zone->id}}" {{$store->zone_id == $zone->id? 'selected': ''}}>{{$zone->name}}</option>
                                                     @endif
                                                 @else
-                                                    <option value="{{ $zone->id }}"
-                                                        {{ $store->zone_id == $zone->id ? 'selected' : '' }}>
-                                                        {{ $zone->name }}</option>
+                                                    <option value="{{$zone->id}}" {{$store->zone_id == $zone->id? 'selected': ''}}>{{$zone->name}}</option>
                                                 @endif
                                             @endforeach
                                         </select>
                                     </div>
                                     <div class="form-group">
-                                        <label class="input-label" for="latitude">{{ translate('messages.latitude') }}
-                                            <span class="form-label-secondary" data-toggle="tooltip"
-                                                data-placement="right"
-                                                data-original-title="{{ translate('messages.store_lat_lng_warning') }}">
-                                                <img src="{{ asset('/public/assets/admin/img/info-circle.svg') }}"
-                                                    alt="{{ translate('messages.store_lat_lng_warning') }}">
+                                        <label class="input-label" for="latitude">{{translate('messages.latitude')}}
+                                            <span
+                                                class="form-label-secondary" data-toggle="tooltip" data-placement="right"
+                                                data-original-title="{{translate('messages.store_lat_lng_warning')}}">
+                                                <img src="{{asset('/public/assets/admin/img/info-circle.svg')}}" alt="{{translate('messages.store_lat_lng_warning')}}">
                                             </span>
                                         </label>
-                                        <input type="text" id="latitude" name="latitude" class="form-control"
-                                            placeholder="{{ translate('messages.Ex:') }} -94.22213"
-                                            value="{{ $store->latitude }}" required readonly>
+                                        <input type="text" id="latitude"
+                                                name="latitude" class="form-control"
+                                                placeholder="{{ translate('messages.Ex:') }} -94.22213" value="{{$store->latitude}}" required readonly>
                                     </div>
                                     <div class="form-group mb-5">
-                                        <label class="input-label" for="longitude">{{ translate('messages.longitude') }}
-                                            <span class="form-label-secondary" data-toggle="tooltip"
-                                                data-placement="right"
-                                                data-original-title="{{ translate('messages.store_lat_lng_warning') }}">
-                                                <img src="{{ asset('/public/assets/admin/img/info-circle.svg') }}"
-                                                    alt="{{ translate('messages.store_lat_lng_warning') }}">
+                                        <label class="input-label" for="longitude">{{translate('messages.longitude')}}
+                                            <span
+                                                class="form-label-secondary" data-toggle="tooltip" data-placement="right"
+                                                data-original-title="{{translate('messages.store_lat_lng_warning')}}">
+                                                <img src="{{asset('/public/assets/admin/img/info-circle.svg')}}" alt="{{translate('messages.store_lat_lng_warning')}}">
                                             </span>
                                         </label>
-                                        <input type="text" name="longitude" class="form-control"
-                                            placeholder="{{ translate('messages.Ex:') }} 103.344322" id="longitude"
-                                            value="{{ $store->longitude }}" required readonly>
+                                        <input type="text"
+                                                name="longitude" class="form-control"
+                                                placeholder="{{ translate('messages.Ex:') }} 103.344322" id="longitude" value="{{$store->longitude}}" required readonly>
                                     </div>
                                     <div class="form-group mb-5">
                                         <input type="hidden" name="hiiden_check" id="hiiden_check" value="0">
                                         <label class="input-label" for="type">
-                                            {{ translate('Is Main Branch') }}
-                                            <span class="form-label-secondary" data-toggle="tooltip"
-                                                data-placement="right"
-                                                data-original-title="{{ translate('messages.store_lat_lng_warning') }}"></span>
-                                            <input type="checkbox" name="type" id="type" class="mt-2"
-                                                value="1" {{ $store->type == 'main' ? 'checked' : '' }}>
+                                            {{translate('Is Main Branch')}}
+                                            <span class="form-label-secondary" data-toggle="tooltip" data-placement="right" data-original-title="{{translate('messages.store_lat_lng_warning')}}"></span>
+                                            <input type="checkbox"
+                                                name="type"
+                                                id="type"
+                                                class="mt-2"
+                                                value="1"
+                                                {{ $store->type == "main" ? 'checked' : '' }}>
                                         </label>
                                     </div>
 
                                     <div class="form-group" id="sub_branch_group">
                                         <label class="input-label" for="parent_id">
-                                            {{ translate('Main Branch') }}
-                                            <span class="form-label-secondary" data-toggle="tooltip"
-                                                data-placement="right"
-                                                data-original-title="{{ translate('Main Branch') }}"></span>
+                                            {{translate('Main Branch')}}
+                                            <span class="form-label-secondary" data-toggle="tooltip" data-placement="right" data-original-title="{{translate('Main Branch')}}"></span>
                                         </label>
-                                        <select name="parent_id" id="parent_id" class="form-control js-select2-custom"
-                                            data-placeholder="{{ translate('Select Main Branch') }}">
-                                            <option value="" selected disabled>{{ translate('Select Main Branch') }}
-                                            </option>
-                                            @foreach (\App\Models\Store::active()->where('type', 'main')->get() as $Store_item)
-                                                @if (isset(auth('admin')->user()->Store_id))
-                                                    @if (auth('admin')->user()->Store_id == $Store->id)
-                                                        <option value="{{ $Store_item->id }}"
-                                                            {{ $store->parent_id == $Store_item->id ? 'selected' : '' }}>
-                                                            {{ $Store_item->name }}</option>
+                                        <select name="parent_id" id="parent_id" class="form-control js-select2-custom" data-placeholder="{{translate('Select Main Branch')}}">
+                                            <option value="" selected disabled>{{translate('Select Main Branch')}}</option>
+                                            @foreach(\App\Models\Store::active()->where('type', 'main')->get() as $Store_item)
+                                                @if(isset(auth('admin')->user()->Store_id))
+                                                    @if(auth('admin')->user()->Store_id == $Store->id)
+                                                        <option value="{{$Store_item->id}}"  {{$store->parent_id == $Store_item->id? 'selected': ''}}>{{$Store_item->name}}</option>
                                                     @endif
                                                 @else
-                                                    <option value="{{ $Store_item->id }}"
-                                                        {{ $store->parent_id == $Store_item->id ? 'selected' : '' }}>
-                                                        {{ $Store_item->name }}</option>
+                                                    <option value="{{$Store_item->id}}" {{$store->parent_id == $Store_item->id? 'selected': ''}}>{{$Store_item->name}}</option>
                                                 @endif
                                             @endforeach
                                         </select>
                                     </div>
-                                    {{-- @php(// Store ke vouchers ko decode karke array banao
+                                    @php(// Store ke vouchers ko decode karke array banao
                                     $selectedVoucherIds = $store->voucher_id ? json_decode($store->voucher_id, true) : []
-                                        ) --}}
-                                    {{-- <div class="form-group">
+                                        )
+                                  <div class="form-group">
                                     <label class="input-label" for="voucher_id">{{ translate('Voucher Type') }}
                                         <span class="form-label-secondary" data-toggle="tooltip" data-placement="right"
                                             data-original-title="{{ translate('Voucher Type') }}"></span>
@@ -363,40 +314,41 @@
                                     <select name="voucher_id[]" id="voucher_id" required
                                             class="form-control js-select2-custom"
                                             data-placeholder="{{ translate('Select Voucher Type') }}" multiple>
-                                        @foreach (\App\Models\VoucherType::get() as $VoucherType)
+                                        @foreach(\App\Models\VoucherType::get() as $VoucherType)
                                             <option value="{{ $VoucherType->id }}"
-                                                @if ((old('voucher_id') && in_array($VoucherType->id, old('voucher_id'))) || (isset($selectedVoucherIds) && in_array($VoucherType->id, $selectedVoucherIds)))
+                                                @if( (old('voucher_id') && in_array($VoucherType->id, old('voucher_id')))
+                                                    || (isset($selectedVoucherIds) && in_array($VoucherType->id, $selectedVoucherIds)) )
                                                     selected
                                                 @endif
                                             >{{ $VoucherType->name }}</option>
                                         @endforeach
                                     </select>
-                                </div> --}}
-                                    <?php
-                                    $selectedVoucherIds = $store->category_id ? json_decode($store->category_id, true) : [];
-                                    ?>
-                                    <div class="form-group">
-                                        <label class="input-label" for="category_id">{{ translate('Category') }}
-                                            <span class="form-label-secondary" data-toggle="tooltip"
-                                                data-placement="right"
-                                                data-original-title="{{ translate('Category') }}"></span>
-                                        </label>
-                                        <select name="category_id[]" id="category_id" required
+                                </div>
+                                    @php(// Store ke vouchers ko decode karke array banao
+                                    $selectedVoucherIds = $store->category_id ? json_decode($store->category_id, true) : []
+                                        )
+                                  <div class="form-group">
+                                    <label class="input-label" for="category_id">{{ translate('Category') }}
+                                        <span class="form-label-secondary" data-toggle="tooltip" data-placement="right"
+                                            data-original-title="{{ translate('Category') }}"></span>
+                                    </label>
+                                    <select name="category_id[]" id="category_id" required
                                             class="form-control js-select2-custom"
                                             data-placeholder="{{ translate('Select Category') }}" multiple>
-                                            @foreach (\App\Models\Category::get() as $VoucherType)
-                                                <option value="{{ $VoucherType->id }}"
-                                                    @if (
-                                                        (old('category_id') && in_array($VoucherType->id, old('category_id'))) ||
-                                                            (isset($selectedVoucherIds) && in_array($VoucherType->id, $selectedVoucherIds))) selected @endif>
-                                                    {{ $VoucherType->name }}
-                                                </option>
-                                            @endforeach
-                                        </select>
-                                    </div>
+                                        @foreach(\App\Models\Category::get() as $VoucherType)
+                                            <option value="{{ $VoucherType->id }}"
+                                                @if( (old('category_id') && in_array($VoucherType->id, old('category_id')))
+                                                    || (isset($selectedVoucherIds) && in_array($VoucherType->id, $selectedVoucherIds)) )
+                                                    selected
+                                                @endif
+                                            >{{ $VoucherType->name }}
+                                           </option>
+                                        @endforeach
+                                    </select>
+                                </div>
 
                                 </div>
-                                {{-- <div class="col-lg-8">
+                                <div class="col-lg-8">
                                     <input id="pac-input" class="controls rounded"
                                         data-toggle="tooltip" data-placement="right" data-original-title="{{ translate('messages.search_your_location_here') }}" type="text" placeholder="{{ translate('messages.search_here') }}" />
                                     <div id="map"></div>
@@ -416,7 +368,7 @@
                                         <label class="input-label" for="flate_discount">{{translate('Flate Discount')}}</label>
                                         <input type="text" id="flate_discount"  value="{{$store->flate_discount}}" name="flate_discount" class="form-control" placeholder="Flate Discount"  required >
                                     </div>
-                                </div> --}}
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -426,144 +378,64 @@
                         <div class="card-header">
                             <h4 class="card-title m-0 d-flex align-items-center">
                                 <span class="card-header-icon mr-2"><i class="tio-user"></i></span>
-                                <span>{{ translate('messages.owner_information') }}</span>
+                                <span>{{translate('messages.owner_information')}}</span>
                             </h4>
                         </div>
                         <div class="card-body">
                             <div class="row g-3">
                                 <div class="col-md-4 col-sm-6">
                                     <div class="form-group mb-0">
-                                        <label class="input-label"
-                                            for="f_name">{{ translate('messages.first_name') }}</label>
-                                        <input type="text" name="f_name" class="form-control"
-                                            placeholder="{{ translate('messages.first_name') }}"
-                                            value="{{ $store->vendor->f_name }}" required>
+                                        <label class="input-label" for="f_name">{{translate('messages.first_name')}}</label>
+                                        <input type="text" name="f_name" class="form-control" placeholder="{{translate('messages.first_name')}}"
+                                                value="{{$store->vendor->f_name}}"  required>
                                     </div>
                                 </div>
                                 <div class="col-md-4 col-sm-6">
                                     <div class="form-group mb-0">
-                                        <label class="input-label"
-                                            for="l_name">{{ translate('messages.last_name') }}</label>
-                                        <input type="text" name="l_name" class="form-control"
-                                            placeholder="{{ translate('messages.last_name') }}"
-                                            value="{{ $store->vendor->l_name }}" required>
+                                        <label class="input-label" for="l_name">{{translate('messages.last_name')}}</label>
+                                        <input type="text" name="l_name" class="form-control" placeholder="{{translate('messages.last_name')}}"
+                                        value="{{$store->vendor->l_name}}"  required>
                                     </div>
                                 </div>
                                 <div class="col-md-4 col-sm-6">
                                     <div class="form-group mb-0">
-                                        <label class="input-label"
-                                            for="phone">{{ translate('messages.phone') }}</label>
+                                        <label class="input-label" for="phone">{{translate('messages.phone')}}</label>
                                         <input type="tel" id="phone" name="phone" class="form-control"
-                                            placeholder="{{ translate('messages.Ex:') }} 017********"
-                                            value="{{ $store->vendor->phone }}" required>
+                                        placeholder="{{ translate('messages.Ex:') }} 017********" value="{{$store->vendor->phone}}"
+                                        required>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
-                <div class="col-lg-12 mt-4">
-                    <div class="card">
-                        <div class="card-header d-flex justify-content-between align-items-center">
-                            <h4 class="card-title m-0 d-flex align-items-center">
-                                <span class="card-header-icon mr-2"><i class="tio-group"></i></span>
-                                <span>Staff Information</span>
-                            </h4>
-                            <button type="button" class="btn btn-primary btn-sm" id="addStaffBtn">
-                                + Add Staff
-                            </button>
-                        </div>
-
-                        <div class="card-body">
-                            <div id="staffContainer">
-                                <?php
-                                // Default to empty array
-                                $staffData = [];
-                                
-                                // Check if staff_data exists and is not empty
-                                if (isset($store->staff_data) && !empty($store->staff_data)) {
-                                    $decoded = json_decode($store->staff_data, true);
-                                    // Make sure it's an array
-                                    if (isset($decoded) && is_array($decoded)) {
-                                        $staffData = $decoded;
-                                    }
-                                }
-                                ?>
-
-                                @if (isset($staffData) && is_array($staffData) && count($staffData) > 0)
-                                    @foreach ($staffData as $index => $staff)
-                                        <div class="staff-item mb-3" data-index="{{ $index }}">
-                                            <div class="row g-2 align-items-center">
-                                                <div class="col-md-4">
-                                                    <input type="text" name="staff[{{ $index }}][name]"
-                                                        class="form-control" placeholder="Staff Name"
-                                                        value="{{ $staff['name'] ?? '' }}">
-                                                </div>
-                                                <div class="col-md-4">
-                                                    <input type="text" name="staff[{{ $index }}][role]"
-                                                        class="form-control" placeholder="Staff Role"
-                                                        value="{{ $staff['role'] ?? '' }}">
-                                                </div>
-                                                <div class="col-md-3">
-                                                    <input type="text" name="staff[{{ $index }}][phone]"
-                                                        class="form-control" placeholder="Phone"
-                                                        value="{{ $staff['phone'] ?? '' }}">
-                                                </div>
-                                                <div class="col-md-1 text-end">
-                                                    <button type="button"
-                                                        class="btn btn-danger btn-sm removeStaffBtn">✕</button>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    @endforeach
-                                @else
-                                    <p class="text-muted">No staff added yet.</p>
-                                @endif
-                                <!-- Hidden input to store staff_data JSON -->
-                                <input type="hidden" name="staff_data" id="staffDataInput"
-                                    value="{{ $store->staff_data ?? '[]' }}">
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
                 <div class="col-lg-12">
                     <div class="card">
                         <div class="card-header">
                             <h4 class="card-title m-0 d-flex align-items-center">
                                 <span class="card-header-icon mr-2"><i class="tio-user"></i></span>
-                                <span>{{ translate('messages.account_information') }}</span>
+                                <span>{{translate('messages.account_information')}}</span>
                             </h4>
                         </div>
                         <div class="card-body">
                             <div class="row g-3">
                                 <div class="col-md-4 col-sm-6">
                                     <div class="form-group mb-0">
-                                        <label class="input-label"
-                                            for="exampleFormControlInput1">{{ translate('messages.email') }}</label>
-                                        <input type="email" name="email" class="form-control"
-                                            placeholder="{{ translate('messages.Ex:') }} ex@example.com"
-                                            value="{{ $store->email }}" required>
+                                        <label class="input-label" for="exampleFormControlInput1">{{translate('messages.email')}}</label>
+                                        <input type="email" name="email" class="form-control" placeholder="{{ translate('messages.Ex:') }} ex@example.com" value="{{$store->email}}" required>
                                     </div>
                                 </div>
                                 <div class="col-md-4 col-sm-6">
                                     <div class="js-form-message form-group mb-0">
-                                        <label class="input-label"
-                                            for="signupSrPassword">{{ translate('password') }}<span
-                                                class="form-label-secondary" data-toggle="tooltip" data-placement="right"
-                                                data-original-title="{{ translate('messages.Must_contain_at_least_one_number_and_one_uppercase_and_lowercase_letter_and_symbol,_and_at_least_8_or_more_characters') }}"><img
-                                                    src="{{ asset('/public/assets/admin/img/info-circle.svg') }}"
-                                                    alt="{{ translate('messages.Must_contain_at_least_one_number_and_one_uppercase_and_lowercase_letter_and_symbol,_and_at_least_8_or_more_characters') }}"></span></label>
+                                        <label class="input-label" for="signupSrPassword">{{ translate('password') }}<span class="form-label-secondary" data-toggle="tooltip" data-placement="right"
+                                 data-original-title="{{ translate('messages.Must_contain_at_least_one_number_and_one_uppercase_and_lowercase_letter_and_symbol,_and_at_least_8_or_more_characters') }}"><img src="{{ asset('/public/assets/admin/img/info-circle.svg') }}" alt="{{ translate('messages.Must_contain_at_least_one_number_and_one_uppercase_and_lowercase_letter_and_symbol,_and_at_least_8_or_more_characters') }}"></span></label>
 
                                         <div class="input-group input-group-merge">
-                                            <input type="password" class="js-toggle-password form-control"
-                                                name="password" id="signupSrPassword"
-                                                pattern="(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}"
-                                                title="{{ translate('messages.Must_contain_at_least_one_number_and_one_uppercase_and_lowercase_letter_and_symbol,_and_at_least_8_or_more_characters') }}"
-                                                placeholder="{{ translate('messages.password_length_placeholder', ['length' => '8+']) }}"
-                                                aria-label="8+ characters required"
-                                                data-msg="Your password is invalid. Please try again."
-                                                data-hs-toggle-password-options='{
+                                            <input type="password" class="js-toggle-password form-control" name="password" id="signupSrPassword" pattern="(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}" title="{{ translate('messages.Must_contain_at_least_one_number_and_one_uppercase_and_lowercase_letter_and_symbol,_and_at_least_8_or_more_characters') }}"
+                                            placeholder="{{ translate('messages.password_length_placeholder', ['length' => '8+']) }}"
+                                            aria-label="8+ characters required"
+                                            data-msg="Your password is invalid. Please try again."
+                                            data-hs-toggle-password-options='{
                                             "target": [".js-toggle-password-target-1", ".js-toggle-password-target-2"],
                                             "defaultClass": "tio-hidden-outlined",
                                             "showClass": "tio-visible-outlined",
@@ -579,28 +451,23 @@
                                 </div>
                                 <div class="col-md-4 col-sm-6">
                                     <div class="js-form-message form-group mb-0">
-                                        <label class="input-label"
-                                            for="signupSrConfirmPassword">{{ translate('messages.Confirm Password') }}</label>
+                                        <label class="input-label" for="signupSrConfirmPassword">{{ translate('messages.Confirm Password') }}</label>
 
                                         <div class="input-group input-group-merge">
-                                            <input type="password" class="js-toggle-password form-control"
-                                                name="confirmPassword" id="signupSrConfirmPassword"
-                                                pattern="(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}"
-                                                title="{{ translate('messages.Must_contain_at_least_one_number_and_one_uppercase_and_lowercase_letter_and_symbol,_and_at_least_8_or_more_characters') }}"
-                                                placeholder="{{ translate('messages.password_length_placeholder', ['length' => '8+']) }}"
-                                                aria-label="8+ characters required"
-                                                data-msg="Password does not match the confirm password."
+                                        <input type="password" class="js-toggle-password form-control" name="confirmPassword" id="signupSrConfirmPassword" pattern="(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}" title="{{ translate('messages.Must_contain_at_least_one_number_and_one_uppercase_and_lowercase_letter_and_symbol,_and_at_least_8_or_more_characters') }}"
+                                        placeholder="{{ translate('messages.password_length_placeholder', ['length' => '8+']) }}"
+                                        aria-label="8+ characters required"                                      data-msg="Password does not match the confirm password."
                                                 data-hs-toggle-password-options='{
                                                 "target": [".js-toggle-password-target-1", ".js-toggle-password-target-2"],
                                                 "defaultClass": "tio-hidden-outlined",
                                                 "showClass": "tio-visible-outlined",
                                                 "classChangeTarget": ".js-toggle-passowrd-show-icon-2"
                                                 }'>
-                                            <div class="js-toggle-password-target-2 input-group-append">
-                                                <a class="input-group-text" href="javascript:;">
-                                                    <i class="js-toggle-passowrd-show-icon-2 tio-visible-outlined"></i>
-                                                </a>
-                                            </div>
+                                        <div class="js-toggle-password-target-2 input-group-append">
+                                            <a class="input-group-text" href="javascript:;">
+                                            <i class="js-toggle-passowrd-show-icon-2 tio-visible-outlined"></i>
+                                            </a>
+                                        </div>
                                         </div>
                                     </div>
                                 </div>
@@ -612,26 +479,20 @@
                     <div>
                         <div class="card p-20">
                             <div class="mb-20">
-                                <h3 class="mb-1">{{ translate('Business TIN') }}</h3>
+                                <h3 class="mb-1">{{translate('Business TIN')}}</h3>
                                 {{-- <p class="fz-12px mb-0">{{translate('Lorem ipsum dolor sit amet, consectetur adipiscing elit.')}}</p> --}}
                             </div>
                             <div class="row g-3">
                                 <div class="col-md-8 col-xxl-9">
                                     <div class="bg--secondary rounded p-20 h-100">
                                         <div class="form-group">
-                                            <label class="input-label mb-2 d-block title-clr fw-normal"
-                                                for="exampleFormControlInput1">{{ translate('Taxpayer Identification Number(TIN)') }}
-                                                <span class="text-danger">*</span></label>
-                                            <input type="text" name="tin"
-                                                placeholder="{{ translate('Type Your Taxpayer Identification Number(TIN)') }}"
-                                                class="form-control" value="{{ $store->tin }}" required>
+                                            <label class="input-label mb-2 d-block title-clr fw-normal" for="exampleFormControlInput1">{{translate('Taxpayer Identification Number(TIN)')}} <span class="text-danger">*</span></label>
+                                            <input type="text" name="tin" placeholder="{{translate('Type Your Taxpayer Identification Number(TIN)')}}" class="form-control"
+                                                   value="{{$store->tin}}"  required>
                                         </div>
                                         <div class="form-group mb-0">
-                                            <label class="input-label mb-2 d-block title-clr fw-normal"
-                                                for="exampleFormControlInput1">{{ translate('Expire Date') }} <span
-                                                    class="text-danger">*</span></label>
-                                            <input type="date" name="tin_expire_date" class="form-control"
-                                                value="{{ $store->tin_expire_date }}" required>
+                                            <label class="input-label mb-2 d-block title-clr fw-normal" for="exampleFormControlInput1">{{translate('Expire Date')}} <span class="text-danger">*</span></label>
+                                            <input type="date" name="tin_expire_date" class="form-control" value="{{$store->tin_expire_date}}" required>
                                         </div>
                                     </div>
                                 </div>
@@ -639,59 +500,50 @@
                                     <div class="bg--secondary rounded p-20 h-100 single-document-uploaderwrap">
                                         <div class="d-flex align-items-center gap-1 justify-content-between mb-20">
                                             <div>
-                                                <h4 class="mb-1 fz--14px">{{ translate('TIN Certificate') }}</h4>
-                                                <p class="fz-12px mb-0">
-                                                    {{ translate('pdf, doc, jpg. File size : max 2 MB') }}</p>
+                                                <h4 class="mb-1 fz--14px">{{translate('TIN Certificate')}}</h4>
+                                                <p class="fz-12px mb-0">{{translate('pdf, doc, jpg. File size : max 2 MB')}}</p>
                                             </div>
                                             <div class="d-flex gap-3 align-items-center">
-                                                <button type="button" id="doc_edit_btn"
-                                                    class="w-30px h-30 rounded d-flex align-items-center justify-content-center btn--primary btn px-3 icon-btn">
+                                                <button type="button" id="doc_edit_btn" class="w-30px h-30 rounded d-flex align-items-center justify-content-center btn--primary btn px-3 icon-btn">
                                                     <i class="tio-edit"></i>
                                                 </button>
                                             </div>
                                         </div>
                                         <div>
                                             <div id="file-assets"
-                                                data-picture-icon="{{ asset('public/assets/admin/img/picture.svg') }}"
-                                                data-document-icon="{{ asset('public/assets/admin/img/document.svg') }}"
-                                                data-blank-thumbnail="{{ asset('public/assets/admin/img/picture.svg') }}">
+                                                 data-picture-icon="{{ asset('public/assets/admin/img/picture.svg') }}"
+                                                 data-document-icon="{{ asset('public/assets/admin/img/document.svg') }}"
+                                                 data-blank-thumbnail="{{ asset('public/assets/admin/img/picture.svg') }}">
                                             </div>
                                             <!-- Upload box -->
                                             <div class="d-flex justify-content-center" id="pdf-container">
                                                 <div class="document-upload-wrapper d-none" id="doc-upload-wrapper">
-                                                    <input type="file" name="tin_certificate_image"
-                                                        class="document_input" accept=".doc, .pdf, .jpg, .png, .jpeg">
+                                                    <input type="file" name="tin_certificate_image" class="document_input" accept=".doc, .pdf, .jpg, .png, .jpeg">
                                                     <div class="textbox">
                                                         <img width="40" height="40" class="svg"
-                                                            src="{{ asset('public/assets/admin/img/doc-uploaded.png') }}"
-                                                            alt="">
-                                                        <p class="fs-12 mb-0">Select a file or <span
-                                                                class="font-semibold">Drag & Drop</span>
+                                                             src="{{ asset('public/assets/admin/img/doc-uploaded.png') }}"
+                                                             alt="">
+                                                        <p class="fs-12 mb-0">Select a file or <span class="font-semibold">Drag & Drop</span>
                                                             here</p>
                                                     </div>
                                                 </div>
-                                                <div class="pdf-single" data-file-name="${file.name}"
-                                                    data-file-url="{{ $store->tin_certificate_image_full_url ?? asset('public/assets/admin/img/upload-cloud.png') }}">
+                                                <div class="pdf-single" data-file-name="${file.name}" data-file-url="{{ $store->tin_certificate_image_full_url ?? asset('public/assets/admin/img/upload-cloud.png') }}">
                                                     <div class="pdf-frame">
-                                                        @php($imgPath = $store->tin_certificate_image_full_url ?? asset('public/assets/admin/img/upload-cloud.png'))
-                                                        @if (Str::endsWith($imgPath, ['.pdf', '.doc', '.docx']))
-                                                            @php($imgPath = asset('public/assets/admin/img/document.svg'))
+                                                        @php($imgPath =  $store->tin_certificate_image_full_url ?? asset('public/assets/admin/img/upload-cloud.png'))
+                                                        @if(Str::endsWith($imgPath, ['.pdf', '.doc', '.docx']))
+                                                            @php($imgPath =  asset('public/assets/admin/img/document.svg'))
                                                         @endif
-                                                        <img class="pdf-thumbnail-alt" src="{{ $imgPath }}"
-                                                            alt="File Thumbnail">
+                                                        <img class="pdf-thumbnail-alt" src="{{ $imgPath }}" alt="File Thumbnail">
                                                     </div>
                                                     <div class="overlay">
                                                         <div class="pdf-info">
-                                                            @if (Str::endsWith($imgPath, ['.pdf', '.doc', '.docx']))
-                                                                <img src="{{ asset('public/assets/admin/img/document.svg') }}"
-                                                                    width="34" alt="File Type Logo">
+                                                            @if(Str::endsWith($imgPath, ['.pdf', '.doc', '.docx']))
+                                                                <img src="{{ asset('public/assets/admin/img/document.svg') }}" width="34" alt="File Type Logo">
                                                             @else
-                                                                <img src="{{ asset('public/assets/admin/img/picture.svg') }}"
-                                                                    width="34" alt="File Type Logo">
+                                                                <img src="{{ asset('public/assets/admin/img/picture.svg') }}" width="34" alt="File Type Logo">
                                                             @endif
                                                             <div class="file-name-wrapper">
-                                                                <span
-                                                                    class="file-name js-filename-truncate">{{ $store->tin_certificate_image }}</span>
+                                                                <span class="file-name js-filename-truncate">{{ $store->tin_certificate_image }}</span>
                                                                 <span class="opacity-50">Click to view the file</span>
                                                             </div>
                                                         </div>
@@ -707,9 +559,8 @@
                 </div>
                 <div class="col-lg-12">
                     <div class="btn--container justify-content-end">
-                        <button type="reset" id="reset_btn"
-                            class="btn btn--reset">{{ translate('messages.reset') }}</button>
-                        <button type="submit" class="btn btn--primary">{{ translate('messages.submit') }}</button>
+                        <button type="reset" id="reset_btn" class="btn btn--reset">{{translate('messages.reset')}}</button>
+                        <button type="submit" class="btn btn--primary">{{translate('messages.submit')}}</button>
                     </div>
                 </div>
             </div>
@@ -723,140 +574,66 @@
     <script src="{{ asset('public/assets/admin/js/file-preview/pdf-worker.min.js') }}"></script>
     <script src="{{ asset('public/assets/admin/js/file-preview/edit-multiple-document-upload.js') }}"></script>
 
-    <script src="{{ asset('public/assets/admin/js/spartan-multi-image-picker.js') }}"></script>
+    <script src="{{asset('public/assets/admin/js/spartan-multi-image-picker.js')}}"></script>
     <script src="https://polyfill.io/v3/polyfill.min.js?features=default"></script>
-    <script
-        src="https://maps.googleapis.com/maps/api/js?key={{ \App\Models\BusinessSetting::where('key', 'map_api_key')->first()->value }}&libraries=places&callback=initMap&v=3.45.8">
-    </script>
+    <script src="https://maps.googleapis.com/maps/api/js?key={{\App\Models\BusinessSetting::where('key', 'map_api_key')->first()->value}}&libraries=places&callback=initMap&v=3.45.8"></script>
+
 <script>
-    
-        document.addEventListener('DOMContentLoaded', function() {
-            const staffContainer = document.getElementById('staffContainer');
-            const addStaffBtn = document.getElementById('addStaffBtn');
-            const staffDataInput = document.getElementById('staffDataInput');
-
-            // Get initial index
-            let staffIndex = staffContainer.querySelectorAll('.staff-item').length;
-
-            // Function to update hidden input
-            function updateStaffData() {
-                const staffItems = staffContainer.querySelectorAll('.staff-item');
-                const staffArray = [];
-
-                staffItems.forEach(item => {
-                    const name = item.querySelector('.staff-name').value.trim();
-                    const role = item.querySelector('.staff-role').value.trim();
-                    const phone = item.querySelector('.staff-phone').value.trim();
-                    if (name !== '' || role !== '' || phone !== '') {
-                        staffArray.push({
-                            name,
-                            role,
-                            phone
-                        });
-                    }
-                });
-
-                staffDataInput.value = JSON.stringify(staffArray);
-            }
-
-            // Add new staff row
-            addStaffBtn.addEventListener('click', () => {
-                alert('here');
-                const div = document.createElement('div');
-                div.classList.add('staff-item', 'mb-3');
-                div.setAttribute('data-index', staffIndex);
-                div.innerHTML = `
-            <div class="row g-2 align-items-center">
-                <div class="col-md-4">
-                    <input type="text" class="form-control staff-name" placeholder="Staff Name">
-                </div>
-                <div class="col-md-4">
-                    <input type="text" class="form-control staff-role" placeholder="Staff Role">
-                </div>
-                <div class="col-md-3">
-                    <input type="text" class="form-control staff-phone" placeholder="Phone">
-                </div>
-                <div class="col-md-1 text-end">
-                    <button type="button" class="btn btn-danger btn-sm removeStaffBtn">✕</button>
-                </div>
-            </div>
-        `;
-                staffContainer.appendChild(div);
-                staffIndex++;
-                updateStaffData();
-            });
-
-            // Remove staff row
-            staffContainer.addEventListener('click', function(e) {
-                if (e.target.classList.contains('removeStaffBtn')) {
-                    e.target.closest('.staff-item').remove();
-                    updateStaffData();
-                }
-            });
-
-            // Update hidden input when user edits inputs
-            staffContainer.addEventListener('input', updateStaffData);
-
-            // Initialize hidden input on page load
-            updateStaffData();
-        });
+$(document).ready(function(){
+  $('#voucher_id').select2({
+    placeholder: $('#voucher_id').data('placeholder'),
+    allowClear: true,
+    width: '100%'
+  });
+});
 </script>
-    <script>
-        $(document).ready(function() {
-            $('#voucher_id').select2({
-                placeholder: $('#voucher_id').data('placeholder'),
-                allowClear: true,
-                width: '100%'
-            });
-        });
-    </script>
-    <script>
-        $(document).ready(function() {
-            $('#category_id').select2({
-                placeholder: $('#category_id').data('placeholder'),
-                allowClear: true,
-                width: '100%'
-            });
-        });
-    </script>
+<script>
+$(document).ready(function(){
+  $('#category_id').select2({
+    placeholder: $('#category_id').data('placeholder'),
+    allowClear: true,
+    width: '100%'
+  });
+});
+</script>
 
     <script>
-        function toggleSubBranch() {
-            let checkbox = document.getElementById("type");
-            let subBranch = document.getElementById("sub_branch_group");
-            let hiiden_check = document.getElementById("hiiden_check");
+    function toggleSubBranch() {
+        let checkbox = document.getElementById("type");
+        let subBranch = document.getElementById("sub_branch_group");
+        let hiiden_check = document.getElementById("hiiden_check");
 
-            if (checkbox.checked) {
-                subBranch.style.display = "none"; // Hide sub branch
-                hiiden_check.value = "1"; // Hide sub branch
-            } else {
-                subBranch.style.display = "block"; // Show sub branch
-                hiiden_check.value = "0"; // Show sub branch
-            }
+        if (checkbox.checked) {
+            subBranch.style.display = "none"; // Hide sub branch
+            hiiden_check.value = "1"; // Hide sub branch
+        } else {
+            subBranch.style.display = "block"; // Show sub branch
+            hiiden_check.value = "0"; // Show sub branch
         }
+    }
 
-        // Call on page load (so it respects old value)
-        document.addEventListener("DOMContentLoaded", toggleSubBranch);
+    // Call on page load (so it respects old value)
+    document.addEventListener("DOMContentLoaded", toggleSubBranch);
 
-        // Call when checkbox changes
-        document.getElementById("type").addEventListener("change", toggleSubBranch);
-    </script>
+    // Call when checkbox changes
+    document.getElementById("type").addEventListener("change", toggleSubBranch);
+</script>
 
 
     <script>
-        "use strict";
-        $("#vendor_form").on('keydown', function(e) {
-            if (e.keyCode === 13) {
-                e.preventDefault();
-            }
-        })
-        $(document).on('ready', function() {
-            $('.offcanvas').on('click', function() {
-                $('.offcanvas, .floating--date').removeClass('active')
+            "use strict";
+            $("#vendor_form").on('keydown', function(e){
+                if (e.keyCode === 13) {
+                    e.preventDefault();
+                }
             })
-            $('.floating-date-toggler').on('click', function() {
-                $('.offcanvas, .floating--date').toggleClass('active')
-            })
+        $(document).on('ready', function () {
+                $('.offcanvas').on('click', function(){
+                    $('.offcanvas, .floating--date').removeClass('active')
+                })
+                $('.floating-date-toggler').on('click', function(){
+                    $('.offcanvas, .floating--date').toggleClass('active')
+                })
             @if (isset(auth('admin')->user()->zone_id))
                 $('#choice_zones').trigger('change');
             @endif
@@ -866,22 +643,22 @@
             if (input.files && input.files[0]) {
                 let reader = new FileReader();
 
-                reader.onload = function(e) {
-                    $('#' + viewer).attr('src', e.target.result);
+                reader.onload = function (e) {
+                    $('#'+viewer).attr('src', e.target.result);
                 }
 
                 reader.readAsDataURL(input.files[0]);
             }
         }
 
-        $("#customFileEg1").change(function() {
+        $("#customFileEg1").change(function () {
             readURL(this, 'viewer');
         });
 
-        $("#coverImageUpload").change(function() {
+        $("#coverImageUpload").change(function () {
             readURL(this, 'coverImageViewer');
         });
-        $(function() {
+        $(function () {
             $("#coba").spartanMultiImagePicker({
                 fieldName: 'identity_image[]',
                 maxCount: 5,
@@ -889,28 +666,27 @@
                 groupClassName: 'col-lg-2 col-md-4 col-sm-4 col-6',
                 maxFileSize: '',
                 placeholderImage: {
-                    image: '{{ asset('public/assets/admin/img/400x400/img2.jpg') }}',
+                    image: '{{asset('public/assets/admin/img/400x400/img2.jpg')}}',
                     width: '100%'
                 },
                 dropFileLabel: "Drop Here",
-                onAddRow: function(index, file) {
+                onAddRow: function (index, file) {
 
                 },
-                onRenderedPreview: function(index) {
+                onRenderedPreview: function (index) {
 
                 },
-                onRemoveRow: function(index) {
+                onRemoveRow: function (index) {
 
                 },
-                onExtensionErr: function(index, file) {
-                    toastr.error(
-                        '{{ translate('messages.please_only_input_png_or_jpg_type_file') }}', {
-                            CloseButton: true,
-                            ProgressBar: true
-                        });
+                onExtensionErr: function (index, file) {
+                    toastr.error('{{translate('messages.please_only_input_png_or_jpg_type_file')}}', {
+                        CloseButton: true,
+                        ProgressBar: true
+                    });
                 },
-                onSizeErr: function(index, file) {
-                    toastr.error('{{ translate('messages.file_size_too_big') }}', {
+                onSizeErr: function (index, file) {
+                    toastr.error('{{translate('messages.file_size_too_big')}}', {
                         CloseButton: true,
                         ProgressBar: true
                     });
@@ -918,30 +694,23 @@
             });
         });
 
-        let myLatlng = {
-            lat: {{ $store->latitude }},
-            lng: {{ $store->longitude }}
-        };
+        let myLatlng = { lat: {{$store->latitude}}, lng: {{$store->longitude}} };
         const map = new google.maps.Map(document.getElementById("map"), {
             zoom: 13,
             center: myLatlng,
         });
         let zonePolygon = null;
         let infoWindow = new google.maps.InfoWindow({
-            content: "Click the map to get Lat/Lng!",
-            position: myLatlng,
-        });
+                content: "Click the map to get Lat/Lng!",
+                position: myLatlng,
+            });
         let bounds = new google.maps.LatLngBounds();
-
         function initMap() {
             // Create the initial InfoWindow.
             new google.maps.Marker({
-                position: {
-                    lat: {{ $store->latitude }},
-                    lng: {{ $store->longitude }}
-                },
+                position: { lat: {{$store->latitude}}, lng: {{$store->longitude}} },
                 map,
-                title: "{{ $store->name }}",
+                title: "{{$store->name}}",
             });
             infoWindow.open(map);
             const input = document.getElementById("pac-input");
@@ -951,11 +720,11 @@
             searchBox.addListener("places_changed", () => {
                 const places = searchBox.getPlaces();
                 if (places.length == 0) {
-                    return;
+                return;
                 }
                 // Clear out the old markers.
                 markers.forEach((marker) => {
-                    marker.setMap(null);
+                marker.setMap(null);
                 });
                 markers = [];
                 // For each place, get the icon, name and location.
@@ -977,10 +746,10 @@
                     // Create a marker for each place.
                     markers.push(
                         new google.maps.Marker({
-                            map,
-                            icon,
-                            title: place.name,
-                            position: place.geometry.location,
+                        map,
+                        icon,
+                        title: place.name,
+                        position: place.geometry.location,
                         })
                     );
 
@@ -995,13 +764,14 @@
             });
         }
         initMap();
-        $('.get_zone_data').on('change', function() {
+        $('.get_zone_data').on('change',function (){
             let id = $(this).val();
             $.get({
-                url: '{{ url('/') }}/admin/zone/get-coordinates/' + id,
+                url: '{{url('/')}}/admin/zone/get-coordinates/'+id,
                 dataType: 'json',
-                success: function(data) {
-                    if (zonePolygon) {
+                success: function (data) {
+                    if(zonePolygon)
+                    {
                         zonePolygon.setMap(null);
                     }
                     zonePolygon = new google.maps.Polygon({
@@ -1014,16 +784,14 @@
                     });
                     zonePolygon.setMap(map);
                     map.setCenter(data.center);
-                    google.maps.event.addListener(zonePolygon, 'click', function(mapsMouseEvent) {
+                    google.maps.event.addListener(zonePolygon, 'click', function (mapsMouseEvent) {
                         infoWindow.close();
                         // Create a new InfoWindow.
                         infoWindow = new google.maps.InfoWindow({
-                            position: mapsMouseEvent.latLng,
-                            content: JSON.stringify(mapsMouseEvent.latLng.toJSON(),
-                                null, 2),
+                        position: mapsMouseEvent.latLng,
+                        content: JSON.stringify(mapsMouseEvent.latLng.toJSON(), null, 2),
                         });
-                        let coordinates = JSON.stringify(mapsMouseEvent.latLng.toJSON(), null,
-                            2);
+                        let coordinates = JSON.stringify(mapsMouseEvent.latLng.toJSON(), null, 2);
                         coordinates = JSON.parse(coordinates);
 
                         document.getElementById('latitude').value = coordinates['lat'];
@@ -1033,13 +801,14 @@
                 },
             });
         })
-        $(document).on('ready', function() {
+        $(document).on('ready', function (){
             let id = $('#choice_zones').val();
             $.get({
-                url: '{{ url('/') }}/admin/zone/get-coordinates/' + id,
+                url: '{{url('/')}}/admin/zone/get-coordinates/'+id,
                 dataType: 'json',
-                success: function(data) {
-                    if (zonePolygon) {
+                success: function (data) {
+                    if(zonePolygon)
+                    {
                         zonePolygon.setMap(null);
                     }
                     zonePolygon = new google.maps.Polygon({
@@ -1058,16 +827,14 @@
                         });
                     });
                     map.setCenter(data.center);
-                    google.maps.event.addListener(zonePolygon, 'click', function(mapsMouseEvent) {
+                    google.maps.event.addListener(zonePolygon, 'click', function (mapsMouseEvent) {
                         infoWindow.close();
                         // Create a new InfoWindow.
                         infoWindow = new google.maps.InfoWindow({
-                            position: mapsMouseEvent.latLng,
-                            content: JSON.stringify(mapsMouseEvent.latLng.toJSON(),
-                                null, 2),
+                        position: mapsMouseEvent.latLng,
+                        content: JSON.stringify(mapsMouseEvent.latLng.toJSON(), null, 2),
                         });
-                        let coordinates = JSON.stringify(mapsMouseEvent.latLng.toJSON(), null,
-                            2);
+                        let coordinates = JSON.stringify(mapsMouseEvent.latLng.toJSON(), null, 2);
                         coordinates = JSON.parse(coordinates);
 
                         document.getElementById('latitude').value = coordinates['lat'];
@@ -1078,44 +845,45 @@
             });
         });
 
-        $('#reset_btn').click(function() {
-            $('#viewer').attr('src', "{{ asset('public/assets/admin/img/upload.png') }}");
-            $('#customFileEg1').val(null);
-            $('#coverImageViewer').attr('src', "{{ asset('public/assets/admin/img/upload-img.png') }}");
-            $('#coverImageUpload').val(null);
-            $('#choice_zones').val(null).trigger('change');
-            $('#module_id').val(null).trigger('change');
-            zonePolygon.setMap(null);
-            $('#coordinates').val(null);
-            $('#latitude').val(null);
-            $('#longitude').val(null);
-        })
+    $('#reset_btn').click(function(){
+        $('#viewer').attr('src', "{{ asset('public/assets/admin/img/upload.png') }}");
+        $('#customFileEg1').val(null);
+        $('#coverImageViewer').attr('src', "{{ asset('public/assets/admin/img/upload-img.png') }}");
+        $('#coverImageUpload').val(null);
+        $('#choice_zones').val(null).trigger('change');
+        $('#module_id').val(null).trigger('change');
+        zonePolygon.setMap(null);
+        $('#coordinates').val(null);
+        $('#latitude').val(null);
+        $('#longitude').val(null);
+    })
 
-        let zone_id = 0;
-        $('#choice_zones').on('change', function() {
-            if ($(this).val()) {
-                zone_id = $(this).val();
-            }
-        });
+    let zone_id = 0;
+    $('#choice_zones').on('change', function() {
+        if($(this).val())
+    {
+        zone_id = $(this).val();
+    }
+    });
 
 
 
-        $('#module_id').select2({
+    $('#module_id').select2({
             ajax: {
-                url: '{{ url('/') }}/vendor/get-all-modules',
-                data: function(params) {
+                 url: '{{url('/')}}/vendor/get-all-modules',
+                data: function (params) {
                     return {
                         q: params.term, // search term
                         page: params.page,
                         zone_id: zone_id
                     };
                 },
-                processResults: function(data) {
+                processResults: function (data) {
                     return {
-                        results: data
+                    results: data
                     };
                 },
-                __port: function(params, success, failure) {
+                __port: function (params, success, failure) {
                     let $request = $.ajax(params);
 
                     $request.then(success);
@@ -1127,21 +895,21 @@
         });
 
 
-        $('.delivery-time').on('click', function() {
-            let min = $("#minimum_delivery_time").val();
-            let max = $("#maximum_delivery_time").val();
-            let type = $("#delivery_time_type").val();
-            $("#floating--date").removeClass('active');
-            $("#time_view").val(min + ' to ' + max + ' ' + type);
+    $('.delivery-time').on('click',function (){
+        let min = $("#minimum_delivery_time").val();
+        let max = $("#maximum_delivery_time").val();
+        let type = $("#delivery_time_type").val();
+        $("#floating--date").removeClass('active');
+        $("#time_view").val(min+' to '+max+' '+type);
 
-        })
-        $(document).ready(function() {
+    })
+        $(document).ready(function () {
             function previewFile(inputSelector, previewImgSelector, textBoxSelector) {
                 const input = $(inputSelector);
                 const imagePreview = $(previewImgSelector);
                 const textBox = $(textBoxSelector);
 
-                input.on('change', function() {
+                input.on('change', function () {
                     const file = this.files[0];
                     if (!file) return;
 
@@ -1150,14 +918,13 @@
 
                     if (validImageTypes.includes(fileType)) {
                         const reader = new FileReader();
-                        reader.onload = function(e) {
+                        reader.onload = function (e) {
                             imagePreview.attr('src', e.target.result).removeClass('display-none');
                             textBox.hide();
                         };
                         reader.readAsDataURL(file);
                     } else {
-                        imagePreview.attr('src', '{{ asset('public/assets/admin/img/file-icon.png') }}')
-                            .removeClass('display-none');
+                        imagePreview.attr('src', '{{ asset('public/assets/admin/img/file-icon.png') }}').removeClass('display-none');
                         textBox.hide();
                     }
                 });
@@ -1165,14 +932,5 @@
 
             previewFile('#tin_certificate_image', '#logoImageViewer2', '.upload-file__textbox');
         });
-
-
-
-
-
-
-
-
-
-    </script>
+</script>
 @endpush

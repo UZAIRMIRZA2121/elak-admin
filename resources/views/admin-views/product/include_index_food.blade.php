@@ -249,7 +249,7 @@
                     </div>
 
 
-                    <div class="col-sm-6" id="allergy">
+                    {{-- <div class="col-sm-6" id="allergy">
                         <label class="input-label" for="sub-categories">
                             {{ translate('Allegren Ingredients') }}
                             <span class="input-label-secondary"
@@ -265,10 +265,10 @@
                                 <option value="{{ $allergy->allergy }}">{{ $allergy->allergy }}</option>
                             @endforeach
                         </select>
-                    </div>
+                    </div> --}}
                 @endif
 
-                <div class="col-sm-6 col-lg-3" id="maximum_cart_quantity">
+                {{-- <div class="col-sm-6 col-lg-3" id="maximum_cart_quantity">
                     <div class="form-group mb-0">
                         <label class="input-label"
                             for="maximum_cart_quantity">{{ translate('messages.Maximum_Purchase_Quantity_Limit') }}
@@ -282,7 +282,7 @@
                             class="form-control" name="maximum_cart_quantity" min="0"
                             id="cart_quantity">
                     </div>
-                </div>
+                </div> --}}
                 <div class="col-sm-6 col-lg-3" id="organic">
                     <div class="form-check mb-sm-2 pb-sm-1">
                         <input class="form-check-input" name="organic" type="checkbox" value="1"

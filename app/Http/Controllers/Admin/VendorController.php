@@ -64,7 +64,7 @@ class VendorController extends Controller
 
     public function store(Request $request)
     {
-     
+
         $validator = Validator::make($request->all(), [
             'f_name' => 'required|max:100',
             'l_name' => 'nullable|max:100',
@@ -109,7 +109,6 @@ class VendorController extends Controller
             'agreement_start_date' => 'required',
             'agreement_expire_date' => 'required',
             'agreement_certificate_image' => 'required',
-            'agreement_certificate_image.*' => 'mimes:doc,docx,pdf,jpg,png,jpeg|max:5000',
         ], [
             'f_name.required' => translate('messages.first_name_is_required'),
             'name.0.required' => translate('default_name_is_required'),
@@ -159,13 +158,6 @@ class VendorController extends Controller
         $vendor->password = bcrypt($request->password);
         $vendor->save();
 
-  $certificate_paths = [];
-  foreach ($request->file('agreement_certificate_image') as $file) {
-    $extension = $file->getClientOriginalExtension();
-    $path = Helpers::upload('store/', $extension, $file);
-    $certificate_paths[] = $path; // store path
-}
-
 
         $store = new Store;
 
@@ -205,12 +197,14 @@ class VendorController extends Controller
         $store->agreement_start_date = $request->agreement_start_date;
         $store->agreement_expire_date = $request->agreement_expire_date;
 
-      
-     
-
-        $store->agreement_certificate_image = json_encode($certificate_paths);
-
-
+        if ($request->hasFile('agreement_certificate_image')) {
+            $extension = $request->file('agreement_certificate_image')->getClientOriginalExtension();
+            $store->agreement_certificate_image = Helpers::upload(
+                'store/',
+                $extension,
+                $request->file('agreement_certificate_image')
+            );
+        }
 
         // delivery time
         $store->delivery_time = $request->minimum_delivery_time
@@ -227,7 +221,7 @@ class VendorController extends Controller
             // save data
             $store->save();
 
-              
+
             // $store->module->increment('stores_count');
             if (config('module.' . $store->module->module_type)['always_open']) {
                 StoreLogic::insert_schedule($store->id);
