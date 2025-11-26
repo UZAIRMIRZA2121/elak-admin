@@ -1,5 +1,0 @@
-Add staff information and agreement details to vendor view page
-
-- Introduced a new card section for displaying staff information, including name, role, and phone number.
-- Added a card for store agreements, showing agreement certificate link, start date, and end date.
-- Updated the layout to enhance the presentation of business TIN and its related information.
