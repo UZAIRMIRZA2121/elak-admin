@@ -12,6 +12,7 @@ class AppBanner extends Model
 
     protected $fillable = [
         'app_id',          // NEW
+        
         'title',
         'type_priority',
         'image_or_video',
