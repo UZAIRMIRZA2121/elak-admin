@@ -11,7 +11,8 @@ class AppBanner extends Model
        protected $table = 'app_banners'; // ya jo bhi tumhara table ka naam hai
 
     protected $fillable = [
-        'app_owner_name',
+        'app_id',          // NEW
+        
         'title',
         'type_priority',
         'image_or_video',
