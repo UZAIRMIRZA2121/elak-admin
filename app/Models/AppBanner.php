@@ -8,11 +8,10 @@ use Illuminate\Database\Eloquent\Model;
 class AppBanner extends Model
 {
     use HasFactory;
-       protected $table = 'app_banners'; // ya jo bhi tumhara table ka naam hai
+    protected $table = 'app_banners'; // ya jo bhi tumhara table ka naam hai
 
     protected $fillable = [
         'app_id',          // NEW
-        
         'title',
         'type_priority',
         'image_or_video',
@@ -25,4 +24,10 @@ class AppBanner extends Model
         'voucher_type',
         'external_lnk',
     ];
+
+    public function app()
+    {
+        return $this->belongsTo(App::class, 'app_id');
+    }
+
 }

@@ -27,4 +27,9 @@ class Client extends Authenticatable
         'password',
         'remember_token', // 👈 ye bhi add karo
     ];
+    public function apps()
+    {
+        return $this->hasMany(App::class, 'client_id');
+    }
+
 }
