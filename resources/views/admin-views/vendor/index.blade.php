@@ -5,6 +5,50 @@
 
 
 @section('content')
+    <style>
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 48px;
+            height: 24px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            inset: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 24px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked+.slider {
+            background-color: #28a745;
+        }
+
+        input:checked+.slider:before {
+            transform: translateX(24px);
+        }
+    </style>
+
     <div class="content container-fluid">
         <!-- Page Header -->
         <div class="page-header">
@@ -273,17 +317,25 @@
                                             placeholder="{{ translate('messages.Ex:') }} 103.344322" id="longitude"
                                             value="{{ old('longitude') }}" required readonly>
                                     </div>
+
                                     <div class="form-group mb-5">
                                         <input type="hidden" name="hiiden_check" id="hiiden_check" value="0">
-                                        <label class="input-label" for="type">
+
+                                        <label class="input-label d-block mb-2">
                                             {{ translate('Is Main Branch') }}
                                             <span class="form-label-secondary" data-toggle="tooltip"
                                                 data-placement="right"
-                                                data-original-title="{{ translate('messages.store_lat_lng_warning') }}"></span>
-                                            <input type="checkbox" name="type" id="type" class="mt-2"
-                                                value="1" {{ old('type') ? 'checked' : '' }}>
+                                                data-original-title="{{ translate('messages.store_lat_lng_warning') }}">
+                                            </span>
+                                        </label>
+
+                                        <label class="switch">
+                                            <input type="checkbox" id="type" name="type" value="1"
+                                                {{ old('type') ? 'checked' : '' }}>
+                                            <span class="slider"></span>
                                         </label>
                                     </div>
+
 
                                     <div class="form-group" id="sub_branch_group">
                                         <label class="input-label" for="parent_id">
@@ -569,22 +621,31 @@
                                                 data-document-icon="{{ asset('public/assets/admin/img/document.svg') }}"
                                                 data-blank-thumbnail="{{ asset('public/assets/admin/img/picture.svg') }}">
                                             </div>
+
                                             <!-- Upload box -->
                                             <div class="d-flex justify-content-center" id="pdf-container">
                                                 <div class="document-upload-wrapper" id="doc-upload-wrapper">
-                                                    <input type="file" name="agreement_certificate_image"
-                                                        class="document_input" accept=".doc, .pdf, .jpg, .png, .jpeg">
+
+                                                    <!-- Multiple files allowed -->
+                                                    <input type="file" name="agreement_certificate_image[]"
+                                                        class="document_input" accept=".doc,.docx,.pdf,.jpg,.png,.jpeg"
+                                                        multiple>
+
                                                     <div class="textbox">
                                                         <img width="40" height="40" class="svg"
                                                             src="{{ asset('public/assets/admin/img/doc-uploaded.png') }}"
                                                             alt="">
-                                                        <p class="fs-12 mb-0">Select a file or <span
-                                                                class="font-semibold">Drag & Drop</span>
-                                                            here</p>
+                                                        <p class="fs-12 mb-0">
+                                                            Select files or <span class="font-semibold">Drag & Drop</span>
+                                                            here
+                                                        </p>
                                                     </div>
                                                 </div>
                                             </div>
+
+
                                         </div>
+
                                     </div>
                                 </div>
                             </div>
@@ -600,7 +661,23 @@
                 </div>
             </div>
         </form>
+        <!-- File preview list -->
+        <ul id="file-preview-list" class="mt-3"></ul>
     </div>
+
+    <script>
+        document.querySelector('.document_input').addEventListener('change', function() {
+            const previewList = document.getElementById('file-preview-list');
+            previewList.innerHTML = "";
+
+            Array.from(this.files).forEach(file => {
+                const li = document.createElement('li');
+                li.textContent = file.name + " (" + Math.round(file.size / 1024) + " KB)";
+                li.style.fontSize = "14px";
+                previewList.appendChild(li);
+            });
+        });
+    </script>
 
 @endsection
 

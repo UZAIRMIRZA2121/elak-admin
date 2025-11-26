@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Models\App;
 use DateTime;
 use App\Models\Item;
 use App\Models\User;
@@ -48,7 +49,8 @@ class ClientSideController extends Controller
         protected ZoneRepositoryInterface $zoneRepo,
         protected ZoneService $zoneService,
         protected TranslationRepositoryInterface $translationRepo
-    ) {}
+    ) {
+    }
 
 
     public function export_account_transaction(Request $request)
@@ -88,7 +90,8 @@ class ClientSideController extends Controller
 
             return $client;
         });
-        return view('admin-views.client-side.index', compact('clients', 'Segment'));
+        $app = App::all();
+        return view('admin-views.client-side.index', compact('clients', 'Segment', 'app'));
     }
 
     public function store(Request $request)
@@ -317,9 +320,9 @@ class ClientSideController extends Controller
                 $records[] = [
                     'segment_id' => $request->segment_type,
                     'client_id' => $request->select_client,
-                    'role'       => 'user',
-                    'status'       => 0,
-                    'ref_by'     => $startRef + $i,
+                    'role' => 'user',
+                    'status' => 0,
+                    'ref_by' => $startRef + $i,
                     'created_at' => now(),
                     'updated_at' => now(),
                 ];
@@ -353,32 +356,32 @@ class ClientSideController extends Controller
     //     return response()->json($segments);
     // }
 
-public function getSegments($clientIds)
-{
-    // String ko array me convert karo
-    $ids = array_filter(array_map('trim', explode(',', $clientIds)));
+    public function getSegments($clientIds)
+    {
+        // String ko array me convert karo
+        $ids = array_filter(array_map('trim', explode(',', $clientIds)));
 
-    // Ab multiple clients nikal lo
-    $clients = Client::whereIn('id', $ids)->get();
-    $allSegmentIds = [];
+        // Ab multiple clients nikal lo
+        $clients = Client::whereIn('id', $ids)->get();
+        $allSegmentIds = [];
 
-    foreach ($clients as $client) {
-        if (!empty($client->type)) {
-            // Client ke type se segment IDs nikal lo
-            $segmentIds = array_filter(array_map('trim', explode(',', $client->type)));
-            $allSegmentIds = array_merge($allSegmentIds, $segmentIds);
+        foreach ($clients as $client) {
+            if (!empty($client->type)) {
+                // Client ke type se segment IDs nikal lo
+                $segmentIds = array_filter(array_map('trim', explode(',', $client->type)));
+                $allSegmentIds = array_merge($allSegmentIds, $segmentIds);
+            }
         }
+
+        // Duplicate IDs remove karo
+        $allSegmentIds = array_unique($allSegmentIds);
+
+        // Final segments lao
+        $segments = Segment::whereIn('id', $allSegmentIds)->get();
+        // dd($segments);
+
+        return response()->json($segments);
     }
-
-    // Duplicate IDs remove karo
-    $allSegmentIds = array_unique($allSegmentIds);
-
-    // Final segments lao
-    $segments = Segment::whereIn('id', $allSegmentIds)->get();
-    // dd($segments);
-
-    return response()->json($segments);
-}
 
 
 
@@ -388,12 +391,12 @@ public function getSegments($clientIds)
         $Segment = Segment::all();
 
         // saare filter values form se le lo
-        $clientId   = $request->input('select_client');
-        $segmentId  = $request->input('segment_type');
-        $refId      = $request->input('ref_id');
-        $status     = $request->input('status');
-        $fromDate   = $request->input('from_date');
-        $toDate     = $request->input('to_date');
+        $clientId = $request->input('select_client');
+        $segmentId = $request->input('segment_type');
+        $refId = $request->input('ref_id');
+        $status = $request->input('status');
+        $fromDate = $request->input('from_date');
+        $toDate = $request->input('to_date');
         // $search     = $request->input('search');
 
         // dd($active);
@@ -445,48 +448,49 @@ public function getSegments($clientIds)
     // banner section
     public function banner(Request $request)
     {
+
         if ($request->isMethod('post')) {
 
             //  Validation
             $validated = $request->validate([
-                'client_id'      => 'required|max:100',
-                'title_name'     => 'required|string|max:255',
-                'zone_id'        => 'required|integer',
-                'banner_type'    => 'required|string',
+                'app_id' => 'required|max:100',
+                'title_name' => 'required|string|max:255',
+                'zone_id' => 'required|integer',
+                'banner_type' => 'required|string',
                 'display_number' => 'required|integer',
 
                 // file image/video
-                'image'          => 'required|file|mimes:jpg,jpeg,png,gif,webp,mp4,mov,avi,mkv|max:20480',
+                'image' => 'required|file|mimes:jpg,jpeg,png,gif,webp,mp4,mov,avi,mkv|max:20480',
 
                 // optional
-                'store_id'       => 'nullable|string',
-                'external_link'  => 'nullable|url',
-                'category'       => 'nullable|string',
-                'voucher'        => 'nullable|string',
-                'voucher_type'   => 'nullable|string',
+                'store_id' => 'nullable|string',
+                'external_link' => 'nullable|url',
+                'category' => 'nullable|string',
+                'voucher' => 'nullable|string',
+                'voucher_type' => 'nullable|string',
             ]);
 
             //  Model create
             $Banner = new AppBanner();
-            $Banner->app_owner_name = $validated['client_id'];
-            $Banner->title          = $validated['title_name'];
-            $Banner->type_priority  = $validated['display_number'];
-            $Banner->status         = 1;
-            $Banner->zone_id        = $validated['zone_id'];
-            $Banner->banner_type    = $validated['banner_type'];
+            $Banner->app_id = $validated['app_id'];
+            $Banner->title = $validated['title_name'];
+            $Banner->type_priority = $validated['display_number'];
+            $Banner->status = 1;
+            $Banner->zone_id = $validated['zone_id'];
+            $Banner->banner_type = $validated['banner_type'];
 
             // optional fields
-            $Banner->store_id     = $validated['store_id']      ?? null;
-            $Banner->voucher_id   = $validated['voucher']       ?? null;
-            $Banner->category_id  = $validated['category']      ?? null;
-            $Banner->voucher_type = $validated['voucher_type']  ?? null;
+            $Banner->store_id = $validated['store_id'] ?? null;
+            $Banner->voucher_id = $validated['voucher'] ?? null;
+            $Banner->category_id = $validated['category'] ?? null;
+            $Banner->voucher_type = $validated['voucher_type'] ?? null;
             $Banner->external_lnk = $validated['external_link'] ?? null;
 
             //  File Upload (image OR video)
             if ($request->hasFile('image')) {
-                $file      = $request->file('image');
+                $file = $request->file('image');
                 $extension = strtolower($file->getClientOriginalExtension());
-                $fileName  = time() . '_' . uniqid() . '.' . $extension;
+                $fileName = time() . '_' . uniqid() . '.' . $extension;
 
                 $imageExt = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
                 $videoExt = ['mp4', 'mov', 'avi', 'mkv'];
@@ -520,53 +524,55 @@ public function getSegments($clientIds)
         // Agar GET ya koi aur request hai
 
         $Banners = AppBanner::paginate(10);
-          $zones = $this->zoneRepo->getList();
-            $clients = Client::all();
-            $category = Category::all();
-        return view("admin-views.client-user.banner", compact('Banners','zones','clients','category'));
+        $zones = $this->zoneRepo->getList();
+        $apps = App::all();
+        $category = Category::all();
+        return view("admin-views.client-user.banner", compact('Banners', 'zones', 'apps', 'category'));
     }
 
     public function edit_banner($id)
     {
         $Banner = AppBanner::findOrFail($id);
-
-        return view('admin-views.client-user.banner_edit', compact('Banner'));
+        $apps = App::all();
+        $zones = $this->zoneRepo->getList();
+        $category = Category::all();
+        return view('admin-views.client-user.banner_edit', compact('Banner', 'apps', 'zones', 'category'));
     }
     public function update_banner(Request $request, $id)
     {
         // Validation
         $validated = $request->validate([
-            'client_id'      => 'required|max:100',
-            'title_name'     => 'required|string|max:255',
-            'zone_id'        => 'required|integer',
-            'banner_type'    => 'required|string',
+            'app_id' => 'required|max:100',
+            'title_name' => 'required|string|max:255',
+            'zone_id' => 'required|integer',
+            'banner_type' => 'required|string',
             'display_number' => 'required|integer',
 
             // file image/video
-            'image'          => 'nullable|file|mimes:jpg,jpeg,png,gif,webp,mp4,mov,avi,mkv|max:20480',
+            'image' => 'nullable|file|mimes:jpg,jpeg,png,gif,webp,mp4,mov,avi,mkv|max:20480',
 
             // optional
-            'store_id'       => 'nullable|string',
-            'external_link'  => 'nullable|url',
-            'category'       => 'nullable|string',
-            'voucher'        => 'nullable|string',
-            'voucher_type'   => 'nullable|string',
+            'store_id' => 'nullable|string',
+            'external_link' => 'nullable|url',
+            'category' => 'nullable|string',
+            'voucher' => 'nullable|string',
+            'voucher_type' => 'nullable|string',
         ]);
 
         // Banner find
         $Banner = AppBanner::findOrFail($id);
-        $Banner->app_owner_name = $validated['client_id'];
-        $Banner->title          = $validated['title_name'];
-        $Banner->type_priority  = $validated['display_number'];
-        $Banner->zone_id        = $validated['zone_id'];
-        $Banner->banner_type    = $validated['banner_type'];
+        $Banner->app_id = $validated['app_id'];
+        $Banner->title = $validated['title_name'];
+        $Banner->type_priority = $validated['display_number'];
+        $Banner->zone_id = $validated['zone_id'];
+        $Banner->banner_type = $validated['banner_type'];
 
         // optional fields
-        $Banner->store_id      = $validated['store_id'] ?? null;
-        $Banner->voucher_id    = $validated['voucher'] ?? null;
-        $Banner->category_id   = $validated['category'] ?? null;
-        $Banner->voucher_type  = $validated['voucher_type'] ?? null;
-        $Banner->external_lnk  = $validated['external_link'] ?? null;
+        $Banner->store_id = $validated['store_id'] ?? null;
+        $Banner->voucher_id = $validated['voucher'] ?? null;
+        $Banner->category_id = $validated['category'] ?? null;
+        $Banner->voucher_type = $validated['voucher_type'] ?? null;
+        $Banner->external_lnk = $validated['external_link'] ?? null;
 
         // File Upload (image OR video)
         if ($request->hasFile('image')) {
@@ -638,63 +644,73 @@ public function getSegments($clientIds)
     public function color_theme(Request $request)
     {
         if ($request->isMethod('post')) {
-            // dd($request->all());
+
             $request->validate([
                 'color_name' => 'required|max:100',
                 'color_code' => 'required',
                 'gradient_option' => 'required',
                 'color_type' => 'required',
+                'app_id' => 'required|integer', // ⭐ NEW VALIDATION
             ]);
 
             $Banner = new ColorTheme();
             $Banner->color_name = $request->color_name;
             $Banner->color_code = $request->color_code;
-            $Banner->color_gradient	 =  $request->gradient_option;
-            $Banner->color_type =  $request->color_type;
+            $Banner->color_gradient = $request->gradient_option;
+            $Banner->color_type = $request->color_type;
+
+            // ⭐ NEW — Save app_id
+            $Banner->app_id = $request->app_id;
+
             $Banner->save();
 
             Toastr::success('Color Theme added successfully');
             return back();
         }
 
-        $Banners = ColorTheme::paginate(10);
+        $colors = ColorTheme::paginate(10);
 
-        return view("admin-views.client-user.colortheme", compact('Banners'));
+        $apps = App::all();
+
+        return view("admin-views.client-user.colortheme", compact('colors', 'apps'));
     }
+
 
     public function edit_color_theme($id)
     {
         $ColorTheme = ColorTheme::findOrFail($id);
-
-        return view('admin-views.client-user.colortheme_edit', compact('ColorTheme'));
+        $apps = App::all();
+        return view('admin-views.client-user.colortheme_edit', compact('ColorTheme', 'apps'));
     }
     public function update_color_theme(Request $request, $id)
     {
         //  Validation
-          $request->validate([
-                'color_name' => 'required|max:100',
-                'color_code' => 'required',
-                'gradient_option' => 'required',
-                'color_type' => 'required',
-            ]);
+        $request->validate([
+            'color_name' => 'required|max:100',
+            'color_code' => 'required',
+            'gradient_option' => 'required',
+            'color_type' => 'required',
+            'app_id' => 'required|integer',   // ⭐ NEW VALIDATION
+        ]);
 
-            if($request->gradient_option == "1"){
+        // Gradient value
+        $gra = $request->gradient_option == "1" ? 1 : 0;
 
-                $gra = 1 ;
-            }else{
-                 $gra = 0;
-            }
-        //  Client/Banner ko find karo
+        // Find Theme
         $ColorTheme = ColorTheme::findOrFail($id);
-        //  Update fields
+
+        // Update fields
         $ColorTheme->color_name = $request->color_name;
         $ColorTheme->color_code = $request->color_code;
-        $ColorTheme->color_gradient	 = $gra;
-        $ColorTheme->color_type =  $request->color_type;
-        //  Save ColorTheme
+        $ColorTheme->color_gradient = $gra;
+        $ColorTheme->color_type = $request->color_type;
+
+        // ⭐ NEW — Update app_id
+        $ColorTheme->app_id = $request->app_id;
+
+        // Save
         $ColorTheme->save();
 
-        //  Success Message
         Toastr::success('Color Theme updated successfully');
         return back();
     }
@@ -702,7 +718,7 @@ public function getSegments($clientIds)
 
     public function delete_color_theme(Request $request, $id)
     {
-         ColorTheme::findOrFail($id);
+        ColorTheme::findOrFail($id);
 
         Toastr::success('Color Theme deleted successfully ');
         return back();

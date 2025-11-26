@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class App extends Model
 {
     use HasFactory;
-   protected $table = 'apps'; // ya jo bhi tumhara table ka naam hai
+    protected $table = 'apps'; // ya jo bhi tumhara table ka naam hai
 
     protected $fillable = [
         'app_name',
@@ -17,5 +17,20 @@ class App extends Model
         'app_type',
         'color_theme',
         'banner',
+        'client_id',  // <-- new
     ];
+    public function client()
+    {
+        return $this->belongsTo(Client::class, 'client_id');
+    }
+    public function colorThemes()
+    {
+        return $this->hasMany(ColorTheme::class, 'app_id');
+    }
+    public function banners()
+    {
+        return $this->hasMany(AppBanner::class, 'app_id');
+    }
+
+
 }

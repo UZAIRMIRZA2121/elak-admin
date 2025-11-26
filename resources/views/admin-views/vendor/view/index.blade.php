@@ -336,21 +336,15 @@
                                     <strong>{{ translate('Store Agreement') }}</strong>
                                     <span>:</span>&nbsp;
 
-                                    @if ($store->agreement_certificate_image)
-                                        <a href="{{ asset('storage/app/public/store-agreement/' . $store->agreement_certificate_image) }}"
-                                            target="_blank">
-                                            {{ translate('View Agreement') }}
-                                        </a>
-                                    @else
-                                        {{ translate('N/A') }}
-                                    @endif
+
                                 </li>
-                                  <li>
+
+                                <li>
                                     <strong>{{ translate('Agreement Start Date') }}</strong>
                                     <span>:</span>&nbsp;
                                     {{ $store->agreement_start_date ? date('d M Y', strtotime($store->agreement_start_date)) : translate('N/A') }}
                                 </li>
-                                  <li>
+                                <li>
                                     <strong>{{ translate('Agreement End Date') }}</strong>
                                     <span>:</span>&nbsp;
                                     {{ $store->agreement_end_date ? date('d M Y', strtotime($store->agreement_expire_date)) : translate('N/A') }}
@@ -360,8 +354,58 @@
                         </div>
                     </div>
 
+
                 </div>
             </div>
+
+            <div class="col-lg-6">
+                <div class="card h-100">
+                    <div class="card-header">
+                        <h5 class="card-title m-0 d-flex align-items-center">
+                            <span class="card-header-icon mr-2">
+                                <i class="tio-crown"></i>
+                            </span>
+                            <span class="ml-1">{{ translate('Agreements Certificate') }}</span>
+                        </h5>
+                    </div>
+
+                    <div class="card-body">
+                        <div class="resturant--info-address">
+                            <ul class="address-info address-info-2 list-unstyled list-unstyled-py-3 text-dark">
+                                <li>
+                                    @if ($store->agreement_certificate_image)
+                                        <?php
+                                            $agreements = json_decode($store->agreement_certificate_image, true);
+                                        ?>
+
+                                        @foreach ($agreements as $agreement)
+                                            <?php
+                                                $ext = pathinfo($agreement, PATHINFO_EXTENSION);
+                                            ?>
+
+                                            @if (in_array(strtolower($ext), ['jpg', 'jpeg', 'png', 'gif']))
+                                                <img src="{{ asset('storage/store/' . $agreement) }}"
+                                                    alt="Agreement Image"
+                                                    style="max-width:150px; max-height:150px; margin:5px; border:1px solid #ccc;">
+                                            @else
+                                                <a href="{{ asset('storage/store/' . $agreement) }}"
+                                                    target="_blank">{{ $agreement }}</a><br>
+                                            @endif
+                                        @endforeach
+                                    @endif
+
+
+                                </li>
+
+
+                            </ul>
+
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
 
 
 
