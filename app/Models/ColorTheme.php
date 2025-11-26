@@ -17,11 +17,5 @@ class ColorTheme extends Model
         "color_gradient",
         "color_type",
         "status",
-        "app_id", // NEW
     ];
-
-    public function app()
-    {
-        return $this->belongsTo(App::class, 'app_id');
-    }
 }

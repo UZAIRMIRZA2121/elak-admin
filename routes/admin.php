@@ -295,6 +295,8 @@ Route::group(['namespace' => 'Admin', 'as' => 'admin.'], function () {
             Route::post('update/{id}', 'GiftOccasionsController@update')->name('update');
             Route::delete('delete/{id}', 'GiftOccasionsController@delete')->name('delete');
             Route::post('status/{id}', 'GiftOccasionsController@status')->name('status');
+            Route::get('gift-occasions/{id}/gallery', 'GiftOccasionsController@getGallery')->name('gallery');
+
         });
         // Gift Occasions
            // MessageTemplate
@@ -386,10 +388,11 @@ Route::group(['namespace' => 'Admin', 'as' => 'admin.'], function () {
             Route::post('update/{id}', 'workmanagementController@update')->name('update');
             Route::delete('delete/{id}', 'workmanagementController@delete')->name('delete');
             Route::post('status/{id}', 'workmanagementController@status')->name('status');
+            Route::get('admin/workmanagement/show/{id}','workmanagementController@show')->name('show');
         });
        // Management Types
 
-              // Management Types
+      // Management Types
         Route::group(['prefix' => 'GeneralResteiction', 'as' => 'GeneralResteiction.'], function () {
             Route::get('add-new', 'GeneralResteictionController@index')->name('add-new');
             Route::get('list', 'GeneralResteictionController@list')->name('list');

@@ -1621,47 +1621,84 @@
     <script>
         getDataFromServer(4)
 
-        function getDataFromServer(storeId) {
+       function getDataFromServer(storeId) {
             $.ajax({
                 url: "{{ route('admin.Voucher.get_document') }}",
                 type: "GET",
                 data: { store_id: storeId },
                 dataType: "json",
                 success: function(response) {
-                console.log(response);
+                    let workHtml = "";
 
-                // 🟢 WorkManagement (list items)
-                // let workHtml = "";
-                // $.each(response.work_management, function(index, item) {
-                //     workHtml += "<li>" + item.guid_title + "</li>";
-                // });
-                // $("#workList").html(workHtml);
+                    $.each(response.work_management, function(index, item) {
+                        // Parse sections from JSON string
+                        let sections = [];
+                        try {
+                            sections = JSON.parse(item.sections);
+                        } catch(e) {
+                            console.error('Error parsing sections:', e);
+                        }
 
-                // 🟢 WorkManagement (show all details)
+                        // Create sections HTML
+                        let sectionsHtml = '';
+                        $.each(sections, function(sIndex, section) {
+                            let stepsHtml = '';
+                            $.each(section.steps, function(stepIndex, step) {
+                                stepsHtml += `
+                                    <li class="mb-2">
+                                        <i class="fas fa-circle text-muted" style="font-size: 6px; vertical-align: middle;"></i>
+                                        <span class="ms-2 text-muted">${step}</span>
+                                    </li>
+                                `;
+                            });
 
+                            sectionsHtml += `
+                                <div class="mb-3">
+                                    <h6 class="fw-semibold text-dark mb-2">${section.title}</h6>
+                                    <ul class="list-unstyled ms-3">
+                                        ${stepsHtml}
+                                    </ul>
+                                </div>
+                            `;
+                        });
 
-                let workHtml = "";
+                        workHtml += `
+                            <div class="card mb-3 work-item shadow-sm">
+                                <!-- Header with checkbox and toggle -->
+                                <div class="card-header bg-white d-flex align-items-center justify-content-between py-3 cursor-pointer"
+                                    onclick="toggleAccordion(${item.id})"
+                                    style="cursor: pointer;">
+                                    <div class="d-flex align-items-center flex-grow-1">
+                                        <input type="checkbox"
+                                            class="form-check-input record-checkbox me-3"
+                                            id="record_${item.id}"
+                                            data-item-id="${item.id}"
+                                            name="howto_work[]"
+                                            onclick="event.stopPropagation()">
+                                        <label for="record_${item.id}"
+                                            class="fw-semibold mb-0 cursor-pointer flex-grow-1"
+                                            style="cursor: pointer;"
+                                            onclick="event.stopPropagation()">
+                                            ${item.guid_title}
+                                        </label>
+                                    </div>
+                                    <i class="fas fa-chevron-down text-muted accordion-icon"
+                                    id="icon_${item.id}"
+                                    style="transition: transform 0.3s ease;"></i>
+                                </div>
 
-                $.each(response.work_management, function(index, item) {
-                    workHtml += `
-                        <div class="work-item mb-4 rounded-lg border p-4 flex items-center gap-3">
-                            <input type="checkbox" class="record-checkbox"
-                                id="record_${item.id}"
-                                data-item-id="${item.id}"
-                                name="howto_work[]">
-                            <label for="record_${item.id}" class="font-bold text-lg cursor-pointer">
-                                ${item.guid_title}
-                            </label>
-                        </div>
-                    `;
-                });
+                                <!-- Accordion Content -->
+                                <div id="content_${item.id}"
+                                    class="accordion-content collapse">
+                                    <div class="card-body bg-light border-top">
+                                        ${sectionsHtml || '<p class="text-muted fst-italic mb-0">No sections available</p>'}
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    });
 
-                $("#workList").html(workHtml);
-
-
-
-
-                let usageHtml = "";
+                    $("#workList").html(workHtml);
 
                 $.each(response.usage_term_management, function (index, term) {
                     usageHtml += `
@@ -1692,6 +1729,36 @@
                 }
             });
         }
+
+// Toggle accordion function using Bootstrap 5
+function toggleAccordion(id) {
+    const content = $(`#content_${id}`);
+    const icon = $(`#icon_${id}`);
+
+    // Toggle Bootstrap collapse
+    content.collapse('toggle');
+
+    // Rotate icon
+    if (icon.hasClass('rotated')) {
+        icon.removeClass('rotated').css('transform', 'rotate(0deg)');
+    } else {
+        icon.addClass('rotated').css('transform', 'rotate(180deg)');
+    }
+}
+
+// Optional: Close all accordions
+function closeAllAccordions() {
+    $('.accordion-content').collapse('hide');
+    $('.accordion-icon').removeClass('rotated').css('transform', 'rotate(0deg)');
+}
+
+// Optional: Open all accordions
+function openAllAccordions() {
+    $('.accordion-content').collapse('show');
+    $('.accordion-icon').addClass('rotated').css('transform', 'rotate(180deg)');
+}
+
+
 
         function bundle(type) {
             // 1. Set the hidden input value

@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('gift_occasions', function (Blueprint $table) {
             $table->id();
             $table->string("title")->nullable();
-            $table->string("icon")->nullable();
+            $table->text("icon")->nullable();
             $table->string("status")->default("active");
             $table->timestamps();
         });

@@ -23,7 +23,7 @@ class workmanagementController extends Controller
         {
             $search = $request->input('search');
 
-          $UsageTermManagement = WorkManagement::query()
+          $WorkManagements = WorkManagement::query()
             ->leftJoin('voucher_types', 'work_management.voucher_id', '=', 'voucher_types.id')
             ->when($search, function ($q) use ($search) {
                 $q->where('work_management.guid_title', 'like', "%{$search}%")
@@ -32,8 +32,8 @@ class workmanagementController extends Controller
             ->orderBy('work_management.guid_title', 'asc')
             ->select('work_management.*', 'voucher_types.name as voucher_name')
             ->paginate(config('default_pagination'));
-            // dd($UsageTermManagement);
-            return view('admin-views.work_management.index', compact('UsageTermManagement'));
+            // dd($WorkManagements);
+            return view('admin-views.work_management.index', compact('WorkManagements'));
         }
 
       public function index(Request $request)
@@ -52,18 +52,49 @@ class workmanagementController extends Controller
         }
 
 
+        // In WorkManagementController
+
+    public function show($id)
+    {
+        try {
+            $workManagement = WorkManagement::findOrFail($id);
+
+            // Get voucher name if voucher_id exists
+            // $voucherName = 'N/A';
+            // if ($workManagement->voucher_id) {
+            //     $voucher = Voucher::find($workManagement->voucher_id);
+            //     $voucherName = $voucher ? $voucher->name : 'N/A';
+            // }
+
+            return response()->json([
+                'id' => $workManagement->id,
+                'guid_title' => $workManagement->guid_title,
+                // 'voucher_name' => $voucherName,
+                'sections' => $workManagement->sections,
+                'status' => $workManagement->status,
+                'created_at' => $workManagement->created_at->format('d M Y, h:i A'),
+                'updated_at' => $workManagement->updated_at->format('d M Y, h:i A'),
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Work Management not found'
+            ], 404);
+        }
+    }
+
+
     public function store(Request $request)
     {
         // Validation
         // dd($request->all());
         $request->validate([
-            'voucher_type'          => 'required|max:100',
+            // 'voucher_type'          => 'required|max:100',
             'guide_title'          => 'required',
             'sections'    => 'required|array',
         ]);
 
         $ManagementType = new WorkManagement();
-        $ManagementType->voucher_id         = $request->voucher_type;
+        // $ManagementType->voucher_id         = $request->voucher_type;
         $ManagementType->guid_title         = $request->guide_title;
         $ManagementType->sections   = json_encode($request->sections);
         $ManagementType->save();
@@ -102,14 +133,14 @@ class workmanagementController extends Controller
 
             //  Validation
             $request->validate([
-            'voucher_type'          => 'required|max:100',
+            // 'voucher_type'          => 'required|max:100',
             'guide_title'          => 'required',
             'sections'    => 'required|array',
         ]);
 
             //  Record find and update
             $ManagementType = WorkManagement::findOrFail($id);
-            $ManagementType->voucher_id         = $request->voucher_type;
+            // $ManagementType->voucher_id         = $request->voucher_type;
             $ManagementType->guid_title         = $request->guide_title;
             $ManagementType->sections   = json_encode($request->sections);
             $ManagementType->save();

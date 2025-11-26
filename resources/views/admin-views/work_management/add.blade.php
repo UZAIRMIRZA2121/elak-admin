@@ -325,7 +325,7 @@
                     </div>
 
                     <!-- Voucher Type Selection -->
-                    <div class="form-group">
+                    {{-- <div class="form-group">
                         <label for="voucher_type">Select Voucher Type *</label>
                         <select id="voucher_type"
                                 name="voucher_type"
@@ -340,7 +340,7 @@
                             @endforeach
                         </select>
                         <div class="error-message" x-show="errors.voucherType" x-text="errors.voucherType"></div>
-                    </div>
+                    </div> --}}
 
                     <!-- Guide Title -->
                     <div class="form-group">
@@ -415,11 +415,6 @@
 
                     <!-- Action Buttons -->
                     <div class="btn--container">
-                        <button type="button"
-                                class="btn btn-secondary"
-                                @click="showPreview = true">
-                            👁️ Preview Guide
-                        </button>
                         <button type="reset" class="btn btn--reset" @click="resetForm">
                             {{translate('messages.reset')}}
                         </button>
@@ -449,7 +444,6 @@ document.addEventListener('alpine:init', () => {
         sections: [
             { title: '', steps: [''] }
         ],
-        showPreview: false,
         errors: {
             voucherType: '',
             guideTitle: ''
@@ -461,17 +455,17 @@ document.addEventListener('alpine:init', () => {
         },
 
         // Update guide title when voucher type changes
-        updateGuideTitle() {
-            if (this.voucherType) {
-                const select = document.getElementById('voucher_type');
-                const selectedOption = select.options[select.selectedIndex];
-                const voucherName = selectedOption.getAttribute('data-name');
-                this.guideTitle = `How to Use ${voucherName} Voucher`;
-            } else {
-                this.guideTitle = '';
-            }
-            this.errors.voucherType = '';
-        },
+        // updateGuideTitle() {
+        //     if (this.voucherType) {
+        //         const select = document.getElementById('voucher_type');
+        //         const selectedOption = select.options[select.selectedIndex];
+        //         const voucherName = selectedOption.getAttribute('data-name');
+        //         this.guideTitle = `How to Use ${voucherName} Voucher`;
+        //     } else {
+        //         this.guideTitle = '';
+        //     }
+        //     this.errors.voucherType = '';
+        // },
 
         // Add new section
         addSection() {
@@ -507,16 +501,16 @@ document.addEventListener('alpine:init', () => {
         // Validate form
         validateForm() {
             this.errors = {
-                voucherType: '',
+                // voucherType: '',
                 guideTitle: ''
             };
 
             let isValid = true;
 
-            if (!this.voucherType) {
-                this.errors.voucherType = 'Please select a voucher type';
-                isValid = false;
-            }
+            // if (!this.voucherType) {
+            //     this.errors.voucherType = 'Please select a voucher type';
+            //     isValid = false;
+            // }
 
             if (!this.guideTitle.trim()) {
                 this.errors.guideTitle = 'Please enter a guide title';

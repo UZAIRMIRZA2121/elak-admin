@@ -120,20 +120,6 @@
                             @csrf
                             @if ($language)
                                 <div class="row">
-                                      <div class="col-6 col-md-4">
-                                        <div class="lang_form" id="default-form">
-                                            <div class="form-group">
-                                                <label class="input-label" for="app_id">Select App </label>
-                                                <select name="app_id" id="app_id" class="form-control">
-                                                    <option value="" disabled selected>-- Select App --</option>
-                                                    @foreach ($apps as $app)
-                                                        <option value="{{ $app->id }}">{{ $app->app_name }} ({{ $app->client->name ?? 'No Client' }})</option>
-                                                    @endforeach
-                                                </select>
-
-                                            </div>
-                                        </div>
-                                    </div>
                                     <div class="col-6 col-md-4">
                                         <div class="lang_form" id="default-form">
                                             <div class="form-group">
@@ -227,7 +213,6 @@
                             <thead class="thead-light">
                             <tr class="text-center">
                                 <th class="border-0">{{translate('sl')}}</th>
-                                <th class="border-0">App Name</th>
                                 <th class="border-0">Color Name</th>
                                 <th class="border-0">Color Code</th>
                                 <th class="border-0">Gradient</th>
@@ -238,7 +223,7 @@
 
                             </thead>
                             <tbody id="set-rows">
-                         @foreach($colors as $key => $color)
+                         @foreach($Banners as $key => $Banner)
                             <tr>
                                 {{-- Serial No --}}
                                 <td class="text-center">
@@ -246,25 +231,20 @@
                                         {{  $key +1 }}
                                     </span>
                                 </td>
-                                  <td class="text-center">
-                                    <span class="mr-3">
-                                        {{ $color->app->app_name ?? 'No App' }}
-                                    </span>
-                                </td>
                                 {{-- Client Email --}}
                                 <td class="text-center">
                                     <span class="bg-gradient-light text-dark">
-                                        {{ $color->color_name }}
+                                        {{ $Banner->color_name }}
                                     </span>
                                 </td>
                                 <td class="text-center">
                                     <span class="bg-gradient-light text-dark">
-                                        {{ $color->color_code }}
+                                        {{ $Banner->color_code }}
                                     </span>
                                 </td>
                                 <td class="text-center">
                                     <span class="bg-gradient-light text-dark">
-                                        @if ($color->color_gradient == "1")
+                                        @if ($Banner->color_gradient == "1")
                                         <span class="badge badge-soft-primary mr-1 my-1">True</span>
                                         @else
                                         <span class="badge badge-soft-primary mr-1 my-1">False</span>
@@ -273,24 +253,24 @@
                                 </td>
                                 <td class="text-center">
                                     <span class="bg-gradient-light text-dark">
-                                        {{ $color->color_type }}
+                                        {{ $Banner->color_type }}
                                     </span>
                                 </td>
 
                                 {{-- Status Toggle (Active/Inactive) --}}
                                 <td class="text-center">
-                                    <label class="toggle-switch toggle-switch-sm" for="status-{{ $color->id }}">
+                                    <label class="toggle-switch toggle-switch-sm" for="status-{{ $Banner->id }}">
                                         <input type="checkbox" class="toggle-switch-input dynamic-checkbox"
-                                            {{ $color->status == '1' ? 'checked' : '' }}
-                                            data-id="status-{{ $color->id }}"
+                                            {{ $Banner->status == '1' ? 'checked' : '' }}
+                                            data-id="status-{{ $Banner->id }}"
                                             data-type="status"
-                                            id="status-{{ $color->id }}">
+                                            id="status-{{ $Banner->id }}">
                                         <span class="toggle-switch-label mx-auto">
                                             <span class="toggle-switch-indicator"></span>
                                         </span>
                                     </label>
-                                    <form action="{{ route('admin.client-side.status_color_theme', [$color->id]) }}"
-                                        method="post" id="status-{{ $color->id }}_form">
+                                    <form action="{{ route('admin.client-side.status_color_theme', [$Banner->id]) }}"
+                                        method="post" id="status-{{ $Banner->id }}_form">
                                         @csrf
                                     </form>
                                 </td>
@@ -298,19 +278,19 @@
                                 <td>
                                     <div class="btn--container justify-content-center">
                                         <a class="btn action-btn btn--primary btn-outline-primary"
-                                        href="{{ route('admin.client-side.edit_color_theme', [$color->id]) }}"
+                                        href="{{ route('admin.client-side.edit_color_theme', [$Banner->id]) }}"
                                         title="Edit">
                                         <i class="tio-edit"></i>
                                         </a>
                                         <a class="btn action-btn btn--danger btn-outline-danger form-alert"
                                         href="javascript:"
-                                        data-id="client-{{ $color->id }}"
+                                        data-id="client-{{ $Banner->id }}"
                                         data-message="Want to delete this client ?"
                                         title="Delete">
                                         <i class="tio-delete-outlined"></i>
                                         </a>
-                                        <form action="{{ route('admin.client-side.delete_color_theme', [$color->id]) }}"
-                                            method="post" id="client-{{ $color->id }}">
+                                        <form action="{{ route('admin.client-side.delete_color_theme', [$Banner->id]) }}"
+                                            method="post" id="client-{{ $Banner->id }}">
                                             @csrf @method('delete')
                                         </form>
                                     </div>
@@ -321,13 +301,13 @@
                             </tbody>
                         </table>
                     </div>
-                    @if(count($colors) !== 0)
+                    @if(count($Banners) !== 0)
                     <hr>
                     @endif
                     <div class="page-area">
-                        {!! $colors->links() !!}
+                        {!! $Banners->links() !!}
                     </div>
-                    @if(count($colors) === 0)
+                    @if(count($Banners) === 0)
                     <div class="empty--data">
                         <img src="{{asset('/public/assets/admin/svg/illustrations/sorry.svg')}}" alt="public">
                         <h5>

@@ -121,19 +121,17 @@
                                 <div class="row g-3">
                                     <div class="col-lg-6">
                                         <div class="row">
-                                            <div class="col-12">
+                                               <div class="col-12">
                                                 <div class="lang_form" id="default-form">
-                                                    <div class="form-group">
-                                                        <label class="input-label" for="title">App Name</label>
-                                                        <select name="app_id" id="app_id"
-                                                            class="form-control js-select2-custom">
-                                                            <option disabled selected>---select App Name---</option>
-                                                            @foreach ($apps as $app)
-                                                                <option value="{{ $app->id }}">{{ $app->app_name }}
-                                                                    ({{ $app->client->name ?? 'No Client' }})</option>
-                                                            @endforeach
-                                                        </select>
-                                                    </div>
+                                                       <div class="form-group">
+                                                            <label class="input-label" for="title">App Owner Name</label>
+                                                            <select name="client_id" id="client_id" class="form-control js-select2-custom">
+                                                                <option disabled selected>---select App Owner Name---</option>
+                                                                @foreach($clients as $client)
+                                                                        <option value="{{$client['id']}}">{{$client['name']}}</option>
+                                                                @endforeach
+                                                            </select>
+                                                        </div>
                                                 </div>
                                             </div>
                                             <div class="col-12">
@@ -150,21 +148,16 @@
                                             <div class="col-12">
                                                 <div class="lang_form" id="default-form">
                                                     <div class="form-group">
-                                                        <label class="input-label"
-                                                            for="zone_id">{{ translate('messages.zone') }}</label>
-                                                        <select name="zone_id" id="zone_id"
-                                                            class="form-control js-select2-custom">
-                                                            <option disabled selected>
-                                                                ---{{ translate('messages.select') }}---</option>
-                                                            @foreach ($zones as $zone)
-                                                                @if (isset(auth('admin')->user()->zone_id))
-                                                                    @if (auth('admin')->user()->zone_id == $zone->id)
-                                                                        <option value="{{ $zone->id }}" selected>
-                                                                            {{ $zone->name }}</option>
+                                                        <label class="input-label" for="zone_id">{{translate('messages.zone')}}</label>
+                                                        <select name="zone_id" id="zone_id" class="form-control js-select2-custom">
+                                                            <option disabled selected>---{{translate('messages.select')}}---</option>
+                                                            @foreach($zones as $zone)
+                                                                @if(isset(auth('admin')->user()->zone_id))
+                                                                    @if(auth('admin')->user()->zone_id == $zone->id)
+                                                                        <option value="{{$zone->id}}" selected>{{$zone->name}}</option>
                                                                     @endif
                                                                 @else
-                                                                    <option value="{{ $zone['id'] }}">
-                                                                        {{ $zone['name'] }}</option>
+                                                                    <option value="{{$zone['id']}}">{{$zone['name']}}</option>
                                                                 @endif
                                                             @endforeach
                                                         </select>
@@ -186,16 +179,14 @@
                                             </div>
                                             <div class="col-12">
                                                 <div class="lang_form" id="default-form">
-                                                    <div class="form-group">
-                                                        <label class="input-label" for="display_number"> Display Number
-                                                            (Banner Position Show )
-                                                        </label>
-                                                        <input type="Number" name="display_number"
-                                                            value="{{ request('display_number') }}" id="display_number"
-                                                            class="form-control">
+                                                        <div class="form-group">
+                                                            <label class="input-label"
+                                                                for="display_number"> Display Number (Banner Position Show )
+                                                            </label>
+                                                            <input type="Number" name="display_number" value="{{ request('display_number') }}" id="display_number" class="form-control"  >
+                                                        </div>
                                                     </div>
                                                 </div>
-                                            </div>
                                             <div class="col-12">
                                                 <div class="form-group mb-0" id="store_wise">
                                                     <label class="input-label"
@@ -211,51 +202,51 @@
                                             </div>
                                             <div class="col-12">
                                                 <div class="form-group mb-0 mt-3" id="external_link">
-                                                    <label class="input-label" for="exampleFormControlInput1">External
-                                                        Link</label>
+                                                    <label class="input-label"
+                                                        for="exampleFormControlInput1">External Link</label>
                                                     <select name="external_link" id="external_link"
-                                                        class="form-control js-select2-custom" placeholder="External Link">
+                                                        class="form-control js-select2-custom"
+                                                        placeholder="External Link">
                                                     </select>
                                                 </div>
                                             </div>
-                                            <div class="col-12">
-                                                <div class="form-group mb-0 mt-3" id="category">
-                                                    <label class="input-label"
-                                                        for="exampleFormControlInput1">Category</label>
-                                                    <select name="category" id="category"
-                                                        class="form-control js-select2-custom">
-                                                        <option disabled selected>---select App Owner Name---</option>
-                                                        @foreach ($category as $category_item)
-                                                            <option value="{{ $category_item['id'] }}">
-                                                                {{ $category_item['name'] }}</option>
-                                                        @endforeach
-                                                    </select>
+                                              <div class="col-12">
+                                                    <div class="form-group mb-0 mt-3" id="category">
+                                                        <label class="input-label"
+                                                            for="exampleFormControlInput1">Category</label>
+                                                        <select name="category" id="category"
+                                                            class="form-control js-select2-custom">
+                                                                <option disabled selected>---select App Owner Name---</option>
+                                                                @foreach($category as $category_item)
+                                                                        <option value="{{$category_item['id']}}">{{$category_item['name']}}</option>
+                                                                @endforeach
+                                                        </select>
+                                                    </div>
                                                 </div>
-                                            </div>
-                                            <div class="col-12">
-                                                <div class="form-group mb-0 mt-3" id="voucher">
-                                                    <label class="input-label"
-                                                        for="exampleFormControlInput1">Voucher</label>
-                                                    <select name="voucher" id="voucher"
-                                                        class="form-control js-select2-custom">
-                                                        <option disabled selected>---select Voucher---</option>
-                                                        <option value="Voucher_1">Voucher 1</option>
-                                                        <option value="Voucher_2">Voucher 2</option>
-                                                    </select>
+                                              <div class="col-12">
+                                                    <div class="form-group mb-0 mt-3" id="voucher">
+                                                        <label class="input-label"
+                                                            for="exampleFormControlInput1">Voucher</label>
+                                                        <select name="voucher" id="voucher"
+                                                            class="form-control js-select2-custom">
+                                                                <option disabled selected>---select Voucher---</option>
+                                                                <option value="Voucher_1" >Voucher 1</option>
+                                                                <option value="Voucher_2" >Voucher 2</option>
+                                                        </select>
+                                                    </div>
                                                 </div>
-                                            </div>
-                                            <div class="col-12">
-                                                <div class="form-group mb-0 mt-3" id="voucher_type">
-                                                    <label class="input-label" for="exampleFormControlInput1">Voucher
-                                                        Type</label>
-                                                    <select name="voucher_type" id="voucher_type"
-                                                        class="form-control js-select2-custom">
-                                                        <option disabled selected>---select Voucher Type---</option>
-                                                        <option value="Voucher_type_1">Voucher type 1</option>
-                                                        <option value="Voucher_type_2">Voucher type 2</option>
-                                                    </select>
+                                              <div class="col-12">
+                                                    <div class="form-group mb-0 mt-3" id="voucher_type">
+                                                        <label class="input-label"
+                                                            for="exampleFormControlInput1">Voucher Type</label>
+                                                        <select name="voucher_type" id="voucher_type"
+                                                            class="form-control js-select2-custom">
+                                                                <option disabled selected>---select Voucher Type---</option>
+                                                                <option value="Voucher_type_1" >Voucher type 1</option>
+                                                                <option value="Voucher_type_2" >Voucher type 2</option>
+                                                        </select>
+                                                    </div>
                                                 </div>
-                                            </div>
                                         </div>
                                     </div>
                                     <div class="col-lg-6">
@@ -329,7 +320,6 @@
                             <thead class="thead-light">
                                 <tr class="text-center">
                                     <th class="border-0">{{ translate('sl') }}</th>
-                                    <th class="border-0">App Name</th>
                                     <th class="border-0">Title</th>
                                     <th class="border-0">Type</th>
                                     <th class="border-0">Display Number</th>
@@ -349,33 +339,27 @@
                                                 {{ $key + 1 }}
                                             </span>
                                         </td>
-                                        <td class="text-center">
-                                            <span class="mr-3">
-                                                {{ $Banner->app->app_name ?? 'No App' }}
-                                                ({{ $Banner->app->client->name ?? 'No Client' }})
-                                            </span>
-                                        </td>
                                         {{-- Client Email --}}
                                         <td class="text-center">
                                             <span class="bg-gradient-light text-dark">
                                                 {{ $Banner->title }}
                                             </span>
+                                              <div class="d-inline-block" style="width:50px; height:50px; cursor:pointer;">
+                                                <img src="{{ asset($Banner->image_or_video) }}"
+                                                    class="img-fluid rounded open-image-modal" alt="Client Logo"
+                                                    style="width:100%; height:100%; object-fit:cover;">
+                                               </div>
+                                        </td>
+                                        <td class="text-center">
+                                            <span class="bg-gradient-light text-dark">
+                                                {{ $Banner->type }}
+                                            </span>
+                                        </td>
 
-                                        </td>
-                                        <td class="text-center">
-                                            <span class="bg-gradient-light text-dark">
-                                                {{ $Banner->banner_type }}
-                                            </span>
-                                        </td>
-                                        <td class="text-center">
-                                            <span class="bg-gradient-light text-dark">
-                                                {{ $Banner->type_priority }}
-                                            </span>
-                                        </td>
                                         {{-- Client Created At --}}
                                         <td class="text-center">
                                             <div class="d-inline-block" style="width:50px; height:50px; cursor:pointer;">
-                                                <img src="{{ asset($Banner->image_or_video) }}"
+                                                <img src="{{ asset($Banner->image) }}"
                                                     class="img-fluid rounded open-image-modal" alt="Client Logo"
                                                     style="width:100%; height:100%; object-fit:cover;">
                                             </div>
@@ -549,9 +533,8 @@
             $('#store_id').val(null).trigger('change');
             $('#choice_item').val(null).trigger('change');
             // $('#viewer').attr('src', '{{ asset('public/assets/admin/img/900x400/img1.jpg') }}');
-            $('#viewer').replaceWith(
-                '<img class="img--vertical" id="viewer" src="{{ asset('public/assets/admin/img/900x400/img1.jpg') }}" alt="banner image" />'
-                );
+              $('#viewer').replaceWith('<img class="img--vertical" id="viewer" src="{{ asset('public/assets/admin/img/900x400/img1.jpg') }}" alt="banner image" />');
         })
+
     </script>
 @endpush

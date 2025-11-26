@@ -802,14 +802,14 @@
 
                             </ul>
                         </li> --}}
-                        <li class="navbar-vertical-aside-has-menu {{ Request::is('admin/GeneralResteiction*') ? 'active' : '' }}">
+                        {{-- <li class="navbar-vertical-aside-has-menu {{ Request::is('admin/GeneralResteiction*') ? 'active' : '' }}">
                             <a class="js-navbar-vertical-aside-menu-link nav-link nav-link-toggle" href="javascript:" title="{{ translate('Gift Management') }}">
                                 <i class="tio-premium-outlined nav-icon"></i>
                                 <span class="navbar-vertical-aside-mini-mode-hidden-elements text-truncate text-capitalize">{{ translate('General Restriction Setup') }}</span>
                             </a>
                             <ul class="js-navbar-vertical-aside-submenu nav nav-sub" style="display:{{ Request::is('admin/HolidayandOccasion*') ? 'block' : 'none' }}">
 
-                                {{-- <li class="nav-item {{ Request::is('admin/HolidayandOccasion/list') ? 'active' : '' }}">
+                                <li class="nav-item {{ Request::is('admin/HolidayandOccasion/list') ? 'active' : '' }}">
                                     <a class="nav-link " href="{{ route('admin.HolidayandOccasion.list') }}" title="{{ translate('List Holyday and Occassion') }}">
                                         <span class="tio-circle nav-indicator-icon"></span>
                                         <span class="text-truncate">{{ translate('List Holyday and Occassion') }}</span>
@@ -821,11 +821,11 @@
                                         <span class="tio-circle nav-indicator-icon"></span>
                                         <span class="text-truncate text-capitalize">{{ translate('list General Restriction') }}</span>
                                     </a>
-                                </li> --}}
+                                </li>
 
 
                             </ul>
-                        </li>
+                        </li> --}}
 
 
                       {{-- <li class="navbar-vertical-aside-has-menu ">

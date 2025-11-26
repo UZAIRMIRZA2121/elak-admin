@@ -32,36 +32,48 @@ class GiftOccasionsController extends Controller
         return view('admin-views.gift_occasions.index', compact('GiftOccasions'));
     }
 
-     public function store(Request $request)
+    public function store(Request $request)
     {
-         $request->validate([
+        $request->validate([
             'title' => 'required|max:100',
-             'icon' => 'required',
+            'icon'  => 'required',
+            'icon.*' => 'image|mimes:jpg,jpeg,png,webp|max:2048',
         ]);
+
         $GiftOccasions = new GiftOccasions();
         $GiftOccasions->title = $request->title;
         $GiftOccasions->status = "active";
 
-            //  Logo Upload
+        $icons = [];
+
         if ($request->hasFile('icon')) {
-            $file = $request->file('icon');
-            $extension = $file->getClientOriginalExtension();
-            $imageName = time() . '_' . uniqid() . '.' . $extension;
 
-            $destination = public_path('uploads/gift_occasions');
-            if (!file_exists($destination)) {
-                mkdir($destination, 0755, true);
+            foreach ($request->file('icon') as $file) {
+
+                $extension = $file->getClientOriginalExtension();
+                $imageName = time() . '_' . uniqid() . '.' . $extension;
+
+                $destination = public_path('uploads/gift_occasions');
+
+                if (!file_exists($destination)) {
+                    mkdir($destination, 0755, true);
+                }
+
+                $file->move($destination, $imageName);
+
+                $icons[] = 'uploads/gift_occasions/' . $imageName;
             }
-
-            $file->move($destination, $imageName);
-            $GiftOccasions->icon = 'uploads/gift_occasions/' . $imageName; // save path in DB
         }
+
+        // Save as JSON in DB
+        $GiftOccasions->icon = json_encode($icons);
 
         $GiftOccasions->save();
 
-        Toastr::success('icon added successfully');
+        Toastr::success('Icons added successfully');
         return back();
     }
+
 
     public function edit($id)
     {
@@ -70,33 +82,75 @@ class GiftOccasionsController extends Controller
         return view('admin-views.gift_occasions.edit', compact('GiftOccasions'));
     }
 
+   public function getGallery($id)
+{
+    $occasion = GiftOccasions::findOrFail($id);
 
-   public function update(Request $request, $id)
+    // Icon column se images array lein
+    $imagePaths = json_decode($occasion->icon, true) ?? [];
+
+    // Full URLs banayein
+    $images = collect($imagePaths)->map(function($path) {
+        return ['url' => asset($path)];
+    })->toArray();
+
+    return response()->json(['images' => $images]);
+}
+
+
+
+    public function update(Request $request, $id)
     {
-         $request->validate([
+        $request->validate([
             'title' => 'required|max:100',
+            'icon.*' => 'image|mimes:jpg,jpeg,png,webp|max:2048'
         ]);
 
         $GiftOccasions = GiftOccasions::findOrFail($id);
 
         $GiftOccasions->title = $request->title;
-            //  icon Upload
-    if ($request->hasFile('icon')) {
-        if ($GiftOccasions->icon && file_exists(public_path($GiftOccasions->icon))) {
-            unlink(public_path($GiftOccasions->icon)); // old delete
-        }
-        $file = $request->file('icon');
-        $extension = $file->getClientOriginalExtension();
-        $imageName = time() . '_' . uniqid() . '.' . $extension;
 
-        $destination = public_path('uploads/gift_occasions');
-        if (!file_exists($destination)) {
-            mkdir($destination, 0755, true);
+        // ===========================
+        // 🔥 Old icons delete
+        // ===========================
+        if ($GiftOccasions->icon) {
+            $oldIcons = json_decode($GiftOccasions->icon, true);
+
+            if (is_array($oldIcons)) {
+                foreach ($oldIcons as $oldFile) {
+                    $filePath = public_path($oldFile);
+                    if (file_exists($filePath)) {
+                        unlink($filePath);
+                    }
+                }
+            }
         }
 
-        $file->move($destination, $imageName);
-        $GiftOccasions->icon = 'uploads/gift_occasions/' . $imageName;
-    }
+        // ===========================
+        // 🔥 New icons upload
+        // ===========================
+        $newIcons = [];
+
+        if ($request->hasFile('icon')) {
+            foreach ($request->file('icon') as $file) {
+
+                $extension = $file->getClientOriginalExtension();
+                $imageName = time() . '_' . uniqid() . '.' . $extension;
+
+                $destination = public_path('uploads/gift_occasions');
+
+                if (!file_exists($destination)) {
+                    mkdir($destination, 0755, true);
+                }
+
+                $file->move($destination, $imageName);
+
+                $newIcons[] = 'uploads/gift_occasions/' . $imageName;
+            }
+        }
+
+        // Save new icon list
+        $GiftOccasions->icon = json_encode($newIcons);
 
         $GiftOccasions->save();
 
@@ -104,16 +158,33 @@ class GiftOccasionsController extends Controller
         return back();
     }
 
+
     public function delete(Request $request, $id)
     {
         $GiftOccasions = GiftOccasions::findOrFail($id);
-          //  Delete Logo
-        if ($GiftOccasions->icon && file_exists(public_path($GiftOccasions->icon))) {
-            unlink(public_path($GiftOccasions->icon));
+
+        // -----------------------------------------
+        // 🔥 Delete ALL old icons (JSON array)
+        // -----------------------------------------
+        if ($GiftOccasions->icon) {
+            $icons = json_decode($GiftOccasions->icon, true);
+
+            if (is_array($icons)) {
+                foreach ($icons as $img) {
+                    $path = public_path($img);
+                    if (file_exists($path)) {
+                        unlink($path);
+                    }
+                }
+            }
         }
+
+        // -----------------------------------------
+        // 🔥 Delete DB record
+        // -----------------------------------------
         $GiftOccasions->delete();
 
-        Toastr::success(' deleted successfully');
+        Toastr::success('Deleted successfully');
         return back();
     }
 
