@@ -183,7 +183,7 @@
                   <div class="card-body">
                     <form action="{{route('admin.VoucherSetting.store')}}" method="post" id="conditionsForm">
                         @csrf
-                        <input type="hidden" name="voucher_id" value="{{ $items->id}}"/>
+                        <input type="hidden" name="item_id" value="{{ $items->id}}"/>
                         <div class="row">
                             <!-- LEFT SIDE - FORM -->
                             <div class="col-lg-7">
