@@ -11,7 +11,7 @@ class VoucherSetting extends Model
 
     protected $table = "voucher_settings";
         protected $fillable = [
-            'voucher_id' ,
+            'item_id' ,
             'validity_period' ,
             'specific_days_of_week' ,
             'holidays_occasions' ,

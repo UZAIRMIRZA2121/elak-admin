@@ -154,12 +154,12 @@ class VoucherSettingController extends Controller
         ]);
 
         // Voucher_id aaya hai?
-        $voucherId = $request->voucher_id;
+        $item_id = $request->item_id;
         // dd($voucherId);
         // If record exists → UPDATE
         // If not exists → INSERT
         $VoucherSetting = VoucherSetting::updateOrCreate(
-            ['voucher_id' => $voucherId], // check condition
+            ['item_id' => $item_id], // check condition
             [
                 'validity_period' => json_encode($request->validity_period ?? []),
                 'specific_days_of_week' => json_encode($request->working_hours ?? []),
