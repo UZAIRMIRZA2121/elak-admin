@@ -46,104 +46,104 @@ class VoucherSettingController extends Controller
         }
 
 
-      public function index(Request $request , $id)
-    {
-        // dd($id);
-        $items = item::findOrFail($id);
-       $days = [
+        public function index(Request $request, $id)
+        {
+            $items = item::findOrFail($id);
+
+            $days = [
                 1 => 'monday',
                 2 => 'tuesday',
                 3 => 'wednesday',
                 4 => 'thursday',
                 5 => 'friday',
                 6 => 'saturday',
-                7 => 'sunday',
+                7 => 'sunday'
             ];
 
-            $StoreSchedule = StoreSchedule::findOrFail($items->store_id);
+            // Use first() instead of findOrFail() to avoid exception
+            $StoreSchedule = StoreSchedule::where('store_id', $items->store_id)->first();
 
-            // Convert day number to string
-            $dayKey = $days[$StoreSchedule->day];
+            if ($StoreSchedule) {
+                // Convert day number to string
+                $dayKey = $days[$StoreSchedule->day] ?? null;
 
-            // 24-hour format hi chahiye <input type="time"> ke liye
-            $opening = date("H:i", strtotime($StoreSchedule->opening_time));
-            $closing = date("H:i", strtotime($StoreSchedule->closing_time));
+                // 24-hour format for <input type="time">
+                $opening = date("H:i", strtotime($StoreSchedule->opening_time));
+                $closing = date("H:i", strtotime($StoreSchedule->closing_time));
 
-            // Working hours array
-            $working_hours = [
-                $dayKey => [
-                    "start" => $opening,
-                    "end"   => $closing,
-                ]
-            ];
+                // Working hours array
+                $working_hours = [
+                    $dayKey => [
+                        "start" => $opening,
+                        "end"   => $closing,
+                    ]
+                ];
+            } else {
+                // If store schedule doesn't exist, set empty array
+                $working_hours = [];
+            }
 
+            $VoucherSetting = VoucherSetting::where("id", $items->id)->first();
 
+            if (!empty($VoucherSetting)) {
+                $check_data = 1;  // data exists
 
-        $VoucherSetting = VoucherSetting::where("voucher_id",$items->id)->first();
+                $validityPeriod = json_decode($VoucherSetting->validity_period, true) ?? [];
+                $specificDays = json_decode($VoucherSetting->specific_days_of_week, true) ?? [];
+                $holidays = json_decode($VoucherSetting->holidays_occasions, true) ?? [];
+                $custom_blackout_dates = json_decode($VoucherSetting->custom_blackout_dates, true) ?? [];
+                $userLimit = json_decode($VoucherSetting->usage_limit_per_user, true) ?? [];
+                $storeLimit = json_decode($VoucherSetting->usage_limit_per_store, true) ?? [];
+                $generalRestrictions = json_decode($VoucherSetting->general_restrictions, true) ?? [];
+            } else {
+                $check_data = 0; // no data
 
-        if(!empty($VoucherSetting)){
-            $check_data = 1;  // data exist
-
-            $validityPeriod = json_decode($VoucherSetting->validity_period, true) ?? [];
-            $specificDays = json_decode($VoucherSetting->specific_days_of_week, true) ?? [];
-            $holidays = json_decode($VoucherSetting->holidays_occasions, true) ?? [];
-            $custom_blackout_dates = json_decode($VoucherSetting->custom_blackout_dates, true) ?? [];
-            $userLimit = json_decode($VoucherSetting->usage_limit_per_user, true) ?? [];
-            $storeLimit = json_decode($VoucherSetting->usage_limit_per_store, true) ?? [];
-            $generalRestrictions = json_decode($VoucherSetting->general_restrictions, true) ?? [];
-
-        }else{
-             $check_data = 0; // not found data
-
-               $validityPeriod = [];
+                $validityPeriod = [];
                 $specificDays = [];
                 $holidays = [];
                 $custom_blackout_dates = [];
                 $userLimit = [];
                 $storeLimit = [];
                 $generalRestrictions = [];
+            }
+
+            $search = $request->input('search');
+            $CustomBlackoutData = CustomBlackoutData::get();
+            $HolidayOccasion = HolidayOccasion::get();
+            $GeneralRestriction = GeneralRestriction::get();
+            $AgeRestrictin = AgeRestrictin::get();
+            $GroupSizeRequirement = GroupSizeRequirement::get();
+            $UsagePeriod = UsagePeriod::get();
+            $OfferValidatyPeroid = OfferValidatyPeroid::get();
+
+            $VoucherSettings = VoucherSetting::query()
+                ->when($search, function ($q) use ($search) {
+                    $q->where('validity_period', 'like', "%{$search}%");
+                })
+                ->orderBy('validity_period', 'asc')
+                ->paginate(config('default_pagination'));
+
+            return view('admin-views.voucher_setting.add', compact(
+                'VoucherSetting',
+                'CustomBlackoutData',
+                'HolidayOccasion',
+                'GeneralRestriction',
+                'AgeRestrictin',
+                'GroupSizeRequirement',
+                'UsagePeriod',
+                'OfferValidatyPeroid',
+                'items',
+                'check_data',
+                'custom_blackout_dates',
+                'validityPeriod',
+                'specificDays',
+                'holidays',
+                'userLimit',
+                'storeLimit',
+                'generalRestrictions',
+                'working_hours'
+            ));
         }
-        // dd($check_data);
-
-        $search = $request->input('search');
-        $CustomBlackoutData = CustomBlackoutData::get();
-        $HolidayOccasion = HolidayOccasion::get();
-        $GeneralRestriction = GeneralRestriction::get();
-        $AgeRestrictin = AgeRestrictin::get();
-        $GroupSizeRequirement = GroupSizeRequirement::get();
-        $UsagePeriod = UsagePeriod::get();
-        $OfferValidatyPeroid = OfferValidatyPeroid::get();
-
-
-
-        $VoucherSettings = VoucherSetting::query()
-            ->when($search, function ($q) use ($search) {
-                $q->where('validity_period', 'like', "%{$search}%");
-            })
-            ->orderBy('validity_period', 'asc')
-            ->paginate(config('default_pagination'));
-        return view('admin-views.voucher_setting.add', compact(
-            'VoucherSetting',
-            'CustomBlackoutData',
-            'HolidayOccasion',
-            'GeneralRestriction',
-            'AgeRestrictin',
-            'GroupSizeRequirement',
-            'UsagePeriod',
-            'OfferValidatyPeroid',
-            'items',
-            'check_data',
-
-            'custom_blackout_dates',
-            'validityPeriod',
-            'specificDays',
-            'holidays',
-            'userLimit',
-            'storeLimit',
-            'generalRestrictions',
-            'working_hours'
-        ));
-    }
 
 
 
