@@ -83,8 +83,7 @@ class VoucherSettingController extends Controller
                 $working_hours = [];
             }
 
-            $VoucherSetting = VoucherSetting::where("id", $items->id)->first();
-
+            $VoucherSetting = VoucherSetting::where("item_id", $items->id)->first();
             if (!empty($VoucherSetting)) {
                 $check_data = 1;  // data exists
 
