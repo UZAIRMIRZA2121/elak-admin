@@ -325,7 +325,7 @@
                     </div>
 
                     <!-- Voucher Type Selection -->
-                    {{-- <div class="form-group">
+                     <div class="form-group">
                         <label for="voucher_type">Select Voucher Type *</label>
                         <select id="voucher_type"
                                 name="voucher_type"
@@ -340,7 +340,7 @@
                             @endforeach
                         </select>
                         <div class="error-message" x-show="errors.voucherType" x-text="errors.voucherType"></div>
-                    </div> --}}
+                    </div> 
 
                     <!-- Guide Title -->
                     <div class="form-group">

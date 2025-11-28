@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class WorkManagement extends Model
 {
     use HasFactory;
-       protected $table = 'work_management';
+       protected $table = 'work_managements';
         protected $fillable = [
             'voucher_id',
             'guid_title',
