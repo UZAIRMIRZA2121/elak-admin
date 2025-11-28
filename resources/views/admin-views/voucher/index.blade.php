@@ -1505,7 +1505,7 @@
                  else if (loopIndex === "4" || name === "Gift") {
                     window.location.href = "{{ url('admin/Voucher/add-gift') }}";
                 }
-
+                // alert(primaryId);
                 getDataFromServer(primaryId);
                   get_product();
                 // Set hidden input value
@@ -1619,13 +1619,14 @@
     </script>
 
     <script>
-        getDataFromServer(4)
+         getDataFromServer(7)
 
-       function getDataFromServer(storeId) {
+        function getDataFromServer(voucher_id) {
+            // alert(storeId)
             $.ajax({
                 url: "{{ route('admin.Voucher.get_document') }}",
                 type: "GET",
-                data: { store_id: storeId },
+                data: { voucher_id: voucher_id },
                 dataType: "json",
                 success: function(response) {
                     let workHtml = "";
@@ -1679,7 +1680,7 @@
                                             class="fw-semibold mb-0 cursor-pointer flex-grow-1"
                                             style="cursor: pointer;"
                                             onclick="event.stopPropagation()">
-                                            ${item.guid_title}
+                                            ${item.guide_title}
                                         </label>
                                     </div>
                                     <i class="fas fa-chevron-down text-muted accordion-icon"
@@ -1730,33 +1731,33 @@
             });
         }
 
-// Toggle accordion function using Bootstrap 5
-function toggleAccordion(id) {
-    const content = $(`#content_${id}`);
-    const icon = $(`#icon_${id}`);
+        // Toggle accordion function using Bootstrap 5
+        function toggleAccordion(id) {
+            const content = $(`#content_${id}`);
+            const icon = $(`#icon_${id}`);
 
-    // Toggle Bootstrap collapse
-    content.collapse('toggle');
+            // Toggle Bootstrap collapse
+            content.collapse('toggle');
 
-    // Rotate icon
-    if (icon.hasClass('rotated')) {
-        icon.removeClass('rotated').css('transform', 'rotate(0deg)');
-    } else {
-        icon.addClass('rotated').css('transform', 'rotate(180deg)');
-    }
-}
+            // Rotate icon
+            if (icon.hasClass('rotated')) {
+                icon.removeClass('rotated').css('transform', 'rotate(0deg)');
+            } else {
+                icon.addClass('rotated').css('transform', 'rotate(180deg)');
+            }
+        }
 
-// Optional: Close all accordions
-function closeAllAccordions() {
-    $('.accordion-content').collapse('hide');
-    $('.accordion-icon').removeClass('rotated').css('transform', 'rotate(0deg)');
-}
+        // Optional: Close all accordions
+        function closeAllAccordions() {
+            $('.accordion-content').collapse('hide');
+            $('.accordion-icon').removeClass('rotated').css('transform', 'rotate(0deg)');
+        }
 
-// Optional: Open all accordions
-function openAllAccordions() {
-    $('.accordion-content').collapse('show');
-    $('.accordion-icon').addClass('rotated').css('transform', 'rotate(180deg)');
-}
+        // Optional: Open all accordions
+        function openAllAccordions() {
+            $('.accordion-content').collapse('show');
+            $('.accordion-icon').addClass('rotated').css('transform', 'rotate(180deg)');
+        }
 
 
 
@@ -1808,7 +1809,7 @@ function openAllAccordions() {
                     type: 'GET',
                     success: function (res) {
                         // Clear and refill segment dropdown
-                        $('#segment_type').empty().append('<option value="">Select Product</option>');
+                        $('#segment_type').empty().append('<option value="">Select Segment</option>');
                         // Agar res ek array hai to loop karo
                         if (Array.isArray(res) && res.length > 0) {
                             $.each(res, function (index, item) {

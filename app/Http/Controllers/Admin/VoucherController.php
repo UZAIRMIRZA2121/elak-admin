@@ -7,10 +7,12 @@ use Carbon\Carbon;
 use App\Models\Tag;
 use App\Models\Item;
 use App\Models\Brand;
+use App\Models\Client;
 use App\Models\Store;
 use App\Models\Review;
 use App\Models\Allergy;
 use App\Models\Category;
+use App\Models\Segment;
 use App\Models\Nutrition;
 use App\Scopes\StoreScope;
 use App\Models\GenericName;
@@ -76,26 +78,42 @@ class VoucherController extends Controller
 
     }
 
-     public function getAppName(Request $request)
-{
-    // Integer mein convert karo
-    $clientId = (int) $request->client_id;
-    
-    // Ya yeh bhi kar sakte ho
-    // $clientId = intval($request->client_id);
-    
-    $app = \DB::table('apps')
-        ->where('client_id', $clientId)
-        ->first();
-    
-    if ($app) {
+    public function getAppName(Request $request)
+    {
+        $clientId = $request->client_id;
+
+        $client_ids = \DB::table('apps')
+            ->where('client_id', $clientId)
+            ->first();
+
+            // dd($client_ids->app_name);
+
+        
+            // Ab multiple clients nikal lo
+            $clients = Client::where('id', $clientId)->get();
+            $allSegmentIds = [];
+
+            foreach ($clients as $client) {
+                if (!empty($client->type)) {
+                    // Client ke type se segment IDs nikal lo
+                    $segmentIds = array_filter(array_map('trim', explode(',', $client->type)));
+                    $allSegmentIds = array_merge($allSegmentIds, $segmentIds);
+                }
+            }
+
+            // Duplicate IDs remove karo
+            $allSegmentIds = array_unique($allSegmentIds);
+
+            // Final segments lao
+            $segments = Segment::whereIn('id', $allSegmentIds)->get();
+
+        // Return both in one response
         return response()->json([
-            'app_name' => $app->app_name
+            'app_name' => $client_ids->app_name ?? null,
+            'segments' => $segments
         ]);
     }
-    
-    return response()->json(['app_name' => ''], 404);
-}
+
 
   public function getSubcategories(Request $request)
     {
@@ -247,11 +265,21 @@ class VoucherController extends Controller
 
     public function get_document(Request $request)
     {
-        // WorkManagement records
-        // $WorkManagement = WorkManagement::where('voucher_id', $request->store_id)->get();
-        $WorkManagement = WorkManagement::get();
+        
+            $id = $request->voucher_id ;
 
-        // UsageTermManagement records
+              $WorkManagement = \DB::table('work_managements')
+            ->where('voucher_id', $id)
+            ->get();
+            dd($WorkManagement);
+
+
+        
+                // WorkManagement records
+        // $WorkManagement = WorkManagement::where('voucher_id', $request->store_id)->get();
+        $WorkManagement = WorkManagement::where('voucher_id', $id)->get();
+        // dd($WorkManagement)
+;        // UsageTermManagement records
         $UsageTermManagement = UsageTermManagement::get();
         // $UsageTermManagement = UsageTermManagement::where('voucher_id', $request->store_id)->get();
     //   dd($WorkManagement);

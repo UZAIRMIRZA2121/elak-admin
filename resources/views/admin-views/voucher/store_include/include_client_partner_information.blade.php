@@ -1,43 +1,20 @@
 <!-- Client Information -->
 <div class="section-card rounded p-4 mb-4" id="basic_info_main">
     <h3 class="h5 fw-semibold mb-4">Client Information</h3>
-    <div id="client_repeater">
-
-        <div class="row item-row mb-3">
-            <div class="col-md-6">
-                <div class="form-group">
-                    <label class="input-label">Client Name</label>
-                    <select name="clients[0][client_id]" class="form-control client-select">
-                        <option value="">Select Client</option>
-                        @foreach (\App\Models\Client::all() as $item)
-                            <option value="{{ $item->id }}" data-app-name="{{ $item->app_name ?? '' }}">{{ $item->name }}</option>
-                        @endforeach
-                    </select>
-                </div>
-            </div>
-
-            <div class="col-md-5">
-                <div class="form-group">
-                    <label class="input-label">Client App Name</label>
-                    <input type="text" name="clients[0][app_name]" class="form-control app-name-input" placeholder="Client App Name" readonly>
-                </div>
-            </div>
-
-            <div class="col-md-1">
-                <label>&nbsp;</label>
-                <button type="button" class="btn btn-danger remove-btn" style="display:none">X</button>
+    
+    <!-- Number of Clients Input -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="form-group">
+                <label class="input-label fw-bold">Number of Clients</label>
+                <input type="number" id="num_clients" class="form-control" placeholder="Enter number between 1-20" min="1" max="20" value="">
+                <small class="text-muted">Enter a number between 1-20</small>
             </div>
         </div>
-
     </div>
-    <button type="button" class="btn btn-primary mt-2" id="add-more-btn">Add More</button>
-    
-    <div class="form-group mt-3">
-        <label class="input-label" for="segment_type">{{ translate('Segment') }}
-            <span class="form-label-secondary" data-toggle="tooltip" data-placement="right" data-original-title="{{ translate('Segment') }}"></span>
-        </label>
-        <select name="segment_type[]" id="segment_type" required class="form-control js-select2-custom" data-placeholder="{{ translate('Select Segment') }}" multiple>
-        </select>
+
+    <div id="client_repeater">
+        <!-- Rows will be generated here when you enter a number -->
     </div>
 </div>
 
@@ -91,177 +68,296 @@
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
-let clientIndex = 1;
+// Client options HTML
+let clientOptionsHtml = '';
 
-// Initialize Select2 for a specific element
-function initSelect2(element) {
-    if (!element || element.length === 0) return;
+// Initialize Select2 for client dropdown WITH PROPER EVENT BINDING
+function initClientSelect2(element) {
+    if (!element || element.length === 0) {
+        console.warn('No element to initialize');
+        return;
+    }
     
-    // Destroy existing Select2 if any
+    // Destroy existing Select2 if present
     if (element.hasClass('select2-hidden-accessible')) {
         element.select2('destroy');
     }
     
-    // Initialize new Select2
+    // Initialize Select2
     element.select2({
         placeholder: "Select Client",
         allowClear: true,
         width: '100%'
     });
     
-    // Bind Select2 change event immediately after initialization
-    element.on('select2:select', function(e) {
-        console.log('Select2 select event fired');
+    // CRITICAL: Bind change event AFTER Select2 initialization
+    element.off('select2:select').on('select2:select', function(e) {
+        console.log('✓ Select2:select event fired');
+        console.log('Selected ID:', e.params.data.id);
         handleClientChange($(this));
     });
     
-    // Also bind regular change event as backup
-    element.on('change', function(e) {
-        if (!e.originalEvent) { // Avoid double firing
-            console.log('Regular change event fired');
-            handleClientChange($(this));
-        }
+    element.off('change.myCustom').on('change.myCustom', function(e) {
+        console.log('✓ Change event fired');
+        handleClientChange($(this));
     });
+    
+    console.log('✓ Select2 initialized with events for:', element.attr('name'));
 }
 
-$(document).ready(function() {
-    console.log('Page loaded');
+// Initialize Select2 for segment dropdown
+function initSegmentSelect2(element) {
+    if (!element || element.length === 0) {
+        console.warn('No segment element to initialize');
+        return;
+    }
     
-    // Initialize Select2 on all existing client-select dropdowns
-    $('.client-select').each(function() {
-        initSelect2($(this));
+    if (element.hasClass('select2-hidden-accessible')) {
+        element.select2('destroy');
+    }
+    
+    element.select2({
+        placeholder: "Select Segment",
+        allowClear: true,
+        width: '100%'
     });
-});
+    
+    console.log('✓ Segment Select2 initialized:', element.attr('name'));
+}
 
-// Handle client change - separate function
+// MAIN AJAX HANDLER - Load app name AND segments
 function handleClientChange(selectElement) {
-    console.log('=== handleClientChange called ===');
+    console.log('');
+    console.log('========================================');
+    console.log('=== handleClientChange CALLED ===');
+    console.log('========================================');
     
     let clientId = selectElement.val();
     let currentRow = selectElement.closest('.item-row');
     let appNameInput = currentRow.find('.app-name-input');
+    let segmentSelect = currentRow.find('.segment-select');
+    let appNameError = currentRow.find('.app-name-error');
+    let segmentError = currentRow.find('.segment-error');
     
-    console.log('Selected Client ID:', clientId);
-    console.log('Current Row:', currentRow.length);
-    console.log('App Name Input:', appNameInput.length);
+    console.log('Client ID:', clientId);
+    console.log('Row found:', currentRow.length);
+    console.log('App Name Input found:', appNameInput.length);
+    console.log('Segment Select found:', segmentSelect.length);
     
-    if (!clientId) {
-        appNameInput.val('');
+    // Reset if no client selected
+    if (!clientId || clientId === '') {
+        console.log('No client selected, resetting fields');
+        appNameInput.val('').removeClass('is-invalid');
+        appNameError.hide();
+        segmentSelect.html('<option disabled>Select client first</option>').trigger('change');
+        segmentError.hide();
         return;
     }
 
-    // AJAX call
-    console.log('Making AJAX call for client:', clientId);
+    console.log('Making AJAX call to fetch data...');
     
+    // AJAX call
     $.ajax({
         url: "{{ route('admin.Voucher.getAppName') }}",
         type: "GET",
         data: { client_id: clientId },
         dataType: "json",
         beforeSend: function() {
-            console.log('AJAX request started...');
-            appNameInput.val('Loading...');
+            console.log('AJAX beforeSend...');
+            appNameInput.val('Loading...').removeClass('is-invalid');
+            appNameError.hide();
+            segmentSelect.html('<option disabled>Loading...</option>').trigger('change');
+            segmentError.hide();
         },
         success: function(response) {
-            console.log("=== AJAX Response ===", response);
+            console.log('');
+            console.log('========================================');
+            console.log('=== AJAX SUCCESS ===');
+            console.log('========================================');
+            console.log('Full Response:', response);
+            console.log('App Name:', response.app_name);
+            console.log('Segments:', response.segments);
             
-            if (response && response.app_name) {
-                appNameInput.val(response.app_name);
-                console.log('App name set:', response.app_name);
+            // Handle App Name
+            if (response && response.app_name && response.app_name.trim() !== '') {
+                appNameInput.val(response.app_name).removeClass('is-invalid');
+                appNameError.hide();
+                console.log('✓ App name set successfully:', response.app_name);
             } else {
-                appNameInput.val('');
-                console.log('No app name found in response');
+                appNameInput.val('Not Found').addClass('is-invalid');
+                appNameError.text('App name not found for this client').show();
+                console.log('✗ App name NOT found in response');
+            }
+            
+            // Handle Segments
+            if (response && response.segments && Array.isArray(response.segments) && response.segments.length > 0) {
+                let options = '';
+                $.each(response.segments, function(key, item) {
+                    options += '<option value="' + item.id + '">' + item.name + '</option>';
+                    console.log('  - Segment:', item.name, '(ID:', item.id + ')');
+                });
+                segmentSelect.html(options).trigger('change');
+                segmentError.hide();
+                console.log('✓ Total segments loaded:', response.segments.length);
+                
                 if (typeof toastr !== 'undefined') {
-                    toastr.warning('App name not found');
+                    toastr.success('Client data loaded successfully!');
+                }
+            } else {
+                segmentSelect.html('<option disabled>No segments available</option>').trigger('change');
+                segmentError.text('No segments found for this client').show();
+                console.log('✗ No segments found in response');
+                
+                if (typeof toastr !== 'undefined') {
+                    toastr.warning('No segments available for this client');
                 }
             }
+            
+            console.log('========================================');
         },
         error: function(xhr, status, error) {
-            console.error("=== AJAX Error ===");
-            console.error("Status:", status);
-            console.error("Error:", error);
-            console.error("Response Text:", xhr.responseText);
-            console.error("Status Code:", xhr.status);
-            appNameInput.val('');
+            console.log('');
+            console.log('========================================');
+            console.log('=== AJAX ERROR ===');
+            console.log('========================================');
+            console.error('Status:', status);
+            console.error('Error:', error);
+            console.error('Status Code:', xhr.status);
+            console.error('Response Text:', xhr.responseText);
+            console.log('========================================');
+            
+            appNameInput.val('Error').addClass('is-invalid');
+            appNameError.text('Error loading data. Please try again.').show();
+            
+            segmentSelect.html('<option disabled>Error loading</option>').trigger('change');
+            segmentError.text('Error loading segments. Please try again.').show();
+            
             if (typeof toastr !== 'undefined') {
-                toastr.error('Error fetching app name');
+                toastr.error('Failed to load client data!');
             }
         }
     });
 }
 
-// Client Select Change - Using change event instead of select2:select
-$(document).on('change', '.client-select', function(e) {
-    console.log('Document level change event - should not fire normally');
-});
-
-// Add More Button Click
-$(document).on('click', '#add-more-btn', function() {
-    console.log('=== Add more clicked ===');
+// Generate client rows
+function generateClientRows(numRows) {
+    console.log('');
+    console.log('========================================');
+    console.log('=== Generating', numRows, 'rows ===');
+    console.log('========================================');
     
     let repeater = $('#client_repeater');
     
-    // Get all client options from first dropdown
-    let firstSelect = $('.item-row').first().find('.client-select');
-    let optionsHtml = firstSelect.html();
+    // Clear existing rows
+    repeater.empty();
+    console.log('Cleared existing rows');
     
-    console.log('Creating new row with index:', clientIndex);
-    
-    // Create new row HTML
-    let newRowHtml = `
-        <div class="row item-row mb-3">
-            <div class="col-md-6">
-                <div class="form-group">
-                    <label class="input-label">Client Name</label>
-                    <select name="clients[${clientIndex}][client_id]" class="form-control client-select">
-                        ${optionsHtml}
-                    </select>
+    // Generate new rows
+    for (let i = 0; i < numRows; i++) {
+        let newRowHtml = `
+            <div class="row item-row mb-3" data-row-index="${i}">
+                <div class="col-md-4">
+                    <div class="form-group">
+                        <label class="input-label">Client Name ${i + 1}</label>
+                        <select name="clients[${i}][client_id]" class="form-control client-select" data-row="${i}">
+                            ${clientOptionsHtml}
+                        </select>
+                    </div>
+                </div>
+
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label class="input-label">Client App Name</label>
+                        <input type="text" name="clients[${i}][app_name]" class="form-control app-name-input" placeholder="Client App Name" readonly>
+                        <small class="text-danger app-name-error" style="display:none;"></small>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <div class="form-group">
+                        <label class="input-label">Segment</label>
+                        <select name="clients[${i}][segment][]" class="form-control segment-select" data-placeholder="Select Segment" multiple>
+                            <option disabled>Select client first</option>
+                        </select>
+                        <small class="text-danger segment-error" style="display:none;"></small>
+                    </div>
+                </div>
+
+                <div class="col-md-1">
+                    <label>&nbsp;</label>
                 </div>
             </div>
-
-            <div class="col-md-5">
-                <div class="form-group">
-                    <label class="input-label">Client App Name</label>
-                    <input type="text" name="clients[${clientIndex}][app_name]" class="form-control app-name-input" placeholder="Client App Name" readonly>
-                </div>
-            </div>
-
-            <div class="col-md-1">
-                <label>&nbsp;</label>
-                <button type="button" class="btn btn-danger remove-btn" style="display:block">X</button>
-            </div>
-        </div>
-    `;
-    
-    // Append new row
-    repeater.append(newRowHtml);
-    
-    // Get the newly added select element
-    let newSelect = repeater.find('.item-row').last().find('.client-select');
-    
-    console.log('New select element found:', newSelect.length);
-    
-    // Initialize Select2 on new select
-    initSelect2(newSelect);
-    
-    clientIndex++;
-    console.log('Row added successfully, new index:', clientIndex);
-});
-
-// Remove Button Click
-$(document).on('click', '.remove-btn', function() {
-    console.log('Remove clicked');
-    
-    let row = $(this).closest('.item-row');
-    let selectElement = row.find('.client-select');
-    
-    // Destroy Select2 before removing row
-    if (selectElement.hasClass('select2-hidden-accessible')) {
-        selectElement.select2('destroy');
+        `;
+        
+        repeater.append(newRowHtml);
+        console.log('Row', (i + 1), 'HTML added');
     }
     
-    row.remove();
-    console.log('Row removed successfully');
+    // Initialize Select2 on ALL new dropdowns
+    console.log('Initializing Select2 on all rows...');
+    $('.client-select').each(function(index) {
+        console.log('Initializing client select', (index + 1));
+        initClientSelect2($(this));
+    });
+    
+    $('.segment-select').each(function(index) {
+        console.log('Initializing segment select', (index + 1));
+        initSegmentSelect2($(this));
+    });
+    
+    console.log('✓ All', numRows, 'rows generated and initialized');
+    console.log('========================================');
+}
+
+// Document ready
+$(document).ready(function() {
+    console.log('');
+    console.log('========================================');
+    console.log('=== PAGE LOADED ===');
+    console.log('========================================');
+    
+    // Store client options HTML
+    clientOptionsHtml = `
+        <option value="">Select Client</option>
+        @foreach (\App\Models\Client::all() as $item)
+            <option value="{{ $item->id }}" data-app-name="{{ $item->app_name ?? '' }}">{{ $item->name }}</option>
+        @endforeach
+    `;
+    
+    console.log('✓ Client options HTML stored');
+    console.log('✓ Waiting for user to enter number of clients');
+    console.log('========================================');
+});
+
+// Number input change handler
+$(document).on('input change keyup', '#num_clients', function() {
+    let numClients = parseInt($(this).val());
+    
+    console.log('Number input changed:', $(this).val());
+    
+    // If empty, clear repeater
+    if ($(this).val() === '' || isNaN(numClients)) {
+        $('#client_repeater').empty();
+        console.log('Input empty, cleared repeater');
+        return;
+    }
+    
+    // Validation
+    if (numClients < 1) {
+        numClients = 1;
+        $(this).val(1);
+    }
+    
+    if (numClients > 20) {
+        numClients = 20;
+        $(this).val(20);
+        if (typeof toastr !== 'undefined') {
+            toastr.warning('Maximum 20 clients allowed');
+        }
+    }
+    
+    // Generate rows
+    generateClientRows(numClients);
 });
 
 // Store Change

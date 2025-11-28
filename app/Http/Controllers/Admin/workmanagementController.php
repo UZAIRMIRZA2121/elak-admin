@@ -2,6 +2,7 @@
 namespace App\Http\Controllers\Admin;
 
 use DateTime;
+use DB;
 use App\Models\Item;
 use App\Models\Client;
 use App\Models\Segment;
@@ -26,10 +27,10 @@ class workmanagementController extends Controller
           $WorkManagements = WorkManagement::query()
             ->leftJoin('voucher_types', 'work_management.voucher_id', '=', 'voucher_types.id')
             ->when($search, function ($q) use ($search) {
-                $q->where('work_management.guid_title', 'like', "%{$search}%")
+                $q->where('work_management.guide_title', 'like', "%{$search}%")
                 ->orWhere('voucher_types.name', 'like', "%{$search}%");
             })
-            ->orderBy('work_management.guid_title', 'asc')
+            ->orderBy('work_management.guide_title', 'asc')
             ->select('work_management.*', 'voucher_types.name as voucher_name')
             ->paginate(config('default_pagination'));
             // dd($WorkManagements);
@@ -44,9 +45,9 @@ class workmanagementController extends Controller
             // dd($vouchers);
             $ManagementType = WorkManagement::query()
                 ->when($search, function ($q) use ($search) {
-                    $q->where('guid_title', 'like', "%{$search}%");
+                    $q->where('guide_title', 'like', "%{$search}%");
                 })
-                ->orderBy('guid_title', 'asc')
+                ->orderBy('guide_title', 'asc')
                 ->paginate(config('default_pagination'));
             return view('admin-views.work_management.add', compact('ManagementType','vouchers'));
         }
@@ -68,7 +69,7 @@ class workmanagementController extends Controller
 
             return response()->json([
                 'id' => $workManagement->id,
-                'guid_title' => $workManagement->guid_title,
+                'guide_title' => $workManagement->guide_title,
                 // 'voucher_name' => $voucherName,
                 'sections' => $workManagement->sections,
                 'status' => $workManagement->status,
@@ -81,27 +82,26 @@ class workmanagementController extends Controller
             ], 404);
         }
     }
+        public function store(Request $request)
+        {
+            $request->validate([
+                'voucher_type' => 'required|max:100',
+                'guide_title'  => 'required',
+                'sections'     => 'required|array',
+            ]);
 
+            \DB::table('work_managements')->insert([
+                'voucher_id'  => $request->voucher_type,
+                'guide_title'  => $request->guide_title,
+                'sections'    => json_encode($request->sections),
+                'created_at'  => now(),
+                'updated_at'  => now(),
+            ]);
 
-    public function store(Request $request)
-    {
-        // Validation
-        // dd($request->all());
-        $request->validate([
-            // 'voucher_type'          => 'required|max:100',
-            'guide_title'          => 'required',
-            'sections'    => 'required|array',
-        ]);
+            Toastr::success('Works Guide added successfully');
+            return back();
+        }
 
-        $ManagementType = new WorkManagement();
-        // $ManagementType->voucher_id         = $request->voucher_type;
-        $ManagementType->guid_title         = $request->guide_title;
-        $ManagementType->sections   = json_encode($request->sections);
-        $ManagementType->save();
-
-        Toastr::success('Works Guide added successfully');
-        return back();
-    }
 
 
     public function edit($id)
@@ -133,15 +133,15 @@ class workmanagementController extends Controller
 
             //  Validation
             $request->validate([
-            // 'voucher_type'          => 'required|max:100',
+            'voucher_type'          => 'required|max:100',
             'guide_title'          => 'required',
             'sections'    => 'required|array',
         ]);
 
             //  Record find and update
             $ManagementType = WorkManagement::findOrFail($id);
-            // $ManagementType->voucher_id         = $request->voucher_type;
-            $ManagementType->guid_title         = $request->guide_title;
+            $ManagementType->voucher_id         = $request->voucher_type;
+            $ManagementType->guide_title         = $request->guide_title;
             $ManagementType->sections   = json_encode($request->sections);
             $ManagementType->save();
 
