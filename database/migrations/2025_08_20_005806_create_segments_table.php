@@ -13,6 +13,7 @@ return new class extends Migration
     {
        Schema::create('segments', function (Blueprint $table) {
             $table->id(); // segment_id
+            $table->string('client_id'); // segment_name
             $table->string('name'); // segment_name
             $table->string('type')->nullable();
             $table->string('validation_date')->nullable();

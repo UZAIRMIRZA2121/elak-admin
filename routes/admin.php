@@ -121,7 +121,7 @@ Route::group(['namespace' => 'Admin', 'as' => 'admin.'], function () {
             Route::get('add-new', 'VoucherController@index')->name('add-new');
             Route::get('add-new-store', 'VoucherController@index')->name('add-new');
             Route::get('add-flat-discount', 'VoucherController@discount')->name('add-flat-discount');
-
+            Route::get('get-app-name', 'VoucherController@getAppName')->name('getAppName');
               Route::get('add-gift', 'VoucherController@index_git')->name('add-gift');
             Route::post('get-data', 'VoucherController@get_voucher_type')->name('voucherType.store');
             Route::post('variant-combination', 'VoucherController@variant_combination')->name('variant-combination');

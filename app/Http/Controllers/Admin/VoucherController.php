@@ -7,10 +7,12 @@ use Carbon\Carbon;
 use App\Models\Tag;
 use App\Models\Item;
 use App\Models\Brand;
+use App\Models\Client;
 use App\Models\Store;
 use App\Models\Review;
 use App\Models\Allergy;
 use App\Models\Category;
+use App\Models\Segment;
 use App\Models\Nutrition;
 use App\Scopes\StoreScope;
 use App\Models\GenericName;
@@ -75,6 +77,27 @@ class VoucherController extends Controller
         ]);
 
     }
+
+    public function getAppName(Request $request)
+    {
+        $clientId = $request->client_id;
+
+        // $All_segmnet = \DB::table('segments')
+        //     ->where('client_id', $clientId)
+        //     ->where('status', "active")
+        //     ->get();
+        $All_segmnet = Segment::where('client_id', $clientId)->where('status', "active")->get();
+        $clients = Client::where('id', $clientId)->where('status', "active")->first();
+        // dd($All_segmnet);
+
+         
+        // Return both in one response
+        return response()->json([
+            'app_name' => $clients->app_name ?? null,
+            'segments' => $All_segmnet
+        ]);
+    }
+
 
   public function getSubcategories(Request $request)
     {
@@ -226,11 +249,21 @@ class VoucherController extends Controller
 
     public function get_document(Request $request)
     {
-        // WorkManagement records
-        // $WorkManagement = WorkManagement::where('voucher_id', $request->store_id)->get();
-        $WorkManagement = WorkManagement::get();
+        
+            $id = $request->voucher_id ;
 
-        // UsageTermManagement records
+              $WorkManagement = \DB::table('work_managements')
+            ->where('voucher_id', $id)
+            ->get();
+            // dd($WorkManagement);
+
+
+        
+                // WorkManagement records
+        // $WorkManagement = WorkManagement::where('voucher_id', $request->store_id)->get();
+        $WorkManagement = WorkManagement::where('voucher_id', $id)->get();
+        // dd($WorkManagement)
+;        // UsageTermManagement records
         $UsageTermManagement = UsageTermManagement::get();
         // $UsageTermManagement = UsageTermManagement::where('voucher_id', $request->store_id)->get();
     //   dd($WorkManagement);
