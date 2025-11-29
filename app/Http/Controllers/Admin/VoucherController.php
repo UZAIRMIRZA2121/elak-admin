@@ -93,7 +93,7 @@ class VoucherController extends Controller
          
         // Return both in one response
         return response()->json([
-            'app_name' => $clients->app_name ?? null,
+            'app_name' => $clients->app_name ?? null,    
             'segments' => $All_segmnet
         ]);
     }
