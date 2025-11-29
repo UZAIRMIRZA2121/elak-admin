@@ -152,7 +152,7 @@
                                         </div>
                                     </div>
                                 </div>
-                                <div class="col-12 col-md-6">
+                                {{-- <div class="col-12 col-md-6">
                                     <div class="lang_form" id="default-form">
                                         <div class="form-group">
                                             <label class="input-label" for="type">Segment Types</label>
@@ -173,7 +173,7 @@
                                             </select>
                                         </div>
                                     </div>
-                                </div>
+                                </div> --}}
 
                             </div>
                         @endif
