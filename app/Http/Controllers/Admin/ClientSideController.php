@@ -264,7 +264,7 @@ class ClientSideController extends Controller
 
         $Users = User::query()
             ->leftJoin('clients', 'users.client_id', '=', 'clients.id')
-            ->select('users.*', 'clients.name as client_name', 'clients.type as client_type')
+            ->select('users.*', 'clients.name as client_name')
             ->when($search, function ($q) use ($search) {
                 $q->where('users.status', 'like', "%{$search}%")
                     ->orWhere('clients.name', 'like', "%{$search}%")
@@ -279,17 +279,17 @@ class ClientSideController extends Controller
             $user->type_names = [];
 
             // Check if client has type field with values (from clients table)
-            if (!empty($user->client_type)) {
-                // Split comma-separated values and remove any whitespace
-                $segmentIds = array_filter(array_map('trim', explode(',', $user->client_type)));
+            // if (!empty($user->client_type)) {
+            //     // Split comma-separated values and remove any whitespace
+            //     $segmentIds = array_filter(array_map('trim', explode(',', $user->client_type)));
 
-                if (!empty($segmentIds)) {
-                    // Get segment names from segments table
-                    $user->type_names = \App\Models\Segment::whereIn('id', $segmentIds)
-                        ->pluck('name')
-                        ->toArray();
-                }
-            }
+            //     if (!empty($segmentIds)) {
+            //         // Get segment names from segments table
+            //         $user->type_names = \App\Models\Segment::whereIn('id', $segmentIds)
+            //             ->pluck('name')
+            //             ->toArray();
+            //     }
+            // }
 
             return $user;
         });
