@@ -7,6 +7,7 @@ use Carbon\Carbon;
 use App\Models\Tag;
 use App\Models\Item;
 use App\Models\Brand;
+use App\Models\App;
 use App\Models\Client;
 use App\Models\Store;
 use App\Models\Review;
@@ -78,72 +79,62 @@ class VoucherController extends Controller
 
     }
 
-    // public function getAppName(Request $request)
-    // {
-    //     $clientId = $request->client_id;
-
-    //     // $All_segmnet = \DB::table('segments')
-    //     //     ->where('client_id', $clientId)
-    //     //     ->where('status', "active")
-    //     //     ->get();
-    //     $All_segmnet = Segment::where('client_id', $clientId)->where('status', "active")->get();
-    //     $clients = Client::where('id', $clientId)->where('status', "active")->first();
-    //     // dd($All_segmnet);
-
-         
-    //     // Return both in one response
-    //     return response()->json([
-    //         'app_name' => $clients->app_name ?? null,    
-    //         'segments' => $All_segmnet
-    //     ]);
-    // }
-
-
     public function getAppName(Request $request)
     {
-        try {
+        $clientId = $request->client_id;
 
-            $clientId = $request->client_id;
-
-            $All_segmnet = Segment::where('client_id', $clientId)
-                ->where('status', "active")
-                ->get();
-
-            $client = Client::where('id', $clientId)
-                ->where('status', "active")
-                ->first();
-
-                        // Error log
-            \Log::error('getAppName Error', [
-                'client_id' => $request->client_id,
-                'all segment'   => $All_segmnet,
-                'name clinet'      => $client
-            ]);
-            
-
-            return response()->json([
-                'success'  => true,
-                'app_name' => $client->app_name ?? null,
-                'segments' => $All_segmnet
-            ]);
-
-       
-        } catch (\Exception $e) {
-
-            // Error log
-            \Log::error('getAppName Error', [
-                'client_id' => $request->client_id,
-                'message'   => $e->getMessage(),
-                'file'      => $e->getFile(),
-                'line'      => $e->getLine()
-            ]);
-
-            return response()->json([
-                'success' => false,
-                'message' => 'Something went wrong, check logs.'
-            ], 500);
-        }
+        // $All_segmnet = \DB::table('apps')
+        //     ->where('client_id', $clientId)
+        //     ->where('status', "active")
+        //     ->get();
+        $All_segmnet = Segment::where('client_id', $clientId)->where('status', "active")->get();
+        $clients = App::where('client_id', $clientId)->first();
+        // dd($clients);
+// 
+         
+        // Return both in one response
+        return response()->json([
+            'app_name' => $clients->app_name ?? null,    
+            'segments' => $All_segmnet
+        ]);
     }
+
+
+        // public function getAppName(Request $request)
+        // {
+        //     try {
+
+        //         $clientId = $request->client_id;
+
+        //         $All_segment = Segment::where('client_id', $clientId)->get();
+        //             //  dd($All_segment);÷
+
+        //         $client = Client::where('id', $clientId)
+        //             // ->where('status', 'active')
+        //             ->first();
+
+        //         return response()->json([
+        //             'success'  => true,
+        //             'app_name' => $client->app_name ?? null,
+        //             'segments' => $All_segment
+        //         ]);
+
+        //     } catch (\Exception $e) {
+
+        //         Log::error('getAppName Error', [
+        //             'client_id' => $request->client_id,
+        //             'error'     => $e->getMessage(),
+        //             'file'      => $e->getFile(),
+        //             'line'      => $e->getLine(),
+        //         ]);
+
+        //         return response()->json([
+        //             'success' => false,
+        //             'message' => 'Server error occurred'
+        //         ], 500);
+        //     }
+        // }
+
 
 
   public function getSubcategories(Request $request)
