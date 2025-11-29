@@ -23,7 +23,7 @@ return new class extends Migration
             $table->text("usage_limit_per_store")->nullable();
             $table->string("offer_validity_after_purchase")->nullable();
             $table->text("general_restrictions")->nullable();
-            $table->integer("voucher_id")->nullable();
+            $table->integer("item_id")->nullable();
             $table->string("status")->nullable();
             $table->timestamps();
         });

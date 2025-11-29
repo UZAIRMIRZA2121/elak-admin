@@ -1581,59 +1581,107 @@
     <script>
         getDataFromServer(4)
 
-        function getDataFromServer(storeId) {
+        function getDataFromServer(voucher_id) {
+            // alert(storeId)
             $.ajax({
                 url: "{{ route('admin.Voucher.get_document') }}",
                 type: "GET",
-                data: { store_id: storeId },
+                data: { voucher_id: voucher_id },
                 dataType: "json",
                 success: function(response) {
-                console.log(response);
+                    let workHtml = "";
 
-                // 🟢 WorkManagement (list items)
-                // let workHtml = "";
-                // $.each(response.work_management, function(index, item) {
-                //     workHtml += "<li>" + item.guid_title + "</li>";
-                // });
-                // $("#workList").html(workHtml);
+                    $.each(response.work_management, function(index, item) {
+                        // Parse sections from JSON string
+                        let sections = [];
+                        try {
+                            sections = JSON.parse(item.sections);
+                        } catch(e) {
+                            console.error('Error parsing sections:', e);
+                        }
 
-                // 🟢 WorkManagement (show all details)
-                // resources/views/admin-views/voucher/index.blade.php
-                let workHtml = "";
+                        // Create sections HTML
+                        let sectionsHtml = '';
+                        $.each(sections, function(sIndex, section) {
+                            let stepsHtml = '';
+                            $.each(section.steps, function(stepIndex, step) {
+                                stepsHtml += `
+                                    <li class="mb-2">
+                                        <i class="fas fa-circle text-muted" style="font-size: 6px; vertical-align: middle;"></i>
+                                        <span class="ms-2 text-muted">${step}</span>
+                                    </li>
+                                `;
+                            });
 
-                $.each(response.work_management, function(index, item) {
-                    workHtml += `
-                        <div class="work-item mb-4 rounded-lg border p-4 flex items-center gap-3">
-                            <input type="checkbox" class="record-checkbox"
-                                id="record_${item.id}"
-                                data-item-id="${item.id}"
-                                name="howto_work[]">
-                            <label for="record_${item.id}" class="font-bold text-lg cursor-pointer">
-                                ${item.guid_title}
-                            </label>
-                        </div>
-                    `;
-                });
+                            sectionsHtml += `
+                                <div class="mb-3">
+                                    <h6 class="fw-semibold text-dark mb-2">${section.title}</h6>
+                                    <ul class="list-unstyled ms-3">
+                                        ${stepsHtml}
+                                    </ul>
+                                </div>
+                            `;
+                        });
 
-                $("#workList").html(workHtml);
+                        workHtml += `
+                            <div class="card mb-3 work-item shadow-sm">
+                                <!-- Header with checkbox and toggle -->
+                                <div class="card-header bg-white d-flex align-items-center justify-content-between py-3 cursor-pointer"
+                                    onclick="toggleAccordion(${item.id})"
+                                    style="cursor: pointer;">
+                                    <div class="d-flex align-items-center flex-grow-1">
+                                        <input type="checkbox"
+                                            class="form-check-input record-checkbox me-3"
+                                            id="record_${item.id}"
+                                            data-item-id="${item.id}"
+                                            name="howto_work[]"
+                                            onclick="event.stopPropagation()">
+                                        <label for="record_${item.id}"
+                                            class="fw-semibold mb-0 cursor-pointer flex-grow-1"
+                                            style="cursor: pointer;"
+                                            onclick="event.stopPropagation()">
+                                            ${item.guide_title}
+                                        </label>
+                                    </div>
+                                    <i class="fas fa-chevron-down text-muted accordion-icon"
+                                    id="icon_${item.id}"
+                                    style="transition: transform 0.3s ease;"></i>
+                                </div>
 
+                                <!-- Accordion Content -->
+                                <div id="content_${item.id}"
+                                    class="accordion-content collapse">
+                                    <div class="card-body bg-light border-top">
+                                        ${sectionsHtml || '<p class="text-muted fst-italic mb-0">No sections available</p>'}
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    });
 
+                    $("#workList").html(workHtml);
 
-                // 🟢 UsageTermManagement (checkboxes)
-                let usageHtml = "";
-                $.each(response.usage_term_management, function(index, term) {
+                $.each(response.usage_term_management, function (index, term) {
                     usageHtml += `
-                    <div class="col-md-4 mb-3">
-                        <div class="border rounded p-5 d-flex align-items-center">
-                        <input class="form-check-input mr-2" type="checkbox" name="term_and_condition[]" id="term${term.id}">
-                        <label class="form-check-label mb-0" for="term${term.id}">
-                            ${term.baseinfor_condition_title}
-                        </label>
+                        <div class="usage-item border rounded-lg mb-4 p-4 col-6">
+                            <div class="flex items-center gap-2 mb-2">
+                                <input
+                                    class="form-check-input step-checkbox"
+                                    name="term_and_condition[]"
+                                    type="checkbox"
+                                    value="${term.id}"
+                                    id="term${term.id}">
+
+                                <label for="term${term.id}" class="font-bold text-lg cursor-pointer m-0">
+                                    ${term.baseinfor_condition_title}
+                                </label>
+                            </div>
                         </div>
-                    </div>
                     `;
                 });
+
                 $("#usageTerms").html(usageHtml);
+
 
                 },
                 error: function(xhr, status, error) {
@@ -1642,7 +1690,6 @@
                 }
             });
         }
-
         function bundle(type) {
             // 1. Set the hidden input value
             document.getElementById('hidden_bundel').value = type;
