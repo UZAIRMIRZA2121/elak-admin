@@ -1327,9 +1327,20 @@
         let discountAmount = 0;
 
         if (discountType === 'percent') {
-            discountAmount = (bundleTotal * discount) / 100;
+
+               if (actual_price > 0) {
+                   discountAmount = (actual_price * discount) / 100;
+                } else {
+                   discountAmount = (bundleTotal * discount) / 100;
+                }
+            
         } else {
-            discountAmount = discount;
+               if (actual_price > 0) {
+                   discountAmount = discount;
+                } else {
+                   discountAmount = discount;
+                }
+            
         }
 
         let finalTotal = 0;   // pehle declare karo
@@ -1407,6 +1418,7 @@
         let discount = parseFloat($('#discount').val()) || 0;
         let discountType = $('#discount_type').val();
         let bundleTotal = parseFloat($('#price_hidden').val()) || 0;
+        let actual_price = Number($('#actual_price').val()) || 0;
 
         if (discountType === 'percent' && discount > 100) {
             alert('Discount percentage cannot exceed 100%');
@@ -1414,11 +1426,29 @@
             return;
         }
 
-        if (discountType !== 'percent' && discount > bundleTotal) {
-            alert(`Discount amount ($${discount}) cannot exceed bundle total ($${bundleTotal})`);
-            $('#discount').val(0);
-            return;
+        if (actual_price > 0) {
+
+         if (discountType !== 'percent' && discount > actual_price) {
+                alert(`Discount amount ($${discount}) cannot exceed bundle total ($${bundleTotal})`);
+                $('#discount').val(0);
+                return;
+            }
+
+        } else {
+
+            if (discountType !== 'percent' && discount > bundleTotal) {
+                alert(`Discount amount ($${discount}) cannot exceed bundle total ($${bundleTotal})`);
+                $('#discount').val(0);
+                return;
+            }
+
         }
+
+
+
+
+
+
 
         updateBundleTotal();
     });

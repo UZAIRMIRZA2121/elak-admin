@@ -154,6 +154,8 @@ function handleClientChange(selectElement) {
         return;
     }
 
+
+    // alert("Making AJAX call to fetch data");
     console.log('Making AJAX call to fetch data...');
     
     // AJAX call
