@@ -1145,12 +1145,12 @@
                     </a>
                 </li>
 
-                <li class="navbar-vertical-aside-has-menu ">
+                {{-- <li class="navbar-vertical-aside-has-menu ">
                     <a class="js-navbar-vertical-aside-menu-link nav-link" href="{{ route('admin.segments.add-new') }}" title="">
                          <span class="tio-calendar-note nav-icon"></span>
                         <span class="text-truncate"> Segments list</span>
                     </a>
-                </li>
+                </li> --}}
 
                 <li class="nav-item py-5">
 

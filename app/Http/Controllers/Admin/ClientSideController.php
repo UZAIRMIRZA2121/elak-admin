@@ -108,7 +108,7 @@ class ClientSideController extends Controller
         $client->name = $request->name;
         $client->email = $request->email;
         $client->password = bcrypt($request->password);
-       
+
 
         //  Logo Upload
         if ($request->hasFile('logo_image')) {
@@ -163,7 +163,7 @@ class ClientSideController extends Controller
             'password' => 'nullable|min:6',
             'logo_image' => 'nullable|image',
             'cover_image' => 'nullable|image',
-          
+
 
         ]);
 
@@ -354,32 +354,16 @@ class ClientSideController extends Controller
     //     return response()->json($segments);
     // }
 
-    public function getSegments($clientIds)
-    {
-        // String ko array me convert karo
-        $ids = array_filter(array_map('trim', explode(',', $clientIds)));
+ public function getSegments($clientId)
+{
+    // Get all active segments for the given client_id
+    $segments = Segment::where('client_id', $clientId)
+                       ->where('status', 'active')
+                       ->get();
 
-        // Ab multiple clients nikal lo
-        $clients = Client::whereIn('id', $ids)->get();
-        $allSegmentIds = [];
+    return response()->json($segments);
+}
 
-        foreach ($clients as $client) {
-            if (!empty($client->type)) {
-                // Client ke type se segment IDs nikal lo
-                $segmentIds = array_filter(array_map('trim', explode(',', $client->type)));
-                $allSegmentIds = array_merge($allSegmentIds, $segmentIds);
-            }
-        }
-
-        // Duplicate IDs remove karo
-        $allSegmentIds = array_unique($allSegmentIds);
-
-        // Final segments lao
-        $segments = Segment::whereIn('id', $allSegmentIds)->get();
-        // dd($segments);
-
-        return response()->json($segments);
-    }
 
 
 
