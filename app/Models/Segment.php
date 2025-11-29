@@ -11,7 +11,7 @@ class Segment extends Model
 
         protected $table = 'segments';
 
-        protected $fillable = ['type', 'name','validation_date','status'];
+        protected $fillable = ['client_id', 'name', 'type','validation_date','status'];
 
 
 }

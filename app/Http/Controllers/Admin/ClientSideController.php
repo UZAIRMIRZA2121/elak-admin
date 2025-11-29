@@ -102,7 +102,6 @@ class ClientSideController extends Controller
             'password' => 'required|min:6',
             'logo_image' => 'nullable|image',
             'cover_image' => 'nullable|image',
-            'type' => 'required|array',   // ensure array
         ]);
 
         $client = new Client();
@@ -164,7 +163,6 @@ class ClientSideController extends Controller
             'password' => 'nullable|min:6',
             'logo_image' => 'nullable|image',
             'cover_image' => 'nullable|image',
-            'type' => 'required|array',   // ensure array
 
         ]);
 

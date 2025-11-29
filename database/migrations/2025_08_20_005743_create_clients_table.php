@@ -18,7 +18,6 @@ return new class extends Migration
             $table->string('password')->nullable(); // agar client login karega to rakho
             $table->string('logo')->nullable();
             $table->string('cover')->nullable();
-            $table->string('type')->nullable();
             $table->enum('status', ['active', 'inactive'])->default('active');
             $table->rememberToken();
             $table->timestamps();
