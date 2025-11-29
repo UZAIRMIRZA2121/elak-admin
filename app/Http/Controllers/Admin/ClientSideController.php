@@ -102,14 +102,13 @@ class ClientSideController extends Controller
             'password' => 'required|min:6',
             'logo_image' => 'nullable|image',
             'cover_image' => 'nullable|image',
-            'type' => 'required|array',   // ensure array
         ]);
 
         $client = new Client();
         $client->name = $request->name;
         $client->email = $request->email;
         $client->password = bcrypt($request->password);
-        $client->type = implode(',', $request->type);
+       
 
         //  Logo Upload
         if ($request->hasFile('logo_image')) {
@@ -164,7 +163,7 @@ class ClientSideController extends Controller
             'password' => 'nullable|min:6',
             'logo_image' => 'nullable|image',
             'cover_image' => 'nullable|image',
-            'type' => 'required|array',   // ensure array
+          
 
         ]);
 
@@ -176,8 +175,7 @@ class ClientSideController extends Controller
         if ($request->filled('password')) {
             $client->password = bcrypt($request->password);
         }
-        // Save type as comma separated string
-        $client->type = implode(',', $request->type);
+
 
         //  Logo Upload
         if ($request->hasFile('logo_image')) {

@@ -90,7 +90,7 @@
                             @csrf
                             @if ($language)
                                 <div class="row">
-                                  
+
                                     <div class="col-6 col-md-4">
                                         <div class="lang_form" id="default-form">
                                             <div class="form-group">
@@ -139,7 +139,7 @@
                                             </div>
                                         </div>
                                     </div>
-                                    <div class="col-12 col-md-6">
+                                    {{-- <div class="col-12 col-md-6">
                                         <div class="lang_form" id="default-form">
                                             <div class="form-group">
                                                 <label class="input-label" for="type">Segment Types</label>
@@ -154,13 +154,12 @@
                                                 </select>
                                             </div>
                                         </div>
-                                    </div>
+                                    </div> --}}
                                 </div>
                             @endif
                             <div class="btn--container justify-content-end mt-5">
                                 <button type="reset" class="btn btn--reset">{{ translate('messages.reset') }}</button>
-                                <button type="submit"
-                                    class="btn btn--primary">{{ translate('messages.submit') }}</button>
+                                <button type="submit" class="btn btn--primary">{{ translate('messages.submit') }}</button>
                             </div>
                         </form>
                     </div>
@@ -240,9 +239,12 @@
                                         </td>
                                         {{-- Client Types --}}
                                         <td class="text-center">
-                                            @if (!empty($client->type_names))
-                                                @foreach ($client->type_names as $tName)
-                                                    <span class="badge badge-info d-block mb-1">{{ $tName }}</span>
+                                            @if (!empty($client->segments))
+                                                @foreach ($client->segments as $segment)
+                                                    <span
+                                                        class="badge {{ $segment->status === 'inactive' ? 'badge-danger' : 'badge-success' }} d-block mb-1">
+                                                        {{ $segment->name }}
+                                                    </span>
                                                 @endforeach
                                             @else
                                                 <span class="text-muted">-</span>
@@ -286,6 +288,12 @@
                                         <td>
                                             <div class="btn--container justify-content-center">
                                                 <a class="btn action-btn btn--primary btn-outline-primary"
+                                                    href="javascript:void(0)"
+                                                    onclick="loadClientSegments({{ $client->id }})" title="Edit">
+                                                    <i class="tio-edit"></i>
+                                                </a>
+
+                                                <a class="btn action-btn btn--primary btn-outline-primary"
                                                     href="{{ route('admin.client-side.edit', [$client->id]) }}"
                                                     title="Edit">
                                                     <i class="tio-edit"></i>
@@ -326,6 +334,40 @@
             <!-- End Table -->
         </div>
     </div>
+    <!-- Segment Modal -->
+    <div class="modal fade" id="segmentModal" tabindex="-1" aria-labelledby="segmentModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+
+                <!-- Modal Header -->
+                <div class="modal-header">
+                    <h5 class="modal-title" id="segmentModalLabel">Manage Client Segments</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+
+                <!-- Modal Body -->
+                <div class="modal-body">
+
+                    <!-- Segments Container -->
+                    <div id="segmentFieldsContainer"></div>
+
+                    <!-- Buttons -->
+                    <div class="d-flex justify-content-between mt-3">
+                        <button type="button" class="btn btn-secondary" onclick="addSegmentRow()">
+                            Add More
+                        </button>
+                        <button type="button" class="btn btn-primary" onclick="saveMultipleSegments()">
+                            Save All
+                        </button>
+                    </div>
+
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+
 
 @endsection
 
@@ -344,5 +386,131 @@
                 closeOnSelect: false
             });
         });
+    </script>
+    <script>
+        let selectedClientId = null;
+
+        // -------------------------------
+        // Add Segment Row
+        // -------------------------------
+        function addSegmentRow(name = "", type = "free", days = "", status = "active", id = null) {
+            let checked = status === "active" ? "checked" : "";
+
+            let row = `
+    <div class="segment-row row mb-3">
+        <input type="hidden" name="segment_id[]" value="${id ?? ''}">
+
+        <div class="col-md-3">
+            <label>Name</label>
+            <input type="text" name="name[]" class="form-control" value="${name}">
+        </div>
+
+        <div class="col-md-2">
+            <label>Type</label>
+            <select name="type[]" class="form-control">
+                <option value="free" ${type === "free" ? "selected" : ""}>Free</option>
+                <option value="paid" ${type === "paid" ? "selected" : ""}>Paid</option>
+            </select>
+        </div>
+
+        <div class="col-md-2">
+            <label>Validity Days</label>
+            <input type="number" name="validity_days[]" class="form-control" value="${days}">
+        </div>
+
+        <div class="col-md-2 d-flex align-items-center">
+            <label class="toggle-switch toggle-switch-sm w-100 mt-2">
+                <input type="checkbox" name="status_checkbox[]" class="toggle-switch-input segment-status" ${checked}>
+                <span class="toggle-switch-label mx-auto">
+                    <span class="toggle-switch-indicator"></span>
+                </span>
+            </label>
+        </div>
+
+        <div class="col-md-1 d-flex align-items-end">
+            <button type="button" class="btn btn-danger remove-segment-btn">×</button>
+        </div>
+    </div>
+    `;
+
+            $("#segmentFieldsContainer").append(row);
+        }
+
+        // Remove a row
+        $(document).on("click", ".remove-segment-btn", function() {
+            $(this).closest(".segment-row").remove();
+        });
+
+        // -------------------------------
+        // Load Client Segments
+        // -------------------------------
+        function loadClientSegments(clientId) {
+            selectedClientId = clientId;
+
+            $.ajax({
+                url: "{{ route('admin.segments.get-segment', ':id') }}".replace(':id', clientId),
+                method: "GET",
+                success: function(response) {
+
+                    $("#segmentFieldsContainer").html(""); // clear old rows
+
+                    if (response.segments.length === 0) {
+                        addSegmentRow(); // at least one row
+                    } else {
+                        response.segments.forEach(seg => {
+                            addSegmentRow(seg.name, seg.type, seg.validation_date, seg.status, seg.id);
+                        });
+                    }
+
+                    $("#segmentModal").modal("show");
+                }
+            });
+        }
+
+        // -------------------------------
+        // Save Multiple Segments
+        // -------------------------------
+        function saveMultipleSegments() {
+
+            let names = $("input[name='name[]']").map((_, el) => el.value).get();
+            let types = $("select[name='type[]']").map((_, el) => el.value).get();
+            let days = $("input[name='validity_days[]']").map((_, el) => el.value).get();
+
+            // Convert checkbox to enum 'active' / 'inactive'
+            let statuses = $(".segment-status").map((_, el) => el.checked ? "active" : "inactive").get();
+
+            let segment_ids = $("input[name='segment_id[]']").map((_, el) => el.value).get();
+
+            $.ajax({
+                url: "{{ url('admin/segments/store-multiple') }}",
+                method: "POST",
+                data: {
+                    client_id: selectedClientId,
+                    name: names,
+                    type: types,
+                    validity_days: days,
+                    status: statuses,
+                    segment_id: segment_ids,
+                    _token: "{{ csrf_token() }}"
+                },
+
+                success: function(response) {
+                    Swal.fire({
+                        icon: "success",
+                        title: "Segments Saved Successfully",
+                        toast: true,
+                        position: "top-right",
+                        showConfirmButton: false,
+                        timer: 2000
+                    });
+
+                    $("#segmentModal").modal("hide");
+                },
+
+                error: function(xhr) {
+                    console.log("Error:", xhr.responseText);
+                }
+            });
+        }
     </script>
 @endpush
