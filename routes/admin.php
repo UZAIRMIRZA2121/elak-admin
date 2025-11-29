@@ -271,6 +271,10 @@ Route::group(['namespace' => 'Admin', 'as' => 'admin.'], function () {
             Route::post('update/{id}', 'SegmentsController@update')->name('update');
             Route::delete('delete/{id}', 'SegmentsController@delete')->name('delete');
             Route::post('status/{id}', 'SegmentsController@status')->name('status');
+            Route::get('get-segment/{id}', 'SegmentsController@getSegments')->name('get-segment');
+            Route::post('store-multiple', 'SegmentsController@storeMultiple')->name('store-multiple');
+
+
         });
        // Client Users Segments
 

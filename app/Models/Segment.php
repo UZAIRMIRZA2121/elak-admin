@@ -7,10 +7,9 @@ use Illuminate\Database\Eloquent\Model;
 
 class Segment extends Model
 {
-    use HasFactory;
+      use HasFactory;
 
     protected $table = 'segments';
-
 
     protected $fillable = [
         'type',
@@ -19,7 +18,7 @@ class Segment extends Model
         'status',
         'client_id', // add this
     ];
-
+ 
 
     public function client()
     {

@@ -30,5 +30,10 @@ class Client extends Authenticatable
     {
         return $this->hasMany(App::class, 'client_id');
     }
+    public function segments()
+    {
+        return $this->hasMany(Segment::class, 'client_id', 'id');
+    }
+
 
 }
