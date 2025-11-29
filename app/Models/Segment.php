@@ -18,7 +18,8 @@ class Segment extends Model
         'status',
         'client_id', // add this
     ];
-
+ 
+    
     public function client()
     {
         return $this->belongsTo(Client::class, 'client_id', 'id');
