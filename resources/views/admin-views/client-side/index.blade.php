@@ -505,7 +505,6 @@
                     });
 
                     $("#segmentModal").modal("hide");
-                    window.location.reload();
                 },
 
                 error: function(xhr) {
