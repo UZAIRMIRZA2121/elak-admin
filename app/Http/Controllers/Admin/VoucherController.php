@@ -82,35 +82,19 @@ class VoucherController extends Controller
     {
         $clientId = $request->client_id;
 
-        $client_ids = \DB::table('apps')
-            ->where('client_id', $clientId)
-            ->first();
+        // $All_segmnet = \DB::table('segments')
+        //     ->where('client_id', $clientId)
+        //     ->where('status', "active")
+        //     ->get();
+        $All_segmnet = Segment::where('client_id', $clientId)->where('status', "active")->get();
+        $clients = Client::where('id', $clientId)->where('status', "active")->first();
+        // dd($All_segmnet);
 
-            // dd($client_ids->app_name);
-
-        
-            // Ab multiple clients nikal lo
-            $clients = Client::where('id', $clientId)->get();
-            $allSegmentIds = [];
-
-            foreach ($clients as $client) {
-                if (!empty($client->type)) {
-                    // Client ke type se segment IDs nikal lo
-                    $segmentIds = array_filter(array_map('trim', explode(',', $client->type)));
-                    $allSegmentIds = array_merge($allSegmentIds, $segmentIds);
-                }
-            }
-
-            // Duplicate IDs remove karo
-            $allSegmentIds = array_unique($allSegmentIds);
-
-            // Final segments lao
-            $segments = Segment::whereIn('id', $allSegmentIds)->get();
-
+         
         // Return both in one response
         return response()->json([
-            'app_name' => $client_ids->app_name ?? null,
-            'segments' => $segments
+            'app_name' => $clients->app_name ?? null,
+            'segments' => $All_segmnet
         ]);
     }
 
@@ -271,7 +255,7 @@ class VoucherController extends Controller
               $WorkManagement = \DB::table('work_managements')
             ->where('voucher_id', $id)
             ->get();
-            dd($WorkManagement);
+            // dd($WorkManagement);
 
 
         

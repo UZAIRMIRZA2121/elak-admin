@@ -459,10 +459,10 @@
                         <h3 class="h5 fw-semibold mb-4"> {{ translate('Price Information') }}</h3>
                         {{-- Price Information --}}
                         <div class="row g-2">
-                            <div class="col-6 col-md-3 d-none" id="actual_price_input_hide">
+                            <div class="col-12 d-none" id="actual_price_input_hide">
                                 <div class="form-group mb-0">
                                     <label class="input-label"  for="exampleFormControlInput1">{{ translate('Actual Price') }} <span class="form-label-secondary text-danger"  data-toggle="tooltip" data-placement="right" data-original-title="{{ translate('messages.Required.')}}"> *  </span> </label>
-                                    <input type="number" min="0" id="price" max="999999999999.99" step="0.01" value="1" name="actual_price_input_hide" class="form-control"placeholder="{{ translate('messages.Ex:') }} 100" required>
+                                    <input type="number" min="0" id="actual_price" max="999999999999.99" step="0.01" value="1" name="actual_price_input_hide" class="form-control"placeholder="{{ translate('messages.Ex:') }} 100" required>
                                     <input type="hidden"  id="actual_price_input_hide"name="actual_price_input_hide" >
                                 </div>
                             </div>
@@ -1273,6 +1273,7 @@
     });
     // ==================== UPDATE BUNDLE TOTAL (REGULAR) ====================
     function updateBundleTotal() {
+        // alert("hello");
         let bundleTotal = 0;
         let productCount = 0;
         let breakdownHTML = '<h5>Bundle Price Breakdown:</h5><ul class="list-group">';
@@ -1282,6 +1283,7 @@
             let basePrice = parseFloat($(this).find('.product-base-price').val()) || 0;
             let productTotal = parseFloat($(this).find('.product-total').text().replace('$', '')) || 0;
             let quantity = parseInt($(this).find('.product-quantity').val()) || 1;
+           
 
             bundleTotal += productTotal;
             productCount++;
@@ -1320,6 +1322,8 @@
 
         let discount = parseFloat($('#discount').val()) || 0;
         let discountType = $('#discount_type').val();
+         let actual_price = Number($('#actual_price').val()) || 0;
+            // alert(actual_price);
         let discountAmount = 0;
 
         if (discountType === 'percent') {
@@ -1328,7 +1332,17 @@
             discountAmount = discount;
         }
 
-        let finalTotal = Math.max(bundleTotal - discountAmount, 0);
+        let finalTotal = 0;   // pehle declare karo
+
+        if (actual_price > 0) {
+            finalTotal = Math.max(actual_price - discountAmount, 0);
+        } else {
+            finalTotal = Math.max(bundleTotal - discountAmount, 0);
+        }
+
+        // alert(finalTotal);
+
+    
 
         breakdownHTML += `
             <li class="list-group-item">
@@ -1363,13 +1377,33 @@
         if (bundleType === 'bogo_free' || bundleType === 'mix_match') {
             $('#price').val(finalTotal.toFixed(2));
             $('#price_hidden').val(finalTotal.toFixed(2));
-        } else {
+        // } else if(bundleType === 'simple x'){
+        //       $('#price').val(finalTotal.toFixed(2));
+        //       $('#price_hidden').val(bundleTotal.toFixed(2));
+
+        }else{
             $('#price').val(finalTotal.toFixed(2));
             $('#price_hidden').val(bundleTotal.toFixed(2));
         }
+
+        // if (bundleType === 'bundle') {
+        //     $('#price').val(finalTotal.toFixed(2));
+        //     $('#price_hidden').val(finalTotal.toFixed(2));
+        // } else if(bundleType === 'simple x'){
+        //     alert(bundleType);
+        //     alert(finalTotal);
+
+        //     $('#price').val(finalTotal.toFixed(2));
+        //     $('#price_hidden').val(bundleTotal.toFixed(2));
+        // }
+
+
+
+
+
     }
 
-    $('#discount, #discount_type').on('change input', function() {
+    $('#discount, #discount_type, #actual_price').on('change input', function() {
         let discount = parseFloat($('#discount').val()) || 0;
         let discountType = $('#discount_type').val();
         let bundleTotal = parseFloat($('#price_hidden').val()) || 0;

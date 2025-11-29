@@ -18,7 +18,6 @@ class Client extends Authenticatable
         'password',
         'logo',
         'cover',
-        'type',
         'status',
         'remember',
     ];

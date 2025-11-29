@@ -163,7 +163,6 @@ class ClientSideController extends Controller
             'password' => 'nullable|min:6',
             'logo_image' => 'nullable|image',
             'cover_image' => 'nullable|image',
-          
 
         ]);
 

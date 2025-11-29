@@ -9,7 +9,9 @@ class Segment extends Model
 {
       use HasFactory;
 
-    protected $table = 'segments';
+        protected $table = 'segments';
+
+        protected $fillable = ['client_id', 'name', 'type','validation_date','status'];
 
     protected $fillable = [
         'type',
