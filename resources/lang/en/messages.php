@@ -8361,4 +8361,5 @@ Smartly or Earn. ',
   'View Agreement' => 'View Agreement',
   'Agreement Start Date' => 'Agreement Start Date',
   'Agreement End Date' => 'Agreement End Date',
+  'Invalid delivery charge configuration for module:' => 'Invalid delivery charge configuration for module:',
 );

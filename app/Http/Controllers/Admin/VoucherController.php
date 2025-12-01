@@ -319,7 +319,7 @@ class VoucherController extends Controller
         $type_name =  $request->hidden_name;
 
 
-        // dd($request->all());
+        dd($request->all());
         if($type_name == "Delivery/Pickup" || $type_name == "In-Store"){
 
             // ✅ Debug request if needed

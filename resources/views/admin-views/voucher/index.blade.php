@@ -917,6 +917,10 @@
         <div class="card p-3 shadow-sm mb-3 col-12 col-md-6"
             data-product-temp-id="${counter}"
             data-product-id="${productId}">
+               <p class="text-muted mb-2">Base Price: $${basePrice.toFixed(2)}</p>
+            <input type="hidden" class="product-id" value="${productId}">
+            <input type="hidden" class="product-name" value="${productName}">
+            <input type="hidden" class="product-base-price" value="${basePrice}">
 
             <div class="d-flex align-items-center justify-content-between flex-wrap gap-3 border rounded p-2">
 
@@ -1284,7 +1288,7 @@
             let productTotal = parseFloat($(this).find('.product-total').text().replace('$', '')) || 0;
             let quantity = parseInt($(this).find('.product-quantity').val()) || 1;
            
-
+        // alert(productName);
             bundleTotal += productTotal;
             productCount++;
 
@@ -1325,33 +1329,38 @@
          let actual_price = Number($('#actual_price').val()) || 0;
             // alert(actual_price);
         let discountAmount = 0;
+          
 
         if (discountType === 'percent') {
 
-               if (actual_price > 0) {
+               if (actual_price < 0) {
                    discountAmount = (actual_price * discount) / 100;
                 } else {
+//                     alert(actual_price);
+//   alert(bundleTotal);
+//   alert(discountAmount);
+
                    discountAmount = (bundleTotal * discount) / 100;
                 }
             
         } else {
-               if (actual_price > 0) {
+               if (actual_price < 0) {
                    discountAmount = discount;
                 } else {
                    discountAmount = discount;
                 }
             
         }
-
+  
         let finalTotal = 0;   // pehle declare karo
 
-        if (actual_price > 0) {
+        if (actual_price < 0) {
             finalTotal = Math.max(actual_price - discountAmount, 0);
         } else {
             finalTotal = Math.max(bundleTotal - discountAmount, 0);
         }
-
         // alert(finalTotal);
+
 
     
 
@@ -1375,7 +1384,7 @@
             </li>
         </ul>`;
 
-        if (productCount > 0) {
+        if (productCount < 0) {
             $('#priceCalculator').show();
             $('#priceBreakdown').html(breakdownHTML);
             $('#selectedProducts p').hide();
@@ -1426,7 +1435,7 @@
             return;
         }
 
-        if (actual_price > 0) {
+        if (actual_price < 0) {
 
          if (discountType !== 'percent' && discount > actual_price) {
                 alert(`Discount amount ($${discount}) cannot exceed bundle total ($${bundleTotal})`);
