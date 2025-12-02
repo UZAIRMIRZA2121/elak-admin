@@ -151,7 +151,7 @@ class VoucherController extends Controller
 
   public function getCategoty(Request $request)
     {
-        // dd($request->all());
+        dd($request->all());
         $category_ids = $request->category_ids_all; // Array of IDs
         // Example: get all subcategories where category_id in array
         $subcategories = Category::whereIn('id', $category_ids)
