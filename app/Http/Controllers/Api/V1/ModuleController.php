@@ -10,12 +10,10 @@ use Illuminate\Http\Request;
 
 class ModuleController extends Controller
 {
-
     public function index(Request $request)
     {
         if ($request->hasHeader('zoneId')) {
             $zone_id = json_decode($request->header('zoneId'), true);
-
             $zone_id = is_array($zone_id) ? $zone_id : [$zone_id];
 
             $modules = Module::with('zones')
@@ -39,19 +37,26 @@ class ModuleController extends Controller
                     });
                 }
             ])
-            ->when($request->zone_id, function ($query) use ($request) {
-                $query->whereHas('zones', function ($query) use ($request) {
-                    $query->where('zone_id', $request->zone_id);
-                })->notParcel();
-            })
-            ->active()
-            ->get();
+                ->when($request->zone_id, function ($query) use ($request) {
+                    $query->whereHas('zones', function ($query) use ($request) {
+                        $query->where('zone_id', $request->zone_id);
+                    })->notParcel();
+                })
+                ->active()
+                ->get();
         }
 
-        $modules = array_map(function($item){
-            return $item;
-        },$modules->toArray());
+        // Convert to array and modify module_type if needed
+        $modules = $modules->map(function ($item) {
+            $itemArray = $item->toArray();
+            if (isset($itemArray['module_type']) && $itemArray['module_type'] === 'voucher') {
+                $itemArray['module_type'] = 'food';
+            }
+            return $itemArray;
+        });
+
         return response()->json($modules);
     }
+
 
 }

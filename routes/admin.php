@@ -298,6 +298,8 @@ Route::group(['namespace' => 'Admin', 'as' => 'admin.'], function () {
             Route::delete('delete/{id}', 'GiftOccasionsController@delete')->name('delete');
             Route::post('status/{id}', 'GiftOccasionsController@status')->name('status');
             Route::get('gift-occasions/{id}/gallery', 'GiftOccasionsController@getGallery')->name('gallery');
+            Route::delete('/gift-occasions/gallery/{id}', 'GiftOccasionsController@gallery_destroy')->name('galleryDestroy');
+    
 
         });
         // Gift Occasions
