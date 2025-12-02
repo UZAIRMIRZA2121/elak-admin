@@ -15,8 +15,9 @@ use App\Exports\StoreSubCategoryExport;
 
 class CategoryController extends Controller
 {
-    function index(Request $request)
+   public function index(Request $request)
     {
+         dd(123);
         $key = explode(' ', $request['search']);
         $categories=Category::where(['position'=>0])->module(Helpers::get_store_data()->module_id)
         ->when(isset($key) , function($q) use($key){
@@ -34,6 +35,7 @@ class CategoryController extends Controller
     }
 
     public function get_all(Request $request){
+         
         $data = Category::where('name', 'like', '%'.$request->q.'%')->module(Helpers::get_store_data()->module_id)->limit(8)->get([DB::raw('id, CONCAT(name, " (", if(position = 0, "'.translate('messages.main').'", "'.translate('messages.sub').'"),")") as text')]);
         if(isset($request->all))
         {
@@ -44,6 +46,7 @@ class CategoryController extends Controller
 
     function sub_index(Request $request)
     {
+        
         $key = explode(' ', $request['search']);
         $categories=Category::with(['parent'])
         ->whereHas('parent',function($query){

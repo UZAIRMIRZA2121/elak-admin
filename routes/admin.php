@@ -2,7 +2,7 @@
 use App\Http\Controllers\Admin\ClientSideController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Artisan;
-     use App\Http\Controllers\AuthController;
+use App\Http\Controllers\AuthController;
 Route::get('/clear-cache', function () {
     Artisan::call('config:clear');
     Artisan::call('cache:clear');
@@ -18,7 +18,7 @@ Route::get('/testing-calculator', function () {
 
 Route::group(['namespace' => 'Admin', 'as' => 'admin.'], function () {
 
-    Route::group(['middleware' => ['admin', 'current-module' ]], function () {
+    Route::group(['middleware' => ['admin', 'current-module']], function () {
 
         Route::get('/test', function () {
             // return view('admin-views.test.VendorPanel-tax-report');
@@ -40,20 +40,7 @@ Route::group(['namespace' => 'Admin', 'as' => 'admin.'], function () {
         Route::get('maintenance-mode', 'SystemController@maintenance_mode')->name('maintenance-mode');
         Route::get('landing-page', 'SystemController@landing_page')->name('landing-page');
 
-        Route::group(['prefix' => 'parcel', 'as' => 'parcel.', 'middleware' => ['module:parcel']], function () {
-            Route::get('category/status/{id}/{status}', 'ParcelCategoryController@status')->name('category.status');
-            Route::resource('category', 'ParcelCategoryController');
-            Route::get('orders/{status}', 'ParcelController@orders')->name('orders');
-            Route::get('orders/export/{status}/{file_type}', 'ParcelController@parcel_orders_export')->name('parcel_orders_export');
-            Route::get('details/{id}', 'ParcelController@order_details')->name('order.details');
-            Route::get('settings', 'ParcelController@settings')->name('settings');
-            Route::post('settings', 'ParcelController@update_settings')->name('update.settings');
-            Route::get('dispatch/{status}', 'ParcelController@dispatch_list')->name('list');
-            Route::post('instruction', 'ParcelController@instruction')->name('instruction');
-            Route::get('/instruction/{id}/{status}', 'ParcelController@instruction_status')->name('instruction_status');
-            Route::put('instruction_edit/', 'ParcelController@instruction_edit')->name('instruction_edit');
-            Route::delete('instruction_delete/{id}', 'ParcelController@instruction_delete')->name('instruction_delete');
-        });
+    
 
         Route::group(['prefix' => 'dashboard-stats', 'as' => 'dashboard-stats.'], function () {
             Route::post('order', 'DashboardController@order')->name('order');
@@ -122,13 +109,13 @@ Route::group(['namespace' => 'Admin', 'as' => 'admin.'], function () {
             Route::get('add-new-store', 'VoucherController@index')->name('add-new');
             Route::get('add-flat-discount', 'VoucherController@discount')->name('add-flat-discount');
             Route::get('get-app-name', 'VoucherController@getAppName')->name('getAppName');
-              Route::get('add-gift', 'VoucherController@index_git')->name('add-gift');
+            Route::get('add-gift', 'VoucherController@index_git')->name('add-gift');
             Route::post('get-data', 'VoucherController@get_voucher_type')->name('voucherType.store');
             Route::post('variant-combination', 'VoucherController@variant_combination')->name('variant-combination');
             Route::post('store', 'VoucherController@store')->name('store');
             Route::get('edit/{id}', 'VoucherController@edit')->name('edit');
             Route::get('view-voucher/{id}', 'VoucherController@view_voucher')->name('view_voucher');
-              Route::get('item-wise-reviews-export', 'VoucherController@item_wise_reviews_export')->name('item_wise_reviews_export');
+            Route::get('item-wise-reviews-export', 'VoucherController@item_wise_reviews_export')->name('item_wise_reviews_export');
             Route::post('update/{id}', 'VoucherController@update')->name('update');
             Route::get('list', 'VoucherController@list')->name('list');
             Route::delete('delete/{id}', 'VoucherController@delete')->name('delete');
@@ -151,7 +138,7 @@ Route::group(['namespace' => 'Admin', 'as' => 'admin.'], function () {
             Route::get('product-gallery', 'VoucherController@product_gallery')->name('product_gallery');
 
             //ajax request
-             Route::get('get-subcategories', 'VoucherController@getSubcategories')->name('getSubcategories');
+            Route::get('get-subcategories', 'VoucherController@getSubcategories')->name('getSubcategories');
             Route::get('/get-category-ids', 'VoucherController@getCategoty')->name('getCategoty');
             Route::get('get-categories', 'VoucherController@get_categories')->name('get-categories');
             Route::get('get-Vouchers', 'VoucherController@get_Vouchers')->name('getVouchers');
@@ -249,20 +236,31 @@ Route::group(['namespace' => 'Admin', 'as' => 'admin.'], function () {
             Route::get('export', 'ClientSideController@export_account_transaction')->name('export');
             Route::get('clients/{id}/segments', 'ClientSideController@getSegments')->name('getSegments');
             // filter
-          Route::match(['get', 'post'], 'all-filter', [ClientSideController::class, 'filter'])->name('filter');
-          Route::match(['get', 'post'], 'banner', [ClientSideController::class, 'banner'])->name('banner');
-          Route::post('status-banner/{id}', 'ClientSideController@status_banner')->name('status_banner');
-          Route::delete('delete-banner/{id}', 'ClientSideController@delete_banner')->name('delete_banner');
-          Route::get('edit-banner/{id}', 'ClientSideController@edit_banner')->name('edit_banner');
-          Route::post('update-banner/{id}', 'ClientSideController@update_banner')->name('update_banner');
-          Route::match(['get', 'post'], 'color-theme', [ClientSideController::class, 'color_theme'])->name('color_theme');
-            Route::post('status-color-theme/{id}', 'ClientSideController@status_color_theme')->name('status_color_theme');
+            Route::match(['get', 'post'], 'all-filter', [ClientSideController::class, 'filter'])->name('filter');
+            Route::match(['get', 'post'], 'banner', [ClientSideController::class, 'banner'])->name('banner');
+            Route::post('status-banner/{id}', 'ClientSideController@status_banner')->name('status_banner');
+            Route::delete('delete-banner/{id}', 'ClientSideController@delete_banner')->name('delete_banner');
+            Route::get('edit-banner/{id}', 'ClientSideController@edit_banner')->name('edit_banner');
+            Route::post('update-banner/{id}', 'ClientSideController@update_banner')->name('update_banner');
+            Route::match(['get', 'post'], 'color-theme/{id?}', [ClientSideController::class, 'color_theme'])
+                ->name('color_theme');
+            Route::post('status-color-theme/{id}', [ClientSideController::class, 'status_color_theme'])->name('status_color_theme');
+            Route::get('get-app-themes', 'ClientSideController@get_app_themes')
+                ->name('get_app_themes');
+            Route::post('toggle-app-theme', 'ClientSideController@toggle_app_theme')
+                ->name('toggle_app_theme');
+            Route::post('update-app-theme-form', [ClientSideController::class, 'updateAppThemeForm'])->name('update_app_theme_form');
+
+
+
+
             Route::delete('delete-color-theme/{id}', 'ClientSideController@delete_color_theme')->name('delete_color_theme');
             Route::get('edit-color-theme/{id}', 'ClientSideController@edit_color_theme')->name('edit_color_theme');
-            Route::post('update-color-theme/{id}', 'ClientSideController@update_color_theme')->name('update_color_theme');
+            Route::put('update-color-theme/{id}', 'ClientSideController@update_color_theme')->name('update_color_theme');
+
         });
         // client-side
-          // Client Users Segments
+        // Client Users Segments
         Route::group(['prefix' => 'segments', 'as' => 'segments.'], function () {
             Route::get('add-new', 'SegmentsController@index')->name('add-new');
             Route::get('list', 'SegmentsController@list')->name('list');
@@ -276,9 +274,9 @@ Route::group(['namespace' => 'Admin', 'as' => 'admin.'], function () {
 
 
         });
-       // Client Users Segments
+        // Client Users Segments
 
-           // Voucher Type
+        // Voucher Type
         Route::group(['prefix' => 'VoucherType', 'as' => 'VoucherType.'], function () {
             Route::get('add-new', 'VoucherTypeController@index')->name('add-new');
 
@@ -289,8 +287,8 @@ Route::group(['namespace' => 'Admin', 'as' => 'admin.'], function () {
             Route::delete('delete/{id}', 'VoucherTypeController@delete')->name('delete');
             Route::post('status/{id}', 'VoucherTypeController@status')->name('status');
         });
-       // Voucher Type
-           // Gift Occasions
+        // Voucher Type
+        // Gift Occasions
         Route::group(['prefix' => 'GiftOccasions', 'as' => 'GiftOccasions.'], function () {
             Route::get('add-new', 'GiftOccasionsController@index')->name('add-new');
             Route::get('list', 'GiftOccasionsController@list')->name('list');
@@ -303,7 +301,7 @@ Route::group(['namespace' => 'Admin', 'as' => 'admin.'], function () {
 
         });
         // Gift Occasions
-           // MessageTemplate
+        // MessageTemplate
         Route::group(['prefix' => 'MessageTemplate', 'as' => 'MessageTemplate.'], function () {
             Route::get('add-new', 'MessageTemplateController@index')->name('add-new');
             Route::get('list', 'MessageTemplateController@list')->name('list');
@@ -314,7 +312,7 @@ Route::group(['namespace' => 'Admin', 'as' => 'admin.'], function () {
             Route::post('status/{id}', 'MessageTemplateController@status')->name('status');
         });
         // MessageTemplate
-           // DeliveryOption
+        // DeliveryOption
         Route::group(['prefix' => 'DeliveryOption', 'as' => 'DeliveryOption.'], function () {
             Route::get('add-new', 'DeliveryOptionController@index')->name('add-new');
             Route::get('list', 'DeliveryOptionController@list')->name('list');
@@ -336,8 +334,8 @@ Route::group(['namespace' => 'Admin', 'as' => 'admin.'], function () {
             Route::delete('delete/{id}', 'ManagementTypeController@delete')->name('delete');
             Route::post('status/{id}', 'ManagementTypeController@status')->name('status');
         });
-       // Management Types
-             // Management Types
+        // Management Types
+        // Management Types
         Route::group(['prefix' => 'UsageTerm', 'as' => 'UsageTerm.'], function () {
             Route::get('add-new', 'UsageTermController@index')->name('add-new');
             Route::get('list', 'UsageTermController@list')->name('list');
@@ -350,11 +348,11 @@ Route::group(['namespace' => 'Admin', 'as' => 'admin.'], function () {
             Route::get('/voucher-assignments/{id}', 'UsageTermController@getAssignments')->name('getAssignments');
             Route::post('/voucher-assignments-update', 'UsageTermController@getAssignments_update')->name('getAssignments_update');
             Route::get('preview-terms/', 'UsageTermController@preview_terms')->name('preview_terms');
-             Route::get('/preview-terms-show/{id}', 'UsageTermController@preview_terms_show')->name('preview_terms_show');
+            Route::get('/preview-terms-show/{id}', 'UsageTermController@preview_terms_show')->name('preview_terms_show');
         });
-       // Management Types
+        // Management Types
 
-             // Gift Card
+        // Gift Card
         Route::group(['prefix' => 'Giftcard', 'as' => 'Giftcard.'], function () {
             Route::get('add-new', 'GiftcardController@index')->name('add-new');
             Route::match(['get', 'post'], 'list', 'GiftcardController@list')->name('list');
@@ -368,22 +366,22 @@ Route::group(['namespace' => 'Admin', 'as' => 'admin.'], function () {
             Route::get('/voucher-assignments/{id}', 'GiftcardController@getAssignments')->name('getAssignments');
             Route::post('/voucher-assignments-update', 'GiftcardController@getAssignments_update')->name('getAssignments_update');
             Route::get('preview-terms/', 'GiftcardController@preview_terms')->name('preview_terms');
-             Route::get('/preview-terms-show/{id}', 'GiftcardController@preview_terms_show')->name('preview_terms_show');
+            Route::get('/preview-terms-show/{id}', 'GiftcardController@preview_terms_show')->name('preview_terms_show');
 
 
             // bonus
-             Route::get('add-bonus-setting', 'GiftcardController@add_bonus_setting')->name('add_bonus_setting');
-             Route::post('add-bonus-sore', 'GiftcardController@bonus_store')->name('bonus_store');
-             Route::get('add-get-merchants', 'GiftcardController@get_merchants')->name('get_merchants');
-             Route::match(['get', 'post'], 'list-bonus', 'GiftcardController@list_bonus')->name('list_bonus');
-             Route::post('/status-toggle-bonus/{id}', 'GiftcardController@toggleStatus_bonus')->name('toggleStatus_bonus');
-             Route::delete('delete-bonus/{id}', 'GiftcardController@delete_bonus')->name('delete_bonus');
-             Route::get('edit-bonus/{id}', 'GiftcardController@edit_bonus')->name('edit_bonus');
-             Route::post('update-bonus/{id}', 'GiftcardController@update_bonus')->name('update_bonus');
+            Route::get('add-bonus-setting', 'GiftcardController@add_bonus_setting')->name('add_bonus_setting');
+            Route::post('add-bonus-sore', 'GiftcardController@bonus_store')->name('bonus_store');
+            Route::get('add-get-merchants', 'GiftcardController@get_merchants')->name('get_merchants');
+            Route::match(['get', 'post'], 'list-bonus', 'GiftcardController@list_bonus')->name('list_bonus');
+            Route::post('/status-toggle-bonus/{id}', 'GiftcardController@toggleStatus_bonus')->name('toggleStatus_bonus');
+            Route::delete('delete-bonus/{id}', 'GiftcardController@delete_bonus')->name('delete_bonus');
+            Route::get('edit-bonus/{id}', 'GiftcardController@edit_bonus')->name('edit_bonus');
+            Route::post('update-bonus/{id}', 'GiftcardController@update_bonus')->name('update_bonus');
         });
-       // Gift Card
+        // Gift Card
 
-             // Management Types
+        // Management Types
         Route::group(['prefix' => 'workmanagement', 'as' => 'workmanagement.'], function () {
             Route::get('add-new', 'workmanagementController@index')->name('add-new');
             Route::get('list', 'workmanagementController@list')->name('list');
@@ -392,11 +390,11 @@ Route::group(['namespace' => 'Admin', 'as' => 'admin.'], function () {
             Route::post('update/{id}', 'workmanagementController@update')->name('update');
             Route::delete('delete/{id}', 'workmanagementController@delete')->name('delete');
             Route::post('status/{id}', 'workmanagementController@status')->name('status');
-            Route::get('admin/workmanagement/show/{id}','workmanagementController@show')->name('show');
+            Route::get('admin/workmanagement/show/{id}', 'workmanagementController@show')->name('show');
         });
-       // Management Types
+        // Management Types
 
-      // Management Types
+        // Management Types
         Route::group(['prefix' => 'GeneralResteiction', 'as' => 'GeneralResteiction.'], function () {
             Route::get('add-new', 'GeneralResteictionController@index')->name('add-new');
             Route::get('list', 'GeneralResteictionController@list')->name('list');
@@ -406,9 +404,9 @@ Route::group(['namespace' => 'Admin', 'as' => 'admin.'], function () {
             Route::delete('delete/{id}', 'GeneralResteictionController@delete')->name('delete');
             Route::post('status/{id}', 'GeneralResteictionController@status')->name('status');
         });
-       // Management Types
+        // Management Types
 
-              // Management Types
+        // Management Types
         Route::group(['prefix' => 'HolidayandOccasion', 'as' => 'HolidayandOccasion.'], function () {
             Route::get('add-new', 'HolidayandOccasionController@index')->name('add-new');
             Route::get('list', 'HolidayandOccasionController@list')->name('list');
@@ -418,8 +416,8 @@ Route::group(['namespace' => 'Admin', 'as' => 'admin.'], function () {
             Route::delete('delete/{id}', 'HolidayandOccasionController@delete')->name('delete');
             Route::post('status/{id}', 'HolidayandOccasionController@status')->name('status');
         });
-       // Management Types
-              // Management Types
+        // Management Types
+        // Management Types
         Route::group(['prefix' => 'VoucherSetting', 'as' => 'VoucherSetting.'], function () {
             Route::get('add-new/{id}', 'VoucherSettingController@index')->name('add-new');
             Route::get('add-setting', 'VoucherSettingController@add_setting')->name('add_setting');
@@ -435,11 +433,11 @@ Route::group(['namespace' => 'Admin', 'as' => 'admin.'], function () {
 
 
         });
-       // Management Types
+        // Management Types
 
 
 
-          // App Mobile
+        // App Mobile
         Route::group(['prefix' => 'app', 'as' => 'app.'], function () {
             Route::get('add-new', 'AppController@index')->name('add-new');
             Route::get('list', 'AppController@list')->name('list');
@@ -447,9 +445,9 @@ Route::group(['namespace' => 'Admin', 'as' => 'admin.'], function () {
             Route::get('edit/{id}', 'AppController@edit')->name('edit');
             Route::post('update/{id}', 'AppController@update')->name('update');
             Route::delete('delete/{id}', 'AppController@delete')->name('delete');
-             Route::post('status/{id}', 'AppController@status')->name('status');
+            Route::post('status/{id}', 'AppController@status')->name('status');
         });
-       // App Mobile
+        // App Mobile
 
         Route::group(['prefix' => 'message', 'as' => 'message.'], function () {
             Route::get('list', 'ConversationController@list')->name('list');
@@ -524,7 +522,7 @@ Route::group(['namespace' => 'Admin', 'as' => 'admin.'], function () {
         });
 
 
-        Route::get('addon/system-addons', function (){
+        Route::get('addon/system-addons', function () {
             return to_route('admin.system-addon.index');
         })->name('addon.index');
 
@@ -612,8 +610,10 @@ Route::group(['namespace' => 'Admin', 'as' => 'admin.'], function () {
             Route::post('review-section/update/{id}', 'BusinessSettingsController@review_update')->name('review-update');
             Route::delete('review/delete/{review}', 'BusinessSettingsController@review_destroy')->name('review-delete');
             Route::get('pages/react-landing-page-settings/{tab?}', 'BusinessSettingsController@react_landing_page_settings')->name('react-landing-page-settings');
-            Route::POST('pages/react-landing-page-settings/{tab?}',
-                'BusinessSettingsController@update_react_landing_page_settings')->name('react-landing-page-settings');
+            Route::POST(
+                'pages/react-landing-page-settings/{tab?}',
+                'BusinessSettingsController@update_react_landing_page_settings'
+            )->name('react-landing-page-settings');
             Route::DELETE('react-landing-page-settings/{tab}/{key}', 'BusinessSettingsController@delete_react_landing_page_settings')->name('react-landing-page-settings-delete');
             Route::get('review-react-status/{id}/{status}', 'BusinessSettingsController@review_react_status')->name('review-react-status');
             Route::get('pages/react-landing-page-settings/testimonials/review-react-list/edit/{id}', 'BusinessSettingsController@review_react_edit')->name('review-react-edit');
@@ -774,7 +774,7 @@ Route::group(['namespace' => 'Admin', 'as' => 'admin.'], function () {
             Route::get('automated-message/status/{id}/{status}', 'AutomatedMessageController@status')->name('automated_message.status');
             Route::delete('automated-message/destroy/{id}', 'AutomatedMessageController@destroy')->name('automated_message.destroy');
 
-            Route::group(['namespace' => 'System','prefix' => 'system-addon', 'as' => 'system-addon.', 'middleware'=>['module:voucher']], function () {
+            Route::group(['namespace' => 'System', 'prefix' => 'system-addon', 'as' => 'system-addon.', 'middleware' => ['module:voucher']], function () {
                 Route::get('/', 'AddonController@index')->name('index');
                 Route::post('publish', 'AddonController@publish')->name('publish');
                 Route::post('activation', 'AddonController@activation')->name('activation');

@@ -84,95 +84,147 @@
         <!-- End Page Header -->
         <div class="card">
             <div class="card-body">
-                <form action="{{ route('admin.client-side.update_color_theme', [$ColorTheme['id']]) }}" method="post"
+
+
+                <form action="{{ route('admin.client-side.update_color_theme', [$colorTheme['id']]) }}" method="post"
                     enctype="multipart/form-data">
                     @csrf
-                    @php($language = \App\Models\BusinessSetting::where('key', 'language')->first())
-                    @php($language = $language->value ?? null)
-                    @php($defaultLang = str_replace('_', '-', app()->getLocale()))
-                    @if ($language)
+                    @method('PUT')
 
-                        <div class="row">
-                            <div class="col-6 col-md-4">
-                                <div class="lang_form" id="default-form">
-                                    <div class="form-group">
-                                        <label class="input-label" for="app_id">Select App </label>
-                                        <select name="app_id" id="app_id" class="form-control">
-                                            <option value="" disabled selected>-- Select App --</option>
-                                            @foreach ($apps as $app)
-                                                <option value="{{ $app->id }}" {{  $ColorTheme->app_id == $app->id ? 'selected' : '' }}>{{ $app->app_name }}
-                                                    ({{ $app->client->name ?? 'No Client' }})</option>
-                                            @endforeach
-                                        </select>
+                    <div class="row mb-3">
+                        <!-- Theme Name -->
+                        <div class="col-md-3">
+                            <label for="name" class="form-label">Theme Name</label>
+                            <input type="text" name="name" id="name" class="form-control"
+                                value="{{ old('name', $colorTheme->name) }}" required>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label for="start_date">Start Date</label>
+                                <input type="date" name="start_date" id="start_date" class="form-control"
+                                    value="{{ old('start_date',$colorTheme->start_date) }}" required>
+                            </div>
+                        </div>
 
-                                    </div>
-                                </div>
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label for="end_date">End Date</label>
+                                <input type="date" name="end_date" id="end_date" class="form-control"
+                                    value="{{ old('end_date',$colorTheme->end_date) }}" required>
                             </div>
-                            <div class="col-6 col-md-4">
-                                <div class="lang_form" id="default-form">
-                                    <div class="form-group">
-                                        <label class="input-label" for="color_name"> Color Name
-                                        </label>
-                                        <input type="text" name="color_name" value="{{ $ColorTheme->color_name }}"
-                                            id="color_name" class="form-control">
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-6 col-md-4">
-                                <div class="lang_form" id="default-form">
-                                    <div class="form-group">
-                                        <label class="input-label" for="color_code"> Color Code
-                                        </label>
-                                        <input type="text" name="color_code" value="{{ $ColorTheme->color_code }}"
-                                            id="color_code" class="form-control">
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-6 col-md-4">
-                                <div class="lang_form" id="default-form">
-                                    <div class="form-group">
-                                        <label class="input-label" for="gradient_option"> Gradient </label>
-                                        <div class="mt-2">
-                                            <label class="mr-3">
-                                                <input type="radio" name="gradient_option" value="1"
-                                                    {{ $ColorTheme->color_gradient == 1 ? 'checked' : '' }}> True
-                                            </label>
-                                            <label>
-                                                <input type="radio" name="gradient_option" value="0"
-                                                    {{ $ColorTheme->color_gradient == 0 ? 'checked' : '' }}> False
-                                            </label>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-6 col-md-4">
-                                <div class="lang_form" id="default-form">
-                                    <div class="form-group">
-                                        <label class="input-label" for="color_type"> Type </label>
-                                        <select name="color_type" id="color_type" class="form-control">
-                                            <option value="">-- Select Type --</option>
-                                            <option value="primary"
-                                                {{ $ColorTheme->color_type == 'primary' ? 'selected' : '' }}>primary
-                                            </option>
-                                            <option value="secondary"
-                                                {{ $ColorTheme->color_type == 'secondary' ? 'selected' : '' }}>secondary
-                                            </option>
-                                        </select>
-                                    </div>
+                        </div>
+
+                        <!-- Status Toggle -->
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label for="status-{{ $colorTheme->id ?? 'new' }}" class="d-block">Status</label>
+                                <div class="form-check form-switch">
+                                    <label class="toggle-switch toggle-switch-sm"
+                                        for="status-{{ $colorTheme->id ?? 'new' }}">
+                                        <input type="checkbox" class="toggle-switch-input" name="status"
+                                            id="status-{{ $colorTheme->id ?? 'new' }}" value="active"
+                                            {{ old('status', $colorTheme->status ?? 'active') == 'active' ? 'checked' : '' }}>
+                                        <span class="toggle-switch-label mx-auto">
+                                            <span class="toggle-switch-indicator"></span>
+                                        </span>
+                                    </label>
                                 </div>
                             </div>
                         </div>
-            </div>
 
-            @endif
-            <div class="btn--container justify-content-end mt-5">
-                <button type="reset" class="btn btn--reset">{{ translate('messages.reset') }}</button>
-                <button type="submit" class="btn btn--primary">{{ translate('messages.update') }}</button>
+                        <!-- Optional: JS to update label dynamically -->
+                        <script>
+                            const toggle = document.getElementById('status-{{ $colorTheme->id ?? 'new' }}');
+                            toggle.addEventListener('change', function() {
+                                // You can add additional JS if you want to show "Active"/"Inactive" text somewhere
+                                console.log('Status is now:', this.checked ? 'Active' : 'Inactive');
+                            });
+                        </script>
+
+
+
+                    </div>
+
+                    <hr>
+
+                    <!-- Colors -->
+                    <div class="row">
+                        <?php
+                        $predefinedColors = ['primary_color', 'secondary_color', 'background_color', 'text_color', 'button_color', 'button_text_color', 'navbar_color', 'navbar_text_color'];
+                        ?>
+
+                        @foreach ($predefinedColors as $key)
+                            @php
+                                $color = $colors[$key] ?? [
+                                    'value' => '#000000',
+                                    'name' => ucwords(str_replace('_', ' ', $key)),
+                                    'gradient' => 0,
+                                ];
+                            @endphp
+
+                            <div class="col-md-12 mb-4 p-3 border rounded">
+                                <h6 class="fw-bold">{{ ucwords(str_replace('_', ' ', $key)) }}</h6>
+
+                                <div class="row g-3 align-items-center">
+                                    <!-- Color Picker -->
+                                    <div class="col-md-2">
+                                        <label class="form-label">Color Picker</label>
+                                        <input type="color" id="{{ $key }}"
+                                            class="form-control form-control-color"
+                                            name="colors[{{ $key }}][value]"
+                                            value="{{ old('colors.' . $key . '.value', $color['value']) }}"
+                                            onchange="document.getElementById('{{ $key }}_text').value = this.value">
+                                    </div>
+
+                                    <!-- Hex Input -->
+                                    <div class="col-md-3">
+                                        <label class="form-label">Hex Value</label>
+                                        <input type="text" id="{{ $key }}_text" class="form-control"
+                                            name="colors[{{ $key }}][value]"
+                                            value="{{ old('colors.' . $key . '.value', $color['value']) }}"
+                                            oninput="document.getElementById('{{ $key }}').value = this.value">
+                                    </div>
+
+                                    <!-- Color Name -->
+                                    <div class="col-md-3">
+                                        <label class="form-label">Color Name</label>
+                                        <input type="text" class="form-control" name="colors[{{ $key }}][name]"
+                                            placeholder="Enter name"
+                                            value="{{ old('colors.' . $key . '.name', $color['name']) }}">
+                                    </div>
+
+                                    <!-- Gradient Toggle -->
+                                    <div class="col-md-2">
+                                        <label class="form-label d-block">Gradient</label>
+                                        <div class="form-check">
+                                            <label class="toggle-switch toggle-switch-sm"
+                                                for="gradient-{{ $key }}">
+                                                <input type="checkbox" class="toggle-switch-input"
+                                                    id="gradient-{{ $key }}"
+                                                    name="colors[{{ $key }}][gradient]" value="1"
+                                                    {{ old('colors.' . $key . '.gradient', $color['gradient'] ?? 0) ? 'checked' : '' }}>
+                                                <span class="toggle-switch-label mx-auto">
+                                                    <span class="toggle-switch-indicator"></span>
+                                                </span>
+                                            </label>
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+
+                    <!-- Submit Button -->
+                    <div class="row">
+                        <div class="col-md-12 text-end">
+                            <button type="submit" class="btn btn-success">Update Color Theme</button>
+                        </div>
+                    </div>
+                </form>
             </div>
-            </form>
+            <!-- End Table -->
         </div>
-        <!-- End Table -->
-    </div>
     </div>
 @endsection
 
@@ -190,6 +242,15 @@
                 allowClear: true,
                 closeOnSelect: false
             });
+        });
+    </script>
+    <!-- Optional JS: Update status label dynamically -->
+    <script>
+        const statusToggle = document.getElementById('status');
+        const statusLabel = statusToggle.nextElementSibling;
+
+        statusToggle.addEventListener('change', function() {
+            statusLabel.textContent = this.checked ? 'Active' : 'Inactive';
         });
     </script>
 @endpush

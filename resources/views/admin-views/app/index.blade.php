@@ -38,7 +38,21 @@
                                             <input type="hidden" name="lang[]" value="default">
                                         </div>
                                     </div>
-                                    <div class="col-12 col-md-4">
+                                    <div class="col-6 col-md-4">
+                                        <div class="lang_form" id="default-form">
+                                            <div class="form-group">
+                                                <label class="input-label" for="client_id">Select Client </label>
+                                                <select name="client_id" id="client_id" class="form-control">
+                                                    <option value="" disabled selected>-- Select Client --</option>
+                                                    @foreach ($clients as $client)
+                                                        <option value="{{ $client->id }}">{{ $client->name }}</option>
+                                                    @endforeach
+                                                </select>
+
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {{-- <div class="col-12 col-md-4">
                                         <div class="lang_form" id="default-form">
                                             <div class="form-group">
                                                 <label class="input-label" for="type">Select Types</label>
@@ -63,7 +77,7 @@
                                                 </select>
                                             </div>
                                         </div>
-                                    </div>
+                                    </div> --}}
 
                                     <div class="col-12 ">
                                         <div class="lang_form" id="default-form">
@@ -75,7 +89,7 @@
                                             </div>
                                         </div>
                                     </div>
-                                    <div class="col-12 col-md-4">
+                                    {{-- <div class="col-12 col-md-4">
                                         <div class="lang_form" id="default-form">
                                             <div class="form-group">
                                                 <label class="input-label" for="banner">Select Banner</label>
@@ -87,7 +101,7 @@
                                                 </select>
                                             </div>
                                         </div>
-                                    </div>
+                                    </div> --}}
                                     <div class="col-6 col-md-4">
                                         <div class="lang_form" id="default-form">
                                             <div class="form-group">
@@ -105,26 +119,12 @@
                                             </div>
                                         </div>
                                     </div>
-                                    <div class="col-6 col-md-4">
-                                        <div class="lang_form" id="default-form">
-                                            <div class="form-group">
-                                                <label class="input-label" for="client_id">Select Client </label>
-                                                <select name="client_id" id="client_id" class="form-control">
-                                                    <option value="" disabled selected>-- Select Client --</option>
-                                                    @foreach ($clients as $client)
-                                                        <option value="{{ $client->id }}">{{ $client->name }}</option>
-                                                    @endforeach
-                                                </select>
 
-                                            </div>
-                                        </div>
-                                    </div>
                                 </div>
                             @endif
                             <div class="btn--container justify-content-end mt-5">
                                 <button type="reset" class="btn btn--reset">{{ translate('messages.reset') }}</button>
-                                <button type="submit"
-                                    class="btn btn--primary">{{ translate('messages.submit') }}</button>
+                                <button type="submit" class="btn btn--primary">{{ translate('messages.submit') }}</button>
                             </div>
                         </form>
                     </div>
@@ -170,10 +170,10 @@
                                     <th class="border-0">{{ translate('sl') }}</th>
                                     <th class="border-0">App Name</th>
                                     <th class="border-0">Client Name</th>
-                                    <th class="border-0">type</th>
+                                    {{-- <th class="border-0">type</th> --}}
                                     <th class="border-0">Description</th>
                                     <th class="border-0">App Logo</th>
-                                    <th class="border-0">Color</th>
+                                    <th class="border-0"> Color Theme</th>
                                     <th class="border-0">Banner</th>
                                     <th class="border-0">Status</th>
                                     <th class="border-0">Action</th>
@@ -187,22 +187,23 @@
                                                 {{ $Apps->firstItem() + $key }}
                                             </span>
                                         </td>
-                                        
+
                                         <td class="text-center">
                                             <span title="{{ $App->app_name }}" class="font-size-sm text-body mr-3">
                                                 {{ Str::limit($App->app_name, 20, '...') }}
                                             </span>
                                         </td>
-                                          <td class="text-center">
-                                            <span title="{{ $App->client->name ?? '' }}" class="font-size-sm text-body mr-3">
+                                        <td class="text-center">
+                                            <span title="{{ $App->client->name ?? '' }}"
+                                                class="font-size-sm text-body mr-3">
                                                 {{ Str::limit($App->client->name ?? '', 20, '...') }}
                                             </span>
                                         </td>
-                                        <td class="text-center">
+                                        {{-- <td class="text-center">
                                             <span class="bg-gradient-light text-dark">
                                                 {{ $App->app_type }}
                                             </span>
-                                        </td>
+                                        </td> --}}
                                         <td class="text-center">
                                             <span class="bg-gradient-light text-dark">
                                                 {{ $App->app_dec }}
@@ -216,10 +217,17 @@
                                             </div>
                                         </td>
                                         <td class="text-center">
-                                            <span class="bg-gradient-light text-dark">
-                                                {{ $App->color_name }}
-                                            </span>
+                                            @if ($App->themes && $App->themes->count() > 0)
+                                                @foreach ($App->themes as $theme)
+                                                    <span class="badge bg-gradient-light text-dark mx-1">
+                                                        {{ $theme->name ?? 'N/A' }}
+                                                    </span> <br>
+                                                @endforeach
+                                            @else
+                                                <span class="text-muted">No themes assigned</span>
+                                            @endif
                                         </td>
+
                                         <td class="text-center">
                                             <div class="d-inline-block" style="width:50px; height:50px; cursor:pointer;">
                                                 <img src="{{ asset($App->banner_image) }}"
@@ -243,11 +251,19 @@
                                                 id="status-{{ $App->id }}_form">
                                                 @csrf
                                             </form>
+
                                         </td>
 
                                         {{-- Action Buttons --}}
                                         <td>
                                             <div class="btn--container justify-content-center">
+                                                <button type="button"
+                                                    class="btn action-btn btn--primary btn-outline-primary open-theme-modal"
+                                                    data-app-id="{{ $App->id }}"
+                                                    data-assigned-themes='@json($App->themes->pluck('id'))'>
+                                                    <i class="tio-palette"></i>
+                                                </button>
+
                                                 <a class="btn action-btn btn--primary btn-outline-primary"
                                                     href="{{ route('admin.app.edit', [$App->id]) }}" title="Edit">
                                                     <i class="tio-edit"></i>
@@ -288,8 +304,83 @@
         </div>
     </div>
 
+    <!-- Theme Modal -->
+    <div class="modal fade" id="themeModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+
+                <form action="{{ route('admin.client-side.update_app_theme_form') }}" method="POST">
+                    @csrf
+
+                    <div class="modal-header">
+                        <h5 class="modal-title">Select Themes for App</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+
+                    <div class="modal-body">
+
+                        <input type="hidden" name="app_id" id="modal-app-id">
+
+                        @foreach ($color_themes as $theme)
+                            <div class="d-flex justify-content-between align-items-center mb-2 p-2 border rounded">
+
+                                <span>{{ $theme->name }} ({{ $theme->start_date }} → {{ $theme->end_date }})</span>
+
+                                <label class="toggle-switch toggle-switch-sm">
+                                    <input type="checkbox" class="toggle-switch-input theme-check" name="themes[]"
+                                        value="{{ $theme->id }}">
+                                    <span class="toggle-switch-label mx-auto">
+                                        <span class="toggle-switch-indicator"></span>
+                                    </span>
+                                </label>
+
+                            </div>
+                        @endforeach
+
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-primary">Save Themes</button>
+                    </div>
+
+                </form>
+
+            </div>
+        </div>
+    </div>
+
+
+
+
+
+
 @endsection
+
+
+
 
 @push('script_2')
     <script src="{{ asset('public/assets/admin') }}/js/view-pages/segments-index.js"></script>
+    <script>
+        $(document).ready(function() {
+            $('.open-theme-modal').on('click', function() {
+                let appId = $(this).data('app-id');
+                let assignedThemes = $(this).data('assigned-themes'); // array of theme IDs
+
+                // Set app_id in hidden input
+                $('#modal-app-id').val(appId);
+
+                // Clear previous selections
+                $('.theme-check').prop('checked', false);
+
+                // Check the assigned themes
+                assignedThemes.forEach(function(themeId) {
+                    $(`.theme-check[value="${themeId}"]`).prop('checked', true);
+                });
+
+                // Show modal
+                $('#themeModal').modal('show');
+            });
+        });
+    </script>
 @endpush

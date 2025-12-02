@@ -78,6 +78,55 @@ active
                                     </div>
                                     <input type="hidden" name="lang[]" value="{{$lang}}">
                                 @endforeach
+                                <div class="col-md-6">
+    <!-- Temporary Toggle -->
+    <div class="form-check form-switch mb-3">
+          <label class="form-label me-3">Temp Category</label> <br>
+        <input type="checkbox" class="form-check-input" name="schedule_status" id="schedule_status"
+            {{ old('schedule_status', $category->schedule_status ?? 'inactive') == 'active' ? 'checked' : '' }}>
+        <label class="form-check-label" for="schedule_status">
+            {{ old('schedule_status', $category->schedule_status ?? 'inactive') == 'active' ? 'Active' : 'Inactive' }}
+        </label>
+    </div>
+
+    <!-- Start & End Date Fields (hidden by default) -->
+    <div id="scheduleFields" class="{{ old('schedule_status', $category->schedule_status ?? 'inactive') == 'active' ? '' : 'd-none' }}">
+        <div class="form-group mb-2">
+            <label for="start_date">Start Date</label>
+            <input type="date" name="start_date" id="start_date" class="form-control"
+                value="{{ old('start_date', $category->start_date ?? '') }}">
+        </div>
+
+        <div class="form-group">
+            <label for="end_date">End Date</label>
+            <input type="date" name="end_date" id="end_date" class="form-control"
+                value="{{ old('end_date', $category->end_date ?? '') }}">
+        </div>
+    </div>
+</div>
+
+<!-- JS to toggle fields -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const toggle = document.getElementById('schedule_status');
+    const scheduleFields = document.getElementById('scheduleFields');
+
+    toggle.addEventListener('change', function() {
+        if (this.checked) {
+            scheduleFields.classList.remove('d-none');
+        } else {
+            scheduleFields.classList.add('d-none');
+            // Optional: clear values when hidden
+            scheduleFields.querySelectorAll('input').forEach(input => input.value = '');
+        }
+
+        // Update label dynamically
+        const label = document.querySelector('label[for="schedule_status"]');
+        label.textContent = this.checked ? 'Active' : 'Inactive';
+    });
+});
+</script>
+
                             @else
                                 <div class="form-group">
                                     <label class="input-label" for="exampleFormControlInput1">{{translate('messages.name')}}</label>

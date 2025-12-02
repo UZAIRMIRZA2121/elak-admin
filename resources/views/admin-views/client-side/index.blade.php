@@ -289,8 +289,8 @@
                                             <div class="btn--container justify-content-center">
                                                 <a class="btn action-btn btn--primary btn-outline-primary"
                                                     href="javascript:void(0)"
-                                                    onclick="loadClientSegments({{ $client->id }})" title="Edit">
-                                                    <i class="tio-edit"></i>
+                                                    onclick="loadClientSegments({{ $client->id }})" title="Segment">
+                                                     <i class="tio-settings"></i>
                                                 </a>
 
                                                 <a class="btn action-btn btn--primary btn-outline-primary"
@@ -334,6 +334,7 @@
             <!-- End Table -->
         </div>
     </div>
+
     <!-- Segment Modal -->
     <div class="modal fade" id="segmentModal" tabindex="-1" aria-labelledby="segmentModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-lg">
@@ -393,48 +394,74 @@
         // -------------------------------
         // Add Segment Row
         // -------------------------------
-        function addSegmentRow(name = "", type = "free", days = "", status = "active", id = null) {
+        function addSegmentRow(name = "", type = "free", days = "", validation_date = "", status = "active", id = null) {
             let checked = status === "active" ? "checked" : "";
+            let useDate = validation_date ? true : false; // determine which input to show
 
             let row = `
-    <div class="segment-row row mb-3">
-        <input type="hidden" name="segment_id[]" value="${id ?? ''}">
+<div class="segment-row row mb-3">
+    <input type="hidden" name="segment_id[]" value="${id ?? ''}">
 
-        <div class="col-md-3">
-            <label>Name</label>
-            <input type="text" name="name[]" class="form-control" value="${name}">
-        </div>
+    <div class="col-md-2">
+        <label>Name</label>
+        <input type="text" name="name[]" class="form-control" value="${name}">
+    </div>
 
-        <div class="col-md-2">
-            <label>Type</label>
-            <select name="type[]" class="form-control">
-                <option value="free" ${type === "free" ? "selected" : ""}>Free</option>
-                <option value="paid" ${type === "paid" ? "selected" : ""}>Paid</option>
-            </select>
-        </div>
+    <div class="col-md-2">
+        <label>Type</label>
+        <select name="type[]" class="form-control">
+            <option value="free" ${type === "free" ? "selected" : ""}>Free</option>
+            <option value="paid" ${type === "paid" ? "selected" : ""}>Paid</option>
+        </select>
+    </div>
 
-        <div class="col-md-2">
-            <label>Validity Days</label>
-            <input type="number" name="validity_days[]" class="form-control" value="${days}">
-        </div>
-
-        <div class="col-md-2 d-flex align-items-center">
-            <label class="toggle-switch toggle-switch-sm w-100 mt-2">
-                <input type="checkbox" name="status_checkbox[]" class="toggle-switch-input segment-status" ${checked}>
-                <span class="toggle-switch-label mx-auto">
-                    <span class="toggle-switch-indicator"></span>
-                </span>
-            </label>
-        </div>
-
-        <div class="col-md-1 d-flex align-items-end">
-            <button type="button" class="btn btn-danger remove-segment-btn">×</button>
+    <div class="col-md-3 validation-container">
+        <label>Validation</label>
+        <div class="d-flex align-items-center">
+            <input type="number" name="validity_days[]" class="form-control me-2 validity-days" placeholder="Days" value="${days}" ${useDate ? 'style="display:none;"' : ''}>
+            <input type="date" name="validation_date[]" class="form-control me-2 validation-date" value="${validation_date}" ${useDate ? '' : 'style="display:none;"'}>
+            <span class="toggle-validation-btn d-flex align-items-center justify-content-center" 
+                  style="cursor:pointer; font-size:18px; padding:0 8px; border:1px solid #ccc; border-radius:4px;">
+                &#x21bb;
+            </span>
         </div>
     </div>
-    `;
+
+    <div class="col-md-2 d-flex align-items-center">
+        <label class="toggle-switch toggle-switch-sm w-100 mt-2">
+            <input type="checkbox" name="status_checkbox[]" class="toggle-switch-input segment-status" ${checked}>
+            <span class="toggle-switch-label mx-auto">
+                <span class="toggle-switch-indicator"></span>
+            </span>
+        </label>
+    </div>
+
+    <div class="col-md-1 d-flex align-items-end">
+        <button type="button" class="btn btn-danger remove-segment-btn">×</button>
+    </div>
+</div>
+`;
 
             $("#segmentFieldsContainer").append(row);
         }
+
+        // -------------------------------
+        // Toggle Validation Type (Days <-> Date)
+        // -------------------------------
+        // Toggle Validation Type (Days <-> Date)
+        $(document).on("click", ".toggle-validation-btn", function() {
+            let container = $(this).closest(".validation-container");
+            let daysInput = container.find(".validity-days");
+            let dateInput = container.find(".validation-date");
+
+            if (daysInput.is(":visible")) {
+                daysInput.hide().val(""); // hide & clear days
+                dateInput.show(); // show date
+            } else {
+                dateInput.hide().val(""); // hide & clear date
+                daysInput.show(); // show days
+            }
+        });
 
         // Remove a row
         $(document).on("click", ".remove-segment-btn", function() {
@@ -451,14 +478,20 @@
                 url: "{{ route('admin.segments.get-segment', ':id') }}".replace(':id', clientId),
                 method: "GET",
                 success: function(response) {
-
                     $("#segmentFieldsContainer").html(""); // clear old rows
 
                     if (response.segments.length === 0) {
                         addSegmentRow(); // at least one row
                     } else {
                         response.segments.forEach(seg => {
-                            addSegmentRow(seg.name, seg.type, seg.validation_date, seg.status, seg.id);
+                            addSegmentRow(
+                                seg.name,
+                                seg.type,
+                                seg.validity_days,
+                                seg.validation_date,
+                                seg.status,
+                                seg.id
+                            );
                         });
                     }
 
@@ -471,15 +504,30 @@
         // Save Multiple Segments
         // -------------------------------
         function saveMultipleSegments() {
-
             let names = $("input[name='name[]']").map((_, el) => el.value).get();
             let types = $("select[name='type[]']").map((_, el) => el.value).get();
-            let days = $("input[name='validity_days[]']").map((_, el) => el.value).get();
-
-            // Convert checkbox to enum 'active' / 'inactive'
             let statuses = $(".segment-status").map((_, el) => el.checked ? "active" : "inactive").get();
-
             let segment_ids = $("input[name='segment_id[]']").map((_, el) => el.value).get();
+
+            let days = [];
+            let validation_dates = [];
+
+            $(".segment-row").each(function() {
+                let dayVal = $(this).find(".validity-days").val();
+                let dateVal = $(this).find(".validation-date").val();
+
+                // Only allow one value: if date is filled, ignore days
+                if (dateVal) {
+                    validation_dates.push(dateVal);
+                    days.push(null);
+                } else if (dayVal) {
+                    days.push(dayVal);
+                    validation_dates.push(null);
+                } else {
+                    days.push(null);
+                    validation_dates.push(null);
+                }
+            });
 
             $.ajax({
                 url: "{{ url('admin/segments/store-multiple') }}",
@@ -489,11 +537,11 @@
                     name: names,
                     type: types,
                     validity_days: days,
+                    validation_date: validation_dates,
                     status: statuses,
                     segment_id: segment_ids,
                     _token: "{{ csrf_token() }}"
                 },
-
                 success: function(response) {
                     Swal.fire({
                         icon: "success",
@@ -503,11 +551,8 @@
                         showConfirmButton: false,
                         timer: 2000
                     });
-
                     $("#segmentModal").modal("hide");
-                    window.location.reload();
                 },
-
                 error: function(xhr) {
                     console.log("Error:", xhr.responseText);
                 }

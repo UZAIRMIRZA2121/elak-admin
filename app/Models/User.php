@@ -135,4 +135,10 @@ class User extends Authenticatable
         });
 
     }
+
+
+    public function segment()
+{
+    return $this->belongsTo(Segment::class, 'segment_id', 'id');
+}
 }
