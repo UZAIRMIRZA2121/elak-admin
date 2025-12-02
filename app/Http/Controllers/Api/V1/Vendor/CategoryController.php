@@ -25,9 +25,7 @@ class CategoryController extends Controller
                             FROM items WHERE items.store_id = ?
                             AND JSON_CONTAINS(items.category_ids, JSON_OBJECT("id", CAST(categories.id AS CHAR)), "$") AND JSON_CONTAINS(items.category_ids, JSON_OBJECT("position", 1), "$") ) AS products_count', [$vendor->stores[0]->id])
                 ->get();
-
-
-
+                
             return response()->json($categories, 200);
         } catch (\Exception $e) {
             return response()->json([$e], 200);
