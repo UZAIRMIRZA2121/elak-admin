@@ -116,44 +116,74 @@ class SegmentsController extends Controller
             'segments' => $segments
         ]);
     }
-    public function storeMultiple(Request $request)
-    {
-        $names = $request->input('name', []);
-        $types = $request->input('type', []);
-        $validity_days = $request->input('validity_days', []);
-        $statuses = $request->input('status', []); // now 'active'/'inactive'
-        $segment_ids = $request->input('segment_id', []);
-        $client_id = $request->client_id;
+public function storeMultiple(Request $request)
+{
+    $names = $request->input('name', []);
+    $types = $request->input('type', []);
+    $validity_days = $request->input('validity_days', []);
+    $validation_dates = $request->input('validation_date', []);
+    $statuses = $request->input('status', []); // 'active' / 'inactive'
+    $segment_ids = $request->input('segment_id', []);
+    $client_id = $request->client_id;
 
-        if (empty($client_id)) {
-            return response()->json(['error' => 'Client ID is required'], 400);
-        }
-
-        for ($i = 0; $i < count($names); $i++) {
-            if (empty($names[$i]))
-                continue;
-
-            $data = [
-                'name' => $names[$i],
-                'type' => $types[$i] ?? 'free',
-                'validity_days' => $validity_days[$i] ?? null,
-                'status' => $statuses[$i] ?? 'active', // default 'active'
-                'client_id' => $client_id
-            ];
-
-            if (!empty($segment_ids[$i])) {
-                // Update existing segment
-                $segment = Segment::find($segment_ids[$i]);
-                if ($segment) {
-                    $segment->update($data);
-                }
-            } else {
-                // Create new segment
-                Segment::create($data);
-            }
-        }
-
-        return response()->json(['success' => true]);
+    if (empty($client_id)) {
+        return response()->json(['error' => 'Client ID is required'], 400);
     }
+
+    // Get existing segment IDs
+    $existingSegmentIds = Segment::where('client_id', $client_id)->pluck('id')->toArray();
+
+    // Delete segments not present in the form
+    $idsToKeep = array_filter($segment_ids); // non-empty IDs
+    $idsToDelete = array_diff($existingSegmentIds, $idsToKeep);
+    if (!empty($idsToDelete)) {
+        Segment::whereIn('id', $idsToDelete)->delete();
+    }
+
+    $savedSegments = [];
+
+    // Loop through submitted segments
+    for ($i = 0; $i < count($names); $i++) {
+        if (empty($names[$i])) continue;
+
+        $days = !empty($validity_days[$i]) ? $validity_days[$i] : null;
+        $date = !empty($validation_dates[$i]) ? $validation_dates[$i] : null;
+
+        // Mutual exclusivity logic
+        if ($date) {
+            $days = null; // if date exists, days must be null
+        } elseif ($days) {
+            $date = null; // if days exists, date must be null
+        }
+
+        $data = [
+            'name' => $names[$i],
+            'type' => $types[$i] ?? 'free',
+            'validity_days' => $days,
+            'validation_date' => $date,
+            'status' => $statuses[$i] ?? 'active',
+            'client_id' => $client_id
+        ];
+
+        if (!empty($segment_ids[$i])) {
+            // Update existing segment
+            $segment = Segment::find($segment_ids[$i]);
+            if ($segment) {
+                $segment->update($data);
+            }
+        } else {
+            // Create new segment
+            $segment = Segment::create($data);
+        }
+
+        $savedSegments[] = $segment;
+    }
+
+    return response()->json([
+        'success' => true,
+        'segments' => $savedSegments
+    ]);
+}
+
 
 }

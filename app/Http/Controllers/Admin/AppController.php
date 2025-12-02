@@ -1,6 +1,7 @@
 <?php
 namespace App\Http\Controllers\Admin;
 
+use App\Models\AppTheme;
 use DateTime;
 use App\Models\Item;
 use App\Models\Client;
@@ -24,49 +25,46 @@ class AppController extends Controller
         $search = $request->input('search');
         $clients = Client::all();
         $Banner = Banner::all();
-        $ColorTheme = ColorTheme::all();
-        $Apps = \App\Models\App::query()
+        $color_themes = ColorTheme::where('status', 'active')->get();
+      
+   
+        $Apps = App::query()
             ->leftJoin('banners', 'apps.banner', '=', 'banners.id')
-            ->leftJoin('color_themes', 'apps.color_theme', '=', 'color_themes.id')
             ->select(
                 'apps.*',
                 'banners.title as banner_title',
-                'banners.image as banner_image',
-                'color_themes.color_name',
-                'color_themes.color_code',
-                'color_themes.color_gradient',
-                'color_themes.color_type'
+                'banners.image as banner_image'
             )
             ->when($search, function ($q) use ($search) {
                 $q->where('apps.app_name', 'like', "%{$search}%")
                     ->orWhere('apps.app_type', 'like', "%{$search}%")
-                    ->orWhere('banners.title', 'like', "%{$search}%")
-                    ->orWhere('color_themes.color_name', 'like', "%{$search}%");
+                    ->orWhere('banners.title', 'like', "%{$search}%");
             })
             ->orderBy('apps.app_name', 'asc')
             ->paginate(config('default_pagination'));
 
-        return view('admin-views.app.index', compact('Apps', 'clients', 'ColorTheme', 'Banner'));
+        return view('admin-views.app.index', compact('Apps', 'clients', 'Banner', 'color_themes' ));
     }
+
 
     public function store(Request $request)
     {
         $request->validate([
             'name' => 'required|max:100',
-            'type' => 'required',
+            // 'type' => 'required',
             'logo_image' => 'nullable',
             'descrption' => 'required',
-            'color_theme' => 'required',
-            'banner' => 'required',
+            // 'color_theme' => 'required',
+            // 'banner' => 'required',
             'client_id' => 'required|integer', // NEW VALIDATION
         ]);
 
         $app = new App();
         $app->app_name = $request->name;
         $app->app_dec = $request->descrption;
-        $app->app_type = $request->type;
-        $app->color_theme = $request->color_theme;
-        $app->banner = $request->banner;
+        // $app->app_type = $request->type;
+        // $app->color_theme = $request->color_theme;
+        // $app->banner = $request->banner;
 
         // NEW — save client id
         $app->client_id = $request->client_id;
@@ -118,54 +116,54 @@ class AppController extends Controller
     }
 
 
-public function update(Request $request, $id)
-{
-    $request->validate([
-        'name' => 'required|max:100',
-        'type' => 'required',
-        'descrption' => 'required',
-        'color_theme' => 'required',
-        'banner' => 'required',
-        'client_id' => 'required|integer', // NEW VALIDATION
-    ]);
+    public function update(Request $request, $id)
+    {
+        $request->validate([
+            'name' => 'required|max:100',
+            'type' => 'required',
+            'descrption' => 'required',
+            'color_theme' => 'required',
+            'banner' => 'required',
+            'client_id' => 'required|integer', // NEW VALIDATION
+        ]);
 
-    $app = App::findOrFail($id);
+        $app = App::findOrFail($id);
 
-    $app->app_name = $request->name;
-    $app->app_dec = $request->descrption;
-    $app->app_type = $request->type;
-    $app->color_theme = $request->color_theme;
-    $app->banner = $request->banner;
+        $app->app_name = $request->name;
+        $app->app_dec = $request->descrption;
+        $app->app_type = $request->type;
+        $app->color_theme = $request->color_theme;
+        $app->banner = $request->banner;
 
-    // ⭐ NEW — Update Client ID
-    $app->client_id = $request->client_id;
+        // ⭐ NEW — Update Client ID
+        $app->client_id = $request->client_id;
 
-    // Logo Upload
-    if ($request->hasFile('logo_image')) {
+        // Logo Upload
+        if ($request->hasFile('logo_image')) {
 
-        // delete old image
-        if ($app->app_logo && file_exists(public_path($app->app_logo))) {
-            unlink(public_path($app->app_logo));
+            // delete old image
+            if ($app->app_logo && file_exists(public_path($app->app_logo))) {
+                unlink(public_path($app->app_logo));
+            }
+
+            $file = $request->file('logo_image');
+            $extension = $file->getClientOriginalExtension();
+            $imageName = time() . '_' . uniqid() . '.' . $extension;
+
+            $destination = public_path('uploads/app/logos');
+            if (!file_exists($destination)) {
+                mkdir($destination, 0755, true);
+            }
+
+            $file->move($destination, $imageName);
+            $app->app_logo = 'uploads/app/logos/' . $imageName;
         }
 
-        $file = $request->file('logo_image');
-        $extension = $file->getClientOriginalExtension();
-        $imageName = time() . '_' . uniqid() . '.' . $extension;
+        $app->save();
 
-        $destination = public_path('uploads/app/logos');
-        if (!file_exists($destination)) {
-            mkdir($destination, 0755, true);
-        }
-
-        $file->move($destination, $imageName);
-        $app->app_logo = 'uploads/app/logos/' . $imageName;
+        Toastr::success('App updated successfully');
+        return back();
     }
-
-    $app->save();
-
-    Toastr::success('App updated successfully');
-    return back();
-}
 
     public function delete(Request $request, $id)
     {

@@ -23,21 +23,28 @@ class CategoryService
         };
     }
 
-    public function getAddData($request, string|null|Object $parentCategory): array
+    public function getAddData($request, string|null|object $parentCategory): array
     {
         return [
             'name' => $request->name[array_search('default', $request->lang)],
             'image' => $this->upload('category/', 'png', $request->file('image')),
             'parent_id' => $request->parent_id == null ? 0 : $request->parent_id,
             'position' => $request->position,
-            'module_id' => isset($request->parent_id) ? $parentCategory['module_id'] : Config::get('module.current_module_id')
+            'module_id' => isset($request->parent_id) ? $parentCategory['module_id'] : Config::get('module.current_module_id'),
+            'schedule_status' => $request->has('schedule_status') ? 1 : 0,
+            'start_date' => $request->start_date ?: null,
+            'end_date' => $request->end_date ?: null,
         ];
     }
+
 
     public function getUpdateData(CategoryUpdateRequest $request, object $object): array
     {
         $slug = Str::slug($request->name[array_search('default', $request->lang)]);
         return [
+             'schedule_status' => $request->has('schedule_status') ? 1 : 0,
+            'start_date' => $request->start_date ?: null,
+            'end_date' => $request->end_date ?: null,
             'slug' => $object->slug ?? "{$slug}{$object->id}",
             'name' => $request->name[array_search('default', $request->lang)],
             'image' => $request->has('image') ? $this->updateAndUpload('category/', $object->image, 'png', $request->file('image')) : $object->image,
@@ -71,7 +78,7 @@ class CategoryService
                 'updated_at' => now()
             ];
 
-            if(!$toAdd){
+            if (!$toAdd) {
                 $array['id'] = $collection['Id'];
             }
 
@@ -84,15 +91,15 @@ class CategoryService
     public function getExportData(object $collection): array
     {
         $data = [];
-        foreach($collection as $item){
+        foreach ($collection as $item) {
             $data[] = [
-                'Id'=>$item->id,
-                'Name'=>$item->name,
-                'Image'=>$item->image,
-                'ParentId'=>$item->parent_id,
-                'Position'=>$item->position,
-                'Priority'=>$item->priority,
-                'Status'=>$item->status == 1 ? 'active' : 'inactive',
+                'Id' => $item->id,
+                'Name' => $item->name,
+                'Image' => $item->image,
+                'ParentId' => $item->parent_id,
+                'Position' => $item->position,
+                'Priority' => $item->priority,
+                'Status' => $item->status == 1 ? 'active' : 'inactive',
             ];
         }
         return $data;

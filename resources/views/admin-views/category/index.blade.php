@@ -61,13 +61,55 @@
                                     <div class="form-group d-none lang_form" id="{{ $lang }}-form">
                                         <label class="input-label"
                                             for="exampleFormControlInput1">{{ translate('messages.name') }}
-                                            ({{ strtoupper($lang) }})</label>
+                                            ({{ strtoupper($lang) }})
+                                        </label>
                                         <input type="text" name="name[]" value="{{ old('name.' . $key + 1) }}"
                                             class="form-control" placeholder="{{ translate('messages.new_category') }}"
                                             maxlength="191">
                                     </div>
                                     <input type="hidden" name="lang[]" value="{{ $lang }}">
                                 @endforeach
+                                <div class="col-md-6">
+                                    <!-- Temporary Toggle -->
+                                    <div class="form-group d-flex align-items-center mb-3">
+                                        <label class="form-label me-3">Temp Category</label>
+                                        <div class="form-check form-switch">
+                                            <input type="checkbox" class="form-check-input" id="scheduleToggle" name="schedule_status">
+                                            <label class="form-check-label" for="scheduleToggle">Yes</label>
+                                        </div>
+                                    </div>
+
+                                    <!-- Start & End Date Fields (hidden by default) -->
+                                    <div id="scheduleFields" class="d-none">
+                                        <div class="form-group mb-2">
+                                            <label for="start_date">Start Date</label>
+                                            <input type="date" name="start_date" id="start_date" class="form-control">
+                                        </div>
+
+                                        <div class="form-group">
+                                            <label for="end_date">End Date</label>
+                                            <input type="date" name="end_date" id="end_date" class="form-control">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- JS to toggle fields -->
+                                <script>
+                                    document.addEventListener('DOMContentLoaded', function() {
+                                        const toggle = document.getElementById('scheduleToggle');
+                                        const scheduleFields = document.getElementById('scheduleFields');
+
+                                        toggle.addEventListener('change', function() {
+                                            if (this.checked) {
+                                                scheduleFields.classList.remove('d-none');
+                                            } else {
+                                                scheduleFields.classList.add('d-none');
+                                                // Optional: clear values when hidden
+                                                scheduleFields.querySelectorAll('input').forEach(input => input.value = '');
+                                            }
+                                        });
+                                    });
+                                </script>
                             @else
                                 <div class="form-group">
                                     <label class="input-label"
@@ -200,7 +242,7 @@
                                 <th class="border-0 text-center">{{ translate('messages.status') }}</th>
                                 <th class="border-0 text-center">{{ translate('messages.featured') }}</th>
                                 @if ($categoryWiseTax)
-                                <th  class="border-0 ">{{ translate('messages.Vat/Tax') }}</th>
+                                    <th class="border-0 ">{{ translate('messages.Vat/Tax') }}</th>
                                 @endif
                                 <th class="border-0 text-center">{{ translate('messages.priority') }}</th>
                                 <th class="border-0 text-center">{{ translate('messages.action') }}</th>
@@ -213,7 +255,7 @@
                                     <td>{{ $key + $categories->firstItem() }}</td>
                                     <td>{{ $category->id }}</td>
                                     <td>
-                               {{-- @dd($category->name) --}}
+                                        {{-- @dd($category->name) --}}
 
                                         <span class="d-block font-size-sm text-body">
                                             {{ $category->name }}
@@ -247,20 +289,20 @@
                                     </td>
 
 
-                                @if ($categoryWiseTax)
-                                <td>
-                                    <span class="d-block font-size-sm text-body">
-                                        @forelse ($category?->taxVats?->pluck('tax.name', 'tax.tax_rate')->toArray() as $key => $tax)
-                                            <span> {{ $tax }} : <span class="font-bold">
-                                                    ({{ $key }}%)
-                                                </span> </span>
-                                            <br>
-                                        @empty
-                                            <span> {{ translate('messages.no_tax') }} </span>
-                                        @endforelse
-                                    </span>
-                                </td>
-                                @endif
+                                    @if ($categoryWiseTax)
+                                        <td>
+                                            <span class="d-block font-size-sm text-body">
+                                                @forelse ($category?->taxVats?->pluck('tax.name', 'tax.tax_rate')->toArray() as $key => $tax)
+                                                    <span> {{ $tax }} : <span class="font-bold">
+                                                            ({{ $key }}%)
+                                                        </span> </span>
+                                                    <br>
+                                                @empty
+                                                    <span> {{ translate('messages.no_tax') }} </span>
+                                                @endforelse
+                                            </span>
+                                        </td>
+                                    @endif
 
 
 

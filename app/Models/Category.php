@@ -48,6 +48,9 @@ class Category extends Model
         'module_id',
         'products_count',
         'childes_count',
+        'schedule_status',
+        'end_date',
+        'start_date',
     ];
 
     protected $casts = [

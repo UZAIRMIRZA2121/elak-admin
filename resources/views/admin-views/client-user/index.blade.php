@@ -270,12 +270,9 @@
 
                                         {{-- Segment Names --}}
                                         <td class="text-center">
-                                            @if (!empty($User->type_names))
-                                                {{-- @dd($User->type_names) --}}
-                                                @foreach ($User->type_names as $segment)
-                                                    <span
-                                                        class="badge badge-soft-primary mr-1 my-1">{{ $segment }}</span><br>
-                                                @endforeach
+                                            @if (!empty($User->segment_id))
+                                                <span
+                                                    class="badge badge-soft-primary mr-1 my-1">{{ $User->segment->name ?? '--' }}</span><br>
                                             @else
                                                 <span class="text-muted">--</span>
                                             @endif
@@ -415,7 +412,7 @@
                     }
                 });
             });
-            
+
 
 
             // -------------------- Segment Select Validation --------------------
