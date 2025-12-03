@@ -6,232 +6,113 @@
 @endpush
 
 @section('content')
-    <div class="content container-fluid">
-        <!-- Page Header -->
-        <div class="page-header">
-            <div class="d-flex flex-wrap justify-content-between">
-                <h1 class="page-header-title text-break">
-                    <span class="page-header-icon">
-                        <img src="{{ asset('public/assets/admin/img/items.png') }}" class="w--22" alt="">
-                    </span>
-                    <span>{{ $product['name'] }}</span>
-                </h1>
-                <div>
-
-                </div>
-            </div>
+  <div class="content container-fluid">
+    <!-- Voucher Details Card -->
+    <div class="card mb-3">
+        <div class="card-header">
+            <h4 class="card-title">{{ translate('Voucher Details') }}</h4>
         </div>
-        <!-- End Page Header -->
-
-
-        <!-- Description Card Start -->
-        <div class="card mb-3">
-            <div class="card-body p-0">
-                <div class="table-responsive">
-                    <table class="table table-borderless table-thead-bordered">
-                        <thead class="thead-light">
-                            <tr>
-                                <th class="px-4 border-0">
-                                    <h4 class="m-0 text-capitalize">{{ translate('short_description') }}</h4>
-                                </th>
-                                @if (in_array($product->module->module_type, ['food', 'grocery']))
-                                    <th class="px-4 border-0">
-                                        <h4 class="m-0 text-capitalize">{{ translate('Nutrition') }}</h4>
-                                    </th>
-                                    <th class="px-4 border-0">
-                                        <h4 class="m-0 text-capitalize">{{ translate('Allergy') }}</h4>
-                                    </th>
-                                @endif
-                                @if (Config::get('module.current_module_type') != 'food')
-                                    <th class="px-4 border-0">
-                                        <h4 class="m-0 text-capitalize">{{ translate('Stock') }}</h4>
-                                    </th>
-                                @endif
-
-                                @if (in_array($product->module->module_type, ['pharmacy']))
-                                    <th class="px-4 border-0">
-                                        <h4 class="m-0 text-capitalize">{{ translate('Generic_Name') }}</h4>
-                                    </th>
-                                @endif
-
-                                <th class="px-4 border-0">
-                                    <h4 class="m-0 text-capitalize">{{ translate('price') }}</h4>
-                                </th>
-                                <th class="px-4 border-0">
-                                    <h4 class="m-0 text-capitalize">{{ translate('variations') }}</h4>
-                                </th>
-                                @if ($product->module->module_type == 'food')
-                                    <th class="px-4 border-0">
-                                        <h4 class="m-0 text-capitalize">{{ translate('addons') }}</h4>
-                                    </th>
-                                @endif
-                                <th class="px-4 border-0">
-                                    <h4 class="m-0 text-capitalize">{{ translate('tags') }}</h4>
-                                </th>
-                                @if ($productWiseTax)
-                                    <th class="px-4 border-0">
-                                        <h4 class="m-0 text-capitalize">{{ translate('Tax/Vat') }}</h4>
-                                    </th>
-                                @endif
-                            </tr>
-                        </thead>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <table class="table table-bordered">
                         <tbody>
                             <tr>
-                                <td class="px-4 max-w--220px">
-                                    <div class="">
-                                        {!! $product['description'] !!}
-                                    </div>
-                                </td>
-                                @if (in_array($product->module->module_type, ['food', 'grocery']))
-                                    <td class="px-4">
-                                        @if ($product->nutritions)
-                                            @foreach ($product->nutritions as $nutrition)
-                                                {{ $nutrition->nutrition }}{{ !$loop->last ? ',' : '.' }}
-                                            @endforeach
-                                        @endif
-                                    </td>
-                                    <td class="px-4">
-                                        @if ($product->allergies)
-                                            @foreach ($product->allergies as $allergy)
-                                                {{ $allergy->allergy }}{{ !$loop->last ? ',' : '.' }}
-                                            @endforeach
-                                        @endif
-                                    </td>
-                                @endif
-                                @if (Config::get('module.current_module_type') != 'food')
-                                    <td class="px-4">{{ $product->stock }}</td>
-                                @endif
-                                @if (in_array($product->module->module_type, ['pharmacy']))
-                                    <td class="px-4">
-                                        @if ($product->generic->pluck('generic_name')->first())
-                                            {{ $product->generic->pluck('generic_name')->first() }}
-                                        @endif
-                                    </td>
-
-                                @endif
-                                <td class="px-4">
-                                    <span class="d-block mb-1">
-                                        <span>{{ translate('messages.price') }} : </span>
-                                        <strong>{{ \App\CentralLogics\Helpers::format_currency($product['price']) }}</strong>
-                                    </span>
-                                    <span class="d-block mb-1">
-                                        <span>{{ translate('messages.discount') }} :</span>
-
-                                        <strong>  {{$product['discount_type'] == 'percent' ? $product['discount'] . ' %' : \App\CentralLogics\Helpers::format_currency($product['discount']) }}   </strong>
-                                    </span>
-                                    @if (config('module.' . $product->module->module_type)['item_available_time'])
-                                        <span class="d-block mb-1">
-                                            {{ translate('messages.available_time_starts') }} :
-                                            <strong>{{ date(config('timeformat'), strtotime($product['available_time_starts'])) }}</strong>
-                                        </span>
-                                        <span class="d-block mb-1">
-                                            {{ translate('messages.available_time_ends') }} :
-                                            <strong>{{ date(config('timeformat'), strtotime($product['available_time_ends'])) }}</strong>
-                                        </span>
-                                    @endif
-                                </td>
-                                <td class="px-4">
-                                    @if ($product->module->module_type == 'food')
-                                        @if ($product->food_variations && is_array(json_decode($product['food_variations'], true)))
-                                            @foreach (json_decode($product->food_variations, true) as $variation)
-                                                @if (isset($variation['price']))
-                                                    <span class="d-block mb-1 text-capitalize">
-                                                        <strong>
-                                                            {{ translate('please_update_the_food_variations.') }}
-                                                        </strong>
-                                                    </span>
-                                                    @break
-
-                                                @else
-                                                    <span class="d-block text-capitalize">
-                                                        <strong>
-                                                            {{ $variation['name'] }} -
-                                                        </strong>
-                                                        @if ($variation['type'] == 'multi')
-                                                            {{ translate('messages.multiple_select') }}
-                                                        @elseif($variation['type'] == 'single')
-                                                            {{ translate('messages.single_select') }}
-                                                        @endif
-                                                        @if ($variation['required'] == 'on')
-                                                            - ({{ translate('messages.required') }})
-                                                        @endif
-                                                    </span>
-
-                                                    @if ($variation['min'] != 0 && $variation['max'] != 0)
-                                                        ({{ translate('messages.Min_select') }}: {{ $variation['min'] }} -
-                                                        {{ translate('messages.Max_select') }}: {{ $variation['max'] }})
-                                                    @endif
-
-                                                    @if (isset($variation['values']))
-                                                        @foreach ($variation['values'] as $value)
-                                                            <span class="d-block text-capitalize">
-                                                                &nbsp; &nbsp; {{ $value['label'] }} :
-                                                                <strong>{{ \App\CentralLogics\Helpers::format_currency($value['optionPrice']) }}</strong>
-                                                            </span>
-                                                        @endforeach
-                                                    @endif
-                                                @endif
-                                            @endforeach
-                                        @endif
-                                    @else
-                                        @if ($product->variations && is_array(json_decode($product['variations'], true)))
-                                            @foreach (json_decode($product['variations'], true) as $variation)
-                                                <span class="d-block mb-1 text-capitalize">
-                                                    {{ $variation['type'] }} :
-                                                    {{ \App\CentralLogics\Helpers::format_currency($variation['price']) }}
-                                                </span>
-                                            @endforeach
-                                        @endif
-                                </td>
-                                @endif
-                                @if ($product->module->module_type == 'food')
-
-                                    <td class="px-4">
-                                        @if (config('module.' . $product->module->module_type)['add_on'])
-                                            @foreach (\App\Models\AddOn::whereIn('id', json_decode($product['add_ons'], true))->get() as $addon)
-                                                <span class="d-block mb-1 text-capitalize">
-                                                    {{ $addon['name'] }} :
-                                                    {{ \App\CentralLogics\Helpers::format_currency($addon['price']) }}
-                                                </span>
-                                            @endforeach
-                                        @endif
-                                    </td>
-                                @endif
-                                @if ($product->tags)
-                                    <td>
-                                        @foreach ($product->tags as $c)
-                                            {{ $c->tag }}{{ !$loop->last ? ',' : '.' }}
-                                        @endforeach
-                                    </td>
-                                @endif
-
-                                @if ($productWiseTax)
-                                    <td>
-
-                                        <span class="d-block font-size-sm text-body">
-                                            @forelse ($product?->taxVats?->pluck('tax.name', 'tax.tax_rate')->toArray() as $key => $tax)
-                                                <span> {{ $tax }} : <span class="font-bold">
-                                                        ({{ $key }}%)
-                                                    </span> </span>
-                                                <br>
-                                            @empty
-                                                <span> {{ translate('messages.no_tax') }} </span>
-                                            @endforelse
-                                        </span>
-                                    </td>
-                                @endif
-
+                                <th width="40%">{{ translate('Voucher Title') }}</th>
+                                <td>{{ $product->voucher_title ?? 'N/A' }}</td>
+                            </tr>
+                            <tr>
+                                <th>{{ translate('Voucher Type') }}</th>
+                                <td>{{ ucfirst($product->voucher_type) ?? 'N/A' }}</td>
+                            </tr>
+                            <tr>
+                                <th>{{ translate('Bundle Type') }}</th>
+                                <td>{{ ucfirst($product->bundle_type) ?? 'N/A' }}</td>
+                            </tr>
+                            <tr>
+                                <th>{{ translate('Voucher IDs') }}</th>
+                                <td>{{ $product->voucher_ids ?? 'N/A' }}</td>
+                            </tr>
+                            <tr>
+                                <th>{{ translate('Valid Until') }}</th>
+                                <td>{{ $product->valid_until ? \Carbon\Carbon::parse($product->valid_until)->format('d M Y') : 'N/A' }}</td>
+                            </tr>
+                            <tr>
+                                <th>{{ translate('Food & Product Type') }}</th>
+                                <td>{{ $product->food_and_product_type ?? 'N/A' }}</td>
+                            </tr>
+                            <tr>
+                                <th>{{ translate('Required Quantity') }}</th>
+                                <td>{{ $product->required_quantity ?? 'N/A' }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="col-md-6">
+                    <table class="table table-bordered">
+                        <tbody>
+                            <tr>
+                                <th width="40%">{{ translate('Category IDs') }}</th>
+                                <td>{{ $product->category_ids_display ?? 'N/A' }}</td>
+                            </tr>
+                            <tr>
+                                <th>{{ translate('Sub Category IDs') }}</th>
+                                <td>{{ $product->sub_category_ids_display ?? 'N/A' }}</td>
+                            </tr>
+                            <tr>
+                                <th>{{ translate('Branch IDs') }}</th>
+                                <td>{{ $product->branch_ids_display ?? 'N/A' }}</td>
+                            </tr>
+                            <tr>
+                                <th>{{ translate('Tags') }}</th>
+                                <td>{{ $product->tags_display ?? 'N/A' }}</td>
+                            </tr>
+                            <tr>
+                                <th>{{ translate('How & Conditions') }}</th>
+                                <td>{{ $product->conditions_display ?? 'N/A' }}</td>
+                            </tr>
+                            <tr>
+                                <th>{{ translate('Terms & Conditions') }}</th>
+                                <td>{{ $product->terms_display ?? 'N/A' }}</td>
                             </tr>
                         </tbody>
                     </table>
                 </div>
             </div>
+            
+            <!-- Client Section -->
+            @if($product->clients_section && $product->clients_section != '[]')
+            <div class="row mt-3">
+                <div class="col-12">
+                    <h5>{{ translate('Client Section') }}</h5>
+                    <pre class="bg-light p-3" style="max-height: 200px; overflow-y: auto;">{{ $product->clients_display ?? 'N/A' }}</pre>
+                </div>
+            </div>
+            @endif
+            
+            <!-- Products -->
+            @if($product->product && $product->product != '[]')
+            <div class="row mt-3">
+                <div class="col-12">
+                    <h5>{{ translate('Products') }}</h5>
+                    <pre class="bg-light p-3" style="max-height: 200px; overflow-y: auto;">{{ $product->products_display ?? 'N/A' }}</pre>
+                </div>
+            </div>
+            @endif
+            
+            <!-- Product B -->
+            @if($product->product_b && $product->product_b != '[]')
+            <div class="row mt-3">
+                <div class="col-12">
+                    <h5>{{ translate('Product B') }}</h5>
+                    <pre class="bg-light p-3" style="max-height: 200px; overflow-y: auto;">{{ json_decode($product->product_b, JSON_PRETTY_PRINT) ?? 'N/A' }}</pre>
+                </div>
+            </div>
+            @endif
         </div>
-        <!-- Description Card End -->
-        <!-- Card -->
-
-        <!-- End Card -->
     </div>
+    <!-- End Voucher Details Card -->
+</div>
 
     {{-- Add Quantity Modal --}}
     <div class="modal fade update-quantity-modal" id="update-quantity" tabindex="-1">

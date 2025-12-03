@@ -1187,6 +1187,7 @@ $(document).ready(function() {
         let basePrice = parseFloat(productCard.find('.product-base-price').val()) || 0;
         let quantity = parseInt(productCard.find('.product-quantity').val()) || 1;
         let total = basePrice;
+        alert(total);
 
         let selectedVariation = productCard.find('.variation-checkbox:checked');
         if (selectedVariation.length) {

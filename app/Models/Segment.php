@@ -22,6 +22,7 @@ class Segment extends Model
         'status',
         'client_id',
     ];
+ 
 
     /**
      * Relationship: Segment belongs to a Client
