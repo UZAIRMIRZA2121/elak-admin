@@ -47,6 +47,7 @@ class CategoryController extends BaseController
 
     public function index(?Request $request): View|Collection|LengthAwarePaginator|null
     {
+       
         return $this->getCategoryView($request);
     }
 

@@ -8375,4 +8375,7 @@ Smartly or Earn. ',
   'Client Section' => 'Client Section',
   'Products' => 'Products',
   'All Voucher Details' => 'All Voucher Details',
+  'The color theme field is required.' => 'The color theme field is required.',
+  'The end date must be a date after or equal to start date.' => 'The end date must be a date after or equal to start date.',
+  'The app id field is required.' => 'The app id field is required.',
 );

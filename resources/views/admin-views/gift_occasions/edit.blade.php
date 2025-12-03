@@ -1,141 +1,172 @@
 @extends('layouts.admin.app')
 
-@section('title'," Gift Occasions Edit")
+@section('title', ' Gift Occasions Edit')
 
 @push('css_or_js')
-
 @endpush
 
 @section('content')
-<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet">
-<link href="https://cdn.jsdelivr.net/npm/@ttskch/select2-bootstrap4-theme@1.6.2/dist/select2-bootstrap4.min.css" rel="stylesheet">
-<style>
-    /* Dropdown options - selected option ka background highlight */
-    .select2-results__option[aria-selected="true"] {
-        background-color: #005555 !important; /* Bootstrap primary */
-        color: #fff !important;
-    }
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/@ttskch/select2-bootstrap4-theme@1.6.2/dist/select2-bootstrap4.min.css"
+        rel="stylesheet">
+    <style>
+        /* Dropdown options - selected option ka background highlight */
+        .select2-results__option[aria-selected="true"] {
+            background-color: #005555 !important;
+            /* Bootstrap primary */
+            color: #fff !important;
+        }
 
-    /* Hover effect on options */
-    .select2-results__option--highlighted[aria-selected] {
-        background-color: #005555 !important;
-        color: #fff !important;
-    }
+        /* Hover effect on options */
+        .select2-results__option--highlighted[aria-selected] {
+            background-color: #005555 !important;
+            color: #fff !important;
+        }
 
-    /* Selected tags (neeche input me show hone wale items) */
-    .select2-container--bootstrap4 .select2-selection--multiple .select2-selection__choice {
-        background-color: #005555;   /* blue tag */
-        border: none;
-        color: #fff;
-        padding: 4px 10px;
-        margin: 3px 4px 0 0;
-        border-radius: 20px;
-        font-size: 13px;
-        font-weight: 500;
-        display: inline-flex;
-        align-items: center;
-    }
+        /* Selected tags (neeche input me show hone wale items) */
+        .select2-container--bootstrap4 .select2-selection--multiple .select2-selection__choice {
+            background-color: #005555;
+            /* blue tag */
+            border: none;
+            color: #fff;
+            padding: 4px 10px;
+            margin: 3px 4px 0 0;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+        }
 
-    /* Tag ke andar remove (x) button */
-    .select2-container--bootstrap4 .select2-selection__choice__remove {
-        margin-right: 6px;
-        font-weight: bold;
-        cursor: pointer;
-    }
+        /* Tag ke andar remove (x) button */
+        .select2-container--bootstrap4 .select2-selection__choice__remove {
+            margin-right: 6px;
+            font-weight: bold;
+            cursor: pointer;
+        }
 
-    /* Input field height thoda sa neat */
-    .select2-container--bootstrap4 .select2-selection--multiple {
-        min-height: 46px;
-        border: 1px solid #ced4da;
-        border-radius: .5rem;
-        padding: 4px;
-    }
+        /* Input field height thoda sa neat */
+        .select2-container--bootstrap4 .select2-selection--multiple {
+            min-height: 46px;
+            border: 1px solid #ced4da;
+            border-radius: .5rem;
+            padding: 4px;
+        }
 
-    /* Dropdown ka max height with scroll */
-    .select2-results__options {
-        max-height: 220px !important;
-        overflow-y: auto !important;
-    }
+        /* Dropdown ka max height with scroll */
+        .select2-results__options {
+            max-height: 220px !important;
+            overflow-y: auto !important;
+        }
 
-    /* Dropdown search bar */
-    .select2-search--dropdown .select2-search__field {
-        border: 1px solid #ced4da;
-        border-radius: 6px;
-        padding: 6px 10px;
-        width: 100% !important;
-        outline: none;
-    }
-</style>
+        /* Dropdown search bar */
+        .select2-search--dropdown .select2-search__field {
+            border: 1px solid #ced4da;
+            border-radius: 6px;
+            padding: 6px 10px;
+            width: 100% !important;
+            outline: none;
+        }
+    </style>
 
     <div class="content container-fluid">
         <!-- Page Header -->
         <div class="page-header">
             <h1 class="page-header-title">
                 <span class="page-header-icon">
-                    <img src="{{asset('public/assets/admin/img/edit.png')}}" class="w--26" alt="">
+                    <img src="{{ asset('public/assets/admin/img/edit.png') }}" class="w--26" alt="">
                 </span>
                 <span>
-                   Edit Gift Occasions Edit
+                    Edit Gift Occasions Edit11
                 </span>
             </h1>
         </div>
         <!-- End Page Header -->
         <div class="card">
             <div class="card-body">
-                <form action="{{route('admin.GiftOccasions.update',[$GiftOccasions['id']])}}" method="post" enctype="multipart/form-data">
+                <form action="{{ route('admin.GiftOccasions.update', [$GiftOccasions['id']]) }}" method="post"
+                    enctype="multipart/form-data">
                     @csrf
-                    @php($language=\App\Models\BusinessSetting::where('key','language')->first())
-                        @php($language = $language->value ?? null)
-                        @php($defaultLang = str_replace('_', '-', app()->getLocale()))
-                        @if($language)
-                               <div class="row">
-                                    <div class="col-6 ">
-                                        <div class="lang_form" id="default-form">
-                                            <div class="form-group">
-                                                <label class="input-label"
-                                                    for="title">  title
-                                                </label>
-                                                <input type="text" name="title" value="{{$GiftOccasions->title}}" id="title" class="form-control"  placeholder="Enter Gift Occasions">
-                                            </div>
-                                            <input type="hidden" name="lang[]" value="default">
-                                        </div>
+                    @php($language = \App\Models\BusinessSetting::where('key', 'language')->first())
+                    @php($language = $language->value ?? null)
+                    @php($defaultLang = str_replace('_', '-', app()->getLocale()))
+                    @if ($language)
+                        <div class="row">
+                            <div class="col-6 ">
+                                <div class="lang_form" id="default-form">
+                                    <div class="form-group">
+                                        <label class="input-label" for="title"> title
+                                        </label>
+                                        <input type="text" name="title" value="{{ $GiftOccasions->title }}"
+                                            id="title" class="form-control" placeholder="Enter Gift Occasions">
                                     </div>
+                                    <input type="hidden" name="lang[]" value="default">
+                                </div>
+                            </div>
 
-                                  <div class="col-6 col-md-4">
-                                    <div class="lang_form" id="default-form">
-                                        <div class="form-group">
-                                            <label class="input-label" for="icon">icon </label>
-                                            <input type="file" name="icon[]" id="icon" class="form-control" multiple>
+                            <div class="col-6 col-md-4">
+                                <div class="lang_form" id="default-form">
+                                    <div class="form-group">
+                                        <label class="input-label" for="icon">icon </label>
+                                        <input type="file" name="icon[]" id="icon" class="form-control" multiple>
 
-                                            {{-- Agar client ka logo already hai to niche show kare --}}
-                                         @if(!empty($GiftOccasions->icon))
-                                        @php(
 
-                                            $icons = json_decode($GiftOccasions->icon, true)
-                                        )
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-6 col-md-12">
+                                <div class="lang_form" id="default-form">
+                                    <div class="form-group">
+                                        <label class="input-label" for="icon">Icon</label>
 
-                                        @if(is_array($icons))
+                                        {{-- Agar client ka logo already hai to niche show kare --}}
+                                        @if (!empty($GiftOccasions->icon))
+                                            @php($icons = json_decode($GiftOccasions->icon, true))
+
                                             <div class="mt-3 d-flex flex-wrap gap-3">
-                                                @foreach($icons as $img)
-                                                    <div>
-                                                        <img src="{{ asset($img) }}"
-                                                            class="img-thumbnail"
+                                                @foreach ($icons as $key => $img)
+                                                    <div id="img-{{ $img }}"class="position-relative d-inline-block"
+                                                        style="width: 120px; overflow: hidden; border-radius: 6px;">
+
+                                                        <!-- IMG -->
+                                                        <img src="{{ asset($img) }}" class="img-thumbnail"
                                                             style="width: 120px; height:auto;">
+
+                                                        <!-- Delete Button Inside Image -->
+
+                                                        <a class="btn btn-danger deleteOccasion"
+                                                            data-id="{{ $GiftOccasions->id }}"
+                                                            data-img-id="{{ $img }}"
+                                                            style="
+                                                                        top: 4px;
+                                                                        right: 4px;
+                                                                        padding: 0;
+                                                                        width: 22px;
+                                                                        height: 22px;
+                                                                        line-height: 18px;
+                                                                        font-size: 18px;
+                                                                        border-radius: 50%;
+                                                                        display: flex;
+                                                                        align-items: center;
+                                                                        justify-content: center;
+                                                                    ">
+                                                            X
+                                                        </a>
+
                                                     </div>
                                                 @endforeach
                                             </div>
                                         @endif
-                                    @endif
 
-                                        </div>
                                     </div>
                                 </div>
+                            </div>
 
-                                </div>
-                        @endif
+                        </div>
+                    @endif
                     <div class="btn--container justify-content-end mt-5">
-                        <button type="reset" class="btn btn--reset">{{translate('messages.reset')}}</button>
-                        <button type="submit" class="btn btn--primary">{{translate('messages.update')}}</button>
+                        <button type="reset" class="btn btn--reset">{{ translate('messages.reset') }}</button>
+                        <button type="submit" class="btn btn--primary">{{ translate('messages.update') }}</button>
                     </div>
                 </form>
             </div>
@@ -145,22 +176,46 @@
 @endsection
 
 @push('script_2')
+    {{-- <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script> --}}
+    <script src="{{ asset('public/assets/admin') }}/js/view-pages/client-side-index.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.full.min.js"></script>
 
-{{-- <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script> --}}
- <script src="{{asset('public/assets/admin')}}/js/view-pages/client-side-index.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.full.min.js"></script>
-
-<script>
-    $(function () {
-        $('#type').select2({
-            theme: 'bootstrap4',
-            width: '100%',
-            placeholder: $('#type').data('placeholder'),
-            allowClear: true,
-            closeOnSelect: false
+    <script>
+        $(function() {
+            $('#type').select2({
+                theme: 'bootstrap4',
+                width: '100%',
+                placeholder: $('#type').data('placeholder'),
+                allowClear: true,
+                closeOnSelect: false
+            });
         });
-    });
-</script>
+    </script>
 
 
+    <script>
+        $(document).on('click', '.deleteOccasion', function() {
+            let id = $(this).data('id');
+            let img = $(this).data('img-id');
+
+            let url = "{{ route('admin.GiftOccasions.galleryDestroy', ':id') }}".replace(':id', id);
+
+            $.ajax({
+                url: url,
+                type: "DELETE",
+                data: {
+                    img: img,
+                    _token: "{{ csrf_token() }}"
+                },
+                success: function(response) {
+                    
+                 
+                    toastr.success(response.message);
+
+
+
+                }
+            });
+        });
+    </script>
 @endpush
