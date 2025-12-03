@@ -77,7 +77,7 @@
                     <img src="{{ asset('public/assets/admin/img/edit.png') }}" class="w--26" alt="">
                 </span>
                 <span>
-                    Edit Gift Occasions Edit11
+                    Edit Gift Occasions Edit
                 </span>
             </h1>
         </div>
@@ -129,7 +129,7 @@
                                                         style="width: 120px; overflow: hidden; border-radius: 6px;">
 
                                                         <!-- IMG -->
-                                                        <img src="{{ asset($img) }}" class="img-thumbnail"
+                                                        <img src="{{ asset('public/' . $img) }}" class="img-thumbnail"
                                                             style="width: 120px; height:auto;">
 
                                                         <!-- Delete Button Inside Image -->
