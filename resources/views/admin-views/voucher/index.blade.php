@@ -462,21 +462,21 @@
                             <div class="col-12 d-none" id="actual_price_input_hide">
                                 <div class="form-group mb-0">
                                     <label class="input-label"  for="exampleFormControlInput1">{{ translate('Actual Price') }} <span class="form-label-secondary text-danger"  data-toggle="tooltip" data-placement="right" data-original-title="{{ translate('messages.Required.')}}"> *  </span> </label>
-                                    <input type="number" min="0" id="actual_price" max="999999999999.99" step="0.01" value="1" name="actual_price_input_hide" class="form-control"placeholder="{{ translate('messages.Ex:') }} 100" required>
+                                    <input type="number" min="0" id="actual_price" max="999999999999.99" step="0.01" value="1" name="actual_price_input_hide" class="form-control"placeholder="{{ translate('messages.Ex:') }} 100" >
                                     <input type="hidden"  id="actual_price_input_hide"name="actual_price_input_hide" >
                                 </div>
                             </div>
                             <div class="col-6 col-md-3" id="price_input_hide">
                                 <div class="form-group mb-0">
                                     <label class="input-label"  for="exampleFormControlInput1">{{ translate('messages.price') }} <span class="form-label-secondary text-danger"  data-toggle="tooltip" data-placement="right" data-original-title="{{ translate('messages.Required.')}}"> *  </span> </label>
-                                    <input type="number" min="0" id="price" max="999999999999.99" step="0.01" value="1" name="price" class="form-control"placeholder="{{ translate('messages.Ex:') }} 100" required>
+                                    <input type="number" min="0" id="price" max="999999999999.99" step="0.01" value="1" name="price" class="form-control"placeholder="{{ translate('messages.Ex:') }} 100" >
                                     <input type="hidden"  id="price_hidden"name="price_hidden" >
                                 </div>
                             </div>
                             <div class="col-6 col-md-3 d-none" id="required_qty">
                                 <div class="form-group mb-0">
                                     <label class="input-label"  for="exampleFormControlInput1">{{ translate('Required Quantity') }} <span class="form-label-secondary text-danger"  data-toggle="tooltip" data-placement="right" data-original-title="{{ translate('messages.Required.')}}"> *  </span> </label>
-                                    <input type="number" min="0" id="required_qty" max="999999999999.99" step="0.01" value="1" name="required_qty" class="form-control"placeholder="{{ translate('messages.Ex:') }} 100" required>
+                                    <input type="number" min="0" id="required_qty" max="999999999999.99" step="0.01" value="1" name="required_qty" class="form-control"placeholder="{{ translate('messages.Ex:') }} 100" >
                                 </div>
                             </div>
 
@@ -1836,8 +1836,6 @@
             $('.accordion-icon').addClass('rotated').css('transform', 'rotate(180deg)');
         }
 
-
-
         function bundle(type) {
             // 1. Set the hidden input value
             document.getElementById('hidden_bundel').value = type;
@@ -2429,7 +2427,7 @@
             let formData = new FormData(this);
 
             $.ajax({
-                url: '{{ route('admin.Voucher.store') }}',
+                url: "{{ route('admin.Voucher.store') }}",
                 type: 'POST',
                 data: formData,
                 cache: false,
