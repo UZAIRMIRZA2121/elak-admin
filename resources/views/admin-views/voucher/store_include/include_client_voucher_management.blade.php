@@ -35,7 +35,7 @@
                     data-value="{{ $voucherType->name }}">
 
                     <div class="display-4 mb-2">
-                        <img src="{{ asset($voucherType->logo) }}" alt="{{ $voucherType->name }}" style="width: 40px;" />
+                        <img src="{{ asset('public/'.$voucherType->logo) }}" alt="{{ $voucherType->name }}" style="width: 40px;" />
                     </div>
 
                     <h6 class="fw-semibold">{{ $voucherType->name }}</h6>

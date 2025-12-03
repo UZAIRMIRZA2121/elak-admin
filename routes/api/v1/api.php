@@ -16,7 +16,18 @@ use BeyondCode\LaravelWebSockets\Facades\WebSocketsRouter;
 |
 */
 
+
+Route::post('/check-ref-id', [AuthController::class, 'checkRefId']);
+
+
+
 Route::group(['namespace' => 'Api\V1', 'middleware'=>'localization'], function () {
+
+
+
+
+
+
     Route::group(['prefix' => 'configurations'], function () {
         Route::get('/', 'ExternalConfigurationController@getConfiguration');
         Route::get('/get-external', 'ExternalConfigurationController@getExternalConfiguration');
@@ -523,5 +534,11 @@ Route::group(['namespace' => 'Api\V1', 'middleware'=>'localization'], function (
     Route::get('vehicle/extra_charge', 'ConfigController@extra_charge');
     Route::get('get-vehicles', 'ConfigController@get_vehicles');
 });
+
+
+
+
+
+
 
 WebSocketsRouter::webSocket('/delivery-man/live-location', DMLocationSocketHandler::class);
