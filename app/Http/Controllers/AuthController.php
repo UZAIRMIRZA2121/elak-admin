@@ -32,62 +32,62 @@ class AuthController extends Controller
 
         return response()->json([
             'access_token' => $token,
-            'token_type'   => 'Bearer',
-            'user'         => $user
+            'token_type' => 'Bearer',
+            'user' => $user
         ]);
     }
 
     // --------------------------
     // 🔹 Activate & Update User
     // --------------------------
-  public function activateUser(Request $request)
-{
-    // Find user by ref_by
-    $user = User::where('ref_by', $request->ref_by)->first();
+    public function activateUser(Request $request)
+    {
+        // Find user by ref_by
+        $user = User::where('ref_by', $request->ref_by)->first();
 
-    if (!$user) {
-        return response()->json(['error' => 'User not found with this ref_by'], 404);
-    }
-
-    // Check if email already exists (excluding current user)
-    if ($request->has('email')) {
-        $exists = User::where('email', $request->email)
-                      ->where('id', '!=', $user->id)
-                      ->exists();
-        if ($exists) {
-            return response()->json(['error' => 'Email already exists'], 409);
+        if (!$user) {
+            return response()->json(['error' => 'User not found with this ref_by'], 404);
         }
-        $user->email = $request->email;
-    }
 
-    // Check if username already exists (excluding current user)
-    if ($request->has('username')) {
-        $exists = User::where('username', $request->username)
-                      ->where('id', '!=', $user->id)
-                      ->exists();
-        if ($exists) {
-            return response()->json(['error' => 'Username already exists'], 409);
+        // Check if email already exists (excluding current user)
+        if ($request->has('email')) {
+            $exists = User::where('email', $request->email)
+                ->where('id', '!=', $user->id)
+                ->exists();
+            if ($exists) {
+                return response()->json(['error' => 'Email already exists'], 409);
+            }
+            $user->email = $request->email;
         }
-        $user->username = $request->username;
-    }
 
-    // Update other fields
-    if ($request->has('name')) {
-        $user->f_name = $request->name;
-    }
-    if ($request->has('password')) {
-        $user->password = \Hash::make($request->password);
-    }
+        // Check if username already exists (excluding current user)
+        if ($request->has('username')) {
+            $exists = User::where('username', $request->username)
+                ->where('id', '!=', $user->id)
+                ->exists();
+            if ($exists) {
+                return response()->json(['error' => 'Username already exists'], 409);
+            }
+            $user->username = $request->username;
+        }
 
-    // Activate account
-    $user->is_active = true;
-    $user->save();
+        // Update other fields
+        if ($request->has('name')) {
+            $user->f_name = $request->name;
+        }
+        if ($request->has('password')) {
+            $user->password = \Hash::make($request->password);
+        }
 
-    return response()->json([
-        'message' => 'Account activated successfully!',
-        'user'    => $user
-    ]);
-}
+        // Activate account
+        $user->is_active = true;
+        $user->save();
+
+        return response()->json([
+            'message' => 'Account activated successfully!',
+            'user' => $user
+        ]);
+    }
 
 
     // --------------------------
@@ -106,4 +106,33 @@ class AuthController extends Controller
         $request->user()->token()->revoke();
         return response()->json(['message' => 'Logged out successfully']);
     }
+
+    public function checkRefId(Request $request)
+    {
+        $request->validate([
+            'ref_id' => 'required|string',
+        ]);
+
+
+        $exists = User::where('ref_by', $request->ref_id)->exists();
+
+        if ($exists) {
+            return response()->json([
+                'status' => true,
+                'message' => 'Referral ID found.',
+                'ref_id' => $request->ref_id,
+            ], 200); // OK
+        }
+
+        return response()->json([
+            'status' => false,
+            'message' => 'Referral ID not found.',
+            'ref_id' => $request->ref_id,
+        ], 404); // Not Found
+
+    }
+
+
+
+
 }
