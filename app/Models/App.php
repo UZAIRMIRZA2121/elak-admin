@@ -31,6 +31,16 @@ class App extends Model
     {
         return $this->hasMany(AppBanner::class, 'app_id');
     }
+    // To directly get the related ColorTheme models via pivot table
+    public function themes()
+    {
+        return $this->belongsToMany(
+            ColorTheme::class, // related model
+            'app_themes',      // pivot table
+            'app_id',          // foreign key on pivot table for this model
+            'theme_id'         // foreign key on pivot table for related model
+        );
+    }
 
 
 }

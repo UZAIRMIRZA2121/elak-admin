@@ -20,6 +20,7 @@ class ParcelCategoryController extends Controller
      */
     public function index(Request $request)
     {
+     
         $module_id = Config::get('module.current_module_id');
         $taxData = Helpers::getTaxSystemType(getTaxVatList: true, tax_payer: 'parcel');
         $categoryWiseTax = $taxData['categoryWiseTax'];

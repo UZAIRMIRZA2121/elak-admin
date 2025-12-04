@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Models\App;
+use App\Models\AppTheme;
+use App\Models\ColorCode;
 use DateTime;
 use App\Models\Item;
 use App\Models\User;
@@ -96,6 +98,7 @@ class ClientSideController extends Controller
 
     public function store(Request $request)
     {
+
         $request->validate([
             'name' => 'required|max:100',
             'email' => 'required|email|unique:clients,email',
@@ -108,7 +111,7 @@ class ClientSideController extends Controller
         $client->name = $request->name;
         $client->email = $request->email;
         $client->password = bcrypt($request->password);
-       
+
 
         //  Logo Upload
         if ($request->hasFile('logo_image')) {
@@ -140,6 +143,7 @@ class ClientSideController extends Controller
             $client->cover = 'uploads/clients/covers/' . $imageName;
         }
 
+
         $client->save();
 
         Toastr::success('Client added successfully');
@@ -163,6 +167,7 @@ class ClientSideController extends Controller
             'password' => 'nullable|min:6',
             'logo_image' => 'nullable|image',
             'cover_image' => 'nullable|image',
+
 
         ]);
 
@@ -263,7 +268,7 @@ class ClientSideController extends Controller
 
         $Users = User::query()
             ->leftJoin('clients', 'users.client_id', '=', 'clients.id')
-            ->select('users.*', 'clients.name as client_name', 'clients.type as client_type')
+            ->select('users.*', 'clients.name as client_name')
             ->when($search, function ($q) use ($search) {
                 $q->where('users.status', 'like', "%{$search}%")
                     ->orWhere('clients.name', 'like', "%{$search}%")
@@ -278,17 +283,17 @@ class ClientSideController extends Controller
             $user->type_names = [];
 
             // Check if client has type field with values (from clients table)
-            if (!empty($user->client_type)) {
-                // Split comma-separated values and remove any whitespace
-                $segmentIds = array_filter(array_map('trim', explode(',', $user->client_type)));
+            // if (!empty($user->client_type)) {
+            //     // Split comma-separated values and remove any whitespace
+            //     $segmentIds = array_filter(array_map('trim', explode(',', $user->client_type)));
 
-                if (!empty($segmentIds)) {
-                    // Get segment names from segments table
-                    $user->type_names = \App\Models\Segment::whereIn('id', $segmentIds)
-                        ->pluck('name')
-                        ->toArray();
-                }
-            }
+            //     if (!empty($segmentIds)) {
+            //         // Get segment names from segments table
+            //         $user->type_names = \App\Models\Segment::whereIn('id', $segmentIds)
+            //             ->pluck('name')
+            //             ->toArray();
+            //     }
+            // }
 
             return $user;
         });
@@ -304,37 +309,45 @@ class ClientSideController extends Controller
             'select_client' => 'required|integer',
             'add_record_client' => 'required|integer|min:1|max:10000000',
         ]);
+
         $count = $request->add_record_client;
-        //  transaction start
+
         DB::beginTransaction();
         try {
-            // last ref_id check
-            $lastRef = DB::table('users')->max('ref_by');
-            $startRef = $lastRef ? $lastRef + 1 : 10000;
-
+            $existingRefs = DB::table('users')->pluck('ref_by')->toArray(); // existing ref_ids
             $records = [];
+
             for ($i = 0; $i < $count; $i++) {
+                do {
+                    $randomRef = mt_rand(10000000, 99999999); // generate 8-digit random
+                } while (in_array($randomRef, $existingRefs)); // ensure uniqueness
+
+                $existingRefs[] = $randomRef; // add to existing to prevent duplicates in this batch
+
                 $records[] = [
                     'segment_id' => $request->segment_type,
                     'client_id' => $request->select_client,
                     'role' => 'user',
                     'status' => 0,
-                    'ref_by' => $startRef + $i,
+                    'ref_by' => $randomRef,
                     'created_at' => now(),
                     'updated_at' => now(),
                 ];
+
+                // insert in chunks of 1000
                 if (count($records) === 1000) {
                     DB::table('users')->insert($records);
                     $records = [];
                 }
             }
+
             if (!empty($records)) {
                 DB::table('users')->insert($records);
             }
 
-            DB::commit(); //  transaction complete
+            DB::commit();
 
-            Toastr::success("$count Clients added successfully (Ref ID from $startRef)");
+            Toastr::success("$count Clients added successfully");
         } catch (\Exception $e) {
             DB::rollBack();
             Toastr::error('Error: ' . $e->getMessage());
@@ -342,6 +355,7 @@ class ClientSideController extends Controller
 
         return back();
     }
+
 
     // public function getSegments($clientId)
     // {
@@ -353,32 +367,16 @@ class ClientSideController extends Controller
     //     return response()->json($segments);
     // }
 
-    public function getSegments($clientIds)
+    public function getSegments($clientId)
     {
-        // String ko array me convert karo
-        $ids = array_filter(array_map('trim', explode(',', $clientIds)));
-
-        // Ab multiple clients nikal lo
-        $clients = Client::whereIn('id', $ids)->get();
-        $allSegmentIds = [];
-
-        foreach ($clients as $client) {
-            if (!empty($client->type)) {
-                // Client ke type se segment IDs nikal lo
-                $segmentIds = array_filter(array_map('trim', explode(',', $client->type)));
-                $allSegmentIds = array_merge($allSegmentIds, $segmentIds);
-            }
-        }
-
-        // Duplicate IDs remove karo
-        $allSegmentIds = array_unique($allSegmentIds);
-
-        // Final segments lao
-        $segments = Segment::whereIn('id', $allSegmentIds)->get();
-        // dd($segments);
+        // Get all active segments for the given client_id
+        $segments = Segment::where('client_id', $clientId)
+            ->where('status', 'active')
+            ->get();
 
         return response()->json($segments);
     }
+
 
 
 
@@ -640,95 +638,280 @@ class ClientSideController extends Controller
 
     public function color_theme(Request $request)
     {
+
         if ($request->isMethod('post')) {
 
+            // Validate theme fields
             $request->validate([
-                'color_name' => 'required|max:100',
-                'color_code' => 'required',
-                'gradient_option' => 'required',
-                'color_type' => 'required',
-                'app_id' => 'required|integer', // ⭐ NEW VALIDATION
+                'name' => 'required|max:100',
+                'start_date' => 'required|date',
+                'end_date' => 'required|date|after_or_equal:start_date',
+                'status' => 'required|in:active,inactive',
+                'colors' => 'required|array',
             ]);
 
-            $Banner = new ColorTheme();
-            $Banner->color_name = $request->color_name;
-            $Banner->color_code = $request->color_code;
-            $Banner->color_gradient = $request->gradient_option;
-            $Banner->color_type = $request->color_type;
+            DB::beginTransaction();
+            try {
 
-            // ⭐ NEW — Save app_id
-            $Banner->app_id = $request->app_id;
+                // Create new ColorTheme
+                $theme = new ColorTheme();
+                $theme->name = $request->name;
+                $theme->start_date = $request->start_date;
+                $theme->end_date = $request->end_date;
+                $theme->status = $request->status;
+                $theme->save();
 
-            $Banner->save();
+                // Save color groups
+                foreach ($request->colors as $key => $colorGroup) {
 
-            Toastr::success('Color Theme added successfully');
-            return back();
+                    // Skip if empty or invalid
+                    if (!is_array($colorGroup) || empty($colorGroup['value'])) {
+                        continue;
+                    }
+
+                    ColorCode::create([
+                        'color_theme_id' => $theme->id,
+                        'color_name' => $colorGroup['name'] ?? ucfirst(str_replace('_', ' ', $key)), // custom name or fallback
+                        'color_code' => $colorGroup['value'],       // hex value
+                        'color_type' => $key,                        // <-- use the array key as type
+                        'color_gradient' => isset($colorGroup['gradient']) ? 1 : 0,
+                        'status' => 'active',
+                    ]);
+                }
+
+                DB::commit();
+                dd(11);
+                Toastr::success('Color Theme and Colors added successfully');
+                return back();
+
+            } catch (\Exception $e) {
+
+                DB::rollBack();
+                Toastr::error('Error: ' . $e->getMessage());
+                return back();
+            }
         }
 
-        $colors = ColorTheme::paginate(10);
+        // Fetch themes
+        $themes = ColorTheme::with('colorCodes')->paginate(10);
 
-        $apps = App::all();
-
-        return view("admin-views.client-user.colortheme", compact('colors', 'apps'));
+        return view("admin-views.client-user.colortheme", compact('themes'));
     }
+
 
 
     public function edit_color_theme($id)
     {
-        $ColorTheme = ColorTheme::findOrFail($id);
-        $apps = App::all();
-        return view('admin-views.client-user.colortheme_edit', compact('ColorTheme', 'apps'));
+        // Get the theme
+        $colorTheme = ColorTheme::with('colorCodes')->findOrFail($id);
+
+        // Prepare colors array for the form (predefined)
+        $predefinedColors = [
+            'primary_color',
+            'secondary_color',
+            'background_color',
+            'text_color',
+            'button_color',
+            'button_text_color',
+            'navbar_color',
+            'navbar_text_color'
+        ];
+
+        // Map existing color values for easy access in Blade
+        $colors = [];
+        foreach ($predefinedColors as $key) {
+            $color = $colorTheme->colorCodes->firstWhere('color_type', $key);
+            $colors[$key] = [
+                'value' => $color->color_code ?? '#000000',
+                'name' => $color->color_name ?? ucwords(str_replace('_', ' ', $key)),
+                'gradient' => $color->color_gradient ?? 0
+            ];
+        }
+
+        // Pass the data to the edit view
+        return view('admin-views.client-user.colortheme_edit', compact('colorTheme', 'colors'));
     }
+
     public function update_color_theme(Request $request, $id)
     {
-        //  Validation
+        // Validation
         $request->validate([
-            'color_name' => 'required|max:100',
-            'color_code' => 'required',
-            'gradient_option' => 'required',
-            'color_type' => 'required',
-            'app_id' => 'required|integer',   // ⭐ NEW VALIDATION
+            'name' => 'required|max:100',
+            'start_date' => 'required|date',
+            'end_date' => 'required|date|after_or_equal:start_date',
+            'status' => 'nullable|in:active,inactive',
+            'colors' => 'required|array',
+            'colors.*.value' => 'required',
+            'colors.*.name' => 'nullable|string|max:100',
+            'colors.*.gradient' => 'nullable|boolean',
         ]);
 
-        // Gradient value
-        $gra = $request->gradient_option == "1" ? 1 : 0;
+        // Start transaction
+        DB::beginTransaction();
+        try {
+            // Find the theme
+            $theme = ColorTheme::findOrFail($id);
 
-        // Find Theme
-        $ColorTheme = ColorTheme::findOrFail($id);
+            // Update theme fields
+            $theme->name = $request->name;
+            $theme->start_date = $request->start_date;
+            $theme->end_date = $request->end_date;
+            $theme->status = $request->has('status') && $request->status == 'active' ? 'active' : 'inactive';
+            $theme->save();
 
-        // Update fields
-        $ColorTheme->color_name = $request->color_name;
-        $ColorTheme->color_code = $request->color_code;
-        $ColorTheme->color_gradient = $gra;
-        $ColorTheme->color_type = $request->color_type;
+            // Loop through each submitted color
+            foreach ($request->colors as $key => $colorGroup) {
 
-        // ⭐ NEW — Update app_id
-        $ColorTheme->app_id = $request->app_id;
+                // Skip if value is empty
+                if (empty($colorGroup['value']))
+                    continue;
 
-        // Save
-        $ColorTheme->save();
+                // Check if the color code exists
+                $colorCode = ColorCode::where('color_theme_id', $theme->id)
+                    ->where('color_type', $key)
+                    ->first();
 
-        Toastr::success('Color Theme updated successfully');
-        return back();
+                if ($colorCode) {
+                    // Update existing color
+                    $colorCode->update([
+                        'color_name' => $colorGroup['name'] ?? ucfirst(str_replace('_', ' ', $key)),
+                        'color_code' => $colorGroup['value'],
+                        'color_gradient' => isset($colorGroup['gradient']) ? 1 : 0,
+                        'status' => 'active',
+                    ]);
+                } else {
+                    // Create new color if missing
+                    ColorCode::create([
+                        'color_theme_id' => $theme->id,
+                        'color_name' => $colorGroup['name'] ?? ucfirst(str_replace('_', ' ', $key)),
+                        'color_code' => $colorGroup['value'],
+                        'color_type' => $key,
+                        'color_gradient' => isset($colorGroup['gradient']) ? 1 : 0,
+                        'status' => 'active',
+                    ]);
+                }
+            }
+
+            DB::commit();
+
+            Toastr::success('Color Theme updated successfully');
+            return redirect()->route('admin.client-side.color_theme'); // Redirect to index page
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Toastr::error('Error updating color theme: ' . $e->getMessage());
+            return back()->withInput();
+        }
     }
 
 
     public function delete_color_theme(Request $request, $id)
     {
-        ColorTheme::findOrFail($id);
+        // Find the theme or fail
+        $theme = ColorTheme::findOrFail($id);
 
-        Toastr::success('Color Theme deleted successfully ');
+        // Delete associated color codes
+        $theme->colorCodes()->delete();
+
+        // Delete the theme itself
+        $theme->delete();
+
+        Toastr::success('Color Theme and its colors deleted successfully');
         return back();
     }
 
-    public function status_color_theme($id)
+    public function status_color_theme(Request $request, $id)
     {
         $ColorTheme = ColorTheme::findOrFail($id);
-        // dd($Client);
-        // agar active hai to inactive karo, warna active karo
-        $ColorTheme->status = $ColorTheme->status === '1' ? '0' : '1';
+        $ColorTheme->status = $request->status; // set status from AJAX
         $ColorTheme->save();
-        Toastr::success('Color Theme Status successfully  ' . $ColorTheme->status);
-        return back();
+
+        return response()->json([
+            'success' => true,
+            'status' => $ColorTheme->status
+        ]);
     }
+
+
+    public function get_app_themes(Request $request)
+    {
+        $appId = $request->app_id;
+
+        // Fetch active themes for this app
+        $themes = AppTheme::with(['theme.colorCodes'])
+            ->where('app_id', $appId)
+            ->get()
+            ->map(function ($appTheme) {
+                return [
+                    'id' => $appTheme->theme->id,
+                    'name' => $appTheme->theme->name,
+                    'status' => $appTheme->theme->status,
+                    'colorCodes' => $appTheme->theme->colorCodes->map(function ($color) {
+                        return [
+                            'color_name' => $color->color_name,
+                            'color_code' => $color->color_code
+                        ];
+                    }),
+                ];
+            });
+
+        return response()->json(['themes' => $themes]);
+    }
+
+    public function toggle_app_theme(Request $request)
+    {
+        $request->validate([
+            'app_id' => 'required|integer',
+            'theme_id' => 'required|integer',
+            'assigned' => 'required|boolean',
+        ]);
+
+        if ($request->assigned) {
+            // Assign theme
+            AppTheme::firstOrCreate([
+                'app_id' => $request->app_id,
+                'theme_id' => $request->theme_id
+            ]);
+
+            $message = 'Theme assigned successfully';
+        } else {
+            // Remove theme
+            AppTheme::where('app_id', $request->app_id)
+                ->where('theme_id', $request->theme_id)
+                ->delete();
+
+            $message = 'Theme removed successfully';
+        }
+
+        return response()->json(['message' => $message]);
+    }
+
+    public function updateAppThemeForm(Request $request)
+{
+    $request->validate([
+        'app_id' => 'required|integer',
+        'themes' => 'array',
+    ]);
+
+    $appId = $request->app_id;
+
+    // Remove all existing themes of this app
+    AppTheme::where('app_id', $appId)->delete();
+
+    // Insert new ones
+    if ($request->themes) {
+        foreach ($request->themes as $themeId) {
+            AppTheme::create([
+                'app_id' => $appId,
+                'theme_id' => $themeId,
+            ]);
+        }
+    }
+
+    Toastr::success("Themes Updated Successfully!");
+    return back();
+}
+
+
+
 }

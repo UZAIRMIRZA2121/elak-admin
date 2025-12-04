@@ -24,4 +24,8 @@ class ColorTheme extends Model
     {
         return $this->belongsTo(App::class, 'app_id');
     }
+    public function colorCodes()
+{
+    return $this->hasMany(ColorCode::class, 'color_theme_id');
+}
 }
