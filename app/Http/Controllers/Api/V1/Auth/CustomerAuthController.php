@@ -478,25 +478,33 @@ class CustomerAuthController extends Controller
             $ref_by = $referar_user->id;
         }
 
-        $exists = User::where('ref_by', $request->ref_id)->exists();
 
-        if (!$exists) {
+        $user = User::where('ref_by', $request->ref_id)->first();
+
+        // Check if referral code exists
+        if (!$user) {
             return response()->json([
                 'status' => false,
                 'message' => 'Referral ID not found.',
                 'ref_id' => $request->ref_id,
-            ], 404); // Not Found
-
+            ], 404);
         }
 
-
-        $user = User::where('ref_by', $request->ref_id)->first();
+        // Check if referral code has already been used (status != 0 means already used)
+        if ($user->status != 0) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Referral code already used.',
+                'ref_id' => $request->ref_id,
+            ], 400); // Bad Request
+        }
 
         if ($user) {
             $user->f_name = $firstName;
             $user->l_name = $lastName;
             $user->email = $request->email;
             $user->phone = $request->phone;
+            $user->status = 1;
             $user->password = bcrypt($request->password);
 
             // Generate new ref_code if needed
@@ -504,7 +512,7 @@ class CustomerAuthController extends Controller
 
             $user->save();
         }
-      
+
 
         // $user = User::create([
         //     'f_name' => $firstName,
@@ -833,61 +841,137 @@ class CustomerAuthController extends Controller
 
     private function manual_login($request_data)
     {
+        // Determine credentials based on field type
+        $credentials = $request_data['field_type'] === 'email'
+            ? ['email' => $request_data['email_or_phone'], 'password' => $request_data['password']]
+            : ['phone' => $request_data['email_or_phone'], 'password' => $request_data['password']];
 
-        if ($request_data['field_type'] == 'email') {
-            $data = [
-                'email' => $request_data['email_or_phone'],
-                'password' => $request_data['password'],
-            ];
-        } elseif ($request_data['field_type'] == 'phone') {
-            $data = [
-                'phone' => $request_data['email_or_phone'],
-                'password' => $request_data['password'],
-            ];
-        }
-
-        if (auth()->attempt($data)) {
-            $token = null;
-            if (!auth()->user()->status) {
-                $errors = [];
-                array_push($errors, ['code' => 'auth-003', 'message' => translate('messages.your_account_is_blocked')]);
-                return response()->json([
-                    'errors' => $errors
-                ], 403);
-            }
-            $user = auth()->user();
-
-            $this->refer_code_check($user);
-
-            $is_personal_info = 0;
-            if ($user->f_name) {
-                $is_personal_info = 1;
-            }
-
-            $user->login_medium = 'manual';
-            $user->save();
-
-            $user_email = null;
-            if ($user->email) {
-                $user_email = $user->email;
-            }
-
-            if ($is_personal_info == 1 && auth()->loginUsingId($user->id)) {
-                $token = auth()->user()->createToken('RestaurantCustomerAuth')->accessToken;
-                if (isset($request_data['guest_id'])) {
-                    $this->check_guest_cart($user, $request_data['guest_id']);
-                }
-            }
-
-            return response()->json(['token' => $token, 'is_phone_verified' => 1, 'is_email_verified' => 1, 'is_personal_info' => $is_personal_info, 'is_exist_user' => null, 'login_type' => 'manual', 'email' => $user_email], 200);
-        } else {
-            $errors = [];
-            array_push($errors, ['code' => 'auth-001', 'message' => translate('User_credential_does_not_match')]);
+        // Attempt login
+        if (!auth()->attempt($credentials)) {
             return response()->json([
-                'errors' => $errors
+                'errors' => [
+                    [
+                        'code' => 'auth-001',
+                        'message' => translate('User_credential_does_not_match')
+                    ]
+                ]
             ], 401);
         }
+
+        $user = auth()->user();
+
+        // Blocked user check
+        if (!$user->status) {
+            return response()->json([
+                'errors' => [
+                    [
+                        'code' => 'auth-003',
+                        'message' => translate('messages.your_account_is_blocked')
+                    ]
+                ]
+            ], 403);
+        }
+
+        // Load relations: client → segment → app → relations
+        $user->load(['segment', 'client.app.banners', 'client.app.themes']);
+
+        // Check refer code
+        $this->refer_code_check($user);
+
+        $is_personal_info = $user->f_name ? 1 : 0;
+        $user->login_medium = 'manual';
+        $user->save();
+
+        $user_email = $user->email ?? null;
+
+        // Generate token
+        $token = null;
+        if ($is_personal_info && auth()->loginUsingId($user->id)) {
+            $token = $user->createToken('RestaurantCustomerAuth')->accessToken;
+
+            if (isset($request_data['guest_id'])) {
+                $this->check_guest_cart($user, $request_data['guest_id']);
+            }
+        }
+
+        $appData = null;
+        $app = $user->client->app->first(); // single app
+
+        if ($app) {
+            $appData = [
+                'id' => $app->id,
+                'client_id' => $app->client_id,
+                'app_name' => $app->app_name,
+                'app_logo' => $app->app_logo,
+                'app_dec' => $app->app_dec,
+                'app_type' => $app->app_type,
+                'status' => $app->status,
+                'banner' => $app->banner,
+                'created_at' => $app->created_at,
+                'updated_at' => $app->updated_at,
+                // Only active banners
+                'banners' => $app->banners->where('status', '1')->values(),
+                // Only active themes with active colorCodes
+                'themes' => $app->themes->where('status', 'active')->map(function ($theme) {
+                    return [
+                        'id' => $theme->id,
+                        'name' => $theme->name,
+                        'status' => $theme->status,
+                        'start_date' => $theme->start_date,
+                        'end_date' => $theme->end_date,
+
+                        'colorCodes' => $theme->colorCodes->where('status', 'active')->values()->map(function ($code) {
+                            return [
+                                'id' => $code->id,
+                                'color_name' => $code->color_name,
+                                'color_code' => $code->color_code,
+                                'color_gradient' => $code->color_gradient,
+                                'color_type' => $code->color_type,
+                                'status' => $code->status,
+                                'created_at' => $code->created_at,
+                                'updated_at' => $code->updated_at,
+                            ];
+                        }),
+                    ];
+                })->values(),
+            ];
+        }
+
+        // Prepare client data with single app
+        $clientData = null;
+        if ($user->client) {
+
+            $clientData = [
+                'id' => $user->client->id,
+                'name' => $user->client->name,
+                'email' => $user->client->email,
+                'logo' => $user->client->logo,
+                'cover' => $user->client->cover,
+                'type' => $user->client->type,
+                'status' => $user->client->status,
+                'created_at' => $user->client->created_at,
+                'updated_at' => $user->client->updated_at,
+                'segment' => $user->segment,
+                'app' => $appData,
+            ];
+
+
+        }
+
+        // Return final response
+        return response()->json([
+            'token' => $token,
+            'is_phone_verified' => 1,
+            'is_email_verified' => 1,
+            'is_personal_info' => $is_personal_info,
+            'is_exist_user' => null,
+            'login_type' => 'manual',
+            'email' => $user_email,
+            'client' => $clientData,
+        ], 200);
     }
+
+
     private function otp_login($request_data)
     {
         $data = DB::table('phone_verifications')->where([

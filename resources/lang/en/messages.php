@@ -8379,4 +8379,6 @@ Smartly or Earn. ',
   'The end date must be a date after or equal to start date.' => 'The end date must be a date after or equal to start date.',
   'The app id field is required.' => 'The app id field is required.',
   'The ref id field is required.' => 'The ref id field is required.',
+  'The login type field is required.' => 'The login type field is required.',
+  'your_account_is_blocked' => 'Your account is blocked',
 );
