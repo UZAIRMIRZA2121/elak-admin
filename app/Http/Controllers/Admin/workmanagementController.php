@@ -108,19 +108,20 @@ class workmanagementController extends Controller
     {
            $vouchers = VoucherType::get();
         $ManagementType = WorkManagement::where('id', $id)->first();
+        // dd($ManagementType);
+      $sections = [];
 
-        $sections = [];
+    if (!empty($ManagementType->sections)) {
+        $json = $ManagementType->sections; // already array
 
-        if (!empty($ManagementType->sections)) {
-            $json = json_decode($ManagementType->sections, true);
-
-            foreach ($json as $title => $steps) {
-                $sections[] = [
-                    'title' => $title,
-                    'steps' => $steps
-                ];
-            }
+        foreach ($json as $title => $steps) {
+            $sections[] = [
+                'title' => $title,
+                'steps' => $steps
+            ];
         }
+    }
+
 
 
         // dd($sections);

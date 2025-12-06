@@ -281,6 +281,7 @@ class VoucherController extends Controller
         // ->orderby('created_at')
         // ->select('id', 'name')
         // ->get();
+        dd($item);
 
         return response()->json($branches);
     }
@@ -329,14 +330,14 @@ class VoucherController extends Controller
             'segment_type' => 'max:1000',
             'store_id' => 'required',
             'categories' => 'required',
-            'sub_categories_game' => 'required',
-            'sub_branch_id' => 'required',
+            // 'sub_categories_game' => 'required',
+            // 'sub_branch_id' => 'required',
             'voucher_title' => 'required',
             // 'clients' => 'array',
             'item_images' => 'required',
             'image' => 'required',
             'description' => 'required',
-            'tags' => 'required',
+            // 'tags' => 'required',
             'bundle_offer_type' => 'required',
             'price' => 'required',
             'price_hidden' => 'required',
@@ -474,7 +475,7 @@ class VoucherController extends Controller
             'store_id' => 'required',
             // 'categories' => 'required',
             // 'sub_categories_game' => 'required',
-            'sub_branch_id' => 'required',
+            // 'sub_branch_id' => 'required',
             'voucher_title' => 'required',
             'clients' => 'array',
             // 'valid_until' => 'required',
@@ -612,7 +613,7 @@ class VoucherController extends Controller
                     // 'name' => 'required',
                     'segment_type' => 'max:1000',
                     'store_id' => 'required',
-                    'sub_branch_id' => 'required',
+                    // 'sub_branch_id' => 'required',
                     'occasions_id' => 'required',//add
                     'message_template_style' => 'required',//add
                     'delivery_options' => 'required',//add//add
