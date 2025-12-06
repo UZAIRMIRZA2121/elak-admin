@@ -83,9 +83,9 @@ class VendorController extends Controller
             'type' => 'nullable|max:200',
             'email' => 'required|unique:vendors',
             'phone' => 'required|regex:/^([0-9\s\-\+\(\)]*)$/|min:10|max:20|unique:vendors',
-            'minimum_delivery_time' => 'required',
-            'maximum_delivery_time' => 'required',
-            'delivery_time_type' => 'required',
+            'minimum_delivery_time' => 'nullable',
+            'maximum_delivery_time' => 'nullable',
+            'delivery_time_type' => 'nullable',
             'password' => [
                 'required',
                 Password::min(8)
@@ -106,9 +106,9 @@ class VendorController extends Controller
             'tin' => 'nullable',
 
             'staff_data' => 'nullable',
-            'agreement_start_date' => 'required',
-            'agreement_expire_date' => 'required',
-            'agreement_certificate_image' => 'required',
+            'agreement_start_date' => 'nullable',
+            'agreement_expire_date' => 'nullable',
+            'agreement_certificate_image' => 'nullable',
             'agreement_certificate_image.*' => 'mimes:doc,docx,pdf,jpg,png,jpeg|max:5000',
         ], [
             'f_name.required' => translate('messages.first_name_is_required'),
@@ -159,11 +159,14 @@ class VendorController extends Controller
         $vendor->password = bcrypt($request->password);
         $vendor->save();
 
-  $certificate_paths = [];
-  foreach ($request->file('agreement_certificate_image') as $file) {
-    $extension = $file->getClientOriginalExtension();
-    $path = Helpers::upload('store/', $extension, $file);
-    $certificate_paths[] = $path; // store path
+$certificate_paths = []; // default empty
+
+if ($request->hasFile('agreement_certificate_image')) {
+    foreach ($request->file('agreement_certificate_image') as $file) {
+        $extension = $file->getClientOriginalExtension();
+        $path = Helpers::upload('store/', $extension, $file);
+        $certificate_paths[] = $path;
+    }
 }
 
 
@@ -521,15 +524,16 @@ class VendorController extends Controller
 
     public function view(Request $request, $store_id, $tab = null, $sub_tab = 'cash')
     {
-        //  dd(request()->search);
+      
         $voucher_ids = $request->voucher_ids;
         $bundle_type = $request->bundle_type;
         $category_search = $request->category;
         $filter = $request?->filter;
+        $item_type = $request?->item_type;
         $key = explode(' ', request()->search);
         $store = Store::findOrFail($store_id);
 
-        //  dd($key);
+    //    dd($item_type);
 
 
         if (addon_published_status('Rental') && $store->module_type == 'rental') {
@@ -632,7 +636,7 @@ class VendorController extends Controller
 
 
 
-                // dd($foods);
+             
             }
             $taxData = Helpers::getTaxSystemType(getTaxVatList: false);
             $productWiseTax = $taxData['productWiseTax'];
@@ -709,6 +713,9 @@ class VendorController extends Controller
                     ->when($sub_tab == 'inactive-items', function ($q) {
                         $q->where('status', 0);
                     })
+                      ->when(!empty($item_type), function ($q) use ($item_type) {
+        $q->where('food_and_product_type', $item_type);
+    })
                     ->latest()
                     ->paginate(25);
 

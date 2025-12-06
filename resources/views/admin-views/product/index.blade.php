@@ -255,7 +255,7 @@
                                             </div>
                                         </div>
 
-                                        <div class="col-sm-6 col-lg-3" id="brand_input">
+                                        {{-- <div class="col-sm-6 col-lg-3" id="brand_input">
                                             <div class="form-group mb-0">
                                                 <label class="input-label" for="brand_id">{{ translate('messages.Brand') }}<span
                                                         class="input-label-secondary"></span></label>
@@ -266,7 +266,7 @@
 
                                                 </select>
                                             </div>
-                                        </div>
+                                        </div> --}}
                                         <div class="col-sm-6 col-lg-3" id="unit_input">
                                             <div class="form-group mb-0">
                                                 <label class="input-label text-capitalize"
