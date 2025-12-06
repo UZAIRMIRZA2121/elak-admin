@@ -713,72 +713,204 @@ class VoucherController extends Controller
     //     return view('admin-views.voucher.view_voucher', compact('product', 'reviews', 'productWiseTax'));
     // }
 
-        public function view_voucher($id)
-    {
-        $taxData = Helpers::getTaxSystemType();
-        $productWiseTax = $taxData['productWiseTax'];
-        $product = Item::withoutGlobalScope(StoreScope::class)
-            ->with($productWiseTax ? ['taxVats.tax'] : [])
-            ->where(['id' => $id])
-            ->firstOrFail();
+    //     public function view_voucher($id)
+    // {
+    //     // dd("dvdv");
+    //     $taxData = Helpers::getTaxSystemType();
+    //     $productWiseTax = $taxData['productWiseTax'];
+    //     $product = Item::withoutGlobalScope(StoreScope::class)
+    //         ->with($productWiseTax ? ['taxVats.tax'] : [])
+    //         ->where(['id' => $id])
+    //         ->firstOrFail();
+
+    //         dd($product);
         
-        // Category को भी load करें (क्योंकि category_id है)
-        if ($product->category_id) {
-            $product->load('category');
-        }
+    //     // Category को भी load करें (क्योंकि category_id है)
+    //     if ($product->category_id) {
+    //         $product->load('category');
+    //     }
         
-        // Tags को decode करें
-        if ($product->tags_ids) {
-            $tags = json_decode($product->tags_ids, true);
-            $product->tags_display = is_array($tags) ? implode(', ', $tags) : $product->tags_ids;
-        }
+    //     // Tags को decode करें
+    //     if ($product->tags_ids) {
+    //         $tags = json_decode($product->tags_ids, true);
+    //         $product->tags_display = is_array($tags) ? implode(', ', $tags) : $product->tags_ids;
+    //     }
         
-        // Category IDs decode करें
-        if ($product->category_ids) {
-            $category_ids = json_decode($product->category_ids, true);
-            $product->category_ids_display = is_array($category_ids) ? implode(', ', $category_ids) : $product->category_ids;
-        }
+    //     // Category IDs decode करें
+    //     if ($product->category_ids) {
+    //         $category_ids = json_decode($product->category_ids, true);
+    //         $product->category_ids_display = is_array($category_ids) ? implode(', ', $category_ids) : $product->category_ids;
+    //     }
         
-        // Sub Category IDs decode करें
-        if ($product->sub_category_ids) {
-            $sub_category_ids = json_decode($product->sub_category_ids, true);
-            $product->sub_category_ids_display = is_array($sub_category_ids) ? implode(', ', $sub_category_ids) : $product->sub_category_ids;
-        }
+    //     // Sub Category IDs decode करें
+    //     if ($product->sub_category_ids) {
+    //         $sub_category_ids = json_decode($product->sub_category_ids, true);
+    //         $product->sub_category_ids_display = is_array($sub_category_ids) ? implode(', ', $sub_category_ids) : $product->sub_category_ids;
+    //     }
         
-        // Branch IDs decode करें
-        if ($product->branch_ids) {
-            $branch_ids = json_decode($product->branch_ids, true);
-            $product->branch_ids_display = is_array($branch_ids) ? implode(', ', $branch_ids) : $product->branch_ids;
-        }
+    //     // Branch IDs decode करें
+    //     if ($product->branch_ids) {
+    //         $branch_ids = json_decode($product->branch_ids, true);
+    //         $product->branch_ids_display = is_array($branch_ids) ? implode(', ', $branch_ids) : $product->branch_ids;
+    //     }
         
-        // Client Section decode करें
-        if ($product->clients_section) {
-            $clients = json_decode($product->clients_section, true);
-            $product->clients_display = is_array($clients) ? json_encode($clients, JSON_PRETTY_PRINT) : $product->clients_section;
-        }
+    //     // Client Section decode करें
+    //     if ($product->clients_section) {
+    //         $clients = json_decode($product->clients_section, true);
+    //         $product->clients_display = is_array($clients) ? json_encode($clients, JSON_PRETTY_PRINT) : $product->clients_section;
+    //     }
         
-        // Product decode करें
-        if ($product->product) {
-            $products = json_decode($product->product, true);
-            $product->products_display = is_array($products) ? json_encode($products, JSON_PRETTY_PRINT) : $product->product;
-        }
+    //     // Product decode करें
+    //     if ($product->product) {
+    //         $products = json_decode($product->product, true);
+    //         $product->products_display = is_array($products) ? json_encode($products, JSON_PRETTY_PRINT) : $product->product;
+    //     }
         
-        // How and Condition IDs decode करें
-        if ($product->how_and_condition_ids) {
-            $conditions = json_decode($product->how_and_condition_ids, true);
-            $product->conditions_display = is_array($conditions) ? implode(', ', $conditions) : $product->how_and_condition_ids;
-        }
+    //     // How and Condition IDs decode करें
+    //     if ($product->how_and_condition_ids) {
+    //         $conditions = json_decode($product->how_and_condition_ids, true);
+    //         $product->conditions_display = is_array($conditions) ? implode(', ', $conditions) : $product->how_and_condition_ids;
+    //     }
         
-        // Term and Condition IDs decode करें
-        if ($product->term_and_condition_ids) {
-            $terms = json_decode($product->term_and_condition_ids, true);
-            $product->terms_display = is_array($terms) ? implode(', ', $terms) : $product->term_and_condition_ids;
-        }
+    //     // Term and Condition IDs decode करें
+    //     if ($product->term_and_condition_ids) {
+    //         $terms = json_decode($product->term_and_condition_ids, true);
+    //         $product->terms_display = is_array($terms) ? implode(', ', $terms) : $product->term_and_condition_ids;
+    //     }
         
-        $reviews = Review::where(['item_id' => $id])->latest()->paginate(config('default_pagination'));
+    //     $reviews = Review::where(['item_id' => $id])->latest()->paginate(config('default_pagination'));
         
-        return view('admin-views.voucher.view_voucher', compact('product', 'reviews', 'productWiseTax'));
+    //     return view('admin-views.voucher.view_voucher', compact('product', 'reviews', 'productWiseTax'));
+    // }
+public function view_voucher($id)
+{
+    $taxData = Helpers::getTaxSystemType();
+    $productWiseTax = $taxData['productWiseTax'];
+
+    $product = Item::findOrFail($id);
+
+    // TAGS (string comma based)
+    if (!empty($product->tags_ids)) {
+        $tagNames = Tag::whereIn('id', explode(',', $product->tags_ids))
+                        ->pluck('tag')
+                        ->toArray();
+
+        $product->tags_display = implode(', ', $tagNames);
     }
+
+    // CATEGORY IDs
+    if (!empty($product->category_ids)) {
+        $category_ids = json_decode($product->category_ids, true);
+
+        $product->categories = Category::whereIn('id', $category_ids)->get();
+    }
+
+    // SUB CATEGORY IDs
+    if (!empty($product->sub_category_ids)) {
+        $sub_ids = json_decode($product->sub_category_ids, true);
+
+        $product->sub_categories = Category::whereIn('parent_id', $sub_ids)->get();
+    }
+
+    // BRANCH IDs
+    if (!empty($product->branch_ids)) {
+        $branch_ids = json_decode($product->branch_ids, true);
+
+        $product->branches = Item::whereIn('branch_ids', $branch_ids)->get();
+    }
+
+    // HOW & CONDITION IDs
+    if (!empty($product->how_and_condition_ids)) {
+        $how_ids = json_decode($product->how_and_condition_ids, true);
+
+        $product->how_conditions = WorkManagement::whereIn('id', $how_ids)->get();
+    }
+
+    // TERM & CONDITION IDs
+    if (!empty($product->term_and_condition_ids)) {
+        $term_ids = json_decode($product->term_and_condition_ids, true);
+
+        $product->terms_conditions = UsageTermManagement::whereIn('id', $term_ids)->get();
+    }
+
+    // PRODUCT ARRAY
+    if (!empty($product->product)) {
+        $productArray = json_decode($product->product, true);
+
+        $productIds = collect($productArray)->pluck('product_id')->toArray();
+
+        $product->product_details = item::whereIn('id', $productIds)->get();
+    }
+
+    $reviews = Review::where(['item_id' => $id])->latest()->paginate(config('default_pagination'));
+    // dd($product);
+    return view('admin-views.voucher.view_voucher',  compact('product', 'reviews', 'productWiseTax'));
+}
+    // public function view_voucher($id)
+    // {
+
+    //      $taxData = Helpers::getTaxSystemType();
+    //      $productWiseTax = $taxData['productWiseTax'];
+
+    //     $product = Item::findOrFail($id);
+
+    //     // TAGS (string comma based)
+    //     if (!empty($product->tags_ids)) {
+    //         $tagNames = Tag::whereIn('id', explode(',', $product->tags_ids))
+    //                         ->pluck('tag')
+    //                         ->toArray();
+
+    //         $product->tags_display = implode(', ', $tagNames);
+    //     }
+
+    //     // CATEGORY IDs
+    //     if (!empty($product->category_ids)) {
+    //         $category_ids = json_decode($product->category_ids, true);
+
+    //         $product->categories = Category::whereIn('id', $category_ids)->get();
+    //     }
+
+    //     // SUB CATEGORY IDs
+    //     if (!empty($product->sub_category_ids)) {
+    //         $sub_ids = json_decode($product->sub_category_ids, true);
+
+    //         $product->sub_categories = Category::whereIn('parent_id', $sub_ids)->get();
+    //     }
+
+    //     // BRANCH IDs
+    //     if (!empty($product->branch_ids)) {
+    //         $branch_ids = json_decode($product->branch_ids, true);
+
+    //         $product->branches = Item::whereIn('branch_ids', $branch_ids)->get();
+    //     }
+
+    //     // HOW & CONDITION IDs
+    //     if (!empty($product->how_and_condition_ids)) {
+    //         $how_ids = json_decode($product->how_and_condition_ids, true);
+
+    //         $product->how_conditions = WorkManagement::whereIn('id', $how_ids)->get();
+    //     }
+
+    //     // TERM & CONDITION IDs
+    //     if (!empty($product->term_and_condition_ids)) {
+    //         $term_ids = json_decode($product->term_and_condition_ids, true);
+
+    //         $product->terms_conditions = UsageTermManagement::whereIn('id', $term_ids)->get();
+    //     }
+
+    //     // PRODUCT ARRAY
+    //     if (!empty($product->product)) {
+    //         $productArray = json_decode($product->product, true);
+
+    //         $productIds = collect($productArray)->pluck('product_id')->toArray();
+
+    //         $product->product_details = item::whereIn('id', $productIds)->get();
+    //     }
+
+    //      $reviews = Review::where(['item_id' => $id])->latest()->paginate(config('default_pagination'));
+    //     return view('admin-views.voucher.view_voucher',  compact('product', 'reviews', 'productWiseTax'));
+    // }
+
 
     public function view($id)
     {
