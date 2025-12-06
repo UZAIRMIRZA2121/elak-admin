@@ -8364,4 +8364,6 @@ Smartly or Earn. ',
   'The color theme field is required.' => 'The color theme field is required.',
   'The end date must be a date after or equal to start date.' => 'The end date must be a date after or equal to start date.',
   'The app id field is required.' => 'The app id field is required.',
+  'Client Information' => 'Client Information',
+  'Voucher Title' => 'Voucher Title',
 );

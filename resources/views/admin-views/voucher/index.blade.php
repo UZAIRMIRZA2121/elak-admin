@@ -19,10 +19,6 @@
 }
 
 
-
-
-
-
 @keyframes fadeIn {
     from { opacity: 0; transform: translateY(-10px); }
     to { opacity: 1; transform: translateY(0); }
@@ -71,7 +67,9 @@
                         {{-- Voucher Title --}}
                         <div class="row g-3 mb-3">
                             <div class="col-12">
-                                <label class="form-label fw-medium">Voucher Title</label>
+                                 <label class="input-label" for="voucher_title">{{ translate('Voucher Title') }}
+                                    <span class="form-label-secondary text-danger" data-toggle="tooltip" data-placement="right" data-original-title="{{ translate('messages.Required.')}}"> *</span>
+                                </label>
                                 <input type="text" name="voucher_title" class="form-control" placeholder="Voucher Title">
                             </div>
                             {{-- <div class="col-6">
@@ -253,7 +251,10 @@
                         {{-- Bundle Type Selection --}}
                      <div class="col-12 col-md-12">
                          <div class="form-group mb-0">
-                             <h3 class="h5 fw-semibold mb-2"> {{ translate('Bundle Type Selection') }}</h3>
+                              <label class="input-label" for="bundle_offer_type">{{ translate('Bundle Type Selection') }}
+                                    <span class="form-label-secondary text-danger" data-toggle="tooltip" data-placement="right" data-original-title="{{ translate('messages.Required.')}}"> *</span>
+                                </label>
+
                              <select name="bundle_offer_type" id="bundle_offer_type" class="form-control" >
                                  <option value="">Select Bundle Offer Type</option>
                                  <option value="simple" {{ old('simple') == 'simple' ? 'selected' : '' }}>
@@ -276,8 +277,9 @@
                      </div>
                     </div>
                     <div class="section-card rounded p-4 mb-4"  id="Bundle_products_configuration">
-                        <h3 class="h5 fw-semibold mb-2"> {{ translate('Bundle Products Configuration') }}</h3>
-
+                            <label class="input-label" for="bundle_offer_type">{{ translate('Bundle Products Configuration') }}
+                            <span class="form-label-secondary text-danger" data-toggle="tooltip" data-placement="right" data-original-title="{{ translate('messages.Required.')}}"> *</span>
+                        </label>
 
                         <div id="selectedProducts">
                             <p style="text-align: center; color: #666; padding: 20px;">No products added yet. Click "Add Product to Bundle" to start.</p>
@@ -285,7 +287,7 @@
                         <button type="button" class="btn btn--primary" id="addProductBtn">+ Add Product to Bundle</button>
                         <!-- Available Products to Choose From -->
                         <div id="availableProducts" style="display: none;">
-                            <h3 class="mt-3">Available Products:</h3>
+                            <h3 class="mt-3">Available Products: <span class="text-danger"> *</span></h3>
                             <div class="row">
                                 <div class="col-sm-12 col-lg-12">
                                     <div class="form-group">
@@ -361,7 +363,7 @@
                         <div id="availableProducts_get_x_buy_y" class="mt-3 rounded" style="display: none;">
                             <div class="row">
                                 <div class="col-6 " style="border-right: 1px solid rgb(223 219 219)">
-                                    <h3 class="mt-3">Available Products A:</h3>
+                                    <h3 class="mt-3">Available Products A: <span class="text-danger"> *</span></h3>
                                     <div class="form-group">
                                         <select name="select_pro1" id="select_pro1" class="form-control js-select2-custom" data-placeholder="{{ translate('Select Product') }}" >
                                             <option value="" disabled selected>{{ translate('Select a Product') }}</option>
@@ -404,7 +406,7 @@
                                     <div id="productDetails_section_a" class="mt-3 row mx-1"></div>
                                 </div>
                                 <div class="col-6 ">
-                                    <h3 class="mt-3">Available Products B:</h3>
+                                    <h3 class="mt-3">Available Products B: <span class="text-danger"> *</span></h3>
                                     <div class="form-group">
                                         <select name="select_pro2" id="select_pro2" class="form-control js-select2-custom" data-placeholder="{{ translate('Select Product') }}" >
                                             <option value="" disabled selected>{{ translate('Select a Product') }}</option>

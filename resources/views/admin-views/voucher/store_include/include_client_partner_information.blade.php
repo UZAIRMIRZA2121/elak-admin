@@ -1,6 +1,10 @@
 <!-- Client Information -->
 <div class="section-card rounded p-4 mb-4" id="basic_info_main">
-    <h3 class="h5 fw-semibold mb-4">Client Information</h3>
+     <div class="form-group mb-0 p-2">
+        <label class="input-label" for="num_clients">{{ translate('Client Information') }}
+            <span class="form-label-secondary text-danger" data-toggle="tooltip" data-placement="right" data-original-title="{{ translate('messages.Required.')}}"> *</span>
+        </label>
+    </div>
     
     <!-- Number of Clients Input -->
     <div class="row mb-4">

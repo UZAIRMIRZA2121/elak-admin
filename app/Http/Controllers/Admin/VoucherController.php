@@ -291,17 +291,17 @@ class VoucherController extends Controller
 
             'select_client' => 'required',
             'name' => 'required',
-            'segment_type' => 'max:1000',
+            // 'segment_type' => 'max:1000',
             'store_id' => 'required',
             'categories' => 'required',
-            'sub_categories_game' => 'required',
-            'sub_branch_id' => 'required',
+            // 'sub_categories_game' => 'required',
+            // 'sub_branch_id' => 'required',
             'voucher_title' => 'required',
             // 'valid_until' => 'required',
             'item_images' => 'required',
             'image' => 'required',
             'description' => 'required',
-            'tags' => 'required',
+            // 'tags' => 'required',
             'bundle_offer_type' => 'required',
             'price' => 'required',
             'price_hidden' => 'required',
@@ -309,8 +309,8 @@ class VoucherController extends Controller
             'offer_type' => 'required',
             'discount_type' => 'required',
             'discount' => 'required',
-            'howto_work' => 'required',
-            'term_and_condition' => 'required',
+            // 'howto_work' => 'required',
+            // 'term_and_condition' => 'required',
             // 'products' => 'required',
         ]);
 
@@ -434,11 +434,11 @@ class VoucherController extends Controller
 
             'select_client' => 'required',
             'name' => 'required',
-            'segment_type' => 'max:1000',
+            // 'segment_type' => 'max:1000',
             'store_id' => 'required',
             // 'categories' => 'required',
             // 'sub_categories_game' => 'required',
-            'sub_branch_id' => 'required',
+            // 'sub_branch_id' => 'required',
             'voucher_title' => 'required',
             // 'valid_until' => 'required',
             'item_images' => 'required',
@@ -447,8 +447,8 @@ class VoucherController extends Controller
             'tags' => 'required',
             'discount_type' => 'required',
             'bonus_tiers' => 'required',
-            'howto_work' => 'required',
-            'term_and_condition' => 'required',
+            // 'howto_work' => 'required',
+            // 'term_and_condition' => 'required',
 
 
         ]);
@@ -573,16 +573,16 @@ class VoucherController extends Controller
 
                     'select_client' => 'required',
                     'name' => 'required',
-                    'segment_type' => 'max:1000',
+                    // 'segment_type' => 'max:1000',
                     'store_id' => 'required',
-                    'sub_branch_id' => 'required',
+                    // 'sub_branch_id' => 'required',
                     'occasions_id' => 'required',//add
                     'message_template_style' => 'required',//add
                     'delivery_options' => 'required',//add//add
                     'type' => 'required',//add
                     'min_max_amount' => 'required', //add
-                    'howto_work' => 'required',
-                    'term_and_condition' => 'required',
+                    // 'howto_work' => 'required',
+                    // 'term_and_condition' => 'required',
                     // 'categories' => 'required',
                     // 'sub_categories_game' => 'required',
                     // 'recipient_info_form_fields' => 'required',//add
