@@ -293,7 +293,7 @@ class VoucherController extends Controller
             'segment_type' => 'max:1000',
             'store_id' => 'required',
             'categories' => 'required',
-            'sub_categories_game' => 'required',
+            'sub_categories_game' => 'nullable',
             'sub_branch_id' => 'required',
             'voucher_title' => 'required',
             // 'valid_until' => 'required',
