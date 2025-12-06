@@ -243,6 +243,7 @@ class VoucherController extends Controller
         // ->orderby('created_at')
         // ->select('id', 'name')
         // ->get();
+        dd($item);
 
         return response()->json($branches);
     }

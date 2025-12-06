@@ -363,6 +363,7 @@ $(document).on('input change keyup', '#num_clients', function() {
 // Store Change
 $(document).on('change', '#store_id', function() {
     let storeId = $(this).val();
+    alert(storeId);
     if (storeId) {
         if (typeof findBranch === 'function') {
             findBranch(storeId);
