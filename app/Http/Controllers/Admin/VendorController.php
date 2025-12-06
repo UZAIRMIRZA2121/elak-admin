@@ -524,15 +524,16 @@ if ($request->hasFile('agreement_certificate_image')) {
 
     public function view(Request $request, $store_id, $tab = null, $sub_tab = 'cash')
     {
-        //  dd(request()->search);
+      
         $voucher_ids = $request->voucher_ids;
         $bundle_type = $request->bundle_type;
         $category_search = $request->category;
         $filter = $request?->filter;
+        $item_type = $request?->item_type;
         $key = explode(' ', request()->search);
         $store = Store::findOrFail($store_id);
 
-        //  dd($key);
+    //    dd($item_type);
 
 
         if (addon_published_status('Rental') && $store->module_type == 'rental') {
@@ -635,7 +636,7 @@ if ($request->hasFile('agreement_certificate_image')) {
 
 
 
-                // dd($foods);
+             
             }
             $taxData = Helpers::getTaxSystemType(getTaxVatList: false);
             $productWiseTax = $taxData['productWiseTax'];
@@ -712,6 +713,9 @@ if ($request->hasFile('agreement_certificate_image')) {
                     ->when($sub_tab == 'inactive-items', function ($q) {
                         $q->where('status', 0);
                     })
+                      ->when(!empty($item_type), function ($q) use ($item_type) {
+        $q->where('food_and_product_type', $item_type);
+    })
                     ->latest()
                     ->paginate(25);
 

@@ -8375,4 +8375,7 @@ Smartly or Earn. ',
   'The discount field is required.' => 'The discount field is required.',
   'Attribute choice option value can not be null' => 'Attribute choice option value can not be null',
   'Thumbnail image is required' => 'Thumbnail image is required',
+  'Select item Type' => 'Select item Type',
+  'Select Item Type' => 'Select Item Type',
+  'All Types' => 'All Types',
 );

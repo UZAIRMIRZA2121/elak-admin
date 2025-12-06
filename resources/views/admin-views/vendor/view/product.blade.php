@@ -27,33 +27,48 @@
                     </select>
                 </div>
             </div>
-            {{-- <div class="col-sm-6 col-md-3">
-                <div class="select-item">
-                    @php(
-                        // Custom static array of voucher types
-                        $voucherTypes = [
-                            'simple' => 'Simple',
-                            'simple x' => 'Simple X',
-                            'bundle' => 'Fixed Bundle - Specific products at set price',
-                            'bogo_free' => 'Buy X Get Y - Buy products get different product free',
-                            'mix_match' => 'Mix & Match - Customer chooses from categories',
-                        ]
-                    )
+           <div class="col-sm-6 col-md-3">
+    <div class="select-item">
+        @php
+            // Custom static array of voucher types
+            $voucherTypes = ['Food', 'Product'];
+        @endphp
 
-                    <select name="voucher_type" class="form-control js-select2-custom set-filter"
-                            data-url="{{ url()->full() }}" data-filter="voucher_type">
-                        <option value="" {{ !request('voucher_type') ? 'selected' : '' }}>
-                            {{ translate('Bundle Name') }}
-                        </option>
+        <select name="item_type" class="form-control js-select2-custom set-filter" data-url="{{ url()->full() }}" data-filter="item_type">
+            {{-- Default option to remove filter --}}
+            <option value="" {{ request()->query('item_type') ? '' : 'selected' }}>
+                {{ translate('All Types') }}
+            </option>
 
-                        @foreach($voucherTypes as $value => $label)
-                            <option value="{{ $value }}" {{ old('voucher_type') == $value ? 'selected' : '' }}>
-                                {{ $label }}
-                            </option>
-                        @endforeach
-                    </select>
-                </div>
-            </div> --}}
+            @foreach($voucherTypes as $value)
+                <option value="{{ $value }}" {{ request()->query('item_type') == $value ? 'selected' : '' }}>
+                    {{ $value }}
+                </option>
+            @endforeach
+        </select>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        document.querySelectorAll('.set-filter').forEach(function(select) {
+            select.addEventListener('change', function () {
+                let url = new URL(window.location.href);
+                let param = select.getAttribute('data-filter');
+                let value = select.value;
+
+                if (value) {
+                    url.searchParams.set(param, value); // set filter
+                } else {
+                    url.searchParams.delete(param); // remove filter
+                }
+
+                window.location.href = url.toString(); // reload page
+            });
+        });
+    });
+</script>
+
 
         </div>
 
@@ -228,6 +243,7 @@
                                     <th class="border-0">{{ translate('sl') }}</th>
                                     <th class="border-0">{{ translate('messages.name') }}</th>
                                     <th class="border-0">{{ translate('messages.type') }}</th>
+                                    <th class="border-0">{{ translate('messages.category') }}</th>
                                     @if (Config::get('module.current_module_type') != 'food' &&
                                             !(isset($sub_tab) && ($sub_tab == 'rejected-items' || $sub_tab == 'pending-items')))
                                         <th class="border-0">{{ translate('messages.quantity') }}</th>
@@ -260,7 +276,13 @@
                                                     </div>
                                                 </a>
                                             </td>
-
+                                            <td>
+                                                @if ($food->food_and_product_type == 'Product')
+                                                    <span class="badge bg-primary">{{ translate('Product') }}</span>
+                                                @else
+                                                    <span class="badge bg-success">{{ translate('Food') }}</span>
+                                                @endif
+                                            </td>
                                              @php( $categories = \App\Models\Category::where('id', $food->category_id)->first()  )
 
                                             <td>
@@ -365,6 +387,16 @@
                                                     </div>
                                                 </a>
                                             </td>
+                                             <td>
+                                                @if ($food->food_and_product_type)
+                                                    @if ($food->food_and_product_type == 'Product')
+                                                        <span class="badge bg-success">{{ translate('Product') }}</span>
+                                                    @else
+                                                        <span class="badge bg-success">{{ translate('Food') }}</span>
+                                                    @endif
+                                                @endif
+
+                                             </td>
                                             {{-- @dd($food->category_id) --}}
                                                @php( $categories = \App\Models\Category::find($food->category_id)  )
 
