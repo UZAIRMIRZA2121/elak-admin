@@ -419,51 +419,51 @@
                 <!-- End Campaign -->
                 <!-- Banner -->
                 @if (\App\CentralLogics\Helpers::module_permission_check('banner'))
-                    <li class="navbar-vertical-aside-has-menu {{ Request::is('admin/banner*') ? 'active' : '' }}">
+                    {{-- <li class="navbar-vertical-aside-has-menu {{ Request::is('admin/banner*') ? 'active' : '' }}">
                         <a class="js-navbar-vertical-aside-menu-link nav-link" href="{{ route('admin.banner.add-new') }}" title="{{ translate('messages.banners') }}">
                             <i class="tio-image nav-icon"></i>
                             <span class="navbar-vertical-aside-mini-mode-hidden-elements text-truncate">{{ translate('Promotions') }}</span>
                         </a>
-                    </li>
+                    </li> --}}
                     <li class="navbar-vertical-aside-has-menu {{ Request::is('admin/banner*') ? 'active' : '' }}">
                         <a class="js-navbar-vertical-aside-menu-link nav-link" href="{{ route('admin.banner.add-new') }}" title="{{ translate('messages.banners') }}">
                             <i class="tio-image nav-icon"></i>
                             <span class="navbar-vertical-aside-mini-mode-hidden-elements text-truncate">{{ translate('messages.banners') }}</span>
                         </a>
                     </li>
-                    <li class="navbar-vertical-aside-has-menu {{ Request::is('admin/promotional-banner*') ? 'active' : '' }}">
+                    {{-- <li class="navbar-vertical-aside-has-menu {{ Request::is('admin/promotional-banner*') ? 'active' : '' }}">
                         <a class="js-navbar-vertical-aside-menu-link nav-link" href="{{ route('admin.promotional-banner.add-new') }}" title="{{ translate('messages.other_banners') }}">
                             <i class="tio-image nav-icon"></i>
                             <span class="navbar-vertical-aside-mini-mode-hidden-elements text-truncate">{{ translate('messages.other_banners') }}</span>
                         </a>
-                    </li>
+                    </li> --}}
                 @endif
                 <!-- End Banner -->
                 <!-- Coupon -->
                 @if (\App\CentralLogics\Helpers::module_permission_check('coupon'))
-                    <li class="navbar-vertical-aside-has-menu {{ Request::is('admin/coupon*') ? 'active' : '' }}">
+                    {{-- <li class="navbar-vertical-aside-has-menu {{ Request::is('admin/coupon*') ? 'active' : '' }}">
                         <a class="js-navbar-vertical-aside-menu-link nav-link" href="{{ route('admin.coupon.add-new') }}" title="{{ translate('messages.coupons') }}">
                             <i class="tio-gift nav-icon"></i>
                             <span class="navbar-vertical-aside-mini-mode-hidden-elements text-truncate">{{ translate('messages.coupons') }}</span>
                         </a>
-                    </li>
+                    </li> --}}
                 @endif
                 <!-- End Coupon -->
                 <!-- Notification -->
                 @if (\App\CentralLogics\Helpers::module_permission_check('notification'))
-                    <li class="navbar-vertical-aside-has-menu {{ Request::is('admin/notification*') ? 'active' : '' }}">
+                    {{-- <li class="navbar-vertical-aside-has-menu {{ Request::is('admin/notification*') ? 'active' : '' }}">
                         <a class="js-navbar-vertical-aside-menu-link nav-link" href="{{ route('admin.notification.add-new') }}" title="{{ translate('messages.push_notification') }}">
                             <i class="tio-notifications nav-icon"></i>
                             <span class="navbar-vertical-aside-mini-mode-hidden-elements text-truncate">
                                 {{ translate('messages.push_notification') }}
                             </span>
                         </a>
-                    </li>
+                    </li> --}}
                 @endif
                 <!-- End Notification -->
 
                 @if (\App\CentralLogics\Helpers::module_permission_check('advertisement'))
-                    <li class="navbar-vertical-aside-has-menu  @yield('advertisement')">
+                    {{-- <li class="navbar-vertical-aside-has-menu  @yield('advertisement')">
                         <a class="js-navbar-vertical-aside-menu-link nav-link nav-link-toggle" href="javascript:"
                             title="{{ translate('messages.advertisement') }}">
                             <i class="tio-tv-old nav-icon"></i>
@@ -472,7 +472,6 @@
                         </a>
                         <ul class="js-navbar-vertical-aside-submenu nav nav-sub"
                             style="display: {{ Request::is('admin/advertisement*') ? 'block' : 'none' }}">
-
                             <li class="nav-item @yield('advertisement_create')">
                                 <a class="nav-link " href="{{ route('admin.advertisement.create') }}"
                                     title="{{ translate('Create Ad') }}">
@@ -495,7 +494,7 @@
                                 </a>
                             </li>
                         </ul>
-                    </li>
+                    </li> --}}
                 @endif
 
                     <li class="nav-item">
@@ -565,7 +564,7 @@
                                 <span class="text-truncate">{{ translate('messages.list') }}</span>
                             </a>
                         </li>
-
+{{-- 
                         <li class="nav-item {{ Request::is('admin/addon/bulk-import') ? 'active' : '' }}">
                             <a class="nav-link " href="{{ route('admin.addon.bulk-import') }}" title="{{ translate('messages.bulk_import') }}">
                                 <span class="tio-circle nav-indicator-icon"></span>
@@ -577,7 +576,7 @@
                                 <span class="tio-circle nav-indicator-icon"></span>
                                 <span class="text-truncate text-capitalize">{{ translate('messages.bulk_export') }}</span>
                             </a>
-                        </li>
+                        </li> --}}
                     </ul>
                 </li>
                 @endif

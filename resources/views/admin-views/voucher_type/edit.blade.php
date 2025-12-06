@@ -110,7 +110,7 @@
                                             {{-- Agar client ka logo already hai to niche show kare --}}
                                             @if(!empty($Voucher->logo))
                                                 <div class="mt-2">
-                                                    <img src="{{ asset($Voucher->logo) }}"
+                                                    <img src="{{ asset('public/',$Voucher->logo) }}"
                                                         alt="Client Logo"
                                                         class="img-thumbnail"
                                                         style="max-width: 120px; height:auto;">
