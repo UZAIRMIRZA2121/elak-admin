@@ -397,7 +397,7 @@ class ClientSideController extends Controller
         // dd($active);
         $Users = User::query()
             ->leftJoin('clients', 'users.client_id', '=', 'clients.id')
-            ->select('users.*', 'clients.name as client_name', 'clients.type as client_type')
+            ->select('users.*', 'clients.name as client_name')
 
 
             // client filter

@@ -144,8 +144,8 @@
 
                                         {{-- Guide Title --}}
                                         <td class="text-center">
-                                            <span title="{{ $UsageTerm->guid_title }}" class="font-size-sm text-body mr-3">
-                                                {{ Str::limit($UsageTerm->guid_title, 20, '...') }}
+                                            <span title="{{ $UsageTerm->guide_title }}" class="font-size-sm text-body mr-3">
+                                                {{ Str::limit($UsageTerm->guide_title, 20, '...') }}
                                             </span>
                                         </td>
 
