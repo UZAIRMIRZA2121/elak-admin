@@ -15,7 +15,7 @@ class AddSlugToItemsTable extends Migration
     {
         Schema::table('items', function (Blueprint $table) {
             $table->string('slug')->nullable();
-            $table->string('app_name')->nullable();
+            $table->string('clients_section')->nullable();
             $table->string('client_id')->nullable();
             $table->string('segment_ids')->nullable();
             $table->string('sub_category_ids')->nullable();
@@ -59,7 +59,7 @@ class AddSlugToItemsTable extends Migration
     {
         Schema::table('items', function (Blueprint $table) {
             $table->dropColumn('slug');
-            $table->dropColumn('app_name')->nullable();
+            $table->dropColumn('clients_section')->nullable();
             $table->dropColumn('client_id')->nullable();
             $table->dropColumn('segment_ids')->nullable();
             $table->dropColumn('sub_category_ids')->nullable();

@@ -358,14 +358,14 @@ function viewWorkDetails(workId) {
         url: "{{ route('admin.workmanagement.show', '') }}/" + workId,
         type: "GET",
         dataType: "json",
+
         success: function(response) {
             // Hide loading
             $('#modalLoading').hide();
             $('#modalContent').show();
 
             // Populate data
-            $('#modalGuideTitle').text(response.guid_title || 'N/A');
-            // $('#modalVoucherType').text(response.voucher_name || 'N/A');
+            $('#modalGuideTitle').text(response.guide_title || 'N/A');
 
             // Status badge
             const statusBadge = $('#modalStatus');
@@ -379,13 +379,8 @@ function viewWorkDetails(workId) {
             $('#modalCreatedAt').text(response.created_at || 'N/A');
             $('#modalUpdatedAt').text(response.updated_at || 'N/A');
 
-            // Parse and display sections
-            let sections = [];
-            try {
-                sections = JSON.parse(response.sections);
-            } catch(e) {
-                console.error('Error parsing sections:', e);
-            }
+            // Sections (already array)
+            let sections = Array.isArray(response.sections) ? response.sections : [];
 
             let sectionsHtml = '';
             if (sections.length > 0) {
@@ -417,6 +412,7 @@ function viewWorkDetails(workId) {
 
             $('#modalSections').html(sectionsHtml);
         },
+
         error: function(xhr, status, error) {
             // Hide loading
             $('#modalLoading').hide();
@@ -430,5 +426,6 @@ function viewWorkDetails(workId) {
         }
     });
 }
+
 </script>
 @endpush
