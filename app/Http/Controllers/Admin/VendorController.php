@@ -83,9 +83,9 @@ class VendorController extends Controller
             'type' => 'nullable|max:200',
             'email' => 'required|unique:vendors',
             'phone' => 'required|regex:/^([0-9\s\-\+\(\)]*)$/|min:10|max:20|unique:vendors',
-            'minimum_delivery_time' => 'required',
-            'maximum_delivery_time' => 'required',
-            'delivery_time_type' => 'required',
+            'minimum_delivery_time' => 'nullable',
+            'maximum_delivery_time' => 'nullable',
+            'delivery_time_type' => 'nullable',
             'password' => [
                 'required',
                 Password::min(8)
@@ -106,9 +106,9 @@ class VendorController extends Controller
             'tin' => 'nullable',
 
             'staff_data' => 'nullable',
-            'agreement_start_date' => 'required',
-            'agreement_expire_date' => 'required',
-            'agreement_certificate_image' => 'required',
+            'agreement_start_date' => 'nullable',
+            'agreement_expire_date' => 'nullable',
+            'agreement_certificate_image' => 'nullable',
             'agreement_certificate_image.*' => 'mimes:doc,docx,pdf,jpg,png,jpeg|max:5000',
         ], [
             'f_name.required' => translate('messages.first_name_is_required'),
@@ -159,11 +159,14 @@ class VendorController extends Controller
         $vendor->password = bcrypt($request->password);
         $vendor->save();
 
-  $certificate_paths = [];
-  foreach ($request->file('agreement_certificate_image') as $file) {
-    $extension = $file->getClientOriginalExtension();
-    $path = Helpers::upload('store/', $extension, $file);
-    $certificate_paths[] = $path; // store path
+$certificate_paths = []; // default empty
+
+if ($request->hasFile('agreement_certificate_image')) {
+    foreach ($request->file('agreement_certificate_image') as $file) {
+        $extension = $file->getClientOriginalExtension();
+        $path = Helpers::upload('store/', $extension, $file);
+        $certificate_paths[] = $path;
+    }
 }
 
 

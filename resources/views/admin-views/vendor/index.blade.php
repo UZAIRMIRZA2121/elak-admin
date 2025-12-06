@@ -88,21 +88,26 @@
                             @if ($language)
                                 <div class="lang_form" id="default-form">
                                     <div class="form-group">
-                                        <label class="input-label" for="default_name">{{ translate('messages.name') }}
-                                            ({{ translate('messages.Default') }})
+                                        <label class="input-label" for="default_name">
+                                            {{ translate('messages.name') }} ({{ translate('messages.Default') }})
                                         </label>
+
                                         <input type="text" name="name[]" id="default_name" class="form-control"
-                                            placeholder="{{ translate('messages.store_name') }}" required>
+                                            placeholder="{{ translate('messages.store_name') }}" value="{{ old('name.0') }}"
+                                            required>
                                     </div>
+
                                     <input type="hidden" name="lang[]" value="default">
+
                                     <div class="form-group mb-0">
-                                        <label class="input-label"
-                                            for="exampleFormControlInput1">{{ translate('messages.address') }}
-                                            ({{ translate('messages.default') }})</label>
-                                        <textarea type="text" name="address[]" placeholder="{{ translate('messages.store') }}"
-                                            class="form-control min-h-90px ckeditor"></textarea>
+                                        <label class="input-label" for="exampleFormControlInput1">
+                                            {{ translate('messages.address') }} ({{ translate('messages.default') }})
+                                        </label>
+
+                                        <textarea name="address[]" placeholder="{{ translate('messages.store') }}" class="form-control min-h-90px ckeditor">{{ old('address.0') }}</textarea>
                                     </div>
                                 </div>
+
                                 @foreach (json_decode($language) as $lang)
                                     <div class="d-none lang_form" id="{{ $lang }}-form">
                                         <div class="form-group">
@@ -336,7 +341,6 @@
                                         </label>
                                     </div>
 
-
                                     <div class="form-group" id="sub_branch_group">
                                         <label class="input-label" for="parent_id">
                                             {{ translate('Main Branch') }}
@@ -344,21 +348,33 @@
                                                 data-placement="right"
                                                 data-original-title="{{ translate('Main Branch') }}"></span>
                                         </label>
+
                                         <select name="parent_id" id="parent_id" class="form-control js-select2-custom"
                                             data-placeholder="{{ translate('Select Main Branch') }}">
-                                            <option value="" selected disabled>{{ translate('Select Main Branch') }}
+
+                                            <option value="" disabled {{ old('parent_id') ? '' : 'selected' }}>
+                                                {{ translate('Select Main Branch') }}
                                             </option>
+
                                             @foreach (\App\Models\Store::active()->where('type', 'main')->get() as $Store)
                                                 @if (isset(auth('admin')->user()->Store_id))
                                                     @if (auth('admin')->user()->Store_id == $Store->id)
-                                                        <option value="{{ $Store->id }}">{{ $Store->name }}</option>
+                                                        <option value="{{ $Store->id }}"
+                                                            {{ old('parent_id') == $Store->id ? 'selected' : '' }}>
+                                                            {{ $Store->name }}
+                                                        </option>
                                                     @endif
                                                 @else
-                                                    <option value="{{ $Store->id }}">{{ $Store->name }}</option>
+                                                    <option value="{{ $Store->id }}"
+                                                        {{ old('parent_id') == $Store->id ? 'selected' : '' }}>
+                                                        {{ $Store->name }}
+                                                    </option>
                                                 @endif
                                             @endforeach
+
                                         </select>
                                     </div>
+
                                     {{-- <div class="form-group">
                                         <label class="input-label" for="voucher_id">{{ translate('Voucher Type') }}
                                             <span class="form-label-secondary" data-toggle="tooltip" data-placement="right"
