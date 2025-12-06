@@ -7,6 +7,7 @@ use Carbon\Carbon;
 use App\Models\Tag;
 use App\Models\Item;
 use App\Models\Brand;
+use App\Models\App;
 use App\Models\Client;
 use App\Models\Store;
 use App\Models\Review;
@@ -82,21 +83,58 @@ class VoucherController extends Controller
     {
         $clientId = $request->client_id;
 
-        // $All_segmnet = \DB::table('segments')
+        // $All_segmnet = \DB::table('apps')
         //     ->where('client_id', $clientId)
         //     ->where('status', "active")
         //     ->get();
         $All_segmnet = Segment::where('client_id', $clientId)->where('status', "active")->get();
-        $clients = Client::where('id', $clientId)->where('status', "active")->first();
-        // dd($All_segmnet);
-
+        $clients = App::where('client_id', $clientId)->first();
+        // dd($clients);
+// 
          
         // Return both in one response
         return response()->json([
-            'app_name' => $clients->app_name ?? null,
+            'app_name' => $clients->app_name ?? null,    
             'segments' => $All_segmnet
         ]);
     }
+
+
+        // public function getAppName(Request $request)
+        // {
+        //     try {
+
+        //         $clientId = $request->client_id;
+
+        //         $All_segment = Segment::where('client_id', $clientId)->get();
+        //             //  dd($All_segment);÷
+
+        //         $client = Client::where('id', $clientId)
+        //             // ->where('status', 'active')
+        //             ->first();
+
+        //         return response()->json([
+        //             'success'  => true,
+        //             'app_name' => $client->app_name ?? null,
+        //             'segments' => $All_segment
+        //         ]);
+
+        //     } catch (\Exception $e) {
+
+        //         Log::error('getAppName Error', [
+        //             'client_id' => $request->client_id,
+        //             'error'     => $e->getMessage(),
+        //             'file'      => $e->getFile(),
+        //             'line'      => $e->getLine(),
+        //         ]);
+
+        //         return response()->json([
+        //             'success' => false,
+        //             'message' => 'Server error occurred'
+        //         ], 500);
+        //     }
+        // }
+
 
 
   public function getSubcategories(Request $request)
@@ -251,14 +289,12 @@ class VoucherController extends Controller
     public function get_document(Request $request)
     {
         
-            $id = $request->voucher_id ;
+        $id = $request->voucher_id ;
 
-              $WorkManagement = \DB::table('work_managements')
-            ->where('voucher_id', $id)
-            ->get();
-            // dd($WorkManagement);
-
-
+            $WorkManagement = \DB::table('work_managements')
+        ->where('voucher_id', $id)
+        ->get();
+        // dd($WorkManagement);
         
                 // WorkManagement records
         // $WorkManagement = WorkManagement::where('voucher_id', $request->store_id)->get();
@@ -289,15 +325,15 @@ class VoucherController extends Controller
 
              $validator = Validator::make($request->all(), [
 
-            'select_client' => 'required',
-            'name' => 'required',
-            // 'segment_type' => 'max:1000',
+            // 'select_client' => 'required',
+            // 'name' => 'required',
+            'segment_type' => 'max:1000',
             'store_id' => 'required',
             'categories' => 'required',
             // 'sub_categories_game' => 'required',
             // 'sub_branch_id' => 'required',
             'voucher_title' => 'required',
-            // 'valid_until' => 'required',
+            // 'clients' => 'array',
             'item_images' => 'required',
             'image' => 'required',
             'description' => 'required',
@@ -309,7 +345,7 @@ class VoucherController extends Controller
             'offer_type' => 'required',
             'discount_type' => 'required',
             'discount' => 'required',
-            // 'howto_work' => 'required',
+            'howto_work' => 'required',
             // 'term_and_condition' => 'required',
             // 'products' => 'required',
         ]);
@@ -405,6 +441,7 @@ class VoucherController extends Controller
             $item->term_and_condition_ids = json_encode(array_filter($request->term_and_condition ?? []));
             $item->product = json_encode(array_filter($request->products ?? []));
             $item->product_b = json_encode(array_filter($request->bogo_products ?? []));
+            $item->clients_section = json_encode(array_filter($request->clients ?? []));
 
             // ✅ Optional fields
             // $item->voucher_ids = $request->hidden_values ?? null;
@@ -432,14 +469,15 @@ class VoucherController extends Controller
 
              $validator = Validator::make($request->all(), [
 
-            'select_client' => 'required',
-            'name' => 'required',
-            // 'segment_type' => 'max:1000',
+            // 'select_client' => 'required',
+            // 'name' => 'required',
+            'segment_type' => 'max:1000',
             'store_id' => 'required',
             // 'categories' => 'required',
             // 'sub_categories_game' => 'required',
             // 'sub_branch_id' => 'required',
             'voucher_title' => 'required',
+            'clients' => 'array',
             // 'valid_until' => 'required',
             'item_images' => 'required',
             'image' => 'required',
@@ -447,7 +485,7 @@ class VoucherController extends Controller
             'tags' => 'required',
             'discount_type' => 'required',
             'bonus_tiers' => 'required',
-            // 'howto_work' => 'required',
+            'howto_work' => 'required',
             // 'term_and_condition' => 'required',
 
 
@@ -543,7 +581,7 @@ class VoucherController extends Controller
             $item->how_and_condition_ids = json_encode(array_filter($request->howto_work ?? []));
             $item->term_and_condition_ids = json_encode(array_filter($request->term_and_condition ?? []));
             $item->discount_configuration = json_encode(array_filter($request->bonus_tiers ?? []));
-
+             $item->clients_section = json_encode(array_filter($request->clients ?? []));
             // ✅ Optional fields
             // $item->voucher_ids = $request->hidden_values ?? null;
             if( $item->required_quantity != ""){
@@ -571,9 +609,9 @@ class VoucherController extends Controller
 
                 $validator = Validator::make($request->all(), [
 
-                    'select_client' => 'required',
-                    'name' => 'required',
-                    // 'segment_type' => 'max:1000',
+                    // 'select_client' => 'required',
+                    // 'name' => 'required',
+                    'segment_type' => 'max:1000',
                     'store_id' => 'required',
                     // 'sub_branch_id' => 'required',
                     'occasions_id' => 'required',//add
@@ -581,9 +619,9 @@ class VoucherController extends Controller
                     'delivery_options' => 'required',//add//add
                     'type' => 'required',//add
                     'min_max_amount' => 'required', //add
-                    // 'howto_work' => 'required',
+                    'howto_work' => 'required',
                     // 'term_and_condition' => 'required',
-                    // 'categories' => 'required',
+                    'clients' => 'array',
                     // 'sub_categories_game' => 'required',
                     // 'recipient_info_form_fields' => 'required',//add
                     // 'amount_configuration' => 'required',
@@ -621,7 +659,7 @@ class VoucherController extends Controller
                     $item->term_and_condition_ids  = json_encode($request->term_and_condition ?? []);
                     $item->client_id               = json_encode($request->select_client ?? []);
                     $item->segment_ids             = json_encode($request->segment_type ?? []);
-
+                     $item->clients_section = json_encode(array_filter($request->clients ?? []));
                     $form_fields = $request->form_fields ?? [];
                     $required_fields = $request->required_fields ?? [];
 
@@ -665,15 +703,215 @@ class VoucherController extends Controller
         }
     }
 
-    public function view_voucher($id)
-    {
-        $taxData = Helpers::getTaxSystemType();
-        $productWiseTax = $taxData['productWiseTax'];
-        $product = Item::withoutGlobalScope(StoreScope::class)->with($productWiseTax ? ['taxVats.tax'] : [])->where(['id' => $id])->firstOrFail();
+    // public function view_voucher($id)
+    // {
+    //     $taxData = Helpers::getTaxSystemType();
+    //     $productWiseTax = $taxData['productWiseTax'];
+    //     $product = Item::withoutGlobalScope(StoreScope::class)->with($productWiseTax ? ['taxVats.tax'] : [])->where(['id' => $id])->firstOrFail();
+    //     dd($product);
 
-        $reviews = Review::where(['item_id' => $id])->latest()->paginate(config('default_pagination'));
-        return view('admin-views.voucher.view_voucher', compact('product', 'reviews', 'productWiseTax'));
+    //     $reviews = Review::where(['item_id' => $id])->latest()->paginate(config('default_pagination'));
+    //     return view('admin-views.voucher.view_voucher', compact('product', 'reviews', 'productWiseTax'));
+    // }
+
+    //     public function view_voucher($id)
+    // {
+    //     // dd("dvdv");
+    //     $taxData = Helpers::getTaxSystemType();
+    //     $productWiseTax = $taxData['productWiseTax'];
+    //     $product = Item::withoutGlobalScope(StoreScope::class)
+    //         ->with($productWiseTax ? ['taxVats.tax'] : [])
+    //         ->where(['id' => $id])
+    //         ->firstOrFail();
+
+    //         dd($product);
+        
+    //     // Category को भी load करें (क्योंकि category_id है)
+    //     if ($product->category_id) {
+    //         $product->load('category');
+    //     }
+        
+    //     // Tags को decode करें
+    //     if ($product->tags_ids) {
+    //         $tags = json_decode($product->tags_ids, true);
+    //         $product->tags_display = is_array($tags) ? implode(', ', $tags) : $product->tags_ids;
+    //     }
+        
+    //     // Category IDs decode करें
+    //     if ($product->category_ids) {
+    //         $category_ids = json_decode($product->category_ids, true);
+    //         $product->category_ids_display = is_array($category_ids) ? implode(', ', $category_ids) : $product->category_ids;
+    //     }
+        
+    //     // Sub Category IDs decode करें
+    //     if ($product->sub_category_ids) {
+    //         $sub_category_ids = json_decode($product->sub_category_ids, true);
+    //         $product->sub_category_ids_display = is_array($sub_category_ids) ? implode(', ', $sub_category_ids) : $product->sub_category_ids;
+    //     }
+        
+    //     // Branch IDs decode करें
+    //     if ($product->branch_ids) {
+    //         $branch_ids = json_decode($product->branch_ids, true);
+    //         $product->branch_ids_display = is_array($branch_ids) ? implode(', ', $branch_ids) : $product->branch_ids;
+    //     }
+        
+    //     // Client Section decode करें
+    //     if ($product->clients_section) {
+    //         $clients = json_decode($product->clients_section, true);
+    //         $product->clients_display = is_array($clients) ? json_encode($clients, JSON_PRETTY_PRINT) : $product->clients_section;
+    //     }
+        
+    //     // Product decode करें
+    //     if ($product->product) {
+    //         $products = json_decode($product->product, true);
+    //         $product->products_display = is_array($products) ? json_encode($products, JSON_PRETTY_PRINT) : $product->product;
+    //     }
+        
+    //     // How and Condition IDs decode करें
+    //     if ($product->how_and_condition_ids) {
+    //         $conditions = json_decode($product->how_and_condition_ids, true);
+    //         $product->conditions_display = is_array($conditions) ? implode(', ', $conditions) : $product->how_and_condition_ids;
+    //     }
+        
+    //     // Term and Condition IDs decode करें
+    //     if ($product->term_and_condition_ids) {
+    //         $terms = json_decode($product->term_and_condition_ids, true);
+    //         $product->terms_display = is_array($terms) ? implode(', ', $terms) : $product->term_and_condition_ids;
+    //     }
+        
+    //     $reviews = Review::where(['item_id' => $id])->latest()->paginate(config('default_pagination'));
+        
+    //     return view('admin-views.voucher.view_voucher', compact('product', 'reviews', 'productWiseTax'));
+    // }
+public function view_voucher($id)
+{
+    $taxData = Helpers::getTaxSystemType();
+    $productWiseTax = $taxData['productWiseTax'];
+
+    $product = Item::findOrFail($id);
+
+    // TAGS (string comma based)
+    if (!empty($product->tags_ids)) {
+        $tagNames = Tag::whereIn('id', explode(',', $product->tags_ids))
+                        ->pluck('tag')
+                        ->toArray();
+
+        $product->tags_display = implode(', ', $tagNames);
     }
+
+    // CATEGORY IDs
+    if (!empty($product->category_ids)) {
+        $category_ids = json_decode($product->category_ids, true);
+
+        $product->categories = Category::whereIn('id', $category_ids)->get();
+    }
+
+    // SUB CATEGORY IDs
+    if (!empty($product->sub_category_ids)) {
+        $sub_ids = json_decode($product->sub_category_ids, true);
+
+        $product->sub_categories = Category::whereIn('parent_id', $sub_ids)->get();
+    }
+
+    // BRANCH IDs
+    if (!empty($product->branch_ids)) {
+        $branch_ids = json_decode($product->branch_ids, true);
+
+        $product->branches = Item::whereIn('branch_ids', $branch_ids)->get();
+    }
+
+    // HOW & CONDITION IDs
+    if (!empty($product->how_and_condition_ids)) {
+        $how_ids = json_decode($product->how_and_condition_ids, true);
+
+        $product->how_conditions = WorkManagement::whereIn('id', $how_ids)->get();
+    }
+
+    // TERM & CONDITION IDs
+    if (!empty($product->term_and_condition_ids)) {
+        $term_ids = json_decode($product->term_and_condition_ids, true);
+
+        $product->terms_conditions = UsageTermManagement::whereIn('id', $term_ids)->get();
+    }
+
+    // PRODUCT ARRAY
+    if (!empty($product->product)) {
+        $productArray = json_decode($product->product, true);
+
+        $productIds = collect($productArray)->pluck('product_id')->toArray();
+
+        $product->product_details = item::whereIn('id', $productIds)->get();
+    }
+
+    $reviews = Review::where(['item_id' => $id])->latest()->paginate(config('default_pagination'));
+    // dd($product);
+    return view('admin-views.voucher.view_voucher',  compact('product', 'reviews', 'productWiseTax'));
+}
+    // public function view_voucher($id)
+    // {
+
+    //      $taxData = Helpers::getTaxSystemType();
+    //      $productWiseTax = $taxData['productWiseTax'];
+
+    //     $product = Item::findOrFail($id);
+
+    //     // TAGS (string comma based)
+    //     if (!empty($product->tags_ids)) {
+    //         $tagNames = Tag::whereIn('id', explode(',', $product->tags_ids))
+    //                         ->pluck('tag')
+    //                         ->toArray();
+
+    //         $product->tags_display = implode(', ', $tagNames);
+    //     }
+
+    //     // CATEGORY IDs
+    //     if (!empty($product->category_ids)) {
+    //         $category_ids = json_decode($product->category_ids, true);
+
+    //         $product->categories = Category::whereIn('id', $category_ids)->get();
+    //     }
+
+    //     // SUB CATEGORY IDs
+    //     if (!empty($product->sub_category_ids)) {
+    //         $sub_ids = json_decode($product->sub_category_ids, true);
+
+    //         $product->sub_categories = Category::whereIn('parent_id', $sub_ids)->get();
+    //     }
+
+    //     // BRANCH IDs
+    //     if (!empty($product->branch_ids)) {
+    //         $branch_ids = json_decode($product->branch_ids, true);
+
+    //         $product->branches = Item::whereIn('branch_ids', $branch_ids)->get();
+    //     }
+
+    //     // HOW & CONDITION IDs
+    //     if (!empty($product->how_and_condition_ids)) {
+    //         $how_ids = json_decode($product->how_and_condition_ids, true);
+
+    //         $product->how_conditions = WorkManagement::whereIn('id', $how_ids)->get();
+    //     }
+
+    //     // TERM & CONDITION IDs
+    //     if (!empty($product->term_and_condition_ids)) {
+    //         $term_ids = json_decode($product->term_and_condition_ids, true);
+
+    //         $product->terms_conditions = UsageTermManagement::whereIn('id', $term_ids)->get();
+    //     }
+
+    //     // PRODUCT ARRAY
+    //     if (!empty($product->product)) {
+    //         $productArray = json_decode($product->product, true);
+
+    //         $productIds = collect($productArray)->pluck('product_id')->toArray();
+
+    //         $product->product_details = item::whereIn('id', $productIds)->get();
+    //     }
+
+    //      $reviews = Review::where(['item_id' => $id])->latest()->paginate(config('default_pagination'));
+    //     return view('admin-views.voucher.view_voucher',  compact('product', 'reviews', 'productWiseTax'));
+    // }
+
 
     public function view($id)
     {

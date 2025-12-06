@@ -18,11 +18,6 @@
     animation: fadeIn 0.3s ease-in;
 }
 
-
-
-
-
-
 @keyframes fadeIn {
     from { opacity: 0; transform: translateY(-10px); }
     to { opacity: 1; transform: translateY(0); }
@@ -783,6 +778,8 @@
             let basePrice = parseFloat(selected.data('price')) || 0;
             let variations = selected.data('variations') || [];
             let addons = selected.data('addons') || [];
+            //  = $('#actual_price').val();   // value utha lo
+                    // input khali kar do
             if (!productId) return;
 
             let bundleOfferType = $('#bundle_offer_type').val();
@@ -922,6 +919,10 @@
         <div class="card p-3 shadow-sm mb-3 col-12 col-md-6"
             data-product-temp-id="${counter}"
             data-product-id="${productId}">
+               <p class="text-muted mb-2">Base Price: $${basePrice.toFixed(2)}</p>
+            <input type="hidden" class="product-id" value="${productId}">
+            <input type="hidden" class="product-name" value="${productName}">
+            <input type="hidden" class="product-base-price" value="${basePrice}">
 
             <div class="d-flex align-items-center justify-content-between flex-wrap gap-3 border rounded p-2">
 
@@ -1289,7 +1290,7 @@
             let productTotal = parseFloat($(this).find('.product-total').text().replace('$', '')) || 0;
             let quantity = parseInt($(this).find('.product-quantity').val()) || 1;
            
-
+        // alert(productName);
             bundleTotal += productTotal;
             productCount++;
 
@@ -1330,22 +1331,38 @@
          let actual_price = Number($('#actual_price').val()) || 0;
             // alert(actual_price);
         let discountAmount = 0;
+          
 
         if (discountType === 'percent') {
-            discountAmount = (bundleTotal * discount) / 100;
+            // alert(actual_price)
+
+               if (actual_price > 1) {
+                   discountAmount = (actual_price * discount) / 100;
+
+                //    alert("djh jdf")
+                } else {
+                    //   alert(actual_price);
+                    //   alert(bundleTotal);
+                    //   alert(discountAmount);
+
+                   discountAmount = (bundleTotal * discount) / 100;
+                }
+            
         } else {
             discountAmount = discount;
+               
+            
         }
-
+  
         let finalTotal = 0;   // pehle declare karo
 
-        if (actual_price > 0) {
+        if (actual_price > 1) {
             finalTotal = Math.max(actual_price - discountAmount, 0);
         } else {
             finalTotal = Math.max(bundleTotal - discountAmount, 0);
         }
-
         // alert(finalTotal);
+
 
     
 
@@ -1369,7 +1386,7 @@
             </li>
         </ul>`;
 
-        if (productCount > 0) {
+        if (productCount < 0) {
             $('#priceCalculator').show();
             $('#priceBreakdown').html(breakdownHTML);
             $('#selectedProducts p').hide();
@@ -1412,6 +1429,7 @@
         let discount = parseFloat($('#discount').val()) || 0;
         let discountType = $('#discount_type').val();
         let bundleTotal = parseFloat($('#price_hidden').val()) || 0;
+        let actual_price = Number($('#actual_price').val()) || 0;
 
         if (discountType === 'percent' && discount > 100) {
             alert('Discount percentage cannot exceed 100%');
@@ -1419,11 +1437,29 @@
             return;
         }
 
-        if (discountType !== 'percent' && discount > bundleTotal) {
-            alert(`Discount amount ($${discount}) cannot exceed bundle total ($${bundleTotal})`);
-            $('#discount').val(0);
-            return;
+        if (actual_price > 1) {
+
+         if (discountType !== 'percent' && discount > actual_price) {
+                alert(`Discount amount ($${discount}) cannot exceed Actual Price total ($${actual_price})`);
+                $('#discount').val(0);
+                return;
+            }
+
+        } else {
+
+            if (discountType !== 'percent' && discount > bundleTotal) {
+                alert(`Discount amount ($${discount}) cannot exceed bundle total ($${bundleTotal})`);
+                $('#discount').val(0);
+                return;
+            }
+
         }
+
+
+
+
+
+
 
         updateBundleTotal();
     });
@@ -1475,6 +1511,8 @@
 
         $('#availableProducts').hide();
         $('#availableProducts_get_x_buy_y').hide();
+        //    alert("value")
+            $('#actual_price').val('');  
 
         // Clear regular products
         $('#productDetails .card').fadeOut(300, function() {
@@ -1670,63 +1708,73 @@
                 success: function(response) {
                     let workHtml = "";
 
-                   $.each(response.work_management, function(index, item) {
+                    $.each(response.work_management, function(index, item) {
+                        // Parse sections from JSON string
+                        let sections = [];
+                        try {
+                            sections = JSON.parse(item.sections);
+                        } catch(e) {
+                            console.error('Error parsing sections:', e);
+                        }
 
-                // sections already array — no JSON.parse needed
-                let sections = Array.isArray(item.sections) ? item.sections : [];
+                        // Create sections HTML
+                        let sectionsHtml = '';
+                        $.each(sections, function(sIndex, section) {
+                            let stepsHtml = '';
+                            $.each(section.steps, function(stepIndex, step) {
+                                stepsHtml += `
+                                    <li class="mb-2">
+                                        <i class="fas fa-circle text-muted" style="font-size: 6px; vertical-align: middle;"></i>
+                                        <span class="ms-2 text-muted">${step}</span>
+                                    </li>
+                                `;
+                            });
 
-                let sectionsHtml = '';
-                $.each(sections, function(sIndex, section) {
-                    let stepsHtml = '';
-                    $.each(section.steps, function(stepIndex, step) {
-                        stepsHtml += `
-                            <li class="mb-2">
-                                <i class="fas fa-circle text-muted" style="font-size: 6px; vertical-align: middle;"></i>
-                                <span class="ms-2 text-muted">${step}</span>
-                            </li>
+                            sectionsHtml += `
+                                <div class="mb-3">
+                                    <h6 class="fw-semibold text-dark mb-2">${section.title}</h6>
+                                    <ul class="list-unstyled ms-3">
+                                        ${stepsHtml}
+                                    </ul>
+                                </div>
+                            `;
+                        });
+
+                        workHtml += `
+                            <div class="card mb-3 work-item shadow-sm">
+                                <!-- Header with checkbox and toggle -->
+                                <div class="card-header bg-white d-flex align-items-center justify-content-between py-3 cursor-pointer"
+                                    onclick="toggleAccordion(${item.id})"
+                                    style="cursor: pointer;">
+                                    <div class="d-flex align-items-center flex-grow-1">
+                                        <input type="checkbox"
+                                            class="form-check-input record-checkbox me-3"
+                                            id="record_${item.id}"
+                                            data-item-id="${item.id}"
+                                            name="howto_work[]"
+                                            onclick="event.stopPropagation()">
+                                        <label for="record_${item.id}"
+                                            class="fw-semibold mb-0 cursor-pointer flex-grow-1"
+                                            style="cursor: pointer;"
+                                            onclick="event.stopPropagation()">
+                                            ${item.guide_title}
+                                        </label>
+                                    </div>
+                                    <i class="fas fa-chevron-down text-muted accordion-icon"
+                                    id="icon_${item.id}"
+                                    style="transition: transform 0.3s ease;"></i>
+                                </div>
+
+                                <!-- Accordion Content -->
+                                <div id="content_${item.id}"
+                                    class="accordion-content collapse">
+                                    <div class="card-body bg-light border-top">
+                                        ${sectionsHtml || '<p class="text-muted fst-italic mb-0">No sections available</p>'}
+                                    </div>
+                                </div>
+                            </div>
                         `;
                     });
-
-                    sectionsHtml += `
-                        <div class="mb-3">
-                            <h6 class="fw-semibold text-dark mb-2">${section.title}</h6>
-                            <ul class="list-unstyled ms-3">
-                                ${stepsHtml}
-                            </ul>
-                        </div>
-                    `;
-                });
-
-                workHtml += `
-                    <div class="card mb-3 work-item shadow-sm">
-                        <div class="card-header bg-white d-flex align-items-center justify-content-between py-3 cursor-pointer"
-                            onclick="toggleAccordion(${item.id})">
-                            
-                            <div class="d-flex align-items-center flex-grow-1">
-                                <input type="checkbox"
-                                    class="form-check-input record-checkbox me-3"
-                                    id="record_${item.id}"
-                                    data-item-id="${item.id}">
-                                
-                                <label for="record_${item.id}" class="fw-semibold mb-0 flex-grow-1">
-                                    ${item.guide_title}
-                                </label>
-                            </div>
-
-                            <i class="fas fa-chevron-down text-muted accordion-icon"
-                                id="icon_${item.id}" style="transition: transform 0.3s ease;">
-                            </i>
-                        </div>
-
-                        <div id="content_${item.id}" class="accordion-content collapse">
-                            <div class="card-body bg-light border-top">
-                                ${sectionsHtml || '<p class="text-muted fst-italic mb-0">No sections available</p>'}
-                            </div>
-                        </div>
-                    </div>
-                `;
-            });
-
 
                     $("#workList").html(workHtml);
 

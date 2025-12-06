@@ -498,9 +498,21 @@ class ProductLogic
                     $query->where('module_id', config('module.current_module_data')['id']);
                 })
 
-            ->whereHas('store', function($query)use($zone_id){
-                    $query->whereIn('zone_id', json_decode($zone_id, true));
-                })
+            // ->whereHas('store', function($query)use($zone_id){
+            //         $query->whereIn('zone_id', json_decode($zone_id, true));
+            //     })
+
+            ->whereHas('store', function($query) use($zone_id){
+        $zoneIds = json_decode($zone_id, true);
+
+            // ensure always array
+            if (!is_array($zoneIds)) {
+                $zoneIds = [$zoneIds];
+            }
+
+            $query->whereIn('zone_id', $zoneIds);
+        })
+
             ->select(['items.*'])
             ->selectSub(function ($subQuery) {
                 $subQuery->selectRaw('active as temp_available')
@@ -768,28 +780,71 @@ class ProductLogic
             return $query;
     }
 
-    private static function getCategoryData($query){
-        $item_categories = $query->pluck('category_ids')->toArray();
-            $item_categories = array_reduce($item_categories, function($carry, $jsonString) {
-                $items = json_decode($jsonString, true);
-                $filtered = array_filter($items, fn($item) => $item['position'] == 1);
-                $carry = array_merge($carry, array_column($filtered, 'id'));
-                return $carry;
-            }, []);
+    // private static function getCategoryData($query){
+    //     $item_categories = $query->pluck('category_ids')->toArray();
+    //         $item_categories = array_reduce($item_categories, function($carry, $jsonString) {
+    //             $items = json_decode($jsonString, true);
+    //             $filtered = array_filter($items, fn($item) => $item['position'] == 1);
+    //             $carry = array_merge($carry, array_column($filtered, 'id'));
+    //             return $carry;
+    //         }, []);
 
-            $item_categories = array_unique($item_categories);
-            $categories = Category::
-            whereIn('id',$item_categories)
-            ->orderBy('priority','desc')->select('id','name','image')->get()
-            ->map(function ($category) {
+    //         $item_categories = array_unique($item_categories);
+    //         $categories = Category::
+    //         whereIn('id',$item_categories)
+    //         ->orderBy('priority','desc')->select('id','name','image')->get()
+    //         ->map(function ($category) {
+    //         return [
+    //             'id' => $category->id,
+    //             'name' => $category->name,
+    //             'image_full_url' => $category->image_full_url
+    //             ];
+    //         });
+    //         return $categories;
+    // }
+
+    private static function getCategoryData($query){
+    $item_categories = $query->pluck('category_ids')->toArray();
+    
+    $item_categories = array_reduce($item_categories, function($carry, $item) {
+        // Check if $item is already an array
+        if (is_array($item)) {
+            $items = $item;
+        } 
+        // Otherwise try to decode it
+        else {
+            $items = json_decode($item, true);
+            // If json_decode fails, return current $carry
+            if (!is_array($items)) {
+                return $carry;
+            }
+        }
+        
+        // Now safely filter the items
+        $filtered = array_filter($items, fn($category) => 
+            is_array($category) && isset($category['position']) && $category['position'] == 1
+        );
+        
+        $carry = array_merge($carry, array_column($filtered, 'id'));
+        return $carry;
+    }, []);
+
+    $item_categories = array_unique($item_categories);
+    
+    $categories = Category::whereIn('id', $item_categories)
+        ->orderBy('priority', 'desc')
+        ->select('id', 'name', 'image')
+        ->get()
+        ->map(function ($category) {
             return [
                 'id' => $category->id,
                 'name' => $category->name,
                 'image_full_url' => $category->image_full_url
-                ];
-            });
-            return $categories;
-    }
+            ];
+        });
+    
+    return $categories;
+}
 
     public static function brand_products($zone_id, $limit = null, $offset = null, $type = 'all', $category_ids = null, $filter = null,$min=false, $max=false, $rating_count = null, $brand_ids = null)
     {

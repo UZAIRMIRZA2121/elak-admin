@@ -46,23 +46,23 @@ class ItemController extends Controller
 
     public function get_voucher_type(Request $request)
     {
-            $voucherTypeId = $request->voucher_type_id;
-            $voucherType = VoucherType::find($voucherTypeId);
-            // convert "2,10,11,12" into array [2, 10, 11, 12]
-            $managementIds = explode(",", $voucherType->management_id);
-            // $all_module = Module::whereIn("id", $managementIds)->get();
-          $all_module = Module::whereIn("id", $managementIds)->get()->map(function($item) {
+        $voucherTypeId = $request->voucher_type_id;
+        $voucherType = VoucherType::find($voucherTypeId);
+        // convert "2,10,11,12" into array [2, 10, 11, 12]
+        $managementIds = explode(",", $voucherType->management_id);
+        // $all_module = Module::whereIn("id", $managementIds)->get();
+        $all_module = Module::whereIn("id", $managementIds)->get()->map(function ($item) {
             return [
                 'id' => $item->id,
                 'module_name' => $item->module_name,
                 'desc' => $item->desc,
-               'thumbnail' => $item->thumbnail
+                'thumbnail' => $item->thumbnail
                     ? asset('storage/module/' . $item->thumbnail)   // ✅ e.g. /storage/module/shop.png
                     : asset('storage/module/default.png'),
             ];
         });
 
-          return response()->json([
+        return response()->json([
             'success' => true,
             'message' => 'VoucherType ID received',
             'all_ids' => $all_module
@@ -87,7 +87,7 @@ class ItemController extends Controller
         $productWiseTax = $taxData['productWiseTax'];
         $taxVats = $taxData['taxVats'];
 
-            return view('admin-views.product.index', compact('categories', 'productWiseTax', 'taxVats'));
+        return view('admin-views.product.index', compact('categories', 'productWiseTax', 'taxVats'));
 
     }
 
@@ -105,7 +105,7 @@ class ItemController extends Controller
                 })
             ],
             'price' => 'required|numeric|between:.01,999999999999.99',
-            'discount' => 'required|numeric|min:0',
+            'discount' => 'nullable|numeric|min:0',
             'store_id' => 'required',
             'description.*' => 'max:1000',
             'name.0' => 'required',
@@ -165,7 +165,7 @@ class ItemController extends Controller
             }
 
             foreach ($item_data->images as $key => $value) {
-                if (!in_array(is_array($value) ?   $value['img'] : $value, explode(",", $request->removedImageKeys))) {
+                if (!in_array(is_array($value) ? $value['img'] : $value, explode(",", $request->removedImageKeys))) {
                     $value = is_array($value) ? $value : ['img' => $value, 'storage' => 'public'];
                     $oldDisk = $value['storage'];
                     $oldPath = "product/{$value['img']}";
@@ -262,7 +262,7 @@ class ItemController extends Controller
         }
         $item->category_ids = json_encode($category);
         $item->category_id = $request->sub_category_id ? $request->sub_category_id : $request->category_id;
-        $item->description =  $request->description[array_search('default', $request->lang)];
+        $item->description = $request->description[array_search('default', $request->lang)];
 
         $choice_options = [];
         if ($request->has('choice')) {
@@ -305,7 +305,7 @@ class ItemController extends Controller
                 $temp['price'] = abs($request['price_' . str_replace('.', '_', $str)]);
 
 
-                if ($request->discount_type == 'amount' &&  $temp['price']  <   $request->discount) {
+                if ($request->discount_type == 'amount' && $temp['price'] < $request->discount) {
                     $validator->getMessageBag()->add('unit_price', translate("Variation price must be greater than discount amount"));
                     return response()->json(['errors' => Helpers::error_processor($validator)]);
                 }
@@ -332,7 +332,7 @@ class ItemController extends Controller
                 $temp_variation['min'] = $option['min'] ?? 0;
                 $temp_variation['max'] = $option['max'] ?? 0;
                 $temp_variation['required'] = $option['required'] ?? 'off';
-                if ($option['min'] > 0 &&  $option['min'] > $option['max']) {
+                if ($option['min'] > 0 && $option['min'] > $option['max']) {
                     $validator->getMessageBag()->add('name', translate('messages.minimum_value_can_not_be_greater_then_maximum_value'));
                     return response()->json(['errors' => Helpers::error_processor($validator)]);
                 }
@@ -361,7 +361,7 @@ class ItemController extends Controller
         $item->food_variations = json_encode($food_variations);
         $item->variations = json_encode($variations);
         $item->price = $request->price;
-        $item->image =  $request->has('image') ? Helpers::upload('product/', 'png', $request->file('image')) : $newFileNamethumb ?? null;
+        $item->image = $request->has('image') ? Helpers::upload('product/', 'png', $request->file('image')) : $newFileNamethumb ?? null;
         $item->available_time_starts = $request->available_time_starts ?? '00:00:00';
         $item->available_time_ends = $request->available_time_ends ?? '23:59:59';
         $item->discount = $request->discount_type == 'amount' ? $request->discount : $request->discount;
@@ -372,7 +372,8 @@ class ItemController extends Controller
         $item->add_ons = $request->has('addon_ids') ? json_encode($request->addon_ids) : json_encode([]);
         $item->store_id = $request->store_id;
         $item->maximum_cart_quantity = $request->maximum_cart_quantity;
-        $item->veg = $request->veg;
+       $veg = $request->veg ?? 0; // default to 0 if not sent
+
         $item->module_id = Config::get('module.current_module_id');
         $module_type = Config::get('module.current_module_type');
         if ($module_type == 'grocery') {
@@ -380,7 +381,7 @@ class ItemController extends Controller
         }
         $item->stock = $request->current_stock ?? 0;
         $item->images = $images;
-        $item->is_halal =  $request->is_halal ?? 0;
+        $item->is_halal = $request->is_halal ?? 0;
         $item->save();
         $item->tags()->sync($tag_ids);
         $item->nutritions()->sync($nutrition_ids);
@@ -463,7 +464,7 @@ class ItemController extends Controller
         $productWiseTax = $taxData['productWiseTax'];
         $taxVats = $taxData['taxVats'];
         $taxVatIds = $productWiseTax ? $product->taxVats()->pluck('tax_id')->toArray() : [];
-            dd($productWiseTax);
+
 
 
         return view('admin-views.product.edit', compact('product', 'sub_category', 'category', 'temp_product', 'productWiseTax', 'taxVats', 'taxVatIds'));
@@ -489,7 +490,7 @@ class ItemController extends Controller
             'store_id' => 'required',
             'description' => 'array',
             'description.*' => 'max:1000',
-            'discount' => 'required|numeric|min:0',
+            'discount' => 'nullable|numeric|min:0',
             'name.0' => 'required',
             'description.0' => 'required',
         ], [
@@ -589,7 +590,7 @@ class ItemController extends Controller
         $images = $item['images'];
         if (!$request?->temp_product) {
             foreach ($item->images as $key => $value) {
-                if (in_array(is_array($value) ?   $value['img'] : $value, explode(",", $request->removedImageKeys))) {
+                if (in_array(is_array($value) ? $value['img'] : $value, explode(",", $request->removedImageKeys))) {
                     $value = is_array($value) ? $value : ['img' => $value, 'storage' => 'public'];
                     Helpers::check_and_delete('product/', $value['img']);
                     unset($images[$key]);
@@ -607,7 +608,7 @@ class ItemController extends Controller
 
         $item->category_id = $request->sub_category_id ? $request->sub_category_id : $request->category_id;
         $item->category_ids = json_encode($category);
-        $item->description =  $request->description[array_search('default', $request->lang)];
+        $item->description = $request->description[array_search('default', $request->lang)];
 
         $choice_options = [];
         if ($request->has('choice')) {
@@ -649,7 +650,7 @@ class ItemController extends Controller
                 $temp['type'] = $str;
                 $temp['price'] = abs($request['price_' . str_replace('.', '_', $str)]);
 
-                if ($request->discount_type == 'amount' &&  $temp['price']  <   $request->discount) {
+                if ($request->discount_type == 'amount' && $temp['price'] < $request->discount) {
                     $validator->getMessageBag()->add('unit_price', translate("Variation price must be greater than discount amount"));
                     return response()->json(['errors' => Helpers::error_processor($validator)]);
                 }
@@ -668,7 +669,7 @@ class ItemController extends Controller
                 $temp_variation['type'] = $option['type'];
                 $temp_variation['min'] = $option['min'] ?? 0;
                 $temp_variation['max'] = $option['max'] ?? 0;
-                if ($option['min'] > 0 &&  $option['min'] > $option['max']) {
+                if ($option['min'] > 0 && $option['min'] > $option['max']) {
                     $validator->getMessageBag()->add('name', translate('messages.minimum_value_can_not_be_greater_then_maximum_value'));
                     return response()->json(['errors' => Helpers::error_processor($validator)]);
                 }
@@ -702,7 +703,7 @@ class ItemController extends Controller
         $item->available_time_starts = $request->available_time_starts ?? '00:00:00';
         $item->available_time_ends = $request->available_time_ends ?? '23:59:59';
 
-        $item->discount =  $request->discount;
+        $item->discount = $request->discount;
         $item->discount_type = $request->discount_type;
         $item->unit_id = $request->unit;
         $item->attributes = $request->has('attribute_id') ? json_encode($request->attribute_id) : json_encode([]);
@@ -713,7 +714,8 @@ class ItemController extends Controller
         $item->stock = $request->current_stock ?? 0;
         $item->is_halal = $request->is_halal ?? 0;
         $item->organic = $request->organic ?? 0;
-        $item->veg = $request->veg;
+       $veg = $request->veg ?? 0; // default to 0 if not sent
+
         $item->images = $images;
         if (Helpers::get_mail_status('product_approval') && $request?->temp_product) {
 
@@ -722,7 +724,7 @@ class ItemController extends Controller
 
             if ($request->removedImageKeys) {
                 foreach ($images as $key => $value) {
-                    if (in_array(is_array($value) ?   $value['img'] : $value, explode(",", $request->removedImageKeys))) {
+                    if (in_array(is_array($value) ? $value['img'] : $value, explode(",", $request->removedImageKeys))) {
                         unset($images[$key]);
                     }
                 }
@@ -776,7 +778,7 @@ class ItemController extends Controller
             $item->is_approved = 1;
             try {
 
-                if (Helpers::getNotificationStatusData('store', 'store_product_approve', 'push_notification_status', $item?->store->id)  &&  $item?->store?->vendor?->firebase_token) {
+                if (Helpers::getNotificationStatusData('store', 'store_product_approve', 'push_notification_status', $item?->store->id) && $item?->store?->vendor?->firebase_token) {
                     $data = [
                         'title' => translate('product_approved'),
                         'description' => translate('Product_Request_Has_Been_Approved_By_Admin'),
@@ -794,7 +796,7 @@ class ItemController extends Controller
                     ]);
                 }
 
-                if (config('mail.status') && Helpers::get_mail_status('product_approve_mail_status_store') == '1' &&  Helpers::getNotificationStatusData('store', 'store_product_approve', 'mail_status', $item?->store?->id)) {
+                if (config('mail.status') && Helpers::get_mail_status('product_approve_mail_status_store') == '1' && Helpers::getNotificationStatusData('store', 'store_product_approve', 'mail_status', $item?->store?->id)) {
                     Mail::to($item?->store?->vendor?->email)->send(new \App\Mail\VendorProductMail($item?->store?->name, 'approved'));
                 }
             } catch (\Exception $e) {
@@ -830,7 +832,7 @@ class ItemController extends Controller
 
         if (addon_published_status('TaxModule')) {
             $taxVatIds = $item->taxVats()->pluck('tax_id')->toArray() ?? [];
-            $newTaxVatIds =  array_map('intval', $request['tax_ids'] ?? []);
+            $newTaxVatIds = array_map('intval', $request['tax_ids'] ?? []);
             sort($newTaxVatIds);
             sort($taxVatIds);
             if ($newTaxVatIds != $taxVatIds) {
@@ -1147,7 +1149,7 @@ class ItemController extends Controller
         $taxData = Helpers::getTaxSystemType(getTaxVatList: false);
         $productWiseTax = $taxData['productWiseTax'];
 
-        return view('admin-views.product.list', compact('items', 'store', 'category', 'type', 'sub_categories', 'condition','productWiseTax'));
+        return view('admin-views.product.list', compact('items', 'store', 'category', 'type', 'sub_categories', 'condition', 'productWiseTax'));
     }
 
     public function remove_image(Request $request)
@@ -1215,7 +1217,7 @@ class ItemController extends Controller
             })->module(Config::get('module.current_module_id'))->where('is_approved', 1);
 
         if (isset($request->product_gallery) && $request->product_gallery == 1) {
-            $items =   $items->limit(12)->get();
+            $items = $items->limit(12)->get();
             $view = 'admin-views.product.partials._gallery';
         } else {
             $items = $items->latest()->limit(50)->get();
@@ -1371,7 +1373,7 @@ class ItemController extends Controller
                         Toastr::error(translate('messages.Discount_must_be_greater_then_0_on_id') . ' ' . $collection['Id']);
                         return back();
                     }
-                    if (data_get($collection, 'Image') != "" &&  strlen(data_get($collection, 'Image')) > 30) {
+                    if (data_get($collection, 'Image') != "" && strlen(data_get($collection, 'Image')) > 30) {
                         Toastr::error(translate('messages.Image_name_must_be_in_30_char._on_id') . ' ' . $collection['Id']);
                         return back();
                     }
@@ -1460,7 +1462,7 @@ class ItemController extends Controller
                     Toastr::error(translate('messages.Discount_must_be_less_then_100') . ' ' . $collection['Id']);
                     return back();
                 }
-                if (data_get($collection, 'Image') != "" &&  strlen(data_get($collection, 'Image')) > 30) {
+                if (data_get($collection, 'Image') != "" && strlen(data_get($collection, 'Image')) > 30) {
                     Toastr::error(translate('messages.Image_name_must_be_in_30_char_on_id') . ' ' . $collection['Id']);
                     return back();
                 }
@@ -1810,7 +1812,7 @@ class ItemController extends Controller
                 $temp_variation['min'] = $option['min'] ?? 0;
                 $temp_variation['max'] = $option['max'] ?? 0;
                 $temp_variation['required'] = $option['required'] ?? 'off';
-                if ($option['min'] > 0 &&  $option['min'] > $option['max']) {
+                if ($option['min'] > 0 && $option['min'] > $option['max']) {
                     $validator->getMessageBag()->add('name', translate('messages.minimum_value_can_not_be_greater_then_maximum_value'));
                     return response()->json(['errors' => Helpers::error_processor($validator)]);
                 }
@@ -1909,8 +1911,8 @@ class ItemController extends Controller
         $type = $request->query('type', 'all');
         $filter = $request->query('filter');
         $key = explode(' ', $request['search']);
-        $from =  $request->query('from');
-        $to =  $request->query('to');
+        $from = $request->query('from');
+        $to = $request->query('to');
 
         $items = TempProduct::withoutGlobalScope(StoreScope::class)
             ->when($request->query('module_id', null), function ($query) use ($request) {
@@ -1978,7 +1980,7 @@ class ItemController extends Controller
 
         try {
 
-            if (Helpers::getNotificationStatusData('store', 'store_product_reject', 'push_notification_status', $data?->store->id)  &&  $data?->store?->vendor?->firebase_token) {
+            if (Helpers::getNotificationStatusData('store', 'store_product_reject', 'push_notification_status', $data?->store->id) && $data?->store?->vendor?->firebase_token) {
                 $ndata = [
                     'title' => translate('product_rejected'),
                     'description' => translate('Product_Request_Has_Been_Rejected_By_Admin'),
@@ -1997,7 +1999,7 @@ class ItemController extends Controller
             }
 
 
-            if (config('mail.status') && Helpers::get_mail_status('product_deny_mail_status_store')  == '1' &&  Helpers::getNotificationStatusData('store', 'store_product_reject', 'mail_status', $data?->store?->id)) {
+            if (config('mail.status') && Helpers::get_mail_status('product_deny_mail_status_store') == '1' && Helpers::getNotificationStatusData('store', 'store_product_reject', 'mail_status', $data?->store?->id)) {
                 Mail::to($data?->store?->vendor?->email)->send(new \App\Mail\VendorProductMail($data?->store?->name, 'denied'));
             }
         } catch (\Exception $e) {
@@ -2012,7 +2014,7 @@ class ItemController extends Controller
         $item = Item::withoutGlobalScope(StoreScope::class)->withoutGlobalScope('translate')->with('translations')->findOrfail($data->item_id);
 
         $item->name = $data->name;
-        $item->description =  $data->description;
+        $item->description = $data->description;
 
 
         if ($item->image) {
@@ -2050,7 +2052,7 @@ class ItemController extends Controller
 
         $item->organic = $data->organic;
         $item->is_halal = $data->is_halal;
-        $item->stock =  $data->stock;
+        $item->stock = $data->stock;
         $item->is_approved = 1;
 
         $item->save();
@@ -2093,7 +2095,7 @@ class ItemController extends Controller
 
         try {
 
-            if (Helpers::getNotificationStatusData('store', 'store_product_approve', 'push_notification_status', $item?->store->id)  &&  $item?->store?->vendor?->firebase_token) {
+            if (Helpers::getNotificationStatusData('store', 'store_product_approve', 'push_notification_status', $item?->store->id) && $item?->store?->vendor?->firebase_token) {
                 $data = [
                     'title' => translate('product_approved'),
                     'description' => translate('Product_Request_Has_Been_Approved_By_Admin'),
@@ -2112,7 +2114,7 @@ class ItemController extends Controller
             }
 
 
-            if (config('mail.status') && Helpers::get_mail_status('product_approve_mail_status_store') == '1' &&  Helpers::getNotificationStatusData('store', 'store_product_approve', 'mail_status', $item?->store?->id)) {
+            if (config('mail.status') && Helpers::get_mail_status('product_approve_mail_status_store') == '1' && Helpers::getNotificationStatusData('store', 'store_product_approve', 'mail_status', $item?->store?->id)) {
                 Mail::to($item?->store?->vendor?->email)->send(new \App\Mail\VendorProductMail($item?->store?->name, 'approved'));
             }
         } catch (\Exception $e) {

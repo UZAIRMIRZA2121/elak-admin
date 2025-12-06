@@ -20,8 +20,14 @@ class User extends Authenticatable
 
 
     protected $fillable = [
-    'name', 'email', 'password', 'username', 'ref_by', 'is_active' , 'client_id',
-];
+        'name',
+        'email',
+        'password',
+        'username',
+        'ref_by',
+        'is_active',
+        'client_id',
+    ];
 
     /**
      * The attributes that are mass assignable.
@@ -57,17 +63,18 @@ class User extends Authenticatable
         'ref_by' => 'integer',
     ];
     protected $appends = ['image_full_url'];
-    public function getImageFullUrlAttribute(){
+    public function getImageFullUrlAttribute()
+    {
         $value = $this->image;
         if (count($this->storage) > 0) {
             foreach ($this->storage as $storage) {
                 if ($storage['key'] == 'image') {
-                    return Helpers::get_full_url('profile',$value,$storage['value']);
+                    return Helpers::get_full_url('profile', $value, $storage['value']);
                 }
             }
         }
 
-        return Helpers::get_full_url('profile',$value,'public');
+        return Helpers::get_full_url('profile', $value, 'public');
     }
 
     public function getFullNameAttribute(): string
@@ -89,16 +96,18 @@ class User extends Authenticatable
         return $this->hasMany(Trips::class)->where('is_guest', 0);
     }
 
-    public function addresses(){
+    public function addresses()
+    {
         return $this->hasMany(CustomerAddress::class);
     }
 
     public function userinfo()
     {
-        return $this->hasOne(UserInfo::class,'user_id', 'id');
+        return $this->hasOne(UserInfo::class, 'user_id', 'id');
     }
 
-    public function scopeZone($query, $zone_id=null){
+    public function scopeZone($query, $zone_id = null)
+    {
         $query->when(is_numeric($zone_id), function ($q) use ($zone_id) {
             return $q->where('zone_id', $zone_id);
         });
@@ -119,7 +128,7 @@ class User extends Authenticatable
     {
         parent::boot();
         static::saved(function ($model) {
-            if($model->isDirty('image')){
+            if ($model->isDirty('image')) {
                 $value = Helpers::getDisk();
 
                 DB::table('storages')->updateOrInsert([
@@ -135,10 +144,13 @@ class User extends Authenticatable
         });
 
     }
-
+    public function client()
+    {
+        return $this->belongsTo(Client::class, 'client_id', 'id');
+    }
 
     public function segment()
-{
-    return $this->belongsTo(Segment::class, 'segment_id', 'id');
-}
+    {
+        return $this->belongsTo(Segment::class, 'segment_id', 'id');
+    }
 }

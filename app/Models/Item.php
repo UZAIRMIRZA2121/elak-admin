@@ -46,8 +46,9 @@ class Item extends Model
         'unit_id' => 'integer',
         'is_halal' => 'integer',
         'voucher_type' => 'string',
-        'food_and_product_type' => 'string',
-        'app_name' => 'string',
+          'food_and_product_type' => 'string',
+         'clients_section' => 'array',
+
         'client_id' => 'array',
         'segment_ids' => 'array',
         'sub_category_ids' => 'array',

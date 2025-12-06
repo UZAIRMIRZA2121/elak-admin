@@ -307,6 +307,15 @@
                                             </td>
                                             <td>
                                                 <div class="btn--container justify-content-center">
+                                                      <a class="btn action-btn btn--primary btn-outline-primary"
+                                                            href="{{route('admin.Voucher.edit',[$food['id']])}}" title="{{translate('messages.edit_item')}}"><i class="tio-edit"></i>
+                                                        </a>
+                                                        <a class="ml-2 btn btn-sm btn--warning btn-outline-warning action-btn data-info-show"
+                                                        href="{{route('admin.Voucher.view_voucher',[$food['id']])}}">
+                                                            <i class="tio-invisible"></i>
+                                                        </a>
+
+
                                                     <a class="btn action-btn btn--primary btn-outline-primary"
                                                         href="{{ route('admin.item.edit', [$food['id']]) }}"
                                                         title="{{ translate('messages.edit_item') }}"><i

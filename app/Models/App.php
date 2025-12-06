@@ -8,7 +8,8 @@ use Illuminate\Database\Eloquent\Model;
 class App extends Model
 {
     use HasFactory;
-    protected $table = 'apps'; // ya jo bhi tumhara table ka naam hai
+
+    protected $table = 'apps';
 
     protected $fillable = [
         'app_name',
@@ -17,21 +18,21 @@ class App extends Model
         'app_type',
         'color_theme',
         'banner',
-        'client_id',  // <-- new
+        'client_id',
     ];
+
+    // App belongs to one client
     public function client()
     {
-        return $this->belongsTo(Client::class, 'client_id');
+        return $this->belongsTo(Client::class, 'client_id', 'id');
     }
-    public function colorThemes()
-    {
-        return $this->hasMany(ColorTheme::class, 'app_id');
-    }
+
+
     public function banners()
     {
-        return $this->hasMany(AppBanner::class, 'app_id');
+        return $this->hasMany(AppBanner::class, 'app_id', 'id'); // make sure app_banners table has app_id
     }
-    // To directly get the related ColorTheme models via pivot table
+
     public function themes()
     {
         return $this->belongsToMany(
@@ -39,8 +40,7 @@ class App extends Model
             'app_themes',      // pivot table
             'app_id',          // foreign key on pivot table for this model
             'theme_id'         // foreign key on pivot table for related model
-        );
+        )->with('colorCodes'); // eager load colorCodes
     }
-
 
 }

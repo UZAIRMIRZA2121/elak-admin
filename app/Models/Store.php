@@ -927,5 +927,16 @@ class Store extends Model
     {
         return $this->morphMany(OrderTax::class, 'store');
     }
+    public function parent()
+    {
+        return $this->belongsTo(Store::class, 'parent_id');
+    }
 
+    /**
+     * Get all child stores
+     */
+    public function children()
+    {
+        return $this->hasMany(Store::class, 'parent_id');
+    }
 }
