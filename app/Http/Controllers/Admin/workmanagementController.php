@@ -25,13 +25,13 @@ class workmanagementController extends Controller
             $search = $request->input('search');
 
           $WorkManagements = WorkManagement::query()
-            ->leftJoin('voucher_types', 'work_management.voucher_id', '=', 'voucher_types.id')
+            ->leftJoin('voucher_types', 'work_managements.voucher_id', '=', 'voucher_types.id')
             ->when($search, function ($q) use ($search) {
-                $q->where('work_management.guide_title', 'like', "%{$search}%")
+                $q->where('work_managements.guide_title', 'like', "%{$search}%")
                 ->orWhere('voucher_types.name', 'like', "%{$search}%");
             })
-            ->orderBy('work_management.guide_title', 'asc')
-            ->select('work_management.*', 'voucher_types.name as voucher_name')
+            ->orderBy('work_managements.guide_title', 'asc')
+            ->select('work_managements.*', 'voucher_types.name as voucher_name')
             ->paginate(config('default_pagination'));
             // dd($WorkManagements);
             return view('admin-views.work_management.index', compact('WorkManagements'));
