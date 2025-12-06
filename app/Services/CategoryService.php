@@ -31,7 +31,7 @@ class CategoryService
             'parent_id' => $request->parent_id == null ? 0 : $request->parent_id,
             'position' => $request->position,
             'module_id' => isset($request->parent_id) ? $parentCategory['module_id'] : Config::get('module.current_module_id'),
-            'schedule_status' => $request->has('schedule_status') ? 1 : 0,
+            'schedule_status' =>$request->has('schedule_status') ? 'active' : 'inactive',
             'start_date' => $request->start_date ?: null,
             'end_date' => $request->end_date ?: null,
         ];
@@ -41,8 +41,9 @@ class CategoryService
     public function getUpdateData(CategoryUpdateRequest $request, object $object): array
     {
         $slug = Str::slug($request->name[array_search('default', $request->lang)]);
+  
         return [
-             'schedule_status' => $request->has('schedule_status') ? 1 : 0,
+            'schedule_status' => $request->has('schedule_status') ? 'active' : 'inactive',
             'start_date' => $request->start_date ?: null,
             'end_date' => $request->end_date ?: null,
             'slug' => $object->slug ?? "{$slug}{$object->id}",

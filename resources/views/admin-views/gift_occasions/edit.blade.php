@@ -77,7 +77,7 @@
                     <img src="{{ asset('public/assets/admin/img/edit.png') }}" class="w--26" alt="">
                 </span>
                 <span>
-                    Edit Gift Occasions Edit11
+                    Edit Gift Occasions Edit
                 </span>
             </h1>
         </div>
@@ -128,10 +128,6 @@
                                                     <div id="img-{{ $img }}"class="position-relative d-inline-block"
                                                         style="width: 120px; overflow: hidden; border-radius: 6px;">
 
-                                                        <!-- IMG -->
-                                                        <img src="{{ asset($img) }}" class="img-thumbnail"
-                                                            style="width: 120px; height:auto;">
-
                                                         <!-- Delete Button Inside Image -->
 
                                                         <a class="btn btn-danger deleteOccasion"
@@ -152,6 +148,11 @@
                                                                     ">
                                                             X
                                                         </a>
+
+                                                        <!-- IMG -->
+                                                        <img src="{{ asset('public/' . $img) }}" class="img-thumbnail"
+                                                            style="width: 120px; height:auto;">
+
 
                                                     </div>
                                                 @endforeach
@@ -208,10 +209,11 @@
                     _token: "{{ csrf_token() }}"
                 },
                 success: function(response) {
-                    
-                 
+
+
                     toastr.success(response.message);
 
+                    window.location.reload();
 
 
                 }
