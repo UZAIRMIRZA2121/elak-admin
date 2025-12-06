@@ -223,7 +223,7 @@
                                 {{-- Client Created At --}}
                                 <td class="text-center">
                                     <div class="d-inline-block" style="width:50px; height:50px; cursor:pointer;">
-                                        <img src="{{ asset($Voucher->logo) }}"
+                                        <img src="{{ asset('public/'.$Voucher->logo) }}"
                                             class="img-fluid rounded open-image-modal"
                                             alt="Client Logo"
                                             style="width:100%; height:100%; object-fit:cover;">

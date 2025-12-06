@@ -319,7 +319,7 @@
                             if (response.images && response.images.length > 0) {
                                 response.images.forEach(function(image) {
                                     // Assuming `image.url` is like 'uploads/file.jpg' (relative to storage/app/public)
-                                    const publicUrl = `/public/${image.url}`;
+                                    const publicUrl = `${image.url}`;
 
                                     galleryHtml += `
                                     <div class="col-md-4 col-sm-6 mb-3">
