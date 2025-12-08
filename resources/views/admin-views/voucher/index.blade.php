@@ -1607,7 +1607,7 @@
                                 onclick="toggleAccordion(${item.id})">
                                 
                                 <div class="d-flex align-items-center flex-grow-1">
-                                    <input type="checkbox"
+                                    <input type="checkbox" name="howto_work[]"
                                         class="form-check-input record-checkbox me-3"
                                         id="record_${item.id}"
                                         data-item-id="${item.id}">
@@ -2278,12 +2278,12 @@
             });
         }
 
-        $('#item_form').on('submit', function(e) {
-            e.preventDefault();
+
+          $('#item_form').on('submit', function(e) {
             $('#submitButton').attr('disabled', true);
+            e.preventDefault();
 
             let formData = new FormData(this);
-
             $.ajax({
                 url: '{{ route('admin.Voucher.store') }}',
                 type: 'POST',
@@ -2299,20 +2299,115 @@
                 },
                 success: function(data) {
                     $('#loading').hide();
-                    if (data.errors) {
-                        data.errors.forEach(err =>
-                            toastr.error(err.message, { CloseButton: true, ProgressBar: true })
-                        );
-                    } else {
-                        toastr.success("{{ translate('messages.product_added_successfully') }}", {
-                            CloseButton: true,
-                            ProgressBar: true
+                    $('#submitButton').attr('disabled', false);
+
+                    if (data.errors && Array.isArray(data.errors)) {
+                        data.errors.forEach(function(err) {
+                            toastr.error(err.message, { CloseButton: true, ProgressBar: true });
                         });
-                        setTimeout(() => location.href = "{{ route('admin.Voucher.list') }}", 1000);
+                        return;
+                    }
+
+                    toastr.success("{{ translate('messages.product_added_successfully') }}", {
+                        CloseButton: true,
+                        ProgressBar: true
+                    });
+                    setTimeout(() => location.href = "{{ route('admin.Voucher.list') }}", 1000);
+                },
+                error: function(xhr) {
+                    $('#loading').hide();
+                    $('#submitButton').attr('disabled', false);
+
+                    if (xhr.responseJSON && xhr.responseJSON.errors) {
+                        let errors = xhr.responseJSON.errors;
+                        $.each(errors, function(key, err) {
+                            toastr.error(err.message);
+                        });
+                    } else {
+                        toastr.error("Something went wrong");
                     }
                 }
             });
+
+           
         });
+
+
+        // $('#item_form').on('submit', function(e) {
+        //     e.preventDefault();
+        //     $('#submitButton').attr('disabled', true);
+
+        //     let formData = new FormData(this);
+
+        //     $.ajax({
+        //     url: '{{ route('admin.Voucher.store') }}',
+        //     type: 'POST',
+        //     data: formData,
+        //     cache: false,
+        //     contentType: false,
+        //     processData: false,
+        //     headers: {
+        //         'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+        //     },
+        //     beforeSend: function() {
+        //         $('#loading').show();
+        //     },
+        //     success: function(data) {
+        //         $('#loading').hide();
+
+        //         toastr.success("{{ translate('messages.product_added_successfully') }}", {
+        //             CloseButton: true,
+        //             ProgressBar: true
+        //         });
+        //         setTimeout(() => location.href = "{{ route('admin.Voucher.list') }}", 1000);
+        //     },
+        //     error: function(xhr) {
+        //         $('#loading').hide();
+
+        //         // Laravel validation errors
+        //         if (xhr.status === 422) {
+        //             let errors = xhr.responseJSON.errors;
+
+        //             $.each(errors, function(key, value) {
+        //                 toastr.error(value[0], { CloseButton: true, ProgressBar: true });
+        //             });
+        //         } else {
+        //             toastr.error("{{ translate('messages.failed_to_load_branches') }}");
+        //         }
+
+        //         $('#submitButton').attr('disabled', false);
+        //     }
+        // });
+
+            // $.ajax({
+            //     url: '{{ route('admin.Voucher.store') }}',
+            //     type: 'POST',
+            //     data: formData,
+            //     cache: false,
+            //     contentType: false,
+            //     processData: false,
+            //     headers: {
+            //         'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+            //     },
+            //     beforeSend: function() {
+            //         $('#loading').show();
+            //     },
+            //     success: function(data) {
+            //         $('#loading').hide();
+            //         if (data.errors) {
+            //             data.errors.forEach(err =>
+            //                 toastr.error(err.message, { CloseButton: true, ProgressBar: true })
+            //             );
+            //         } else {
+            //             toastr.success("{{ translate('messages.product_added_successfully') }}", {
+            //                 CloseButton: true,
+            //                 ProgressBar: true
+            //             });
+            //             setTimeout(() => location.href = "{{ route('admin.Voucher.list') }}", 1000);
+            //         }
+            //     }
+            // });
+        // });
 
         $(function() {
             $("#coba").spartanMultiImagePicker({
