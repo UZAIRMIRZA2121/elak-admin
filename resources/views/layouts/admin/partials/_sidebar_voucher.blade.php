@@ -859,14 +859,14 @@
                         </a>
                     </li>
                    @endif --}}
-                   <li class="navbar-vertical-aside-has-menu ">
+                   {{-- <li class="navbar-vertical-aside-has-menu ">
                         <a class="js-navbar-vertical-aside-menu-link nav-link" href="#" title="{{ translate('Product Unit') }}">
                             <i class="tio-ruler nav-icon"></i>
                             <span class="navbar-vertical-aside-mini-mode-hidden-elements text-truncate text-capitalize">
                                 {{ translate('Product Condition') }}
                             </span>
                         </a>
-                   </li>
+                   </li> --}}
                    <li class="navbar-vertical-aside-has-menu ">
                         <a class="js-navbar-vertical-aside-menu-link nav-link" href="#" title="{{ translate('messages.units') }}">
                             <i class="tio-ruler nav-icon"></i>
