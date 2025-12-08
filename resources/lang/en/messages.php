@@ -8387,4 +8387,5 @@ Smartly or Earn. ',
   'Products Data' => 'Products Data',
   'Base Price' => 'Base Price',
   'Variations' => 'Variations',
+  'Sub-Category' => 'Sub-Category',
 );

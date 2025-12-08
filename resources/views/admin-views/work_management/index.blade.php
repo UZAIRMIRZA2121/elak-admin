@@ -33,7 +33,7 @@
     }
 
     /* Tag ke andar remove (x) button */
-    .select2-container--bootstrap4 .select2-selection__choice__remove {
+    .select2-container--bootstrap4 .select2-selection_choice_remove {
         margin-right: 6px;
         font-weight: bold;
         cursor: pointer;
@@ -326,7 +326,6 @@
     <script src="{{asset('public/assets/admin')}}/js/view-pages/segments-index.js"></script>
 
  <script src="{{asset('public/assets/admin')}}/js/view-pages/client-side-index.js"></script>
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.full.min.js"></script>
 
 <script>
@@ -397,7 +396,7 @@ function viewWorkDetails(workId) {
                     `;
 
                     $.each(section.steps, function(stepIndex, step) {
-                        sectionsHtml += `<li class="mb-2">${step}</li>`;
+                        sectionsHtml += <li class="mb-2">${step}</li>;
                     });
 
                     sectionsHtml += `
