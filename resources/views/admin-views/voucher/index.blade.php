@@ -2503,6 +2503,8 @@
                 return;
             }
 
+
+
             
          $.ajax({
                 url: "{{ route('admin.Voucher.get_branches') }}",
