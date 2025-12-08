@@ -2503,6 +2503,7 @@
                 return;
             }
 
+            
          $.ajax({
                 url: "{{ route('admin.Voucher.get_branches') }}",
                 type: "GET",
@@ -2516,7 +2517,7 @@
                     });
 
 
-                    
+
                     // 🟩 CATEGORIES
                     $('#categories').empty().append('<option value="">{{ translate("messages.select_category") }}</option>');
                     if (response.categories && response.categories.categories) {
