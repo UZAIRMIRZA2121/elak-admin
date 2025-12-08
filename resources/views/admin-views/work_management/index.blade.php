@@ -33,7 +33,7 @@
     }
 
     /* Tag ke andar remove (x) button */
-    .select2-container--bootstrap4 .select2-selection_choice_remove {
+    .select2-container--bootstrap4 .select2-selection__choice__remove {
         margin-right: 6px;
         font-weight: bold;
         cursor: pointer;
@@ -144,8 +144,8 @@
 
                                         {{-- Guide Title --}}
                                         <td class="text-center">
-                                            <span title="{{ $UsageTerm->guid_title }}" class="font-size-sm text-body mr-3">
-                                                {{ Str::limit($UsageTerm->guid_title, 20, '...') }}
+                                            <span title="{{ $UsageTerm->guide_title }}" class="font-size-sm text-body mr-3">
+                                                {{ Str::limit($UsageTerm->guide_title, 20, '...') }}
                                             </span>
                                         </td>
 
@@ -396,7 +396,7 @@ function viewWorkDetails(workId) {
                     `;
 
                     $.each(section.steps, function(stepIndex, step) {
-                        sectionsHtml += <li class="mb-2">${step}</li>;
+                        sectionsHtml += `<li class="mb-2">${step}</li>`;
                     });
 
                     sectionsHtml += `
