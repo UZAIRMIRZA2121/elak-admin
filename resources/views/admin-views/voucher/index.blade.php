@@ -2515,6 +2515,8 @@
                         $('#sub-branch').append('<option value="'+ branch.id +'"> ' + branch.name + ' ('+ branch.type +')</option>');
                     });
 
+
+                    
                     // 🟩 CATEGORIES
                     $('#categories').empty().append('<option value="">{{ translate("messages.select_category") }}</option>');
                     if (response.categories && response.categories.categories) {
