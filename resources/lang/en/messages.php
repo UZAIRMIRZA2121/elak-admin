@@ -8388,4 +8388,8 @@ Smartly or Earn. ',
   'Base Price' => 'Base Price',
   'Variations' => 'Variations',
   'Sub-Category' => 'Sub-Category',
+  'Client Information' => 'Client Information',
+  'The description field is required.' => 'The description field is required.',
+  'The bundle offer type field is required.' => 'The bundle offer type field is required.',
+  'The price hidden field is required.' => 'The price hidden field is required.',
 );
