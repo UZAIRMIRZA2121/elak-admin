@@ -408,6 +408,16 @@ Route::group(['namespace' => 'Admin', 'as' => 'admin.'], function () {
         });
         // Management Types
 
+          Route::group(['prefix' => 'brand', 'as' => 'brand.'], function () {
+            Route::get('add-new', 'BrandController@index')->name('add-new');
+            Route::get('list', 'BrandController@list')->name('list');
+            Route::post('store', 'BrandController@store')->name('store');
+            Route::get('edit/{id}', 'BrandController@edit')->name('edit');
+            Route::post('update/{id}', 'BrandController@update')->name('update');
+            Route::delete('delete/{id}', 'BrandController@delete')->name('delete');
+            Route::post('status/{id}', 'BrandController@status')->name('status');
+        });
+
         // Management Types
         Route::group(['prefix' => 'HolidayandOccasion', 'as' => 'HolidayandOccasion.'], function () {
             Route::get('add-new', 'HolidayandOccasionController@index')->name('add-new');
