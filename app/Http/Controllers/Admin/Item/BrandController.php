@@ -36,6 +36,7 @@ class BrandController extends BaseController
 
     public function index(?Request $request): View|Collection|LengthAwarePaginator|null
     {
+        
         return $this->getListView($request);
     }
 

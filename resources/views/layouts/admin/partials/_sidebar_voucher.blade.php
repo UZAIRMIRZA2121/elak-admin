@@ -868,7 +868,10 @@
                         </a>
                    </li> --}}
                    <li class="navbar-vertical-aside-has-menu ">
-                        <a class="js-navbar-vertical-aside-menu-link nav-link" href="#" title="{{ translate('messages.units') }}">
+                       <a class="js-navbar-vertical-aside-menu-link nav-link" 
+   href="{{ url('admin/brand') }}" 
+   title="{{ translate('Product Brands') }}">
+
                             <i class="tio-ruler nav-icon"></i>
                             <span class="navbar-vertical-aside-mini-mode-hidden-elements text-truncate text-capitalize">
                                 {{ translate('Product Brands') }}
