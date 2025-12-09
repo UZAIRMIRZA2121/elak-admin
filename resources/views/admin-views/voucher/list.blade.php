@@ -241,17 +241,45 @@
                                 </a>
                             </td>
 
-                                {{-- <td title="{{ $item?->category?->name }}"> --}}
-                            {{-- {{Str::limit($item->category?$item->category->name:translate('messages.category_deleted'),20,'...')}}
-                            </td> --}}
-                             @php( $categories = \App\Models\Category::whereIn('id', json_decode($item->category_ids))->pluck('name')->toArray()  )
+                            <td>
+                                @php
+                                    // Get first valid category ID
+                                    $catId = null;
+                                    
+                                    // Try from category_id first
+                                    if ($item->category_id && is_numeric($item->category_id)) {
+                                        $catId = $item->category_id;
+                                    } else {
+                                        // Try from category_ids
+                                        $decoded = json_decode($item->category_ids, true);
+                                        if (is_array($decoded)) {
+                                            foreach ($decoded as $cat) {
+                                                if (is_string($cat)) {
+                                                    $catId = $cat;
+                                                    break;
+                                                } elseif (is_array($cat) && isset($cat['id'])) {
+                                                    $catId = $cat['id'];
+                                                    break;
+                                                }
+                                            }
+                                        }
+                                    }
+                                    
+                                    // Show category name
+                                    if ($catId) {
+                                        $category = \App\Models\Category::find($catId);
+                                        echo $category ? $category->name : 'N/A';
+                                    } else {
+                                        echo 'N/A';
+                                    }
+                                @endphp
+                            </td>
 
                             <td>
-                                {!! implode('<br>,', $categories) !!}
-                            </td>
-                                @php( $Segment = \App\Models\Segment::whereIn('id', json_decode($item->segment_ids))->pluck('name')->toArray())
-                            <td>
-                                    {!! implode('<br>,', $Segment) !!}
+                                @php
+                                    $segments = \App\Models\Segment::whereIn('id', json_decode($item->segment_ids, true) ?? [])->pluck('name');
+                                @endphp
+                                {!! $segments->isNotEmpty() ? implode('<br>', $segments->toArray()) : 'N/A' !!}
                             </td>
 
                                 <td>
