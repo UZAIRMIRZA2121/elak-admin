@@ -367,7 +367,7 @@ class ItemController extends Controller
         $item->discount = $request->discount_type == 'amount' ? $request->discount : $request->discount;
         $item->discount_type = $request->discount_type;
         $item->unit_id = $request->unit;
-        $item->food_and_product_type = $request->hidden_food_and_product;
+        $item->type = $request->hidden_food_and_product;
         $item->attributes = $request->has('attribute_id') ? json_encode($request->attribute_id) : json_encode([]);
         $item->add_ons = $request->has('addon_ids') ? json_encode($request->addon_ids) : json_encode([]);
         $item->store_id = $request->store_id;

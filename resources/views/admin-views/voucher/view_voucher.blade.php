@@ -53,7 +53,7 @@
                             </tr>
                             <tr>
                                 <th>{{ translate('Food & Product Type') }}</th>
-                                <td>{{ $product->food_and_product_type ?? 'N/A' }}</td>
+                                <td>{{ $product->type ?? 'N/A' }}</td>
                             </tr>
                             <tr>
                                 <th>{{ translate('Required Quantity') }}</th>
