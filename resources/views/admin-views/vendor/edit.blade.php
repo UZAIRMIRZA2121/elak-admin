@@ -372,8 +372,8 @@
                                         @endforeach
                                     </select>
                                 </div> --}}
-                                    <?php
-                                    $selectedVoucherIds = $store->category_id ? json_decode($store->category_id, true) : [];
+                                    {{-- <?php
+                                    // $selectedVoucherIds = $store->category_id ? json_decode($store->category_id, true) : [];
                                     ?>
                                     <div class="form-group">
                                         <label class="input-label" for="category_id">{{ translate('Category') }}
@@ -386,16 +386,15 @@
                                             data-placeholder="{{ translate('Select Category') }}" multiple>
                                             @foreach (\App\Models\Category::get() as $VoucherType)
                                                 <option value="{{ $VoucherType->id }}"
-                                                    @if (
-                                                        (old('category_id') && in_array($VoucherType->id, old('category_id'))) ||
-                                                            (isset($selectedVoucherIds) && in_array($VoucherType->id, $selectedVoucherIds))) selected @endif>
+                                                    @if ((old('category_id') && in_array($VoucherType->id, old('category_id'))) || (isset($selectedVoucherIds) && in_array($VoucherType->id, $selectedVoucherIds))) selected @endif>
                                                     {{ $VoucherType->name }}
                                                 </option>
                                             @endforeach
                                         </select>
-                                    </div>
+                                    </div> --}}
 
                                 </div>
+
                                 {{-- <div class="col-lg-8">
                                     <input id="pac-input" class="controls rounded"
                                         data-toggle="tooltip" data-placement="right" data-original-title="{{ translate('messages.search_your_location_here') }}" type="text" placeholder="{{ translate('messages.search_here') }}" />
@@ -404,10 +403,7 @@
                                         <label class="input-label" for="bonus_tiers">{{translate('Bonus Tiers')}}</label>
                                         <input type="text" id="bonus_tiers" value="{{$store->bonus_tiers}}"  name="bonus_tiers" class="form-control" placeholder="Bonus Tiers"  required >
                                     </div>
-                                    <div class="form-group">
-                                        <label class="input-label" for="limit_frm">{{translate('Limit From')}}</label>
-                                        <input type="text" id="limit_frm" value="{{$store->limit_from}}" name="limit_frm" class="form-control" placeholder="Limit From"  required >
-                                    </div>
+                                 
                                     <div class="form-group">
                                         <label class="input-label" for="limit_to">{{translate('Limit To')}}</label>
                                         <input type="text" id="limit_to" value="{{$store->limit_to}}" name="limit_to" class="form-control" placeholder="Limit To"  required >
@@ -618,20 +614,20 @@
                             <div class="row g-3">
                                 <div class="col-md-8 col-xxl-9">
                                     <div class="bg--secondary rounded p-20 h-100">
-                                        <div class="form-group">
+
+                                        <div class="form-group mb-0">
                                             <label class="input-label mb-2 d-block title-clr fw-normal"
-                                                for="exampleFormControlInput1">{{ translate('Taxpayer Identification Number(TIN)') }}
-                                                <span class="text-danger">*</span></label>
-                                            <input type="text" name="tin"
-                                                placeholder="{{ translate('Type Your Taxpayer Identification Number(TIN)') }}"
-                                                class="form-control" value="{{ $store->tin }}" required>
+                                                for="exampleFormControlInput1">{{ translate('Start Date') }} <span
+                                                    class="text-danger">*</span></label>
+                                            <input type="date" name="agreement_start_date" class="form-control"
+                                                value="{{ $store->agreement_start_date }}" required>
                                         </div>
                                         <div class="form-group mb-0">
                                             <label class="input-label mb-2 d-block title-clr fw-normal"
                                                 for="exampleFormControlInput1">{{ translate('Expire Date') }} <span
                                                     class="text-danger">*</span></label>
-                                            <input type="date" name="tin_expire_date" class="form-control"
-                                                value="{{ $store->tin_expire_date }}" required>
+                                            <input type="date" name="agreement_expire_date" class="form-control"
+                                                value="{{ $store->agreement_expire_date }}" required>
                                         </div>
                                     </div>
                                 </div>
@@ -659,8 +655,12 @@
                                             <!-- Upload box -->
                                             <div class="d-flex justify-content-center" id="pdf-container">
                                                 <div class="document-upload-wrapper d-none" id="doc-upload-wrapper">
-                                                    <input type="file" name="tin_certificate_image"
-                                                        class="document_input" accept=".doc, .pdf, .jpg, .png, .jpeg">
+
+
+                                                    <!-- Multiple files allowed -->
+                                                    <input type="file" name="agreement_certificate_image[]"
+                                                        class="document_input" accept=".doc,.docx,.pdf,.jpg,.png,.jpeg"
+                                                        multiple>
                                                     <div class="textbox">
                                                         <img width="40" height="40" class="svg"
                                                             src="{{ asset('public/assets/admin/img/doc-uploaded.png') }}"
@@ -670,40 +670,64 @@
                                                             here</p>
                                                     </div>
                                                 </div>
-                                                <div class="pdf-single" data-file-name="${file.name}"
-                                                    data-file-url="{{ $store->tin_certificate_image_full_url ?? asset('public/assets/admin/img/upload-cloud.png') }}">
-                                                    <div class="pdf-frame">
-                                                        @php($imgPath = $store->tin_certificate_image_full_url ?? asset('public/assets/admin/img/upload-cloud.png'))
-                                                        @if (Str::endsWith($imgPath, ['.pdf', '.doc', '.docx']))
-                                                            @php($imgPath = asset('public/assets/admin/img/document.svg'))
-                                                        @endif
-                                                        <img class="pdf-thumbnail-alt" src="{{ $imgPath }}"
-                                                            alt="File Thumbnail">
-                                                    </div>
-                                                    <div class="overlay">
-                                                        <div class="pdf-info">
-                                                            @if (Str::endsWith($imgPath, ['.pdf', '.doc', '.docx']))
-                                                                <img src="{{ asset('public/assets/admin/img/document.svg') }}"
-                                                                    width="34" alt="File Type Logo">
-                                                            @else
-                                                                <img src="{{ asset('public/assets/admin/img/picture.svg') }}"
-                                                                    width="34" alt="File Type Logo">
-                                                            @endif
-                                                            <div class="file-name-wrapper">
-                                                                <span
-                                                                    class="file-name js-filename-truncate">{{ $store->tin_certificate_image }}</span>
-                                                                <span class="opacity-50">Click to view the file</span>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
+
                                             </div>
                                         </div>
                                     </div>
                                 </div>
+
+                                @if ($store->agreement_certificate_image)
+                                    @foreach (json_decode($store->agreement_certificate_image) as $index => $file)
+                                        <?php
+                                        $ext = pathinfo($file, PATHINFO_EXTENSION);
+                                        ?>
+
+
+                                        <div class="file-box" id="file-{{ $index }}">
+                                            <button class="delete-file-btn" data-index="{{ $index }}"
+                                                data-store-id="{{ $store->id }}">&times;</button>
+
+                                            @if (in_array($ext, ['jpg', 'jpeg', 'png', 'gif']))
+                                                <img src="{{ asset('storage/store/' . $file) }}" alt="Agreement Image"
+                                                    class="clickable-file" data-type="image">
+                                            @elseif($ext === 'pdf')
+                                                <div class="pdf-clickable clickable-file"
+                                                    data-src="{{ asset('storage/store/' . $file) }}" data-type="pdf">
+                                                    <embed
+                                                        src="{{ asset('storage/store/' . $file) }}#toolbar=0&navpanes=0&scrollbar=0"
+                                                        type="application/pdf" class="pdf-preview">
+                                                    <div class="pdf-label">PDF</div>
+                                                </div>
+                                            @endif
+                                        </div>
+                                    @endforeach
+                                @endif
+
+                                <!-- Modal for preview -->
+                                <div class="modal fade" id="filePreviewModal" tabindex="-1" aria-hidden="true">
+                                    <div class="modal-dialog modal-dialog-centered modal-xl">
+                                        <div class="modal-content">
+                                            <div class="modal-body p-0 text-center">
+                                                <img id="previewImage" src=""
+                                                    style="max-width:100%; display:none;">
+                                                <iframe id="previewPDF" src=""
+                                                    style="width:100%; height:80vh; display:none;"
+                                                    frameborder="0"></iframe>
+                                            </div>
+                                            <div class="modal-footer justify-content-center">
+                                                <button type="button" class="btn btn-secondary"
+                                                    data-bs-dismiss="modal">Close</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+
+
                             </div>
                         </div>
                     </div>
+
                 </div>
                 <div class="col-lg-12">
                     <div class="btn--container justify-content-end">
@@ -715,6 +739,99 @@
             </div>
         </form>
     </div>
+
+    <style>
+        .file-box {
+            position: relative;
+            display: inline-block;
+            width: 200px;
+            height: 200px;
+            margin: 10px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            overflow: hidden;
+            text-align: center;
+            vertical-align: top;
+            background: #f9f9f9;
+        }
+
+        .file-box img,
+        .file-box .pdf-preview {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .delete-file-btn {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background: red;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            font-size: 16px;
+            line-height: 20px;
+            cursor: pointer;
+            z-index: 10;
+        }
+
+        .delete-file-btn:hover {
+            background: darkred;
+        }
+
+        .pdf-preview {
+            width: 100%;
+            height: 100%;
+        }
+
+        .file-box {
+            position: relative;
+            display: inline-block;
+            width: 200px;
+            height: 200px;
+            margin: 10px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            overflow: hidden;
+            text-align: center;
+            vertical-align: top;
+            background: #f9f9f9;
+            cursor: pointer;
+        }
+
+        .file-box img,
+        .file-box .pdf-preview {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .delete-file-btn {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background: red;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            font-size: 16px;
+            line-height: 20px;
+            cursor: pointer;
+            z-index: 10;
+        }
+
+        .delete-file-btn:hover {
+            background: darkred;
+        }
+    </style>
+
+
+
 
 @endsection
 
@@ -729,7 +846,58 @@
         src="https://maps.googleapis.com/maps/api/js?key={{ \App\Models\BusinessSetting::where('key', 'map_api_key')->first()->value }}&libraries=places&callback=initMap&v=3.45.8">
     </script>
 <script>
-    
+$(document).on('click', '.clickable-file', function() {
+    let type = $(this).data('type');
+    let src;
+
+    if(type === 'image'){
+        src = $(this).attr('src');
+        $('#previewImage').attr('src', src).show();
+        $('#previewPDF').hide();
+    } else if(type === 'pdf'){
+        src = $(this).data('src'); // URL to PDF
+        $('#previewPDF').attr('src', src).show();
+        $('#previewImage').hide();
+    }
+
+    var myModal = new bootstrap.Modal(document.getElementById('filePreviewModal'), {
+        keyboard: true
+    });
+    myModal.show();
+});
+</script>
+
+
+
+    <script>
+        $(document).on('click', '.delete-file-btn', function() {
+
+            let index = $(this).data('index');
+            let storeId = $(this).data('store-id');
+
+            if (!confirm('Are you sure you want to delete this file?')) return;
+
+            $.ajax({
+                url: "{{ route('admin.store.deleteFile') }}",
+                method: 'POST',
+                data: {
+                    _token: "{{ csrf_token() }}",
+                    store_id: storeId,
+                    index: index
+                },
+                success: function(res) {
+                    if (res.success) {
+                        $('#file-' + index).remove(); // remove from DOM
+
+                    } else {
+                        alert('Something went wrong.');
+                    }
+                }
+            });
+        });
+    </script>
+
+    <script>
         document.addEventListener('DOMContentLoaded', function() {
             const staffContainer = document.getElementById('staffContainer');
             const addStaffBtn = document.getElementById('addStaffBtn');
@@ -800,7 +968,7 @@
             // Initialize hidden input on page load
             updateStaffData();
         });
-</script>
+    </script>
     <script>
         $(document).ready(function() {
             $('#voucher_id').select2({
@@ -1165,14 +1333,5 @@
 
             previewFile('#tin_certificate_image', '#logoImageViewer2', '.upload-file__textbox');
         });
-
-
-
-
-
-
-
-
-
     </script>
 @endpush
