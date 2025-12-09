@@ -8388,4 +8388,6 @@ Smartly or Earn. ',
   'Base Price' => 'Base Price',
   'Variations' => 'Variations',
   'Sub-Category' => 'Sub-Category',
+  'Branch' => 'Branch',
+  'Sub branch of' => 'Sub branch of',
 );

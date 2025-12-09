@@ -437,8 +437,6 @@ Route::group(['namespace' => 'Admin', 'as' => 'admin.'], function () {
         });
         // Management Types
 
-
-
         // App Mobile
         Route::group(['prefix' => 'app', 'as' => 'app.'], function () {
             Route::get('add-new', 'AppController@index')->name('add-new');
@@ -458,6 +456,8 @@ Route::group(['namespace' => 'Admin', 'as' => 'admin.'], function () {
         });
 
         Route::group(['prefix' => 'store', 'as' => 'store.'], function () {
+       
+
             Route::get('get-stores-data/{store}', 'VendorController@get_store_data')->name('get-stores-data');
             Route::get('store-filter/{id}', 'VendorController@store_filter')->name('store-filter');
             Route::get('get-account-data/{store}', 'VendorController@get_account_data')->name('store-filter1');
@@ -475,6 +475,7 @@ Route::group(['namespace' => 'Admin', 'as' => 'admin.'], function () {
                 Route::post('update-meta-data/{store}', 'VendorController@updateStoreMetaData')->name('update-meta-data');
                 Route::delete('delete/{store}', 'VendorController@destroy')->name('delete');
                 Route::delete('clear-discount/{store}', 'VendorController@cleardiscount')->name('clear-discount');
+                Route::post('delete-file', 'VendorController@deleteFile')->name('deleteFile');
                 // Route::get('view/{store}', 'VendorController@view')->name('view_tab');
                 Route::get('disbursement-export/{id}/{type}', 'VendorController@disbursement_export')->name('disbursement-export');
                 Route::get('view/{store}/{tab?}/{sub_tab?}', 'VendorController@view')->name('view');
