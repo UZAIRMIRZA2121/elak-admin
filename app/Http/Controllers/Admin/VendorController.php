@@ -64,28 +64,22 @@ class VendorController extends Controller
 
     public function store(Request $request)
     {
-     
-        $validator = Validator::make($request->all(), [
-            'f_name' => 'required|max:100',
-            'l_name' => 'nullable|max:100',
+        $rules = [
+
             'name.0' => 'required',
             'name.*' => 'max:191',
             'address' => 'required|max:1000',
             'latitude' => 'required',
             'longitude' => 'required',
-            // 'bonus_tiers' => 'nullable',
-            // 'limit_from' => 'nullable',
-            // 'flate_discount' => 'nullable',
-            // 'limit_to' => 'nullable',
             'voucher_id' => 'nullable|max:200',
             'parent_id' => 'nullable|max:200',
-            'category_id' => 'required|max:200',
             'type' => 'nullable|max:200',
             'email' => 'required|unique:vendors',
-            'phone' => 'required|regex:/^([0-9\s\-\+\(\)]*)$/|min:10|max:20|unique:vendors',
+
             'minimum_delivery_time' => 'nullable',
             'maximum_delivery_time' => 'nullable',
             'delivery_time_type' => 'nullable',
+
             'password' => [
                 'required',
                 Password::min(8)
@@ -101,16 +95,47 @@ class VendorController extends Controller
             ],
 
             'zone_id' => 'required',
-            // 'module_id' => 'required',
             'logo' => 'required',
             'tin' => 'nullable',
-
             'staff_data' => 'nullable',
             'agreement_start_date' => 'nullable',
             'agreement_expire_date' => 'nullable',
             'agreement_certificate_image' => 'nullable',
             'agreement_certificate_image.*' => 'mimes:doc,docx,pdf,jpg,png,jpeg|max:5000',
-        ], [
+        ];
+
+
+
+        if ($request->hiiden_check == "1") {
+            $type_value = "main";
+            $parent_id = "";
+            $rules['phone'] = 'required|regex:/^([0-9\s\-\+\(\)]*)$/|min:10|max:20';
+            // dd("main");
+        } else {
+            $type_value = "sub branch";
+            $parent_id = $request->parent_id;
+            // dd("sub branch");
+        }
+        $store = Store::where('id', $request->parent_id)->first();
+
+        // Make sure store exists
+        if ($store) {
+            // Split full name by space
+            $nameParts = explode(' ', $store->name);
+
+            $firstName = $nameParts[0]; // First word as first name
+            $lastName = isset($nameParts[1]) ? $nameParts[1] : ''; // Second word as last name (if exists)
+            $phone = $store->phone;
+
+
+
+        } else {
+            $firstName = $request->f_name;// First word as first name
+            $lastName = $request->l_name;
+            $phone = $request->phone;
+        }
+
+        $validator = Validator::make($request->all(), $rules, [
             'f_name.required' => translate('messages.first_name_is_required'),
             'name.0.required' => translate('default_name_is_required'),
         ]);
@@ -141,33 +166,26 @@ class VendorController extends Controller
                 ->withInput();
         }
 
-        if ($request->hiiden_check == "1") {
-            $type_value = "main";
-            $parent_id = "";
-            // dd("main");
-        } else {
-            $type_value = "sub branch";
-            $parent_id = $request->parent_id;
-            // dd("sub branch");
-        }
+
+
 
         $vendor = new Vendor();
-        $vendor->f_name = $request->f_name;
-        $vendor->l_name = $request->l_name;
+        $vendor->f_name = $firstName;
+        $vendor->l_name = $lastName;
         $vendor->email = $request->email;
-        $vendor->phone = $request->phone;
+        $vendor->phone = $phone;
         $vendor->password = bcrypt($request->password);
         $vendor->save();
 
-$certificate_paths = []; // default empty
+        $certificate_paths = []; // default empty
 
-if ($request->hasFile('agreement_certificate_image')) {
-    foreach ($request->file('agreement_certificate_image') as $file) {
-        $extension = $file->getClientOriginalExtension();
-        $path = Helpers::upload('store/', $extension, $file);
-        $certificate_paths[] = $path;
-    }
-}
+        if ($request->hasFile('agreement_certificate_image')) {
+            foreach ($request->file('agreement_certificate_image') as $file) {
+                $extension = $file->getClientOriginalExtension();
+                $path = Helpers::upload('store/', $extension, $file);
+                $certificate_paths[] = $path;
+            }
+        }
 
 
         $store = new Store;
@@ -201,15 +219,15 @@ if ($request->hasFile('agreement_certificate_image')) {
 
         // json values
         $store->voucher_id = json_encode($request->voucher_id);
-        $store->category_id = json_encode($request->category_id);
+        // $store->category_id = json_encode($request->category_id);
         $store->staff_data = $request->staff_data;
 
         // agreement fields
         $store->agreement_start_date = $request->agreement_start_date;
         $store->agreement_expire_date = $request->agreement_expire_date;
 
-      
-     
+
+
 
         $store->agreement_certificate_image = json_encode($certificate_paths);
 
@@ -230,7 +248,7 @@ if ($request->hasFile('agreement_certificate_image')) {
             // save data
             $store->save();
 
-              
+
             // $store->module->increment('stores_count');
             if (config('module.' . $store->module->module_type)['always_open']) {
                 StoreLogic::insert_schedule($store->id);
@@ -306,50 +324,73 @@ if ($request->hasFile('agreement_certificate_image')) {
 
     public function update(Request $request, Store $store)
     {
-        $validator = Validator::make($request->all(), [
-            'f_name' => 'required|max:100',
-            'l_name' => 'nullable|max:100',
-            'name' => 'required|max:191',
-            'email' => 'required|unique:vendors,email,' . $store->vendor->id,
-            'phone' => 'required|regex:/^([0-9\s\-\+\(\)]*)$/|min:10|max:20|unique:vendors,phone,' . $store->vendor->id,
-            'zone_id' => 'required',
+        $rules = [
+
+            'name.0' => 'required',
+            'name.*' => 'max:191',
+            'address' => 'required|max:1000',
             'latitude' => 'required',
             'longitude' => 'required',
-            'bonus_tiers' => 'nullable',
-            'limit_from' => 'nullable',
-            'flate_discount' => 'nullable',
-            'limit_to' => 'required',
-            'tin' => 'nullable',
             'voucher_id' => 'nullable|max:200',
             'parent_id' => 'nullable|max:200',
-            'category_id' => 'nullable|max:200',
             'type' => 'nullable|max:200',
-            'tin_expire_date' => 'required',
+            'email' => 'nullable',
+
+            'minimum_delivery_time' => 'nullable',
+            'maximum_delivery_time' => 'nullable',
+            'delivery_time_type' => 'nullable',
+
             'password' => [
                 'nullable',
-                Password::min(8)->mixedCase()->letters()->numbers()->symbols()->uncompromised(),
+                Password::min(8)
+                    ->mixedCase()
+                    ->letters()
+                    ->numbers()
+                    ->symbols(),
                 function ($attribute, $value, $fail) {
                     if (strpos($value, ' ') !== false) {
                         $fail('The :attribute cannot contain white spaces.');
                     }
                 },
             ],
-            'minimum_delivery_time' => 'required',
-            'maximum_delivery_time' => 'required',
-            'delivery_time_type' => 'required'
-        ], [
-            'f_name.required' => translate('messages.first_name_is_required')
-        ]);
+
+            'zone_id' => 'required',
+            'logo' => 'nullable',
+            'tin' => 'nullable',
+            'staff_data' => 'nullable',
+            'agreement_start_date' => 'nullable',
+            'agreement_expire_date' => 'nullable',
+            'agreement_certificate_image' => 'nullable',
+            'agreement_certificate_image.*' => 'mimes:doc,docx,pdf,jpg,png,jpeg|max:5000',
+
+
+            'f_name' => 'nullable|max:100',
+            'l_name' => 'nullable|max:100',
+            'phone' => 'nullable|regex:/^([0-9\s\-\+\(\)]*)$/|min:10|max:20',
+
+
+        ];
+
 
         if ($request->hiiden_check == "1") {
             $type_value = "main";
             $parent_id = "";
+
             // dd("main");
         } else {
             $type_value = "sub branch";
             $parent_id = $request->parent_id;
             // dd("sub branch");
         }
+
+
+
+        $validator = Validator::make($request->all(), $rules, [
+            'f_name.required' => translate('messages.first_name_is_required'),
+            'name.0.required' => translate('default_name_is_required'),
+        ]);
+
+
 
         if ($request->zone_id) {
             $zone = Zone::query()
@@ -358,24 +399,23 @@ if ($request->hasFile('agreement_certificate_image')) {
                 ->first();
             if (!$zone) {
                 $validator->getMessageBag()->add('latitude', translate('messages.coordinates_out_of_zone'));
-                return back()->withErrors($validator)
-                    ->withInput();
+                return back()->withErrors($validator)->withInput();
             }
         }
+
         if ($request->delivery_time_type == 'min') {
             $minimum_delivery_time = (int) $request->input('minimum_delivery_time');
             if ($minimum_delivery_time < 10) {
                 $validator->getMessageBag()->add('minimum_delivery_time', translate('messages.minimum_delivery_time_should_be_more_than_10_min'));
-                return back()->withErrors($validator)
-                    ->withInput();
+                return back()->withErrors($validator)->withInput();
             }
         }
 
         if ($validator->fails()) {
-            return back()
-                ->withErrors($validator)
-                ->withInput();
+            return back()->withErrors($validator)->withInput();
         }
+
+        // Vendor update
         $vendor = Vendor::findOrFail($store->vendor->id);
         $vendor->f_name = $request->f_name;
         $vendor->l_name = $request->l_name;
@@ -384,31 +424,75 @@ if ($request->hasFile('agreement_certificate_image')) {
         $vendor->password = strlen($request->password) > 1 ? bcrypt($request->password) : $store->vendor->password;
         $vendor->save();
 
+        // Store update
         $slug = Str::slug($request->name[array_search('default', $request->lang)]);
         $store->slug = $store->slug ? $store->slug : "{$slug}{$store->id}";
         $store->email = $request->email;
         $store->phone = $request->phone;
         $store->logo = $request->has('logo') ? Helpers::update('store/', $store->logo, 'png', $request->file('logo')) : $store->logo;
         $store->cover_photo = $request->has('cover_photo') ? Helpers::update('store/cover/', $store->cover_photo, 'png', $request->file('cover_photo')) : $store->cover_photo;
+
         $store->name = $request->name[array_search('default', $request->lang)];
         $store->address = $request->address[array_search('default', $request->lang)];
+
         $store->latitude = $request->latitude;
         $store->longitude = $request->longitude;
         $store->zone_id = $request->zone_id;
+
         $store->bonus_tiers = $request->bonus_tiers;
-        $store->limit_from = $request->limit_from;
-        $store->limit_to = $request->limit_to;
-        $store->flate_discount = $request->flate_discount;
+        // $store->limit_from = $request->limit_from;
+        // $store->limit_to = $request->limit_to;
+        // $store->flate_discount = $request->flate_discount;
+
         $store->parent_id = $parent_id;
         $store->type = $type_value;
+
         $store->category_id = json_encode($request->category_id);
         $store->voucher_id = json_encode($request->voucher_id);
+
         $store->tin = $request->tin;
-        $store->tin_expire_date = $request->tin_expire_date;
-        $extension = $request->has('tin_certificate_image') ? $request->file('tin_certificate_image')->getClientOriginalExtension() : 'png';
-        $store->tin_certificate_image = $request->has('tin_certificate_image') ? Helpers::update('store/', $store->tin_certificate_image, $extension, $request->file('tin_certificate_image')) : $store->tin_certificate_image;
-        $store->delivery_time = $request->minimum_delivery_time . '-' . $request->maximum_delivery_time . ' ' . $request->delivery_time_type;
+        // $store->tin_expire_date = $request->tin_expire_date;
+
+        // $extension = $request->has('tin_certificate_image')
+        //     ? $request->file('tin_certificate_image')->getClientOriginalExtension()
+        //     : 'png';
+
+        // $store->tin_certificate_image = $request->has('tin_certificate_image')
+        //     ? Helpers::update('store/', $store->tin_certificate_image, $extension, $request->file('tin_certificate_image'))
+        //     : $store->tin_certificate_image;
+
+        // ---------------------------------------
+        // MULTIPLE AGREEMENT CERTIFICATE UPDATE
+        // ---------------------------------------
+        $existingCertificates = json_decode($store->agreement_certificate_image, true) ?? [];
+
+        if ($request->hasFile('agreement_certificate_image')) {
+            foreach ($request->file('agreement_certificate_image') as $file) {
+                $ext = $file->getClientOriginalExtension();
+                $path = Helpers::upload('store/', $ext, $file);
+                $existingCertificates[] = $path;
+            }
+        }
+
+        $store->agreement_certificate_image = json_encode($existingCertificates);
+
+        // delivery time
+        $store->delivery_time =
+            $request->minimum_delivery_time .
+            '-' .
+            $request->maximum_delivery_time .
+            ' ' .
+            $request->delivery_time_type;
+
+        $store->agreement_start_date = $request->agreement_start_date;
+        $store->agreement_expire_date = $request->agreement_expire_date;
+
+        $store->staff_data = $request->staff_data;
+
         $store->save();
+
+
+        // Translation Update
         $default_lang = str_replace('_', '-', app()->getLocale());
         foreach ($request->lang as $index => $key) {
             if ($default_lang == $key && !($request->name[$index])) {
@@ -424,7 +508,6 @@ if ($request->hasFile('agreement_certificate_image')) {
                     );
                 }
             } else {
-
                 if ($request->name[$index] && $key != 'default') {
                     Translation::updateOrInsert(
                         [
@@ -437,6 +520,7 @@ if ($request->hasFile('agreement_certificate_image')) {
                     );
                 }
             }
+
             if ($default_lang == $key && !($request->address[$index])) {
                 if ($key != 'default') {
                     Translation::updateOrInsert(
@@ -450,7 +534,6 @@ if ($request->hasFile('agreement_certificate_image')) {
                     );
                 }
             } else {
-
                 if ($request->address[$index] && $key != 'default') {
                     Translation::updateOrInsert(
                         [
@@ -464,6 +547,8 @@ if ($request->hasFile('agreement_certificate_image')) {
                 }
             }
         }
+
+        // Update vendor userinfo
         if ($vendor->userinfo) {
             $userinfo = $vendor->userinfo;
             $userinfo->f_name = $store->name;
@@ -472,6 +557,7 @@ if ($request->hasFile('agreement_certificate_image')) {
             $userinfo->image = $store->logo;
             $userinfo->save();
         }
+
         Toastr::success(translate('messages.store_updated_successfully'));
         return redirect('admin/store/list');
     }
@@ -524,7 +610,7 @@ if ($request->hasFile('agreement_certificate_image')) {
 
     public function view(Request $request, $store_id, $tab = null, $sub_tab = 'cash')
     {
-      
+
         $voucher_ids = $request->voucher_ids;
         $bundle_type = $request->bundle_type;
         $category_search = $request->category;
@@ -533,7 +619,7 @@ if ($request->hasFile('agreement_certificate_image')) {
         $key = explode(' ', request()->search);
         $store = Store::findOrFail($store_id);
 
-    //    dd($item_type);
+        //    dd($item_type);
 
 
         if (addon_published_status('Rental') && $store->module_type == 'rental') {
@@ -636,7 +722,7 @@ if ($request->hasFile('agreement_certificate_image')) {
 
 
 
-             
+
             }
             $taxData = Helpers::getTaxSystemType(getTaxVatList: false);
             $productWiseTax = $taxData['productWiseTax'];
@@ -2341,4 +2427,40 @@ if ($request->hasFile('agreement_certificate_image')) {
 
         return response()->json($data);
     }
+
+
+
+
+
+
+
+
+
+    public function deleteFile(Request $request)
+    {
+        $store = Store::find($request->store_id);
+        if (!$store) {
+            return response()->json(['success' => false]);
+        }
+
+        $files = json_decode($store->agreement_certificate_image, true);
+
+        if (isset($files[$request->index])) {
+            // Delete file from storage
+            Storage::disk('public')->delete('store/' . $files[$request->index]);
+
+            // Remove file from array
+            unset($files[$request->index]);
+
+            // Reindex array
+            $files = array_values($files);
+
+            // Save back to DB
+            $store->agreement_certificate_image = json_encode($files);
+            $store->save();
+        }
+
+        return response()->json(['success' => true]);
+    }
+
 }

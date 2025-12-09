@@ -307,7 +307,7 @@
                                         </label>
                                         <input type="text" id="latitude" name="latitude" class="form-control"
                                             placeholder="{{ translate('messages.Ex:') }} -94.22213"
-                                            value="{{ old('latitude') }}" required readonly>
+                                            value="{{ old('latitude') }}"  >
                                     </div>
                                     <div class="form-group mb-5">
                                         <label class="input-label"
@@ -320,7 +320,7 @@
                                         </label>
                                         <input type="text" name="longitude" class="form-control"
                                             placeholder="{{ translate('messages.Ex:') }} 103.344322" id="longitude"
-                                            value="{{ old('longitude') }}" required readonly>
+                                            value="{{ old('longitude') }}"  >
                                     </div>
 
                                     <div class="form-group mb-5">
@@ -392,7 +392,7 @@
                                             @endforeach
                                         </select>
                                     </div> --}}
-                                    <div class="form-group">
+                                    {{-- <div class="form-group">
                                         <label class="input-label" for="category_id">{{ translate('Category') }}
                                             <span class="form-label-secondary" data-toggle="tooltip"
                                                 data-placement="right"
@@ -410,7 +410,7 @@
                                             @endforeach
 
                                         </select>
-                                    </div>
+                                    </div> --}}
 
                                 </div>
                                 <div class="col-lg-8">
@@ -441,7 +441,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="col-lg-12">
+                <div class="col-lg-12" id="owner_info_div"  style="display: none;"  >
                     <div class="card">
                         <div class="card-header">
                             <h4 class="card-title m-0 d-flex align-items-center">
@@ -730,6 +730,7 @@
         function toggleSections() {
             let checkbox = document.getElementById("type");
             let subBranch = document.getElementById("sub_branch_group");
+            let owner_info_div = document.getElementById("owner_info_div");
             let agreementSection = document.getElementById("agreement_section");
             let hiddenCheck = document.getElementById("hiiden_check");
 
@@ -737,10 +738,12 @@
                 // When checked → hide sub branch, hide agreement
                 subBranch.style.display = "none";
                 agreementSection.style.display = "block";
+                owner_info_div.style.display = "block";
                 hiddenCheck.value = "1";
             } else {
                 // When unchecked → show sub branch, show agreement
                 subBranch.style.display = "block";
+                   owner_info_div.style.display = "none";
                 agreementSection.style.display = "none";
                 hiddenCheck.value = "0";
             }
