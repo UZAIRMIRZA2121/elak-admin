@@ -8390,4 +8390,8 @@ Smartly or Earn. ',
   'Sub-Category' => 'Sub-Category',
   'Branch' => 'Branch',
   'Sub branch of' => 'Sub branch of',
+  'Client Information' => 'Client Information',
+  'The description field is required.' => 'The description field is required.',
+  'The bundle offer type field is required.' => 'The bundle offer type field is required.',
+  'The price hidden field is required.' => 'The price hidden field is required.',
 );

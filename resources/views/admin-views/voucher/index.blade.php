@@ -2503,6 +2503,9 @@
                 return;
             }
 
+
+
+            
          $.ajax({
                 url: "{{ route('admin.Voucher.get_branches') }}",
                 type: "GET",
@@ -2514,6 +2517,8 @@
                     $.each(response.branches, function(key, branch) {
                         $('#sub-branch').append('<option value="'+ branch.id +'"> ' + branch.name + ' ('+ branch.type +')</option>');
                     });
+
+
 
                     // 🟩 CATEGORIES
                     $('#categories').empty().append('<option value="">{{ translate("messages.select_category") }}</option>');
