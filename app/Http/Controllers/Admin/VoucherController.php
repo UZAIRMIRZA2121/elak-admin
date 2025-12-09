@@ -273,7 +273,7 @@ class VoucherController extends Controller
         orderby('created_at')
         ->select('id', 'name')
         ->get();
-        // $branches = Item::where('food_and_product_type', $request->product_name)
+        // $branches = Item::where('type', $request->product_name)
         // ->orderby('created_at')
         // ->select('id', 'name')
         // ->get();
@@ -414,7 +414,7 @@ class VoucherController extends Controller
             $item->discount_type = $request->discount_type;
             $item->discount = $request->discount;
             $item->store_id = $request->store_id;
-            $item->voucher_title = $request->voucher_title;
+            $item->name = $request->voucher_title;
             // $item->valid_until = $request->valid_until;
             $item->description = $request->description;
             $item->module_id = Config::get('module.current_module_id');
@@ -465,7 +465,7 @@ class VoucherController extends Controller
             $item->product = json_encode(array_filter($request->products ?? []));
             $item->product_b = json_encode(array_filter($request->bogo_products ?? []));
             $item->clients_section = json_encode(array_filter($request->clients ?? []));
-
+            $item->add_ons = $request->has('addon_ids') ? json_encode($request->addon_ids) : json_encode([]);
                 $item->required_quantity = $request->required_quantity ?? 0.00;
 
             $item->name = $request->name ?? null;
@@ -476,7 +476,7 @@ class VoucherController extends Controller
             $item->bundle_type = $request->bundle_offer_type ?? null;
             $item->tags_ids = $request->tags ?? null;
             $item->images = json_encode($images);
-            $item->voucher_type = "voucher";
+            $item->type = "voucher";
             $item->is_halal = $request->is_halal ?? 0;
 
             $item->save();
@@ -583,7 +583,7 @@ class VoucherController extends Controller
             // $item->discount_type = $request->discount_type;
             // $item->discount = $request->discount;
             $item->store_id = $request->store_id;
-            $item->voucher_title = $request->voucher_title;
+            $item->name = $request->voucher_title;
             // $item->valid_until = $request->valid_until;
             $item->description = $request->description;
             $item->module_id = Config::get('module.current_module_id');
@@ -635,7 +635,7 @@ class VoucherController extends Controller
             $item->product = json_encode(array_filter($request->products ?? []));
             $item->product_b = json_encode(array_filter($request->bogo_products ?? []));
             $item->clients_section = json_encode(array_filter($request->clients ?? []));
-
+            $item->add_ons = $request->has('addon_ids') ? json_encode($request->addon_ids) : json_encode([]);
 
 
             $item->discount_configuration = json_encode(array_filter($request->bonus_tiers ?? []));
@@ -652,7 +652,7 @@ class VoucherController extends Controller
             $item->bundle_type = $request->bundle_offer_type ?? null;
             $item->tags_ids = $request->tags ?? null;
             $item->images = json_encode($images);
-            $item->voucher_type = "voucher";
+            $item->type = "voucher";
             $item->is_halal = $request->is_halal ?? 0;
             $item->discount_type = $request->discount_type ?? 0;
 
@@ -688,7 +688,7 @@ class VoucherController extends Controller
                     $item->name = is_string($request->name) ? $request->name : null;
                     $item->voucher_ids = $request->hidden_name;
                     $item->bundle_type = $request->bundle_offer_type ?? null;
-                    $item->voucher_type = "voucher";
+                    $item->type = "voucher";
 
                     // Numeric / optional
                     $item->required_quantity = $request->required_quantity ?? 0;
@@ -733,7 +733,8 @@ class VoucherController extends Controller
                     $item->product = json_encode(array_filter($request->products ?? []));
                     $item->product_b = json_encode(array_filter($request->bogo_products ?? []));
                     $item->clients_section = json_encode(array_filter($request->clients ?? []));
-                    
+                      $item->add_ons = $request->has('addon_ids') ? json_encode($request->addon_ids) : json_encode([]);
+
                     $item->client_id               = json_encode($request->select_client ?? []);
                     $item->segment_ids             = json_encode($request->segment_type ?? []);
                      $item->clients_section = json_encode(array_filter($request->clients ?? []));
@@ -1700,7 +1701,7 @@ public function view_voucher($id)
                 });
             })
             ->where('is_approved', 1)
-            ->where('voucher_type', "voucher")
+            ->where('type', "voucher")
             ->module(Config::get('module.current_module_id'))
             ->type($type)
             ->latest()->paginate(config('default_pagination'));
@@ -2716,7 +2717,7 @@ public function view_voucher($id)
                 });
             })
             ->orderByRaw("FIELD(name, ?) DESC", [$request['name']])
-           ->whereNotNull('food_and_product_type')
+           ->whereNotNull('type')
             ->where('is_approved', 1)
             ->module(Config::get('module.current_module_id'))
             ->type($type)

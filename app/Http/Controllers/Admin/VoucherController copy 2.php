@@ -273,7 +273,7 @@ class VoucherController extends Controller
         orderby('created_at')
         ->select('id', 'name')
         ->get();
-        // $branches = Item::where('food_and_product_type', $request->product_name)
+        // $branches = Item::where('type', $request->product_name)
         // ->orderby('created_at')
         // ->select('id', 'name')
         // ->get();
@@ -2662,7 +2662,7 @@ public function view_voucher($id)
                 });
             })
             ->orderByRaw("FIELD(name, ?) DESC", [$request['name']])
-           ->whereNotNull('food_and_product_type')
+           ->whereNotNull('type')
             ->where('is_approved', 1)
             ->module(Config::get('module.current_module_id'))
             ->type($type)

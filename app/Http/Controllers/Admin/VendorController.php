@@ -714,7 +714,7 @@ if ($request->hasFile('agreement_certificate_image')) {
                         $q->where('status', 0);
                     })
                       ->when(!empty($item_type), function ($q) use ($item_type) {
-        $q->where('food_and_product_type', $item_type);
+        $q->where('type', $item_type);
     })
                     ->latest()
                     ->paginate(25);

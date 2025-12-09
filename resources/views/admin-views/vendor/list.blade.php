@@ -271,7 +271,7 @@
                                     @endif
                                 </td>
                                 {{-- <td>
-                                {{$store->food_and_product_type ?? ""}}
+                                {{$store->type ?? ""}}
                             </td> --}}
                                 <td>
                                     <div class="btn--container justify-content-center">

@@ -153,7 +153,7 @@ class VoucherController extends Controller
         orderby('created_at')
         ->select('id', 'name')
         ->get();
-        // $branches = Item::where('food_and_product_type', $request->product_name)
+        // $branches = Item::where('type', $request->product_name)
         // ->orderby('created_at')
         // ->select('id', 'name')
         // ->get();

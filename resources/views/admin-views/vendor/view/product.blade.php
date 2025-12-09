@@ -277,7 +277,7 @@
                                                 </a>
                                             </td>
                                             <td>
-                                                @if ($food->food_and_product_type == 'Product')
+                                                @if ($food->type == 'Product')
                                                     <span class="badge bg-primary">{{ translate('Product') }}</span>
                                                 @else
                                                     <span class="badge bg-success">{{ translate('Food') }}</span>
@@ -388,8 +388,8 @@
                                                 </a>
                                             </td>
                                              <td>
-                                                @if ($food->food_and_product_type)
-                                                    @if ($food->food_and_product_type == 'Product')
+                                                @if ($food->type)
+                                                    @if ($food->type == 'Product')
                                                         <span class="badge bg-success">{{ translate('Product') }}</span>
                                                     @else
                                                         <span class="badge bg-success">{{ translate('Food') }}</span>

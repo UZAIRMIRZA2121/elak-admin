@@ -300,7 +300,7 @@
                                         <span class="form-label-secondary" data-toggle="tooltip" data-placement="right" data-original-title="{{ translate('Bundle Products') }}"></span>
                                     </label>
                                     <select name="select_pro[]" id="select_pro" required class="form-control js-select2-custom all_product_list" data-placeholder="{{ translate('Select Product') }}" >
-                                          @foreach (\App\Models\Item::whereIn('food_and_product_type', ['Food', 'Product'])->get()  as $item)
+                                          @foreach (\App\Models\Item::whereIn('type', ['Food', 'Product'])->get()  as $item)
                                               <option value="{{ $item->id }}">{{ $item->name }}</option>
 
                                           @endforeach
@@ -309,7 +309,7 @@
                             </div>
 
                          <?php $i = 1; ?>
-                        @foreach (\App\Models\Item::whereIn('food_and_product_type', ['Food', 'Product'])->get()  as $item)
+                        @foreach (\App\Models\Item::whereIn('type', ['Food', 'Product'])->get()  as $item)
                             @php(
                                 // Decode variations JSON to an array
                                 $variations = json_decode($item->variations, true)
@@ -318,7 +318,7 @@
                             <div class="product-card col-12 " data-id="{{ $i }}" data-name="{{ $item->name }}" data-price="{{ $item->price }}">
                                 <div class="product-header">
                                     <div class="product-info">
-                                        <div class="product-name">{{ $item->name }} ({{$item->food_and_product_type}})</div>
+                                        <div class="product-name">{{ $item->name }} ({{$item->type}})</div>
                                         <div class="product-price">${{ $item->price }}</div>
                                     </div>
                                     <button type="button" class="btn btn-primary select-product-btn">Select</button>
@@ -329,7 +329,7 @@
                                 <div class="product-card selected col-12 mx-2">
                                     <div class="product-header">
                                         <div class="product-info">
-                                            <div class="product-name">{{ $item->name }} ({{$item->food_and_product_type}})</div>
+                                            <div class="product-name">{{ $item->name }} ({{$item->type}})</div>
                                             <div class="product-price">Base Price: ${{ $item->price }}</div>
                                         </div>
                                         <div class="product-actions">
