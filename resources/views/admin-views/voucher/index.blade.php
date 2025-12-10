@@ -725,7 +725,7 @@
     <script src="{{ asset('public/assets/admin/js/spartan-multi-image-picker.js') }}"></script>
     <script src="{{asset('public/assets/admin')}}/js/view-pages/product-index.js"></script>
 
-  <script>
+    <script>
 
         $(document).ready(function() {
             // Initialize Select2 for all dropdowns
@@ -1140,20 +1140,6 @@
                         <strong>Subtotal: </strong><span class="text-primary">$${subtotal.toFixed(2)}</span>
                     </li>`;
 
-                // if (discount > 0) {
-                //     breakdownHTML += `
-                //         <li class="list-group-item text-success">
-                //             <strong>BOGO Discount (Buy 1 Get 1 Free): </strong>
-                //             <span>-$${discount.toFixed(2)}</span>
-                //         </li>`;
-                // }
-
-                // breakdownHTML += `
-                //     <li class="list-group-item bg-success text-white">
-                //         <strong>Final Bundle Total: </strong>
-                //         <strong style="font-size: 1.3em;">$${finalTotal.toFixed(2)}</strong>
-                //     </li>
-                // </ul>`;
 
                 // Show price calculator if at least one product is selected
                 let hasProducts = $('#productDetails_section_a .card').length > 0 || $('#productDetails_section_b .card').length > 0;
@@ -1186,15 +1172,15 @@
                 if (selectedVariation.length) {
                     total += parseFloat(selectedVariation.data('price')) || 0;
                 }
-
                 productCard.find('.addon-checkbox:checked').each(function() {
                     total += parseFloat($(this).data('price')) || 0;
                 });
-
+                
                 total = total * quantity;
                 productCard.find('.product-total').fadeOut(200, function() {
                     $(this).text('$' + total.toFixed(2)).fadeIn(200);
                 });
+                // alert(total);
 
                 updateBundleTotal();
             });
@@ -1215,7 +1201,109 @@
                 });
             });
 
+
+
             // ==================== UPDATE BUNDLE TOTAL (REGULAR) ====================
+            // function updateBundleTotal() {
+            //     let bundleTotal = 0;
+            //     let productCount = 0;
+            //     let breakdownHTML = '<h5>Bundle Price Breakdown:</h5><ul class="list-group">';
+
+            //     $('#productDetails .card').each(function() {
+            //         let productName = $(this).find('.product-name').val();
+            //         let basePrice = parseFloat($(this).find('.product-base-price').val()) || 0;
+            //       let productTotal = parseFloat($(this).find('.product-total').text().replace('$', '')) || 0;
+            //         let quantity = parseInt($(this).find('.product-quantity').val()) || 1;
+            //             // alert(basePrice);
+            //             // alert(productTotal);
+            //         bundleTotal += productTotal;
+            //         productCount++;
+
+            //         let selectedVariation = $(this).find('.variation-checkbox:checked');
+            //         let variationText = '';
+            //         if (selectedVariation.length) {
+            //             let varType = selectedVariation.data('type');
+            //             let variationPrice = parseFloat(selectedVariation.data('price')) || 0;
+            //             variationText = `<div class="small text-muted ml-3">└ ${varType} (+$${variationPrice.toFixed(2)})</div>`;
+            //         }
+
+            //         let addonsText = '';
+            //         $(this).find('.addon-checkbox:checked').each(function() {
+            //             let addonName = $(this).data('name');
+            //             let addonPrice = parseFloat($(this).data('price')) || 0;
+            //             addonsText += `<div class="small text-muted ml-3">└ ${addonName} (+$${addonPrice.toFixed(2)})</div>`;
+            //         });
+
+            //         let perItemPrice = productTotal / quantity;
+
+            //         // alert(bundleTotal);
+
+            //         breakdownHTML += `
+            //             <li class="list-group-item">
+            //                 <div class="d-flex justify-content-between align-items-start">
+            //                     <div class="flex-grow-1">
+            //                         <strong>${productName}</strong> (x${quantity})
+            //                         <div class="small text-muted">Base: $${basePrice.toFixed(2)}</div>
+            //                         ${variationText}
+            //                         ${addonsText}
+            //                         ${quantity > 1 ? `<div class="small text-info mt-1">Per item: $${perItemPrice.toFixed(2)}</div>` : ''}
+            //                     </div>
+            //                     <strong class="text-success ml-3">$${productTotal.toFixed(2)}</strong>
+            //                 </div>
+            //             </li>`;
+            //     });
+
+            //     let discount = parseFloat($('#discount').val()) || 0;
+            //     let discountType = $('#discount_type').val();
+            //     let discountAmount = 0;
+
+            //     if (discountType === 'percent') {
+            //         discountAmount = (bundleTotal * discount) / 100;
+            //     } else {
+            //         discountAmount = discount;
+            //     }
+
+            //     let finalTotal = Math.max(bundleTotal - discountAmount, 0);
+
+            //     breakdownHTML += `
+            //         <li class="list-group-item">
+            //             <strong>Subtotal: </strong><span class="text-primary">$${bundleTotal.toFixed(2)}</span>
+            //         </li>`;
+
+            //     if (discountAmount > 0) {
+            //         breakdownHTML += `
+            //             <li class="list-group-item text-danger">
+            //                 <strong>Discount (${discountType === 'percent' ? discount + '%' : '$' + discount}): </strong>
+            //                 -$${discountAmount.toFixed(2)}
+            //             </li>`;
+            //     }
+
+            //     breakdownHTML += `
+            //         <li class="list-group-item bg-success text-white">
+            //             <strong>Final Bundle Total: </strong>
+            //             <strong style="font-size: 1.3em;">$${finalTotal.toFixed(2)}</strong>
+            //         </li>
+            //     </ul>`;
+
+            //     if (productCount > 0) {
+            //         $('#priceCalculator').show();
+            //         $('#priceBreakdown').html(breakdownHTML);
+            //         $('#selectedProducts p').hide();
+            //     } else {
+            //         $('#priceCalculator').hide();
+            //         $('#selectedProducts p').show();
+            //     }
+
+            //     let bundleType = $('#bundle_offer_type').val();
+            //     if (bundleType === 'bogo_free' || bundleType === 'mix_match') {
+            //         $('#price').val(finalTotal.toFixed(2));
+            //         $('#price_hidden').val(finalTotal.toFixed(2));
+            //     } else {
+            //         $('#price').val(finalTotal.toFixed(2));
+            //         $('#price_hidden').val(bundleTotal.toFixed(2));
+            //     }
+            // }
+
             function updateBundleTotal() {
                 let bundleTotal = 0;
                 let productCount = 0;
@@ -1224,26 +1312,37 @@
                 $('#productDetails .card').each(function() {
                     let productName = $(this).find('.product-name').val();
                     let basePrice = parseFloat($(this).find('.product-base-price').val()) || 0;
-                    let productTotal = parseFloat($(this).find('.product-total').text().replace('$', '')) || 0;
                     let quantity = parseInt($(this).find('.product-quantity').val()) || 1;
-
-                    bundleTotal += productTotal;
-                    productCount++;
-
+                    
+                    // ============ یہاں تبدیلی کی ہے ============
+                    // پہلے productTotal کو صرف basePrice سے شروع کریں
+                    let productTotal = basePrice;
+                    
+                    // پھر والیئشن کی قیمت شامل کریں
                     let selectedVariation = $(this).find('.variation-checkbox:checked');
                     let variationText = '';
                     if (selectedVariation.length) {
                         let varType = selectedVariation.data('type');
                         let variationPrice = parseFloat(selectedVariation.data('price')) || 0;
+                        productTotal += variationPrice; // یہاں قیمت شامل کی ہے
                         variationText = `<div class="small text-muted ml-3">└ ${varType} (+$${variationPrice.toFixed(2)})</div>`;
                     }
-
+                    
+                    // پھر addons کی قیمت شامل کریں
                     let addonsText = '';
                     $(this).find('.addon-checkbox:checked').each(function() {
                         let addonName = $(this).data('name');
                         let addonPrice = parseFloat($(this).data('price')) || 0;
+                        productTotal += addonPrice; // یہاں قیمت شامل کی ہے
                         addonsText += `<div class="small text-muted ml-3">└ ${addonName} (+$${addonPrice.toFixed(2)})</div>`;
                     });
+                    
+                    // آخر میں quantity سے ضرب دیں
+                    productTotal = productTotal * quantity;
+                    // ============ تبدیلی ختم ============
+                    
+                    bundleTotal += productTotal;
+                    productCount++;
 
                     let perItemPrice = productTotal / quantity;
 
@@ -1260,6 +1359,9 @@
                                 <strong class="text-success ml-3">$${productTotal.toFixed(2)}</strong>
                             </div>
                         </li>`;
+                    
+                    // ڈسپلے پر product-total کو بھی اپڈیٹ کریں
+                    $(this).find('.product-total').text('$' + productTotal.toFixed(2));
                 });
 
                 let discount = parseFloat($('#discount').val()) || 0;
@@ -1429,7 +1531,7 @@
                 }
                });
             });
-   </script>
+    </script>
 
     <script>
         document.addEventListener("DOMContentLoaded", function () {
