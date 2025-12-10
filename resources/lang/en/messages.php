@@ -8395,4 +8395,6 @@ Smartly or Earn. ',
   'Thumbnail image is required' => 'Thumbnail image is required',
   'Branch' => 'Branch',
   'Sub branch of' => 'Sub branch of',
+  'The voucher title field is required.' => 'The voucher title field is required.',
+  'The tags field is required.' => 'The tags field is required.',
 );
