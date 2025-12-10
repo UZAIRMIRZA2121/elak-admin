@@ -238,7 +238,7 @@
 
                         </ul>
                     </li>
-                    <li class="navbar-vertical-aside-has-menu {{ Request::is('admin/refund/*') ? 'active' : '' }}">
+                    <!-- <li class="navbar-vertical-aside-has-menu {{ Request::is('admin/refund/*') ? 'active' : '' }}">
                     <a class="js-navbar-vertical-aside-menu-link nav-link nav-link-toggle" href="javascript:"
                         title="{{ translate('Order Refunds') }}">
                         <i class="tio-receipt nav-icon"></i>
@@ -248,7 +248,21 @@
                     </a>
                     <ul class="js-navbar-vertical-aside-submenu nav nav-sub"
                         style="display: {{ Request::is('admin/refund*') ? 'block' : 'none' }}">
-                        <li class="nav-item {{ Request::is('admin/refund/requested') ||  Request::is('admin/refund/rejected') ||Request::is('admin/refund/refunded') ? 'active' : '' }}">
+                       
+                    </ul>
+                    </li> -->
+
+                   <li class="navbar-vertical-aside-has-menu {{ Request::is('admin/refund/*') ? 'active' : '' }}">
+                        <a class="js-navbar-vertical-aside-menu-link nav-link nav-link-toggle" href="javascript:"
+                            title="{{ translate('Order Refunds') }}">
+                            <i class="tio-apps nav-icon"></i>
+                            <span class="navbar-vertical-aside-mini-mode-hidden-elements text-truncate">
+                                {{ translate('Order Refunds') }}
+                            </span>
+                        </a>
+                        <ul class="js-navbar-vertical-aside-submenu nav nav-sub"
+                            style="display: {{ Request::is('admin/refund*') ? 'block' : 'none' }}">
+                       <li class="nav-item {{ Request::is('admin/refund/requested') ||  Request::is('admin/refund/rejected') ||Request::is('admin/refund/refunded') ? 'active' : '' }}">
                             <a class="nav-link "
                                 href="{{ route('admin.refund.refund_attr', ['requested']) }}"
                                 title="{{ translate('Refund Requests') }} ">
@@ -274,20 +288,6 @@
                                 </span>
                             </a>
                         </li>
-                    </ul>
-                    </li>
-
-                   <li class="navbar-vertical-aside-has-menu {{ Request::is('admin/refund/*') ? 'active' : '' }}">
-                        <a class="js-navbar-vertical-aside-menu-link nav-link nav-link-toggle" href="javascript:"
-                            title="{{ translate('Order Refunds') }}">
-                            <i class="tio-apps nav-icon"></i>
-                            <span class="navbar-vertical-aside-mini-mode-hidden-elements text-truncate">
-                                {{ translate('Order Refunds') }}
-                            </span>
-                        </a>
-                        <ul class="js-navbar-vertical-aside-submenu nav nav-sub"
-                            style="display: {{ Request::is('admin/refund*') ? 'block' : 'none' }}">
-
                             <li class="nav-item {{ Request::is('admin/refund/requested') ||  Request::is('admin/refund/rejected') ||Request::is('admin/refund/refunded') ? 'active' : '' }}">
                                 <a class="nav-link "
                                     href="{{ route('admin.refund.refund_attr', ['requested']) }}"
