@@ -647,6 +647,7 @@
                     </div>
 
                 @endif
+                
                 <div class="col-lg-12" id="food_variation_section">
                     <div class="card shadow--card-2 border-0">
                         <div class="card-header flex-wrap">
@@ -1174,7 +1175,7 @@
             } else {
                 $('#brand_input').hide();
             }
-            if (module_type == 'food') {
+            if (module_type == 'food' || module_type == 'voucher') {
                 $('#food_variation_section').show();
                 $('#attribute_section').hide();
             } else {
