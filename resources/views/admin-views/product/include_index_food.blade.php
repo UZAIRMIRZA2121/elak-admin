@@ -228,7 +228,7 @@
                 {{-- @dd(Config::get('module.current_module_type')) --}}
                 @if (Config::get('module.current_module_type') == 'grocery' || Config::get('module.current_module_type') == 'food'  || Config::get('module.current_module_type') == 'voucher')
 
-                    <div class="col-sm-6" id="nutrition">
+                    {{-- <div class="col-sm-6" id="nutrition">
                         <label class="input-label" for="sub-categories">
                             {{ translate('Nutrition') }}
                             <span class="input-label-secondary"
@@ -246,7 +246,7 @@
                                 </option>
                             @endforeach
                         </select>
-                    </div>
+                    </div> --}}
 
 
                     {{-- <div class="col-sm-6" id="allergy">
@@ -574,7 +574,7 @@
         </div>
     </div>
 </div>
-<div class="col-md-12">
+{{-- <div class="col-md-12">
     <div class="card shadow--card-2 border-0">
         <div class="card-header">
             <h5 class="card-title">
@@ -593,4 +593,4 @@
             </div>
         </div>
     </div>
-</div>
+</div> --}}

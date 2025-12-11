@@ -403,7 +403,7 @@ class ItemController extends Controller
             $item_details->brand_id = $request->brand_id;
             $item_details->save();
         }
- dd( $item);
+
         if (addon_published_status('TaxModule')) {
             $SystemTaxVat = \Modules\TaxModule\Entities\SystemTaxSetup::where('is_active', 1)->where('is_default', 1)->first();
             if ($SystemTaxVat?->tax_type == 'product_wise') {
@@ -422,7 +422,7 @@ class ItemController extends Controller
 
         Helpers::add_or_update_translations(request: $request, key_data: 'name', name_field: 'name', model_name: 'Item', data_id: $item->id, data_value: $item->name);
         Helpers::add_or_update_translations(request: $request, key_data: 'description', name_field: 'description', model_name: 'Item', data_id: $item->id, data_value: $item->description);
-        dd(123);
+  
         return response()->json(['success' => translate('messages.product_added_successfully')], 200);
     }
 
