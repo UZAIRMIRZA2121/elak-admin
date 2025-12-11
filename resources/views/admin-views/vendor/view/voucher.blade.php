@@ -272,21 +272,18 @@
                                             </a>
                                         </td>
 
-
-                                        @php
-                                            $categories = \App\Models\Category::where('id', $food->category_id)
-                                                ->pluck('name')
-                                                ->toArray();
-                                        @endphp
+                                        <?php
+                                        $categories = \App\Models\Category::where('id', $food->category_id)->pluck('name')->toArray();
+                                        ?>
 
                                         <td>
                                             {!! implode('<br>', $categories) !!}
                                         </td>
 
-                                       <?php
-    $Segment = \App\Models\Segment::whereIn('id', json_decode($food->segment_ids))->pluck('name')->toArray(),
 
-    ?>
+                                        @php(
+                                                $Segment = \App\Models\Segment::whereIn('id', json_decode($food->segment_ids))->pluck('name')->toArray(),
+                                            )
                                         <td>
                                             {!! implode('<br>,', $Segment) !!}
                                         </td>
