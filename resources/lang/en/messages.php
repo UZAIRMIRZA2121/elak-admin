@@ -8394,5 +8394,6 @@ Smartly or Earn. ',
   'The description field is required.' => 'The description field is required.',
   'The bundle offer type field is required.' => 'The bundle offer type field is required.',
   'The price hidden field is required.' => 'The price hidden field is required.',
-  'Thumbnail image is required' => 'Thumbnail image is required',
+  'Agreements Certificate' => 'Agreements Certificate',
+  'All Types' => 'All Types',
 );

@@ -695,7 +695,7 @@ class VendorController extends Controller
 
                 $foods = Item::withoutGlobalScope(\App\Scopes\StoreScope::class)
                     ->where('store_id', $store->id)
-                    ->where('voucher_type', 'voucher')
+                    ->where('type', 'voucher')
                     ->when(!empty($key), function ($query) use ($key) {
                         $query->where(function ($q) use ($key) {
                             foreach ($key as $value) {
@@ -778,11 +778,6 @@ class VendorController extends Controller
 
                 $foods = Item::withoutGlobalScope(\App\Scopes\StoreScope::class)
                     ->where('store_id', $store->id)
-                    ->where(function ($q) {
-                        $q->where('voucher_type', '!=', 'voucher')
-                            ->orWhereNull('voucher_type')
-                            ->orWhere('voucher_type', '');
-                    })
                     ->when(isset($key), function ($q) use ($key) {
                         $q->where(function ($q) use ($key) {
                             foreach ($key as $value) {
@@ -799,11 +794,12 @@ class VendorController extends Controller
                     ->when($sub_tab == 'inactive-items', function ($q) {
                         $q->where('status', 0);
                     })
-                      ->when(!empty($item_type), function ($q) use ($item_type) {
-        $q->where('type', $item_type);
-    })
+                    ->when(!empty($item_type), function ($q) use ($item_type) {
+                        $q->where('type', $item_type); // Updated to use 'type' column
+                    })
                     ->latest()
                     ->paginate(25);
+
 
             }
 

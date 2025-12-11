@@ -680,7 +680,7 @@ class ClientSideController extends Controller
                 }
 
                 DB::commit();
-                dd(11);
+              
                 Toastr::success('Color Theme and Colors added successfully');
                 return back();
 
