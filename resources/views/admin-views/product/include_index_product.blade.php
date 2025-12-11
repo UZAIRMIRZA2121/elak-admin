@@ -510,7 +510,7 @@
                 <span class="card-header-icon mr-2">
                     <i class="tio-canvas-text"></i>
                 </span>
-                <span>{{ translate('messages.food_variations') }}</span>
+                <span>{{ translate('variations') }}</span>
             </h5>
             <a class="btn text--primary-2" id="add_new_option_button">
                 {{ translate('add_new_variation') }}
@@ -572,7 +572,7 @@
         </div>
     </div>
 </div> --}}
-<div class="col-md-12">
+{{-- <div class="col-md-12">
     <div class="card shadow--card-2 border-0">
         <div class="card-header">
             <h5 class="card-title">
@@ -591,4 +591,4 @@
             </div>
         </div>
     </div>
-</div>
+</div> --}}
