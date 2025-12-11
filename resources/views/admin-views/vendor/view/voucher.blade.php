@@ -283,9 +283,10 @@
                                             {!! implode('<br>', $categories) !!}
                                         </td>
 
-                                        @php(
+                                       <?php
     $Segment = \App\Models\Segment::whereIn('id', json_decode($food->segment_ids))->pluck('name')->toArray(),
-)
+
+    ?>
                                         <td>
                                             {!! implode('<br>,', $Segment) !!}
                                         </td>
