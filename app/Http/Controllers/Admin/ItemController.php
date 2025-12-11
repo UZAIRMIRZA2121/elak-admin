@@ -93,7 +93,7 @@ class ItemController extends Controller
 
     public function store(Request $request)
     {
-          dd($request->all());
+       
         $validator = Validator::make($request->all(), [
             'name.0' => 'required',
             'name.*' => 'max:191',
