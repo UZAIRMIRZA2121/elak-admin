@@ -18,7 +18,7 @@ class Item extends Model
 {
     use HasFactory, ReportFilter;
     protected $guarded = ['id'];
-    protected $with = ['translations', 'storage'];
+    protected $with = ['translations','storage'];
     protected $casts = [
         'tax' => 'float',
         'price' => 'float',
@@ -46,7 +46,7 @@ class Item extends Model
         'unit_id' => 'integer',
         'is_halal' => 'integer',
         'type' => 'string',
-        'clients_section' => 'array',
+         'clients_section' => 'array',
         'client_id' => 'array',
         'segment_ids' => 'array',
         'sub_category_ids' => 'array',
@@ -80,7 +80,6 @@ class Item extends Model
         'validity_period' => 'string',
         'usage_restrictions' => 'string',
         'blackout_dates' => 'string',
-        'variations' => 'string',
 
 
     ];
@@ -300,11 +299,9 @@ class Item extends Model
         });
 
         static::addGlobalScope('translate', function (Builder $builder) {
-            $builder->with([
-                'translations' => function ($query) {
-                    return $query->where('locale', app()->getLocale());
-                }
-            ]);
+            $builder->with(['translations' => function ($query) {
+                return $query->where('locale', app()->getLocale());
+            }]);
         });
     }
 
@@ -393,8 +390,7 @@ class Item extends Model
         $slug = Str::slug($name);
         if ($max_slug = static::where('slug', 'like', "{$slug}%")->latest('id')->value('slug')) {
 
-            if ($max_slug == $slug)
-                return "{$slug}-2";
+            if ($max_slug == $slug) return "{$slug}-2";
 
             $max_slug = explode('-', $max_slug);
             $count = array_pop($max_slug);
