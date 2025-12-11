@@ -261,7 +261,7 @@
                                             </td>
 
 
-                                             @php( $categories = \App\Models\Category::whereIn('id', json_decode($food->category_ids))->pluck('name')->toArray()  )
+                                             @php( $categories = \App\Models\Category::whereIn('id', $food->category_id)->pluck('name')->toArray()  )
 
                                             <td>
                                                 {!! implode('<br>,', $categories) !!}
