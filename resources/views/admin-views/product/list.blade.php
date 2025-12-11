@@ -207,6 +207,7 @@
                     <tr>
                         <th class="border-0">{{translate('sl')}}</th>
                         <th class="border-0">{{translate('messages.name')}}</th>
+                        <th class="border-0">{{translate('Type')}}</th>
                         <th class="border-0">{{translate('messages.category')}}</th>
                         @if (Config::get('module.current_module_type') != 'food')
                         <th class="border-0">{{translate('messages.quantity')}}</th>
@@ -225,8 +226,10 @@
 
                     <tbody id="set-rows">
                     @foreach($items as $key=>$item)
+                    @if( $item->type == 'Product' || $item->type == 'Food')
                         <tr>
                             <td>{{$key+$items->firstItem()}}</td>
+                         
                             <td>
                                 <a class="media align-items-center" href="{{route('admin.item.view',[$item['id']])}}">
                                     <img class="avatar avatar-lg mr-3 onerror-image"
@@ -239,6 +242,7 @@
                                     </div>
                                 </a>
                             </td>
+                                <td title="{{ $item?->type }}">{{ $item?->type }}</td>
                             <td title="{{ $item?->category?->name }}">
                             {{Str::limit($item->category?$item->category->name:translate('messages.category_deleted'),20,'...')}}
                             </td>
@@ -303,6 +307,7 @@
                                 </div>
                             </td>
                         </tr>
+                        @endif
                     @endforeach
                     </tbody>
                 </table>
