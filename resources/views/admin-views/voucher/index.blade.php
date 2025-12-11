@@ -293,7 +293,7 @@
                                     <div class="form-group">
                                         <select name="select_pro" id="select_pro" class="form-control js-select2-custom" data-placeholder="{{ translate('Select Product') }}" >
                                             <option value="" disabled selected>{{ translate('Select a Product') }}</option>
-                                            @foreach (\App\Models\Item::whereIn('food_and_product_type', ['Food','Product'])->get() as $item)
+                                            @foreach (\App\Models\Item::whereIn('type', ['Food','Product'])->get() as $item)
                                                 @php(
                                                     $variations = json_decode($item->variations, true) ?? []
                                                 )
@@ -367,7 +367,7 @@
                                     <div class="form-group">
                                         <select name="select_pro1" id="select_pro1" class="form-control js-select2-custom" data-placeholder="{{ translate('Select Product') }}" >
                                             <option value="" disabled selected>{{ translate('Select a Product') }}</option>
-                                            @foreach (\App\Models\Item::whereIn('food_and_product_type', ['Food','Product'])->get() as $item)
+                                            @foreach (\App\Models\Item::whereIn('type', ['Food','Product'])->get() as $item)
                                                 @php(
                                                     $variations = json_decode($item->variations, true) ?? []
                                                 )
@@ -410,7 +410,7 @@
                                     <div class="form-group">
                                         <select name="select_pro2" id="select_pro2" class="form-control js-select2-custom" data-placeholder="{{ translate('Select Product') }}" >
                                             <option value="" disabled selected>{{ translate('Select a Product') }}</option>
-                                            @foreach (\App\Models\Item::whereIn('food_and_product_type', ['Food','Product'])->get() as $item)
+                                            @foreach (\App\Models\Item::whereIn('type', ['Food','Product'])->get() as $item)
                                                 @php(
                                                     $variations = json_decode($item->variations, true) ?? []
                                                 )
@@ -2503,8 +2503,6 @@
                 return;
             }
 
-
-
             
          $.ajax({
                 url: "{{ route('admin.Voucher.get_branches') }}",
@@ -2522,8 +2520,8 @@
 
                     // 🟩 CATEGORIES
                     $('#categories').empty().append('<option value="">{{ translate("messages.select_category") }}</option>');
-                    if (response.categories && response.categories.categories) {
-                        $.each(response.categories.categories, function(key, category) {
+                    if (response.categories && response.categories) {
+                        $.each(response.categories, function(key, category) {
                             $('#categories').append('<option value="'+ category.id +'">' + category.name + '</option>');
                         });
                     } else {

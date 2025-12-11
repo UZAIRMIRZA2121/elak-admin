@@ -213,12 +213,8 @@ class VoucherController extends Controller
 
     public function getBranches(Request $request)
     {
-        $branches = Store::where('parent_id', $request->store_id)
-            ->orWhere('id', $request->store_id)
-            ->orderBy('created_at')
-            ->select('id', 'name', 'type')
-            ->get();
-
+        // dd("dfjhbvdfhj");
+   
         // $category = Store::where('parent_id', $request->store_id)
         //     ->orWhere('id', $request->store_id)
         //     ->orderBy('created_at')
@@ -227,42 +223,46 @@ class VoucherController extends Controller
 
         // فرض کریں $store ایک single store record ہے
 // Step 1: Get stores list
-       $category = Store::where('parent_id', $request->store_id)
+    //    $category = Store::where('parent_id', $request->store_id)
+    //         ->orWhere('id', $request->store_id)
+    //         ->orderBy('created_at', 'asc')
+    //         ->select('id', 'name', 'type', 'category_id', 'voucher_id')
+    //         ->first();
+
+    //     if ($category) {
+    //         $categoryIds = json_decode($category->category_id, true);
+
+    //         if (!is_array($categoryIds)) {
+    //             $categoryIds = [$category->category_id];
+    //         }
+
+    //         $categories = Category::whereIn('id', $categoryIds)
+    //             ->where("parent_id", "0")
+    //             ->select('id', 'name')
+    //             ->get();
+
+    //         $category->categories = $categories;
+    //     }
+   
+
+        $branches = Store::where('parent_id', $request->store_id)
             ->orWhere('id', $request->store_id)
-            ->orderBy('created_at', 'asc')
-            ->select('id', 'name', 'type', 'category_id', 'voucher_id')
-            ->first();
+            ->where('status', 1)
+            ->orderBy('created_at')
+            ->select('id', 'name', 'type')
+            ->get();
 
-        if ($category) {
-            $categoryIds = json_decode($category->category_id, true);
-
-            if (!is_array($categoryIds)) {
-                $categoryIds = [$category->category_id];
-            }
-
-            $categories = Category::whereIn('id', $categoryIds)
-                ->where("parent_id", "0")
-                ->select('id', 'name')
-                ->get();
-
-            $category->categories = $categories;
-        }
-
-        // dd($category);
-
-
-
-        // final result
-        // return response()->json($categoryData);
-
-
-
-            // dd($categoryData);
+        $categories = Category::where('parent_id', 0)
+            ->where('status', 1)
+            ->where('module_id', 5)
+            ->orderBy('priority', 'ASC')
+            ->get();
 
         return response()->json([
-            'branches' => $branches,
-            'categories' => $category,
+            'branches'   => $branches,
+            'categories' => $categories,
         ]);
+
     }
 
 
@@ -273,7 +273,7 @@ class VoucherController extends Controller
         orderby('created_at')
         ->select('id', 'name')
         ->get();
-        // $branches = Item::where('food_and_product_type', $request->product_name)
+        // $branches = Item::where('type', $request->product_name)
         // ->orderby('created_at')
         // ->select('id', 'name')
         // ->get();
@@ -281,7 +281,7 @@ class VoucherController extends Controller
         // ->orderby('created_at')
         // ->select('id', 'name')
         // ->get();
-        dd($item);
+        // dd($item);
 
         return response()->json($branches);
     }
@@ -321,23 +321,17 @@ class VoucherController extends Controller
         // dd($request->all());
         if($type_name == "Delivery/Pickup" || $type_name == "In-Store"){
 
-            // ✅ Debug request if needed
-
              $validator = Validator::make($request->all(), [
 
-            // 'select_client' => 'required',
-            // 'name' => 'required',
             'segment_type' => 'max:1000',
             'store_id' => 'required',
             'categories' => 'required',
             'sub_categories_game' => 'nullable',
             'sub_branch_id' => 'required',
             'voucher_title' => 'required',
-            // 'clients' => 'array',
             'item_images' => 'required',
             'image' => 'required',
             'description' => 'required',
-            // 'tags' => 'required',
             'bundle_offer_type' => 'required',
             'price' => 'required',
             'price_hidden' => 'required',
@@ -345,9 +339,6 @@ class VoucherController extends Controller
             'offer_type' => 'required',
             'discount_type' => 'required',
             'discount' => 'required',
-            'howto_work' => 'required',
-            // 'term_and_condition' => 'required',
-            // 'products' => 'required',
         ]);
 
         if ($validator->fails()) {
@@ -423,7 +414,7 @@ class VoucherController extends Controller
             $item->discount_type = $request->discount_type;
             $item->discount = $request->discount;
             $item->store_id = $request->store_id;
-            $item->voucher_title = $request->voucher_title;
+            $item->name = $request->voucher_title;
             // $item->valid_until = $request->valid_until;
             $item->description = $request->description;
             $item->module_id = Config::get('module.current_module_id');
@@ -433,21 +424,50 @@ class VoucherController extends Controller
                 ? Helpers::upload('product/', 'png', $request->file('image'))
                 : $newFileNamethumb ?? null;
 
-            // ✅ Clean & JSON encode arrays
-            $item->category_ids = json_encode(array_filter($request->categories ?? []));
-            $item->sub_category_ids = json_encode(array_filter($request->sub_categories_game ?? []));
-            $item->branch_ids = json_encode(array_filter($request->sub_branch_id ?? []));
+
+            // Replace your category array building code with this:
+            $category = [];
+            if ($request->categories != null) {
+                $categoryId = is_array($request->categories) ? $request->categories[0] : $request->categories;
+                array_push($category, [
+                    'id' => (string)$categoryId, // Ensure it's a string
+                    'position' => 1,
+                ]);
+            }
+            if ($request->sub_categories_game != null) {
+                $subCategoryId = is_array($request->sub_categories_game) ? $request->sub_categories_game[0] : $request->sub_categories_game;
+                array_push($category, [
+                    'id' => (string)$subCategoryId, // Ensure it's a string
+                    'position' => 2,
+                ]);
+            }
+            if ($request->sub_sub_category_id != null) {
+                $subSubCategoryId = is_array($request->sub_sub_category_id) ? $request->sub_sub_category_id[0] : $request->sub_sub_category_id;
+                array_push($category, [
+                    'id' => (string)$subSubCategoryId, // Ensure it's a string
+                    'position' => 3,
+                ]);
+            }
+            $item->category_ids = json_encode($category);
+
+            // Also fix category_id assignment
+            $item->category_id = $request->sub_categories_game 
+                ? (is_array($request->sub_categories_game) ? $request->sub_categories_game[0] : $request->sub_categories_game)
+                : (is_array($request->categories) ? $request->categories[0] : $request->categories);
+
+                
+
+               $item->variations = json_encode(array_filter($request->variations ?? []));
+                $item->branch_ids = json_encode(array_filter($request->sub_branch_id ?? []));
+
             $item->how_and_condition_ids = json_encode(array_filter($request->howto_work ?? []));
             $item->term_and_condition_ids = json_encode(array_filter($request->term_and_condition ?? []));
             $item->product = json_encode(array_filter($request->products ?? []));
             $item->product_b = json_encode(array_filter($request->bogo_products ?? []));
             $item->clients_section = json_encode(array_filter($request->clients ?? []));
-
-            // ✅ Optional fields
-            // $item->voucher_ids = $request->hidden_values ?? null;
-            if( $item->required_quantity != ""){
+            $item->add_ons = $request->has('addon_ids') ? json_encode($request->addon_ids) : json_encode([]);
                 $item->required_quantity = $request->required_quantity ?? 0.00;
-            }
+
             $item->name = $request->name ?? null;
             $item->client_id = json_encode($request->select_client ?? []);
             $item->segment_ids = json_encode($request->segment_type ?? []);
@@ -455,11 +475,10 @@ class VoucherController extends Controller
             $item->voucher_ids = $request->hidden_name;
             $item->bundle_type = $request->bundle_offer_type ?? null;
             $item->tags_ids = $request->tags ?? null;
-            $item->images = $images;
-            $item->voucher_type = "voucher";
+            $item->images = json_encode($images);
+            $item->type = "voucher";
             $item->is_halal = $request->is_halal ?? 0;
 
-            // ✅ Save
             $item->save();
 
             return response()->json(['success' => translate('messages.voucher_created_successfully')], 200);
@@ -485,7 +504,7 @@ class VoucherController extends Controller
             'tags' => 'required',
             'discount_type' => 'required',
             'bonus_tiers' => 'required',
-            'howto_work' => 'required',
+            // 'howto_work' => 'required',
             // 'term_and_condition' => 'required',
 
 
@@ -564,7 +583,7 @@ class VoucherController extends Controller
             // $item->discount_type = $request->discount_type;
             // $item->discount = $request->discount;
             $item->store_id = $request->store_id;
-            $item->voucher_title = $request->voucher_title;
+            $item->name = $request->voucher_title;
             // $item->valid_until = $request->valid_until;
             $item->description = $request->description;
             $item->module_id = Config::get('module.current_module_id');
@@ -574,19 +593,57 @@ class VoucherController extends Controller
                 ? Helpers::upload('product/', 'png', $request->file('image'))
                 : $newFileNamethumb ?? null;
 
-            // ✅ Clean & JSON encode arrays
-            $item->category_ids = json_encode(array_filter($request->categories ?? []));
-            $item->sub_category_ids = json_encode(array_filter($request->sub_categories_game ?? []));
-            $item->branch_ids = json_encode(array_filter($request->sub_branch_id ?? []));
+
+
+                 // Replace your category array building code with this:
+            $category = [];
+            if ($request->categories != null) {
+                $categoryId = is_array($request->categories) ? $request->categories[0] : $request->categories;
+                array_push($category, [
+                    'id' => (string)$categoryId, // Ensure it's a string
+                    'position' => 1,
+                ]);
+            }
+            if ($request->sub_categories_game != null) {
+                $subCategoryId = is_array($request->sub_categories_game) ? $request->sub_categories_game[0] : $request->sub_categories_game;
+                array_push($category, [
+                    'id' => (string)$subCategoryId, // Ensure it's a string
+                    'position' => 2,
+                ]);
+            }
+            if ($request->sub_sub_category_id != null) {
+                $subSubCategoryId = is_array($request->sub_sub_category_id) ? $request->sub_sub_category_id[0] : $request->sub_sub_category_id;
+                array_push($category, [
+                    'id' => (string)$subSubCategoryId, // Ensure it's a string
+                    'position' => 3,
+                ]);
+            }
+            $item->category_ids = json_encode($category);
+
+            // Also fix category_id assignment
+            $item->category_id = $request->sub_categories_game 
+                ? (is_array($request->sub_categories_game) ? $request->sub_categories_game[0] : $request->sub_categories_game)
+                : (is_array($request->categories) ? $request->categories[0] : $request->categories);
+
+                
+
+               $item->variations = json_encode(array_filter($request->variations ?? []));
+                $item->branch_ids = json_encode(array_filter($request->sub_branch_id ?? []));
+
             $item->how_and_condition_ids = json_encode(array_filter($request->howto_work ?? []));
             $item->term_and_condition_ids = json_encode(array_filter($request->term_and_condition ?? []));
+            $item->product = json_encode(array_filter($request->products ?? []));
+            $item->product_b = json_encode(array_filter($request->bogo_products ?? []));
+            $item->clients_section = json_encode(array_filter($request->clients ?? []));
+            $item->add_ons = $request->has('addon_ids') ? json_encode($request->addon_ids) : json_encode([]);
+
+
             $item->discount_configuration = json_encode(array_filter($request->bonus_tiers ?? []));
              $item->clients_section = json_encode(array_filter($request->clients ?? []));
             // ✅ Optional fields
             // $item->voucher_ids = $request->hidden_values ?? null;
-            if( $item->required_quantity != ""){
                 $item->required_quantity = $request->required_quantity ?? 0.00;
-            }
+
             $item->name = $request->name ?? null;
             $item->client_id = json_encode($request->select_client ?? []);
             $item->segment_ids = json_encode($request->segment_type ?? []);
@@ -594,8 +651,8 @@ class VoucherController extends Controller
             $item->voucher_ids = $request->hidden_name;
             $item->bundle_type = $request->bundle_offer_type ?? null;
             $item->tags_ids = $request->tags ?? null;
-            $item->images = $images;
-            $item->voucher_type = "voucher";
+            $item->images = json_encode($images);
+            $item->type = "voucher";
             $item->is_halal = $request->is_halal ?? 0;
             $item->discount_type = $request->discount_type ?? 0;
 
@@ -609,29 +666,14 @@ class VoucherController extends Controller
 
                 $validator = Validator::make($request->all(), [
 
-                    // 'select_client' => 'required',
-                    // 'name' => 'required',
                     'segment_type' => 'max:1000',
                     'store_id' => 'required',
-                    // 'sub_branch_id' => 'required',
                     'occasions_id' => 'required',//add
                     'message_template_style' => 'required',//add
                     'delivery_options' => 'required',//add//add
                     'type' => 'required',//add
                     'min_max_amount' => 'required', //add
-                    'howto_work' => 'required',
-                    // 'term_and_condition' => 'required',
                     'clients' => 'array',
-                    // 'sub_categories_game' => 'required',
-                    // 'recipient_info_form_fields' => 'required',//add
-                    // 'amount_configuration' => 'required',
-                    // 'enable_custom_amount' => 'required',//add
-                    // 'fixed_amount_options' => 'required', //add
-                    // 'bonus_configuration' => 'required', //add
-                    // 'redemption_process' => 'required',
-                    // 'validity_period' => 'required',
-                    // 'usage_restrictions' => 'required',
-                    // 'blackout_dates' => 'required',
                 ]);
 
                 if ($validator->fails()) {
@@ -646,17 +688,53 @@ class VoucherController extends Controller
                     $item->name = is_string($request->name) ? $request->name : null;
                     $item->voucher_ids = $request->hidden_name;
                     $item->bundle_type = $request->bundle_offer_type ?? null;
-                    $item->voucher_type = "voucher";
+                    $item->type = "voucher";
 
                     // Numeric / optional
                     $item->required_quantity = $request->required_quantity ?? 0;
 
-                    // JSON FIELDS (ALWAYS JSON ENCODE)
-                    $item->category_ids            = json_encode($request->categories ?? []);
-                    $item->sub_category_ids        = json_encode($request->sub_categories_game ?? []);
-                    $item->branch_ids              = json_encode($request->sub_branch_id ?? []);
-                    $item->how_and_condition_ids   = json_encode($request->howto_work ?? []);
-                    $item->term_and_condition_ids  = json_encode($request->term_and_condition ?? []);
+                 // Replace your category array building code with this:
+                    $category = [];
+                    if ($request->categories != null) {
+                        $categoryId = is_array($request->categories) ? $request->categories[0] : $request->categories;
+                        array_push($category, [
+                            'id' => (string)$categoryId, // Ensure it's a string
+                            'position' => 1,
+                        ]);
+                    }
+                    if ($request->sub_categories_game != null) {
+                        $subCategoryId = is_array($request->sub_categories_game) ? $request->sub_categories_game[0] : $request->sub_categories_game;
+                        array_push($category, [
+                            'id' => (string)$subCategoryId, // Ensure it's a string
+                            'position' => 2,
+                        ]);
+                    }
+                    if ($request->sub_sub_category_id != null) {
+                        $subSubCategoryId = is_array($request->sub_sub_category_id) ? $request->sub_sub_category_id[0] : $request->sub_sub_category_id;
+                        array_push($category, [
+                            'id' => (string)$subSubCategoryId, // Ensure it's a string
+                            'position' => 3,
+                        ]);
+                    }
+                    $item->category_ids = json_encode($category);
+
+                    // Also fix category_id assignment
+                    $item->category_id = $request->sub_categories_game 
+                        ? (is_array($request->sub_categories_game) ? $request->sub_categories_game[0] : $request->sub_categories_game)
+                        : (is_array($request->categories) ? $request->categories[0] : $request->categories);
+
+                        
+
+                    $item->variations = json_encode(array_filter($request->variations ?? []));
+                        $item->branch_ids = json_encode(array_filter($request->sub_branch_id ?? []));
+
+                    $item->how_and_condition_ids = json_encode(array_filter($request->howto_work ?? []));
+                    $item->term_and_condition_ids = json_encode(array_filter($request->term_and_condition ?? []));
+                    $item->product = json_encode(array_filter($request->products ?? []));
+                    $item->product_b = json_encode(array_filter($request->bogo_products ?? []));
+                    $item->clients_section = json_encode(array_filter($request->clients ?? []));
+                      $item->add_ons = $request->has('addon_ids') ? json_encode($request->addon_ids) : json_encode([]);
+
                     $item->client_id               = json_encode($request->select_client ?? []);
                     $item->segment_ids             = json_encode($request->segment_type ?? []);
                      $item->clients_section = json_encode(array_filter($request->clients ?? []));
@@ -1201,7 +1279,7 @@ public function view_voucher($id)
         $item->is_halal = $request->is_halal ?? 0;
         $item->organic = $request->organic ?? 0;
         $item->veg = $request->veg;
-        $item->images = $images;
+        $item->images = json_encode($images);
         if (Helpers::get_mail_status('product_approval') && $request?->temp_product) {
 
 
@@ -1248,7 +1326,7 @@ public function view_voucher($id)
             }
 
 
-            $item->images = $images;
+            $item->images = json_encode($images);
 
             $item->temp_product?->translations()->delete();
             $item?->pharmacy_item_details()?->delete();
@@ -1623,7 +1701,7 @@ public function view_voucher($id)
                 });
             })
             ->where('is_approved', 1)
-            ->where('voucher_type', "voucher")
+            ->where('type', "voucher")
             ->module(Config::get('module.current_module_id'))
             ->type($type)
             ->latest()->paginate(config('default_pagination'));
@@ -2639,7 +2717,7 @@ public function view_voucher($id)
                 });
             })
             ->orderByRaw("FIELD(name, ?) DESC", [$request['name']])
-           ->whereNotNull('food_and_product_type')
+           ->whereNotNull('type')
             ->where('is_approved', 1)
             ->module(Config::get('module.current_module_id'))
             ->type($type)

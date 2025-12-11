@@ -7,10 +7,13 @@ use Carbon\Carbon;
 use App\Models\Tag;
 use App\Models\Item;
 use App\Models\Brand;
+use App\Models\App;
+use App\Models\Client;
 use App\Models\Store;
 use App\Models\Review;
 use App\Models\Allergy;
 use App\Models\Category;
+use App\Models\Segment;
 use App\Models\Nutrition;
 use App\Scopes\StoreScope;
 use App\Models\GenericName;
@@ -76,6 +79,64 @@ class VoucherController extends Controller
 
     }
 
+    public function getAppName(Request $request)
+    {
+        $clientId = $request->client_id;
+
+        // $All_segmnet = \DB::table('apps')
+        //     ->where('client_id', $clientId)
+        //     ->where('status', "active")
+        //     ->get();
+        $All_segmnet = Segment::where('client_id', $clientId)->where('status', "active")->get();
+        $clients = App::where('client_id', $clientId)->first();
+        // dd($clients);
+// 
+         
+        // Return both in one response
+        return response()->json([
+            'app_name' => $clients->app_name ?? null,    
+            'segments' => $All_segmnet
+        ]);
+    }
+
+
+        // public function getAppName(Request $request)
+        // {
+        //     try {
+
+        //         $clientId = $request->client_id;
+
+        //         $All_segment = Segment::where('client_id', $clientId)->get();
+        //             //  dd($All_segment);÷
+
+        //         $client = Client::where('id', $clientId)
+        //             // ->where('status', 'active')
+        //             ->first();
+
+        //         return response()->json([
+        //             'success'  => true,
+        //             'app_name' => $client->app_name ?? null,
+        //             'segments' => $All_segment
+        //         ]);
+
+        //     } catch (\Exception $e) {
+
+        //         Log::error('getAppName Error', [
+        //             'client_id' => $request->client_id,
+        //             'error'     => $e->getMessage(),
+        //             'file'      => $e->getFile(),
+        //             'line'      => $e->getLine(),
+        //         ]);
+
+        //         return response()->json([
+        //             'success' => false,
+        //             'message' => 'Server error occurred'
+        //         ], 500);
+        //     }
+        // }
+
+
+
   public function getSubcategories(Request $request)
     {
         // dd($request->all());
@@ -124,27 +185,86 @@ class VoucherController extends Controller
         // dd(session('current_module_type'));
         // dd(session('current_module_name'));
 
+
+
         $categories = Category::where(['position' => 0])->get();
 
         $taxData = Helpers::getTaxSystemType();
         $productWiseTax = $taxData['productWiseTax'];
         $taxVats = $taxData['taxVats'];
 
+        // dd($taxVats);
+
             return view('admin-views.voucher.index', compact('categories', 'productWiseTax', 'taxVats'));
+
+    }
+    public function discount(Request $request)
+    {
+
+        $categories = Category::where(['position' => 0])->get();
+
+        $taxData = Helpers::getTaxSystemType();
+        $productWiseTax = $taxData['productWiseTax'];
+        $taxVats = $taxData['taxVats'];
+
+            return view('admin-views.voucher.index_flat_discount', compact('categories', 'productWiseTax', 'taxVats'));
 
     }
 
     public function getBranches(Request $request)
     {
-        // dd($request->all());
+        // dd("dfjhbvdfhj");
+   
+        // $category = Store::where('parent_id', $request->store_id)
+        //     ->orWhere('id', $request->store_id)
+        //     ->orderBy('created_at')
+        //     ->select('id', 'name', 'type', 'category_id', 'voucher_id')
+        //     ->get();
+
+        // فرض کریں $store ایک single store record ہے
+// Step 1: Get stores list
+    //    $category = Store::where('parent_id', $request->store_id)
+    //         ->orWhere('id', $request->store_id)
+    //         ->orderBy('created_at', 'asc')
+    //         ->select('id', 'name', 'type', 'category_id', 'voucher_id')
+    //         ->first();
+
+    //     if ($category) {
+    //         $categoryIds = json_decode($category->category_id, true);
+
+    //         if (!is_array($categoryIds)) {
+    //             $categoryIds = [$category->category_id];
+    //         }
+
+    //         $categories = Category::whereIn('id', $categoryIds)
+    //             ->where("parent_id", "0")
+    //             ->select('id', 'name')
+    //             ->get();
+
+    //         $category->categories = $categories;
+    //     }
+   
+
         $branches = Store::where('parent_id', $request->store_id)
-        ->orwhere('id', $request->store_id)
-        ->orderby('created_at')
-            ->select('id', 'name','type')
+            ->orWhere('id', $request->store_id)
+            ->where('status', 1)
+            ->orderBy('created_at')
+            ->select('id', 'name', 'type')
             ->get();
 
-        return response()->json($branches);
+        $categories = Category::where('parent_id', 0)
+            ->where('status', 1)
+            ->where('module_id', 5)
+            ->orderBy('priority', 'ASC')
+            ->get();
+
+        return response()->json([
+            'branches'   => $branches,
+            'categories' => $categories,
+        ]);
+
     }
+
 
     public function get_product(Request $request)
     {
@@ -161,20 +281,29 @@ class VoucherController extends Controller
         // ->orderby('created_at')
         // ->select('id', 'name')
         // ->get();
+        // dd($item);
 
         return response()->json($branches);
     }
 
     public function get_document(Request $request)
     {
-        // WorkManagement records
-        // $WorkManagement = WorkManagement::where('voucher_id', $request->store_id)->get();
-        $WorkManagement = WorkManagement::get();
+        
+        $id = $request->voucher_id ;
 
-        // UsageTermManagement records
+            $WorkManagement = \DB::table('work_managements')
+        ->where('voucher_id', $id)
+        ->get();
+        // dd($WorkManagement);
+        
+                // WorkManagement records
+        // $WorkManagement = WorkManagement::where('voucher_id', $request->store_id)->get();
+        $WorkManagement = WorkManagement::where('voucher_id', $id)->get();
+        // dd($WorkManagement)
+;        // UsageTermManagement records
         $UsageTermManagement = UsageTermManagement::get();
         // $UsageTermManagement = UsageTermManagement::where('voucher_id', $request->store_id)->get();
-    //   dd($UsageTermManagement);
+    //   dd($WorkManagement);
         // Return both in JSON as array
         return response()->json([
             'work_management' => $WorkManagement,
@@ -183,53 +312,58 @@ class VoucherController extends Controller
     }
 
 
-    public function store(Request $request)
+  public function store(Request $request)
     {
 
-        dd($request->all());
-        $validator = Validator::make($request->all(), [
-            'name.0' => 'required',
-            'name.*' => 'max:191',
-            'category_id' => 'required',
-            'image' => [
-                Rule::requiredIf(function () use ($request) {
-                    return (Config::get('module.current_module_type') != 'food' && $request?->product_gellary == null);
-                })
-            ],
-            'price' => 'required|numeric|between:.01,999999999999.99',
-            'discount' => 'required|numeric|min:0',
+        $type_name =  $request->hidden_name;
+
+
+        // dd($request->all());
+        if($type_name == "Delivery/Pickup" || $type_name == "In-Store"){
+
+            // ✅ Debug request if needed
+
+             $validator = Validator::make($request->all(), [
+
+            // 'select_client' => 'required',
+            // 'name' => 'required',
+            'segment_type' => 'max:1000',
             'store_id' => 'required',
-            'description.*' => 'max:1000',
-            'name.0' => 'required',
-            'description.0' => 'required',
-        ], [
-            'description.*.max' => translate('messages.description_length_warning'),
-            'name.0.required' => translate('messages.item_name_required'),
-            'category_id.required' => translate('messages.category_required'),
-            'image.required' => translate('messages.thumbnail image is required'),
-            'name.0.required' => translate('default_name_is_required'),
-            'description.0.required' => translate('default_description_is_required'),
+            'categories' => 'required',
+            'sub_categories_game' => 'nullable',
+            'sub_branch_id' => 'required',
+            'voucher_title' => 'required',
+            // 'clients' => 'array',
+            'item_images' => 'required',
+            'image' => 'required',
+            'description' => 'required',
+            // 'tags' => 'required',
+            'bundle_offer_type' => 'required',
+            'price' => 'required',
+            'price_hidden' => 'required',
+            'required_qty' => 'required',
+            'offer_type' => 'required',
+            'discount_type' => 'required',
+            'discount' => 'required',
+            // 'howto_work' => 'required',
+            // 'term_and_condition' => 'required',
+            // 'products' => 'required',
         ]);
-        if ($request['discount_type'] == 'percent') {
-            $dis = ($request['price'] / 100) * $request['discount'];
-        } else {
-            $dis = $request['discount'];
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => Helpers::error_processor($validator)], 422);
         }
 
-        if ($request['price'] <= $dis) {
-            $validator->getMessageBag()->add('unit_price', translate("Discount amount can't be greater than 100%"));
-        }
+           $images = [];
+        $newFileNamethumb = null;
 
-        if ($request['price'] <= $dis || $validator->fails()) {
-            return response()->json(['errors' => Helpers::error_processor($validator)]);
-        }
-
-        $images = [];
-
+        // ✅ Handle existing gallery copy logic (unchanged)
         if ($request->item_id && $request?->product_gellary == 1) {
-            $item_data = Item::withoutGlobalScope(StoreScope::class)->select(['image', 'images'])->findOrfail($request->item_id);
-            if (!$request->has('image')) {
+            $item_data = Item::withoutGlobalScope(StoreScope::class)
+                ->select(['image', 'images'])
+                ->findOrFail($request->item_id);
 
+            if (!$request->has('image')) {
                 $oldDisk = 'public';
                 if ($item_data->storage && count($item_data->storage) > 0) {
                     foreach ($item_data->storage as $value) {
@@ -253,11 +387,12 @@ class VoucherController extends Controller
                         Storage::disk($newDisk)->put($newPath, $fileContents);
                     }
                 } catch (\Exception $e) {
+                    // log or ignore
                 }
             }
 
-            foreach ($item_data->images as $key => $value) {
-                if (!in_array(is_array($value) ?   $value['img'] : $value, explode(",", $request->removedImageKeys))) {
+            foreach ($item_data->images as $value) {
+                if (!in_array(is_array($value) ? $value['img'] : $value, explode(",", $request->removedImageKeys))) {
                     $value = is_array($value) ? $value : ['img' => $value, 'storage' => 'public'];
                     $oldDisk = $value['storage'];
                     $oldPath = "product/{$value['img']}";
@@ -265,6 +400,7 @@ class VoucherController extends Controller
                     $newPath = "product/{$newFileName}";
                     $dir = 'product/';
                     $newDisk = Helpers::getDisk();
+
                     try {
                         if (Storage::disk($oldDisk)->exists($oldPath)) {
                             if (!Storage::disk($newDisk)->exists($dir)) {
@@ -275,268 +411,530 @@ class VoucherController extends Controller
                         }
                     } catch (\Exception $e) {
                     }
+
                     $images[] = ['img' => $newFileName, 'storage' => Helpers::getDisk()];
                 }
             }
         }
 
-        $tag_ids = [];
-        if ($request->tags != null) {
-            $tags = explode(",", $request->tags);
-        }
-        if (isset($tags)) {
-            foreach ($tags as $key => $value) {
-                $tag = Tag::firstOrNew(
-                    ['tag' => $value]
-                );
-                $tag->save();
-                array_push($tag_ids, $tag->id);
+            // ✅ Create new item
+            $item = new Item;
+            $item->price = $request->price ?? 0;
+            $item->discount_type = $request->discount_type;
+            $item->discount = $request->discount;
+            $item->store_id = $request->store_id;
+            $item->voucher_title = $request->voucher_title;
+            // $item->valid_until = $request->valid_until;
+            $item->description = $request->description;
+            $item->module_id = Config::get('module.current_module_id');
+
+            // ✅ Image upload
+            $item->image = $request->hasFile('image')
+                ? Helpers::upload('product/', 'png', $request->file('image'))
+                : $newFileNamethumb ?? null;
+
+            $category = [];
+            if ($request->categories != null) {
+                array_push($category, [
+                    'id' => $request->categories,
+                    'position' => 1,
+                ]);
             }
+            if ($request->sub_categories_game != null) {
+                array_push($category, [
+                    'id' => $request->sub_categories_game,
+                    'position' => 2,
+                ]);
+            }
+            if ($request->sub_sub_category_id != null) {
+                array_push($category, [
+                    'id' => $request->sub_sub_category_id,
+                    'position' => 3,
+                ]);
+            }
+            $item->category_ids = json_encode($category);
+            $item->category_id = $request->sub_categories_game ? $request->sub_categories_game : $request->categories;
+            
+            // ✅ Clean & JSON encode arrays
+            // $item->category_ids = json_encode(array_filter($request->categories ?? []));
+            $item->variations = json_encode(array_filter($request->variations ?? []));
+            $item->sub_category_ids = json_encode(array_filter($request->sub_categories_game ?? []));
+            $item->branch_ids = json_encode(array_filter($request->sub_branch_id ?? []));
+            $item->how_and_condition_ids = json_encode(array_filter($request->howto_work ?? []));
+            $item->term_and_condition_ids = json_encode(array_filter($request->term_and_condition ?? []));
+            $item->product = json_encode(array_filter($request->products ?? []));
+            $item->product_b = json_encode(array_filter($request->bogo_products ?? []));
+            $item->clients_section = json_encode(array_filter($request->clients ?? []));
+
+            // ✅ Optional fields
+            // $item->voucher_ids = $request->hidden_values ?? null;
+            if( $item->required_quantity != ""){
+                $item->required_quantity = $request->required_quantity ?? 0.00;
+            }
+            $item->name = $request->name ?? null;
+            $item->client_id = json_encode($request->select_client ?? []);
+            $item->segment_ids = json_encode($request->segment_type ?? []);
+            $item->branch_ids = json_encode($request->sub_branch_id ?? []);
+            $item->voucher_ids = $request->hidden_name;
+            $item->bundle_type = $request->bundle_offer_type ?? null;
+            $item->tags_ids = $request->tags ?? null;
+            $item->images = $images;
+            $item->voucher_type = "voucher";
+            $item->is_halal = $request->is_halal ?? 0;
+
+            // ✅ Save
+            $item->save();
+
+            return response()->json(['success' => translate('messages.voucher_created_successfully')], 200);
+
+
+        }else if($type_name == "Flat discount"){
+
+             $validator = Validator::make($request->all(), [
+
+            // 'select_client' => 'required',
+            // 'name' => 'required',
+            'segment_type' => 'max:1000',
+            'store_id' => 'required',
+            // 'categories' => 'required',
+            // 'sub_categories_game' => 'required',
+            // 'sub_branch_id' => 'required',
+            'voucher_title' => 'required',
+            'clients' => 'array',
+            // 'valid_until' => 'required',
+            'item_images' => 'required',
+            'image' => 'required',
+            'description' => 'required',
+            'tags' => 'required',
+            'discount_type' => 'required',
+            'bonus_tiers' => 'required',
+            // 'howto_work' => 'required',
+            // 'term_and_condition' => 'required',
+
+
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => Helpers::error_processor($validator)], 422);
         }
 
-        $nutrition_ids = [];
-        if ($request->nutritions != null) {
-            $nutritions = $request->nutritions;
-        }
-        if (isset($nutritions)) {
-            foreach ($nutritions as $key => $value) {
-                $nutrition = Nutrition::firstOrNew(
-                    ['nutrition' => $value]
-                );
-                $nutrition->save();
-                array_push($nutrition_ids, $nutrition->id);
-            }
-        }
-        $generic_ids = [];
-        if ($request->generic_name != null) {
-            $generic_name = GenericName::firstOrNew(
-                ['generic_name' => $request->generic_name]
-            );
-            $generic_name->save();
-            array_push($generic_ids, $generic_name->id);
-        }
+           $images = [];
+        $newFileNamethumb = null;
 
-        $allergy_ids = [];
-        if ($request->allergies != null) {
-            $allergies = $request->allergies;
-        }
-        if (isset($allergies)) {
-            foreach ($allergies as $key => $value) {
-                $allergy = Allergy::firstOrNew(
-                    ['allergy' => $value]
-                );
-                $allergy->save();
-                array_push($allergy_ids, $allergy->id);
-            }
-        }
+        // ✅ Handle existing gallery copy logic (unchanged)
+        if ($request->item_id && $request?->product_gellary == 1) {
+            $item_data = Item::withoutGlobalScope(StoreScope::class)
+                ->select(['image', 'images'])
+                ->findOrFail($request->item_id);
 
-        $item = new Item;
-        $item->name = $request->name[array_search('default', $request->lang)];
-
-        $category = [];
-        if ($request->category_id != null) {
-            array_push($category, [
-                'id' => $request->category_id,
-                'position' => 1,
-            ]);
-        }
-        if ($request->sub_category_id != null) {
-            array_push($category, [
-                'id' => $request->sub_category_id,
-                'position' => 2,
-            ]);
-        }
-        if ($request->sub_sub_category_id != null) {
-            array_push($category, [
-                'id' => $request->sub_sub_category_id,
-                'position' => 3,
-            ]);
-        }
-        $item->category_ids = json_encode($category);
-        $item->category_id = $request->sub_category_id ? $request->sub_category_id : $request->category_id;
-        $item->description =  $request->description[array_search('default', $request->lang)];
-
-        $choice_options = [];
-        if ($request->has('choice')) {
-            foreach ($request->choice_no as $key => $no) {
-                $str = 'choice_options_' . $no;
-                if ($request[$str][0] == null) {
-                    $validator->getMessageBag()->add('name', translate('messages.attribute_choice_option_value_can_not_be_null'));
-                    return response()->json(['errors' => Helpers::error_processor($validator)]);
-                }
-                $temp['name'] = 'choice_' . $no;
-                $temp['title'] = $request->choice[$key];
-                $temp['options'] = explode(',', implode('|', preg_replace('/\s+/', ' ', $request[$str])));
-                array_push($choice_options, $temp);
-            }
-        }
-        $item->choice_options = json_encode($choice_options);
-        $variations = [];
-        $options = [];
-        if ($request->has('choice_no')) {
-            foreach ($request->choice_no as $key => $no) {
-                $name = 'choice_options_' . $no;
-                $my_str = implode('|', $request[$name]);
-                array_push($options, explode(',', $my_str));
-            }
-        }
-        //Generates the combinations of customer choice options
-        $combinations = Helpers::combinations($options);
-        if (count($combinations[0]) > 0) {
-            foreach ($combinations as $key => $combination) {
-                $str = '';
-                foreach ($combination as $k => $temp) {
-                    if ($k > 0) {
-                        $str .= '-' . str_replace(' ', '', $temp);
-                    } else {
-                        $str .= str_replace(' ', '', $temp);
+            if (!$request->has('image')) {
+                $oldDisk = 'public';
+                if ($item_data->storage && count($item_data->storage) > 0) {
+                    foreach ($item_data->storage as $value) {
+                        if ($value['key'] == 'image') {
+                            $oldDisk = $value['value'];
+                        }
                     }
                 }
-                $temp = [];
-                $temp['type'] = $str;
-                $temp['price'] = abs($request['price_' . str_replace('.', '_', $str)]);
+                $oldPath = "product/{$item_data->image}";
+                $newFileNamethumb = Carbon::now()->toDateString() . "-" . uniqid() . ".png";
+                $newPath = "product/{$newFileNamethumb}";
+                $dir = 'product/';
+                $newDisk = Helpers::getDisk();
 
-
-                if ($request->discount_type == 'amount' &&  $temp['price']  <   $request->discount) {
-                    $validator->getMessageBag()->add('unit_price', translate("Variation price must be greater than discount amount"));
-                    return response()->json(['errors' => Helpers::error_processor($validator)]);
-                }
-
-                $temp['stock'] = abs($request['stock_' . str_replace('.', '_', $str)]);
-                array_push($variations, $temp);
-            }
-        }
-        //combinations end
-
-        if (!empty($request->file('item_images'))) {
-            foreach ($request->item_images as $img) {
-                $image_name = Helpers::upload('product/', 'png', $img);
-                $images[] = ['img' => $image_name, 'storage' => Helpers::getDisk()];
-            }
-        }
-        // food variation
-        $food_variations = [];
-        if (isset($request->options)) {
-            foreach (array_values($request->options) as $key => $option) {
-
-                $temp_variation['name'] = $option['name'];
-                $temp_variation['type'] = $option['type'];
-                $temp_variation['min'] = $option['min'] ?? 0;
-                $temp_variation['max'] = $option['max'] ?? 0;
-                $temp_variation['required'] = $option['required'] ?? 'off';
-                if ($option['min'] > 0 &&  $option['min'] > $option['max']) {
-                    $validator->getMessageBag()->add('name', translate('messages.minimum_value_can_not_be_greater_then_maximum_value'));
-                    return response()->json(['errors' => Helpers::error_processor($validator)]);
-                }
-                if (!isset($option['values'])) {
-                    $validator->getMessageBag()->add('name', translate('messages.please_add_options_for') . $option['name']);
-                    return response()->json(['errors' => Helpers::error_processor($validator)]);
-                }
-                if ($option['max'] > count($option['values'])) {
-                    $validator->getMessageBag()->add('name', translate('messages.please_add_more_options_or_change_the_max_value_for') . $option['name']);
-                    return response()->json(['errors' => Helpers::error_processor($validator)]);
-                }
-                $temp_value = [];
-
-                foreach (array_values($option['values']) as $value) {
-                    if (isset($value['label'])) {
-                        $temp_option['label'] = $value['label'];
+                try {
+                    if (Storage::disk($oldDisk)->exists($oldPath)) {
+                        if (!Storage::disk($newDisk)->exists($dir)) {
+                            Storage::disk($newDisk)->makeDirectory($dir);
+                        }
+                        $fileContents = Storage::disk($oldDisk)->get($oldPath);
+                        Storage::disk($newDisk)->put($newPath, $fileContents);
                     }
-                    $temp_option['optionPrice'] = $value['optionPrice'];
-                    array_push($temp_value, $temp_option);
+                } catch (\Exception $e) {
+                    // log or ignore
                 }
-                $temp_variation['values'] = $temp_value;
-                array_push($food_variations, $temp_variation);
             }
-        }
 
-        $item->food_variations = json_encode($food_variations);
-        $item->variations = json_encode($variations);
-        $item->price = $request->price; //
-        $item->image =  $request->has('image') ? Helpers::upload('product/', 'png', $request->file('image')) : $newFileNamethumb ?? null;
-        $item->available_time_starts = $request->available_time_starts ?? '00:00:00';
-        $item->available_time_ends = $request->available_time_ends ?? '23:59:59';
-        $item->discount = $request->discount_type == 'amount' ? $request->discount : $request->discount;
-        $item->discount_type = $request->discount_type; //
-        $item->unit_id = $request->unit;
-        $item->attributes = $request->has('attribute_id') ? json_encode($request->attribute_id) : json_encode([]);
-        $item->add_ons = $request->has('addon_ids') ? json_encode($request->addon_ids) : json_encode([]);
-        $item->store_id = $request->store_id; //
-        $item->maximum_cart_quantity = $request->maximum_cart_quantity;
-        $item->veg = $request->veg;
-        $item->module_id = Config::get('module.current_module_id');
-        $module_type = Config::get('module.current_module_type');
+            foreach ($item_data->images as $value) {
+                if (!in_array(is_array($value) ? $value['img'] : $value, explode(",", $request->removedImageKeys))) {
+                    $value = is_array($value) ? $value : ['img' => $value, 'storage' => 'public'];
+                    $oldDisk = $value['storage'];
+                    $oldPath = "product/{$value['img']}";
+                    $newFileName = Carbon::now()->toDateString() . "-" . uniqid() . ".png";
+                    $newPath = "product/{$newFileName}";
+                    $dir = 'product/';
+                    $newDisk = Helpers::getDisk();
 
+                    try {
+                        if (Storage::disk($oldDisk)->exists($oldPath)) {
+                            if (!Storage::disk($newDisk)->exists($dir)) {
+                                Storage::disk($newDisk)->makeDirectory($dir);
+                            }
+                            $fileContents = Storage::disk($oldDisk)->get($oldPath);
+                            Storage::disk($newDisk)->put($newPath, $fileContents);
+                        }
+                    } catch (\Exception $e) {
+                    }
 
-        $item->veg = $request->veg;
-
-        $item->voucher_type =$request->voucher_type;
-        $item->required_quantity =$request->required_quantity;
-        $item->app_name =$request->app_name;
-        $item->client_id =$request->client_id;
-        $item->segment_ids =$request->segment_ids;
-        $item->sub_category_ids =$request->sub_category_ids;
-        $item->branch_ids =$request->branch_ids;
-        $item->voucher_title =$request->voucher_title;
-        $item->valid_until =$request->valid_until;
-        $item->voucher_ids =$request->voucher_ids;
-        $item->bundle_type =$request->bundle_type;
-        $item->tags_ids =$request->tags_ids;
-        $item->how_and_condition_ids =$request->how_and_condition_ids;
-        $item->term_and_condition_ids =$request->term_and_condition_ids;
-        $item->product =$request->product;
-        $item->product_b =$request->product_b;
-
-
-
-
-        if ($module_type == 'grocery') {
-            $item->organic = $request->organic ?? 0;
-        }
-        $item->stock = $request->current_stock ?? 0;
-        $item->images = $images;
-        $item->is_halal =  $request->is_halal ?? 0;
-        $item->save();
-        $item->tags()->sync($tag_ids);
-        $item->nutritions()->sync($nutrition_ids);
-        $item->allergies()->sync($allergy_ids);
-        if ($module_type == 'pharmacy') {
-            $item_details = new PharmacyItemDetails();
-            $item_details->item_id = $item->id;
-            $item_details->common_condition_id = $request->condition_id;
-            $item_details->is_basic = $request->basic ?? 0;
-            $item_details->is_prescription_required = $request->is_prescription_required ?? 0;
-            $item_details->save();
-            $item->generic()->sync($generic_ids);
-        }
-        if ($module_type == 'ecommerce') {
-            $item_details = new EcommerceItemDetails();
-            $item_details->item_id = $item->id;
-            $item_details->brand_id = $request->brand_id;
-            $item_details->save();
-        }
-
-        if (addon_published_status('TaxModule')) {
-            $SystemTaxVat = \Modules\TaxModule\Entities\SystemTaxSetup::where('is_active', 1)->where('is_default', 1)->first();
-            if ($SystemTaxVat?->tax_type == 'product_wise') {
-                foreach ($request['tax_ids'] ?? [] as $tax_id) {
-                    \Modules\TaxModule\Entities\Taxable::create(
-                        [
-                            'taxable_type' => Item::class,
-                            'taxable_id' => $item->id,
-                            'system_tax_setup_id' => $SystemTaxVat->id,
-                            'tax_id' => $tax_id
-                        ],
-                    );
+                    $images[] = ['img' => $newFileName, 'storage' => Helpers::getDisk()];
                 }
             }
         }
 
-        Helpers::add_or_update_translations(request: $request, key_data: 'name', name_field: 'name', model_name: 'Item', data_id: $item->id, data_value: $item->name);
-        Helpers::add_or_update_translations(request: $request, key_data: 'description', name_field: 'description', model_name: 'Item', data_id: $item->id, data_value: $item->description);
+            // ✅ Create new item
+            $item = new Item;
+            // $item->price = $request->price ?? 0;
+            // $item->discount_type = $request->discount_type;
+            // $item->discount = $request->discount;
+            $item->store_id = $request->store_id;
+            $item->voucher_title = $request->voucher_title;
+            // $item->valid_until = $request->valid_until;
+            $item->description = $request->description;
+            $item->module_id = Config::get('module.current_module_id');
 
-        return response()->json(['success' => translate('messages.product_added_successfully')], 200);
+            // ✅ Image upload
+            $item->image = $request->hasFile('image')
+                ? Helpers::upload('product/', 'png', $request->file('image'))
+                : $newFileNamethumb ?? null;
+
+            // ✅ Clean & JSON encode arrays
+            $item->category_ids = json_encode(array_filter($request->categories ?? []));
+            $item->sub_category_ids = json_encode(array_filter($request->sub_categories_game ?? []));
+            $item->branch_ids = json_encode(array_filter($request->sub_branch_id ?? []));
+            $item->how_and_condition_ids = json_encode(array_filter($request->howto_work ?? []));
+            $item->term_and_condition_ids = json_encode(array_filter($request->term_and_condition ?? []));
+            $item->discount_configuration = json_encode(array_filter($request->bonus_tiers ?? []));
+             $item->clients_section = json_encode(array_filter($request->clients ?? []));
+            // ✅ Optional fields
+            // $item->voucher_ids = $request->hidden_values ?? null;
+            if( $item->required_quantity != ""){
+                $item->required_quantity = $request->required_quantity ?? 0.00;
+            }
+            $item->name = $request->name ?? null;
+            $item->client_id = json_encode($request->select_client ?? []);
+            $item->segment_ids = json_encode($request->segment_type ?? []);
+            $item->branch_ids = json_encode($request->sub_branch_id ?? []);
+            $item->voucher_ids = $request->hidden_name;
+            $item->bundle_type = $request->bundle_offer_type ?? null;
+            $item->tags_ids = $request->tags ?? null;
+            $item->images = $images;
+            $item->voucher_type = "voucher";
+            $item->is_halal = $request->is_halal ?? 0;
+            $item->discount_type = $request->discount_type ?? 0;
+
+            // ✅ Save
+            $item->save();
+
+            return response()->json(['success' => translate('messages.voucher_created_successfully')], 200);
+
+
+        }else if($type_name == "Gift"){
+
+                $validator = Validator::make($request->all(), [
+
+                    // 'select_client' => 'required',
+                    // 'name' => 'required',
+                    'segment_type' => 'max:1000',
+                    'store_id' => 'required',
+                    // 'sub_branch_id' => 'required',
+                    'occasions_id' => 'required',//add
+                    'message_template_style' => 'required',//add
+                    'delivery_options' => 'required',//add//add
+                    'type' => 'required',//add
+                    'min_max_amount' => 'required', //add
+                    // 'howto_work' => 'required',
+                    // 'term_and_condition' => 'required',
+                    'clients' => 'array',
+                    // 'sub_categories_game' => 'required',
+                    // 'recipient_info_form_fields' => 'required',//add
+                    // 'amount_configuration' => 'required',
+                    // 'enable_custom_amount' => 'required',//add
+                    // 'fixed_amount_options' => 'required', //add
+                    // 'bonus_configuration' => 'required', //add
+                    // 'redemption_process' => 'required',
+                    // 'validity_period' => 'required',
+                    // 'usage_restrictions' => 'required',
+                    // 'blackout_dates' => 'required',
+                ]);
+
+                if ($validator->fails()) {
+                    return response()->json(['errors' => Helpers::error_processor($validator)], 422);
+                }
+
+                // ✅ Create new item
+                    $item = new Item;
+                    // Basic fields
+                    $item->store_id = $request->store_id;
+                    $item->module_id = Config::get('module.current_module_id');
+                    $item->name = is_string($request->name) ? $request->name : null;
+                    $item->voucher_ids = $request->hidden_name;
+                    $item->bundle_type = $request->bundle_offer_type ?? null;
+                    $item->voucher_type = "voucher";
+
+                    // Numeric / optional
+                    $item->required_quantity = $request->required_quantity ?? 0;
+
+                    // JSON FIELDS (ALWAYS JSON ENCODE)
+                    $item->category_ids            = json_encode($request->categories ?? []);
+                    $item->sub_category_ids        = json_encode($request->sub_categories_game ?? []);
+                    $item->branch_ids              = json_encode($request->sub_branch_id ?? []);
+                    $item->how_and_condition_ids   = json_encode($request->howto_work ?? []);
+                    $item->term_and_condition_ids  = json_encode($request->term_and_condition ?? []);
+                    $item->client_id               = json_encode($request->select_client ?? []);
+                    $item->segment_ids             = json_encode($request->segment_type ?? []);
+                     $item->clients_section = json_encode(array_filter($request->clients ?? []));
+                    $form_fields = $request->form_fields ?? [];
+                    $required_fields = $request->required_fields ?? [];
+
+                    $settings = [
+                        "form_fields" => $form_fields,
+                        "required_fields" => $required_fields
+                    ];
+
+                    $item->recipient_info_form_fields = json_encode($settings);
+                    // =======================
+                    //  GIFT CARD SETTINGS
+                    // =======================
+                    // occasions (array allowed)
+                    $item->occasions_id = json_encode($request->occasions_id ?? []);
+                    // message template
+                    $item->message_template_style = json_encode($request->message_template_style ?? []);
+                    // delivery options
+                    $item->delivery_options = json_encode($request->delivery_options ?? []);
+                    // amount configuration
+                    $item->amount_type = $request->type ?? null;
+                    if($request->type == "fixed"){
+                        $item->enable_custom_amount = $request->enable_custom_amount ?? null;
+                    }else{
+                        $item->fixed_amount_options = json_encode($request->fixed_amounts ?? []);
+                        $item->min_max_amount = json_encode($request->min_max_amount ?? []);
+                    }
+                    // bonus tiers
+                    $item->bonus_configuration = json_encode($request->bonus_tiers ?? []);
+                    // redemption
+                    $item->redemption_process = json_encode($request->redemption_process ?? []);
+                    // validity
+                    $item->validity_period = json_encode($request->validity_period ?? []);
+                    // restrictions
+                    $item->usage_restrictions = json_encode($request->usage_restrictions ?? []);
+                    // blackout dates
+                    $item->blackout_dates = json_encode($request->blackout_dates ?? []);
+                    $item->save();
+
+
+                    return response()->json(['success' => translate('messages.voucher_created_successfully')], 200);
+        }
     }
+
+    // public function view_voucher($id)
+    // {
+    //     $taxData = Helpers::getTaxSystemType();
+    //     $productWiseTax = $taxData['productWiseTax'];
+    //     $product = Item::withoutGlobalScope(StoreScope::class)->with($productWiseTax ? ['taxVats.tax'] : [])->where(['id' => $id])->firstOrFail();
+    //     dd($product);
+
+    //     $reviews = Review::where(['item_id' => $id])->latest()->paginate(config('default_pagination'));
+    //     return view('admin-views.voucher.view_voucher', compact('product', 'reviews', 'productWiseTax'));
+    // }
+
+    //     public function view_voucher($id)
+    // {
+    //     // dd("dvdv");
+    //     $taxData = Helpers::getTaxSystemType();
+    //     $productWiseTax = $taxData['productWiseTax'];
+    //     $product = Item::withoutGlobalScope(StoreScope::class)
+    //         ->with($productWiseTax ? ['taxVats.tax'] : [])
+    //         ->where(['id' => $id])
+    //         ->firstOrFail();
+
+    //         dd($product);
+        
+    //     // Category को भी load करें (क्योंकि category_id है)
+    //     if ($product->category_id) {
+    //         $product->load('category');
+    //     }
+        
+    //     // Tags को decode करें
+    //     if ($product->tags_ids) {
+    //         $tags = json_decode($product->tags_ids, true);
+    //         $product->tags_display = is_array($tags) ? implode(', ', $tags) : $product->tags_ids;
+    //     }
+        
+    //     // Category IDs decode करें
+    //     if ($product->category_ids) {
+    //         $category_ids = json_decode($product->category_ids, true);
+    //         $product->category_ids_display = is_array($category_ids) ? implode(', ', $category_ids) : $product->category_ids;
+    //     }
+        
+    //     // Sub Category IDs decode करें
+    //     if ($product->sub_category_ids) {
+    //         $sub_category_ids = json_decode($product->sub_category_ids, true);
+    //         $product->sub_category_ids_display = is_array($sub_category_ids) ? implode(', ', $sub_category_ids) : $product->sub_category_ids;
+    //     }
+        
+    //     // Branch IDs decode करें
+    //     if ($product->branch_ids) {
+    //         $branch_ids = json_decode($product->branch_ids, true);
+    //         $product->branch_ids_display = is_array($branch_ids) ? implode(', ', $branch_ids) : $product->branch_ids;
+    //     }
+        
+    //     // Client Section decode करें
+    //     if ($product->clients_section) {
+    //         $clients = json_decode($product->clients_section, true);
+    //         $product->clients_display = is_array($clients) ? json_encode($clients, JSON_PRETTY_PRINT) : $product->clients_section;
+    //     }
+        
+    //     // Product decode करें
+    //     if ($product->product) {
+    //         $products = json_decode($product->product, true);
+    //         $product->products_display = is_array($products) ? json_encode($products, JSON_PRETTY_PRINT) : $product->product;
+    //     }
+        
+    //     // How and Condition IDs decode करें
+    //     if ($product->how_and_condition_ids) {
+    //         $conditions = json_decode($product->how_and_condition_ids, true);
+    //         $product->conditions_display = is_array($conditions) ? implode(', ', $conditions) : $product->how_and_condition_ids;
+    //     }
+        
+    //     // Term and Condition IDs decode करें
+    //     if ($product->term_and_condition_ids) {
+    //         $terms = json_decode($product->term_and_condition_ids, true);
+    //         $product->terms_display = is_array($terms) ? implode(', ', $terms) : $product->term_and_condition_ids;
+    //     }
+        
+    //     $reviews = Review::where(['item_id' => $id])->latest()->paginate(config('default_pagination'));
+        
+    //     return view('admin-views.voucher.view_voucher', compact('product', 'reviews', 'productWiseTax'));
+    // }
+public function view_voucher($id)
+{
+    $taxData = Helpers::getTaxSystemType();
+    $productWiseTax = $taxData['productWiseTax'];
+
+    $product = Item::findOrFail($id);
+
+    // TAGS (string comma based)
+    if (!empty($product->tags_ids)) {
+        $tagNames = Tag::whereIn('id', explode(',', $product->tags_ids))
+                        ->pluck('tag')
+                        ->toArray();
+
+        $product->tags_display = implode(', ', $tagNames);
+    }
+
+    // CATEGORY IDs
+    if (!empty($product->category_ids)) {
+        $category_ids = json_decode($product->category_ids, true);
+
+        $product->categories = Category::whereIn('id', $category_ids)->get();
+    }
+
+    // SUB CATEGORY IDs
+    if (!empty($product->sub_category_ids)) {
+        $sub_ids = json_decode($product->sub_category_ids, true);
+
+        $product->sub_categories = Category::whereIn('parent_id', $sub_ids)->get();
+    }
+
+    // BRANCH IDs
+    if (!empty($product->branch_ids)) {
+        $branch_ids = json_decode($product->branch_ids, true);
+
+        $product->branches = Item::whereIn('branch_ids', $branch_ids)->get();
+    }
+
+    // HOW & CONDITION IDs
+    if (!empty($product->how_and_condition_ids)) {
+        $how_ids = json_decode($product->how_and_condition_ids, true);
+
+        $product->how_conditions = WorkManagement::whereIn('id', $how_ids)->get();
+    }
+
+    // TERM & CONDITION IDs
+    if (!empty($product->term_and_condition_ids)) {
+        $term_ids = json_decode($product->term_and_condition_ids, true);
+
+        $product->terms_conditions = UsageTermManagement::whereIn('id', $term_ids)->get();
+    }
+
+    // PRODUCT ARRAY
+    if (!empty($product->product)) {
+        $productArray = json_decode($product->product, true);
+
+        $productIds = collect($productArray)->pluck('product_id')->toArray();
+
+        $product->product_details = item::whereIn('id', $productIds)->get();
+    }
+
+    $reviews = Review::where(['item_id' => $id])->latest()->paginate(config('default_pagination'));
+    // dd($product);
+    return view('admin-views.voucher.view_voucher',  compact('product', 'reviews', 'productWiseTax'));
+}
+    // public function view_voucher($id)
+    // {
+
+    //      $taxData = Helpers::getTaxSystemType();
+    //      $productWiseTax = $taxData['productWiseTax'];
+
+    //     $product = Item::findOrFail($id);
+
+    //     // TAGS (string comma based)
+    //     if (!empty($product->tags_ids)) {
+    //         $tagNames = Tag::whereIn('id', explode(',', $product->tags_ids))
+    //                         ->pluck('tag')
+    //                         ->toArray();
+
+    //         $product->tags_display = implode(', ', $tagNames);
+    //     }
+
+    //     // CATEGORY IDs
+    //     if (!empty($product->category_ids)) {
+    //         $category_ids = json_decode($product->category_ids, true);
+
+    //         $product->categories = Category::whereIn('id', $category_ids)->get();
+    //     }
+
+    //     // SUB CATEGORY IDs
+    //     if (!empty($product->sub_category_ids)) {
+    //         $sub_ids = json_decode($product->sub_category_ids, true);
+
+    //         $product->sub_categories = Category::whereIn('parent_id', $sub_ids)->get();
+    //     }
+
+    //     // BRANCH IDs
+    //     if (!empty($product->branch_ids)) {
+    //         $branch_ids = json_decode($product->branch_ids, true);
+
+    //         $product->branches = Item::whereIn('branch_ids', $branch_ids)->get();
+    //     }
+
+    //     // HOW & CONDITION IDs
+    //     if (!empty($product->how_and_condition_ids)) {
+    //         $how_ids = json_decode($product->how_and_condition_ids, true);
+
+    //         $product->how_conditions = WorkManagement::whereIn('id', $how_ids)->get();
+    //     }
+
+    //     // TERM & CONDITION IDs
+    //     if (!empty($product->term_and_condition_ids)) {
+    //         $term_ids = json_decode($product->term_and_condition_ids, true);
+
+    //         $product->terms_conditions = UsageTermManagement::whereIn('id', $term_ids)->get();
+    //     }
+
+    //     // PRODUCT ARRAY
+    //     if (!empty($product->product)) {
+    //         $productArray = json_decode($product->product, true);
+
+    //         $productIds = collect($productArray)->pluck('product_id')->toArray();
+
+    //         $product->product_details = item::whereIn('id', $productIds)->get();
+    //     }
+
+    //      $reviews = Review::where(['item_id' => $id])->latest()->paginate(config('default_pagination'));
+    //     return view('admin-views.voucher.view_voucher',  compact('product', 'reviews', 'productWiseTax'));
+    // }
+
 
     public function view($id)
     {
@@ -548,8 +946,10 @@ class VoucherController extends Controller
         return view('admin-views.voucher.view', compact('product', 'reviews', 'productWiseTax'));
     }
 
+
     public function edit(Request $request, $id)
     {
+        // dd("edit page");
         $temp_product = false;
         if ($request->temp_product) {
             $product = TempProduct::withoutGlobalScope(StoreScope::class)->withoutGlobalScope('translate')->with('store', 'category', 'module')->findOrFail($id);
@@ -1196,6 +1596,7 @@ class VoucherController extends Controller
 
     public function list(Request $request)
     {
+        // dd("fgfdg");
         $store_id = $request->query('store_id', 'all');
         $category_id = $request->query('category_id', 'all');
         $sub_category_id = $request->query('sub_category_id', 'all');
@@ -1245,6 +1646,7 @@ class VoucherController extends Controller
                 });
             })
             ->where('is_approved', 1)
+            ->where('voucher_type', "voucher")
             ->module(Config::get('module.current_module_id'))
             ->type($type)
             ->latest()->paginate(config('default_pagination'));
@@ -1257,6 +1659,7 @@ class VoucherController extends Controller
         $taxData = Helpers::getTaxSystemType(getTaxVatList: false);
         $productWiseTax = $taxData['productWiseTax'];
 
+        // dd($items);
         return view('admin-views.voucher.list', compact('items', 'store', 'category', 'type', 'sub_categories', 'condition','productWiseTax'));
     }
 
@@ -2234,6 +2637,7 @@ class VoucherController extends Controller
 
     public function product_gallery(Request $request)
     {
+        // dd("dfgf");
         $store_id = $request->query('store_id', 'all');
         $category_id = $request->query('category_id', 'all');
         $type = $request->query('type', 'all');
@@ -2258,11 +2662,13 @@ class VoucherController extends Controller
                 });
             })
             ->orderByRaw("FIELD(name, ?) DESC", [$request['name']])
+           ->whereNotNull('type')
             ->where('is_approved', 1)
             ->module(Config::get('module.current_module_id'))
             ->type($type)
             // ->latest()->paginate(config('default_pagination'));
             ->inRandomOrder()->limit(12)->get();
+            // dd();
         $store = $store_id != 'all' ? Store::findOrFail($store_id) : null;
         $category = $category_id != 'all' ? Category::findOrFail($category_id) : null;
         return view('admin-views.voucher.product_gallery', compact('items', 'store', 'category', 'type'));
