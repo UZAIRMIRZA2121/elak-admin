@@ -8396,4 +8396,5 @@ Smartly or Earn. ',
   'The price hidden field is required.' => 'The price hidden field is required.',
   'Agreements Certificate' => 'Agreements Certificate',
   'All Types' => 'All Types',
+  'Category required' => 'Category required',
 );

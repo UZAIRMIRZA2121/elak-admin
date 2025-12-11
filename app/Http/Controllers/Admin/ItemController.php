@@ -104,7 +104,7 @@ class ItemController extends Controller
                     return (Config::get('module.current_module_type') != 'food' && $request?->product_gellary == null);
                 })
             ],
-            'price' => 'required|numeric|between:.01,999999999999.99',
+            'price' => 'required|numeric|between:0,999999999999.99',
             'discount' => 'nullable|numeric|min:0',
             'store_id' => 'required',
             'description.*' => 'max:1000',
