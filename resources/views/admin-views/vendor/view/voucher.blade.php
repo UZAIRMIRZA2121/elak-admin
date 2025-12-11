@@ -11,58 +11,62 @@
     <div class="content container-fluid">
         @include('admin-views.vendor.view.partials._header', ['store' => $store])
         <!-- Page Heading -->
-          <form class="search-form">
-              <input type="hidden" name="store_id" value="{{ $store->id }}">
-        <div class="row my-4">
-            <div class="col-sm-6 col-md-3">
-                <div class="select-item">
-                    <select name="voucher_ids" class="form-control js-select2-custom set-filter"
-                            data-url="{{url()->full()}}" data-filter="voucher_ids">
-                        <option value="" {{!request('voucher_ids')?'selected':''}}>{{ translate('All Voucher Types') }}</option>
-                        @foreach(\App\Models\VoucherType::orderBy('name')->get(['id','name']) as $voucher)
-                            <option
-                                value="{{$voucher['name']}}" {{request()?->voucher_ids == $voucher['name']?'selected':''}}>
-                                {{$voucher['name']}}
-                            </option>
-                        @endforeach
-                    </select>
+        <form class="search-form">
+            <input type="hidden" name="store_id" value="{{ $store->id }}">
+            <div class="row my-4">
+                <div class="col-sm-6 col-md-3">
+                    <div class="select-item">
+                        <select name="voucher_ids" class="form-control js-select2-custom set-filter"
+                            data-url="{{ url()->full() }}" data-filter="voucher_ids">
+                            <option value="" {{ !request('voucher_ids') ? 'selected' : '' }}>
+                                {{ translate('All Voucher Types') }}</option>
+                            @foreach (\App\Models\VoucherType::orderBy('name')->get(['id', 'name']) as $voucher)
+                                <option value="{{ $voucher['name'] }}"
+                                    {{ request()?->voucher_ids == $voucher['name'] ? 'selected' : '' }}>
+                                    {{ $voucher['name'] }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
                 </div>
-            </div>
-            <div class="col-sm-6 col-md-3">
-                <div class="select-item">
-                    @php(
-                        // Custom static array of voucher types
-                        $voucherTypes = [
-                            'simple' => 'Simple',
-                            'simple x' => 'Simple X',
-                            'bundle' => 'Fixed Bundle - Specific products at set price',
-                            'bogo_free' => 'Buy X Get Y - Buy products get different product free',
-                            'mix_match' => 'Mix & Match - Customer chooses from categories',
-                        ]
-                    )
+                <div class="col-sm-6 col-md-3">
+                    <div class="select-item">
+                        @php(
+    // Custom static array of voucher types
+    $voucherTypes = [
+        'simple' => 'Simple',
+        'simple x' => 'Simple X',
+        'bundle' => 'Fixed Bundle - Specific products at set price',
+        'bogo_free' => 'Buy X Get Y - Buy products get different product free',
+        'mix_match' => 'Mix & Match - Customer chooses from categories',
+    ],
+)
 
-                    <select name="bundle_type" class="form-control js-select2-custom set-filter"
+                        <select name="bundle_type" class="form-control js-select2-custom set-filter"
                             data-url="{{ url()->full() }}" data-filter="bundle_type">
-                        <option value="" {{ !request('bundle_type') ? 'selected' : '' }}>
-                            {{ translate('Bundle Name') }}
-                        </option>
-
-                        @foreach($voucherTypes as $value => $label)
-                            <option value="{{ $value }}" {{ request()?->bundle_type == $value ? 'selected' : '' }}>
-                                {{ $label }}
+                            <option value="" {{ !request('bundle_type') ? 'selected' : '' }}>
+                                {{ translate('Bundle Name') }}
                             </option>
-                        @endforeach
-                    </select>
+
+                            @foreach ($voucherTypes as $value => $label)
+                                <option value="{{ $value }}"
+                                    {{ request()?->bundle_type == $value ? 'selected' : '' }}>
+                                    {{ $label }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
                 </div>
             </div>
-        </div>
-          </form>
+        </form>
         <div class="tab-content">
             <div class="tab-pane fade show active" id="product">
 
                 <div class="col-12 mb-3">
                     <div class="row g-2">
-                        @php($item = \App\Models\Item::withoutGlobalScope(\App\Scopes\StoreScope::class)->where(['store_id' => $store->id])->count())
+                        @php(
+    $item = \App\Models\Item::withoutGlobalScope(\App\Scopes\StoreScope::class)->where(['store_id' => $store->id])->count(),
+)
                         <div class="col-sm-6 col-lg-3">
                             <a class="order--card h-100"
                                 href="{{ route('admin.store.view', ['store' => $store->id, 'tab' => 'item']) }}">
@@ -79,7 +83,9 @@
                             </a>
                         </div>
 
-                        @php( $item = \App\Models\Item::withoutGlobalScope(\App\Scopes\StoreScope::class)->where(['store_id' => $store->id, 'status' => 1])->count())
+                        @php(
+    $item = \App\Models\Item::withoutGlobalScope(\App\Scopes\StoreScope::class)->where(['store_id' => $store->id, 'status' => 1])->count(),
+)
                         <div class="col-sm-6 col-lg-3">
                             <a class="order--card h-100"
                                 href="{{ route('admin.store.view', ['store' => $store->id, 'tab' => 'item', 'sub_tab' => 'active-items']) }}">
@@ -95,7 +101,9 @@
                                 </div>
                             </a>
                         </div>
-                        @php( $item = \App\Models\Item::withoutGlobalScope(\App\Scopes\StoreScope::class)->where(['store_id' => $store->id, 'status' => 0])->count())
+                        @php(
+    $item = \App\Models\Item::withoutGlobalScope(\App\Scopes\StoreScope::class)->where(['store_id' => $store->id, 'status' => 0])->count(),
+)
                         <div class="col-sm-6 col-lg-3">
                             <a class="order--card h-100"
                                 href="{{ route('admin.store.view', ['store' => $store->id, 'tab' => 'item', 'sub_tab' => 'inactive-items']) }}">
@@ -111,7 +119,9 @@
                                 </div>
                             </a>
                         </div>
-                        @php($item = \App\Models\TempProduct::withoutGlobalScope(\App\Scopes\StoreScope::class)->where(['store_id' => $store->id, 'is_rejected' => 0])->count())
+                        @php(
+    $item = \App\Models\TempProduct::withoutGlobalScope(\App\Scopes\StoreScope::class)->where(['store_id' => $store->id, 'is_rejected' => 0])->count(),
+)
                         <div class="col-sm-6 col-lg-3">
                             <a class="order--card h-100"
                                 href="{{ route('admin.store.view', ['store' => $store->id, 'tab' => 'item', 'sub_tab' => 'pending-items']) }}">
@@ -127,7 +137,9 @@
                                 </div>
                             </a>
                         </div>
-                        @php($item = \App\Models\TempProduct::withoutGlobalScope(\App\Scopes\StoreScope::class)->where(['store_id' => $store->id, 'is_rejected' => 1])->count())
+                        @php(
+    $item = \App\Models\TempProduct::withoutGlobalScope(\App\Scopes\StoreScope::class)->where(['store_id' => $store->id, 'is_rejected' => 1])->count(),
+)
                         <div class="col-sm-6 col-lg-3">
                             <a class="order--card h-100"
                                 href="{{ route('admin.store.view', ['store' => $store->id, 'tab' => 'item', 'sub_tab' => 'rejected-items']) }}">
@@ -243,97 +255,106 @@
                             <tbody id="setrows">
 
                                 @foreach ($foods as $key => $food)
-                                        <tr>
-                                            <td>{{ $key + 1 }}</td>
-                                            <td>
-                                                <a class="media align-items-center"
-                                                    href="{{ route('admin.item.view', [$food['id']]) }}">
-                                                    <img class="avatar avatar-lg mr-3 onerror-image"
-                                                        src="{{ $food['image_full_url'] ?? asset('public/assets/admin/img/160x160/img2.jpg') }}"
-                                                        data-onerror-image="{{ asset('public/assets/admin/img/160x160/img2.jpg') }}"
-                                                        alt="{{ $food->name }} image">
+                                    <tr>
+                                        <td>{{ $key + 1 }}</td>
+                                        <td>
+                                            <a class="media align-items-center"
+                                                href="{{ route('admin.item.view', [$food['id']]) }}">
+                                                <img class="avatar avatar-lg mr-3 onerror-image"
+                                                    src="{{ $food['image_full_url'] ?? asset('public/assets/admin/img/160x160/img2.jpg') }}"
+                                                    data-onerror-image="{{ asset('public/assets/admin/img/160x160/img2.jpg') }}"
+                                                    alt="{{ $food->name }} image">
 
-                                                    <div class="media-body">
-                                                        <h5 class="text-hover-primary mb-0">
-                                                            {{ Str::limit($food['name'], 20, '...') }}</h5>
-                                                    </div>
-                                                </a>
-                                            </td>
+                                                <div class="media-body">
+                                                    <h5 class="text-hover-primary mb-0">
+                                                        {{ Str::limit($food['name'], 20, '...') }}</h5>
+                                                </div>
+                                            </a>
+                                        </td>
 
 
-                                             @php( $categories = \App\Models\Category::whereIn('id', $food->category_id)->pluck('name')->toArray()  )
+                                        @php
+                                            $categories = \App\Models\Category::where('id', $food->category_id)
+                                                ->pluck('name')
+                                                ->toArray();
+                                        @endphp
 
-                                            <td>
-                                                {!! implode('<br>,', $categories) !!}
-                                            </td>
-                                             @php( $Segment = \App\Models\Segment::whereIn('id', json_decode($food->segment_ids))->pluck('name')->toArray())
-                                            <td>
-                                                  {!! implode('<br>,', $Segment) !!}
-                                            </td>
+                                        <td>
+                                            {!! implode('<br>', $categories) !!}
+                                        </td>
 
-                                                <td>
-                                                    <div class="d-flex align-items-center gap-2">
-                                                        <h5 class="text-hover-primary fw-medium mb-0">{{ $food->discount }}%
-                                                        </h5>
-                                                        {{-- <span data-toggle="modal" data-id="{{ $food->id }}"
+                                        @php(
+    $Segment = \App\Models\Segment::whereIn('id', json_decode($food->segment_ids))->pluck('name')->toArray(),
+)
+                                        <td>
+                                            {!! implode('<br>,', $Segment) !!}
+                                        </td>
+
+                                        <td>
+                                            <div class="d-flex align-items-center gap-2">
+                                                <h5 class="text-hover-primary fw-medium mb-0">{{ $food->discount }}%
+                                                </h5>
+                                                {{-- <span data-toggle="modal" data-id="{{ $food->id }}"
                                                             data-target="#update-quantity"
                                                             class="text-primary tio-add-circle fs-22 cursor-pointer update-quantity"></span> --}}
-                                                    </div>
-                                                </td>
-                                            <td> {{ $food->discount_type }}</td>
-                                            <td> {{ $food->bundle_type }}</td>
+                                            </div>
+                                        </td>
+                                        <td> {{ $food->discount_type }}</td>
+                                        <td> {{ $food->bundle_type }}</td>
 
-                                            {{-- @php( $voucher = \App\Models\VoucherType::find($food->voucher_ids))
+                                        {{-- @php( $voucher = \App\Models\VoucherType::find($food->voucher_ids))
                                             <td>
                                                 {{ $voucher?->name }}
                                             </td> --}}
-                                             <td>
-                                                {{ $food->voucher_ids ?? "" }}
-                                            </td>
+                                        <td>
+                                            {{ $food->voucher_ids ?? '' }}
+                                        </td>
 
-                                            <td> {{ $food->price }}</td>
+                                        <td> {{ $food->price }}</td>
 
-                                            <td>
-                                                <label class="toggle-switch toggle-switch-sm"
-                                                    for="stocksCheckbox{{ $food->id }}">
-                                                    <input type="checkbox" class="toggle-switch-input redirect-url"
-                                                        data-url="{{ route('admin.item.status', [$food['id'], $food->status ? 0 : 1]) }}"
-                                                        id="stocksCheckbox{{ $food->id }}"
-                                                        {{ $food->status ? 'checked' : '' }}>
-                                                    <span class="toggle-switch-label">
-                                                        <span class="toggle-switch-indicator"></span>
-                                                    </span>
-                                                </label>
-                                            </td>
-                                            <td>
-                                                <div class="btn--container justify-content-center">
-                                                      <a class="btn action-btn btn--primary btn-outline-primary"
-                                                            href="{{route('admin.Voucher.edit',[$food['id']])}}" title="{{translate('messages.edit_item')}}"><i class="tio-edit"></i>
-                                                        </a>
-                                                        <a class="ml-2 btn btn-sm btn--warning btn-outline-warning action-btn data-info-show"
-                                                        href="{{route('admin.Voucher.view_voucher',[$food['id']])}}">
-                                                            <i class="tio-invisible"></i>
-                                                        </a>
+                                        <td>
+                                            <label class="toggle-switch toggle-switch-sm"
+                                                for="stocksCheckbox{{ $food->id }}">
+                                                <input type="checkbox" class="toggle-switch-input redirect-url"
+                                                    data-url="{{ route('admin.item.status', [$food['id'], $food->status ? 0 : 1]) }}"
+                                                    id="stocksCheckbox{{ $food->id }}"
+                                                    {{ $food->status ? 'checked' : '' }}>
+                                                <span class="toggle-switch-label">
+                                                    <span class="toggle-switch-indicator"></span>
+                                                </span>
+                                            </label>
+                                        </td>
+                                        <td>
+                                            <div class="btn--container justify-content-center">
+                                                <a class="btn action-btn btn--primary btn-outline-primary"
+                                                    href="{{ route('admin.Voucher.edit', [$food['id']]) }}"
+                                                    title="{{ translate('messages.edit_item') }}"><i
+                                                        class="tio-edit"></i>
+                                                </a>
+                                                <a class="ml-2 btn btn-sm btn--warning btn-outline-warning action-btn data-info-show"
+                                                    href="{{ route('admin.Voucher.view_voucher', [$food['id']]) }}">
+                                                    <i class="tio-invisible"></i>
+                                                </a>
 
 
-                                                    <a class="btn action-btn btn--primary btn-outline-primary"
-                                                        href="{{ route('admin.item.edit', [$food['id']]) }}"
-                                                        title="{{ translate('messages.edit_item') }}"><i
-                                                            class="tio-edit"></i>
-                                                    </a>
-                                                    <a class="btn action-btn btn--danger btn-outline-danger form-alert"
-                                                        href="javascript:" data-id="food-{{ $food['id'] }}"
-                                                        data-message="{{ translate('messages.Want to delete this item ?') }}"
-                                                        title="{{ translate('messages.delete_item') }}"><i
-                                                            class="tio-delete-outlined"></i>
-                                                    </a>
-                                                </div>
-                                                <form action="{{ route('admin.item.delete', [$food['id']]) }}"
-                                                    method="post" id="food-{{ $food['id'] }}">
-                                                    @csrf @method('delete')
-                                                </form>
-                                            </td>
-                                        </tr>
+                                                <a class="btn action-btn btn--primary btn-outline-primary"
+                                                    href="{{ route('admin.item.edit', [$food['id']]) }}"
+                                                    title="{{ translate('messages.edit_item') }}"><i
+                                                        class="tio-edit"></i>
+                                                </a>
+                                                <a class="btn action-btn btn--danger btn-outline-danger form-alert"
+                                                    href="javascript:" data-id="food-{{ $food['id'] }}"
+                                                    data-message="{{ translate('messages.Want to delete this item ?') }}"
+                                                    title="{{ translate('messages.delete_item') }}"><i
+                                                        class="tio-delete-outlined"></i>
+                                                </a>
+                                            </div>
+                                            <form action="{{ route('admin.item.delete', [$food['id']]) }}" method="post"
+                                                id="food-{{ $food['id'] }}">
+                                                @csrf @method('delete')
+                                            </form>
+                                        </td>
+                                    </tr>
                                 @endforeach
                             </tbody>
                         </table>
