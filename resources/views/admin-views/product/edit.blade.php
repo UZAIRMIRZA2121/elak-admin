@@ -655,7 +655,7 @@
                                 <span class="card-header-icon mr-2">
                                     <i class="tio-canvas-text"></i>
                                 </span>
-                                <span>{{ translate('messages.food_variations') }}</span>
+                                <span>{{ translate('variations') }}</span>
                             </h5>
                             <a class="btn text--primary-2" id="add_new_option_button">
                                 {{ translate('add_new_variation') }}
@@ -1175,13 +1175,20 @@
             } else {
                 $('#brand_input').hide();
             }
-            if (module_type == 'food' || module_type == 'voucher') {
+            if (module_type == 'food') {
                 $('#food_variation_section').show();
                 $('#attribute_section').hide();
             } else {
                 $('#food_variation_section').hide();
                 $('#attribute_section').show();
             }
+
+             if (module_type == 'voucher') {
+                $('#food_variation_section').show();
+                $('#attribute_section').hide();
+            }
+
+         
             if (module_data.organic) {
                 $('#organic').show();
             } else {

@@ -547,9 +547,9 @@
                       <!-- AddOn -->
                 @if (\App\CentralLogics\Helpers::module_permission_check('addon'))
                 <li class="navbar-vertical-aside-has-menu {{ Request::is('admin/addon*') ? 'active' : '' }}">
-                    <a class="js-navbar-vertical-aside-menu-link nav-link nav-link-toggle" href="javascript:" title="{{ translate('Food Addons') }}">
+                    <a class="js-navbar-vertical-aside-menu-link nav-link nav-link-toggle" href="javascript:" title="{{ translate('Addons') }}">
                         <i class="tio-add-circle-outlined nav-icon"></i>
-                        <span class="navbar-vertical-aside-mini-mode-hidden-elements text-truncate">{{ translate('Food Addons') }}</span>
+                        <span class="navbar-vertical-aside-mini-mode-hidden-elements text-truncate">{{ translate('Addons') }}</span>
                     </a>
                     <ul class="js-navbar-vertical-aside-submenu nav nav-sub" style="display:{{ Request::is('admin/addon*') ? 'block' : 'none' }}">
                         <li class="nav-item {{ Request::is('admin/addon/addon-category') ? 'active' : '' }}">
@@ -615,14 +615,14 @@
                 <!-- End AddOn -->
 
                    @if (\App\CentralLogics\Helpers::module_permission_check('attribute'))
-                        <li class="navbar-vertical-aside-has-menu {{ Request::is('admin/attribute*') ? 'active' : '' }}">
+                        {{-- <li class="navbar-vertical-aside-has-menu {{ Request::is('admin/attribute*') ? 'active' : '' }}">
                             <a class="js-navbar-vertical-aside-menu-link nav-link" href="{{ route('admin.attribute.add-new') }}" title="{{ translate('messages.attributes') }}">
                                 <i class="tio-apps nav-icon"></i>
                                 <span class="navbar-vertical-aside-mini-mode-hidden-elements text-truncate">
                                     {{ translate('Product Attributes') }}
                                 </span>
                             </a>
-                        </li>
+                        </li> --}}
                     @endif
                     <li class="navbar-vertical-aside-has-menu {{ Request::is('admin/unit*') ? 'active' : '' }}">
                         <a class="js-navbar-vertical-aside-menu-link nav-link" href="{{ route('admin.unit.index') }}" title="{{ translate('Voucher Addon') }}">

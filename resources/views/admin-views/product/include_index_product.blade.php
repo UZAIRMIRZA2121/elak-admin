@@ -503,7 +503,7 @@
         </div>
     </div>
 @endif
-{{-- <div class="col-lg-12" id="food_variation_section">
+<div class="col-lg-12" id="food_variation_section">
     <div class="card shadow--card-2 border-0">
         <div class="card-header flex-wrap">
             <h5 class="card-title">
@@ -529,8 +529,8 @@
             </div>
         </div>
     </div>
-</div> --}}
-<div class="col-md-12" id="attribute_section">
+</div> 
+{{-- <div class="col-md-12" id="attribute_section">
     <div class="card shadow--card-2 border-0">
         <div class="card-header">
             <h5 class="card-title">
@@ -571,7 +571,7 @@
             </div>
         </div>
     </div>
-</div>
+</div> --}}
 <div class="col-md-12">
     <div class="card shadow--card-2 border-0">
         <div class="card-header">
