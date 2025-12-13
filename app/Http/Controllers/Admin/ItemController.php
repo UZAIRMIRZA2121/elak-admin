@@ -93,7 +93,7 @@ class ItemController extends Controller
 
     public function store(Request $request)
     {
-
+       
         $validator = Validator::make($request->all(), [
             'name.0' => 'required',
             'name.*' => 'max:191',
@@ -104,7 +104,7 @@ class ItemController extends Controller
                     return (Config::get('module.current_module_type') != 'food' && $request?->product_gellary == null);
                 })
             ],
-            'price' => 'required|numeric|between:.01,999999999999.99',
+            'price' => 'required|numeric|between:0,999999999999.99',
             'discount' => 'nullable|numeric|min:0',
             'store_id' => 'required',
             'description.*' => 'max:1000',
@@ -288,6 +288,7 @@ class ItemController extends Controller
                 array_push($options, explode(',', $my_str));
             }
         }
+
         //Generates the combinations of customer choice options
         $combinations = Helpers::combinations($options);
         if (count($combinations[0]) > 0) {
@@ -315,13 +316,14 @@ class ItemController extends Controller
             }
         }
         //combinations end
-
+  
         if (!empty($request->file('item_images'))) {
             foreach ($request->item_images as $img) {
                 $image_name = Helpers::upload('product/', 'png', $img);
                 $images[] = ['img' => $image_name, 'storage' => Helpers::getDisk()];
             }
         }
+
         // food variation
         $food_variations = [];
         if (isset($request->options)) {
@@ -357,7 +359,7 @@ class ItemController extends Controller
                 array_push($food_variations, $temp_variation);
             }
         }
-
+ 
         $item->food_variations = json_encode($food_variations);
         $item->variations = json_encode($variations);
         $item->price = $request->price;
@@ -420,7 +422,7 @@ class ItemController extends Controller
 
         Helpers::add_or_update_translations(request: $request, key_data: 'name', name_field: 'name', model_name: 'Item', data_id: $item->id, data_value: $item->name);
         Helpers::add_or_update_translations(request: $request, key_data: 'description', name_field: 'description', model_name: 'Item', data_id: $item->id, data_value: $item->description);
-
+  
         return response()->json(['success' => translate('messages.product_added_successfully')], 200);
     }
 

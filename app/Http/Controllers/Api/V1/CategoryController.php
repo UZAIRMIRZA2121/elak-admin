@@ -39,7 +39,7 @@ class CategoryController extends Controller
             //             ) AS total_order_count
             //         ")
 
-            $categories = Category:: with(['childes' => function($query)  {
+            $categories = Category::where('parent_id' , 0)-> with(['childes' => function($query)  {
                 $query->where('status',1)->select('id','name','image','slug','parent_id') ;
             }]);
 

@@ -764,8 +764,8 @@ class VendorController extends Controller
 
                 $foods = Item::withoutGlobalScope(\App\Scopes\StoreScope::class)
                     ->where('store_id', $store->id)
-                    ->whereIn('type', ['Food', 'Product'])
-
+                     ->where('type', 'food')
+                     ->orwhere('type', 'product')
                     ->when(isset($key), function ($q) use ($key) {
                         $q->where(function ($q) use ($key) {
                             foreach ($key as $value) {
@@ -782,11 +782,12 @@ class VendorController extends Controller
                     ->when($sub_tab == 'inactive-items', function ($q) {
                         $q->where('status', 0);
                     })
-                      ->when(!empty($item_type), function ($q) use ($item_type) {
-                      $q->where('type', $item_type);
-                      })
+                    ->when(!empty($item_type), function ($q) use ($item_type) {
+                        $q->where('type', $item_type); // Updated to use 'type' column
+                    })
                     ->latest()
                     ->paginate(25);
+
 
             }
 
@@ -795,7 +796,7 @@ class VendorController extends Controller
             $taxData = Helpers::getTaxSystemType(getTaxVatList: false);
             $productWiseTax = $taxData['productWiseTax'];
 
-            //   dd($foods);
+           
             return view('admin-views.vendor.view.product', compact('store', 'foods', 'sub_tab', 'productWiseTax'));
         } else if ($tab == 'discount') {
 

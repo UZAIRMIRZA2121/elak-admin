@@ -647,6 +647,7 @@
                     </div>
 
                 @endif
+                
                 <div class="col-lg-12" id="food_variation_section">
                     <div class="card shadow--card-2 border-0">
                         <div class="card-header flex-wrap">
@@ -654,7 +655,7 @@
                                 <span class="card-header-icon mr-2">
                                     <i class="tio-canvas-text"></i>
                                 </span>
-                                <span>{{ translate('messages.food_variations') }}</span>
+                                <span>{{ translate('variations') }}</span>
                             </h5>
                             <a class="btn text--primary-2" id="add_new_option_button">
                                 {{ translate('add_new_variation') }}
@@ -1181,6 +1182,13 @@
                 $('#food_variation_section').hide();
                 $('#attribute_section').show();
             }
+
+             if (module_type == 'voucher') {
+                $('#food_variation_section').show();
+                $('#attribute_section').hide();
+            }
+
+         
             if (module_data.organic) {
                 $('#organic').show();
             } else {

@@ -228,7 +228,7 @@
                 {{-- @dd(Config::get('module.current_module_type')) --}}
                 @if (Config::get('module.current_module_type') == 'grocery' || Config::get('module.current_module_type') == 'food'  || Config::get('module.current_module_type') == 'voucher')
 
-                    <div class="col-sm-6" id="nutrition">
+                    {{-- <div class="col-sm-6" id="nutrition">
                         <label class="input-label" for="sub-categories">
                             {{ translate('Nutrition') }}
                             <span class="input-label-secondary"
@@ -246,7 +246,7 @@
                                 </option>
                             @endforeach
                         </select>
-                    </div>
+                    </div> --}}
 
 
                     {{-- <div class="col-sm-6" id="allergy">
@@ -503,6 +503,7 @@
         </div>
     </div>
 @endif
+
 <div class="col-lg-12" id="food_variation_section">
     <div class="card shadow--card-2 border-0">
         <div class="card-header flex-wrap">
@@ -510,7 +511,7 @@
                 <span class="card-header-icon mr-2">
                     <i class="tio-canvas-text"></i>
                 </span>
-                <span>{{ translate('messages.food_variations') }}</span>
+                <span>{{ translate('variations') }}</span>
             </h5>
             <a class="btn text--primary-2" id="add_new_option_button">
                 {{ translate('add_new_variation') }}
@@ -530,6 +531,7 @@
         </div>
     </div>
 </div>
+
 <div class="col-md-12" id="attribute_section">
     <div class="card shadow--card-2 border-0">
         <div class="card-header">
@@ -572,7 +574,7 @@
         </div>
     </div>
 </div>
-<div class="col-md-12">
+{{-- <div class="col-md-12">
     <div class="card shadow--card-2 border-0">
         <div class="card-header">
             <h5 class="card-title">
@@ -591,4 +593,4 @@
             </div>
         </div>
     </div>
-</div>
+</div> --}}

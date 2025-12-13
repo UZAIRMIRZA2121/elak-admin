@@ -23,7 +23,7 @@ class CategoryLogic
 
     public static function products($category_id, $zone_id, int $limit,int $offset, $type)
     {
-
+        
         $category_sub_category_item_default_status = BusinessSetting::where('key', 'category_sub_category_item_default_status')->first()?->value ?? 1;
         $category_sub_category_item_sort_by_general = PriorityList::where('name', 'category_sub_category_item_sort_by_general')->where('type','general')->first()?->value ?? '';
         $category_sub_category_item_sort_by_unavailable = PriorityList::where('name', 'category_sub_category_item_sort_by_unavailable')->where('type','unavailable')->first()?->value ?? '';
