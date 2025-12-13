@@ -895,11 +895,11 @@ public function view_voucher($id)
         $product->sub_categories = Category::whereIn('parent_id', $sub_ids)->get();
     }
 
-    // BRANCH IDs
     if (!empty($product->branch_ids)) {
         $branch_ids = json_decode($product->branch_ids, true);
 
-        $product->branches = Item::whereIn('branch_ids', $branch_ids)->get();
+        // Fetch brands
+        $product->branches = Brand::whereIn('id', $branch_ids)->get();
     }
 
     // HOW & CONDITION IDs
@@ -925,6 +925,18 @@ public function view_voucher($id)
         $product->product_details = item::whereIn('id', $productIds)->get();
     }
 
+        // PRODUCT ARRAY
+    if (!empty($product->product_b)) {
+        $productArray = json_decode($product->product_b, true);
+
+        $productIds1 = collect($productArray)->pluck('product_id')->toArray();
+
+        $product->product_details_b = item::whereIn('id', $productIds)->get();
+    }
+
+
+
+//  dd($product->product_details);
     $reviews = Review::where(['item_id' => $id])->latest()->paginate(config('default_pagination'));
     // dd($product);
     return view('admin-views.voucher.view_voucher',  compact('product', 'reviews', 'productWiseTax'));

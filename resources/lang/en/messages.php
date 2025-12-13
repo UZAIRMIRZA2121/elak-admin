@@ -8400,4 +8400,7 @@ Smartly or Earn. ',
   'The item images field is required.' => 'The item images field is required.',
   'Agreements Certificate' => 'Agreements Certificate',
   'All Types' => 'All Types',
+  'How to Work' => 'How to Work',
+  'Products B' => 'Products B',
+  'Organic' => 'Organic',
 );

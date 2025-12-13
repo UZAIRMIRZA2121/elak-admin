@@ -31,50 +31,68 @@
                 <div class="col-md-6">
                     <table class="table table-bordered">
                         <tbody>
+                              <tr>
+                                <th>{{ translate('Voucher IDs') }}</th>
+                                <td>{{ $product->id ?? 'N/A' }}</td>
+                            </tr>
                             <tr>
                                 <th width="40%">{{ translate('Voucher Title') }}</th>
-                                <td>{{ $product->voucher_title ?? 'N/A' }}</td>
+                                <td>{{ $product->name ?? 'N/A' }}</td>
+                            </tr>
+                              <tr>
+                                <th>{{ translate('Description') }}</th>
+                                <td>{{ $product->description ?? 'N/A' }}</td>
                             </tr>
                             <tr>
                                 <th>{{ translate('Voucher Type') }}</th>
-                                <td>{{ ucfirst($product->voucher_type) ?? 'N/A' }}</td>
+                                <td>{{ ucfirst($product->type) ?? 'N/A' }}</td>
                             </tr>
                             <tr>
                                 <th>{{ translate('Bundle Type') }}</th>
                                 <td>{{ ucfirst($product->bundle_type) ?? 'N/A' }}</td>
                             </tr>
-                            <tr>
-                                <th>{{ translate('Voucher IDs') }}</th>
-                                <td>{{ $product->voucher_ids ?? 'N/A' }}</td>
-                            </tr>
+                            <?php if(isset($product->valid_until)) { ?> 
                             <tr>
                                 <th>{{ translate('Valid Until') }}</th>
                                 <td>{{ $product->valid_until ? \Carbon\Carbon::parse($product->valid_until)->format('d M Y') : 'N/A' }}</td>
                             </tr>
-                            <tr>
-                                <th>{{ translate('Food & Product Type') }}</th>
-                                <td>{{ $product->type ?? 'N/A' }}</td>
+                            <?php }?>
+                             <tr>
+                                <th>{{ translate('Price') }}</th>
+                                <td>{{ ucfirst($product->price) ?? 'N/A' }}</td>
                             </tr>
+                             <tr>
+                                <th>{{ translate('Discount') }}</th>
+                                <td>{{ ucfirst($product->discount) ?? '0' }} %</td>
+                            </tr>
+                             <tr>
+                                <th>{{ translate('Discount Type') }}</th>
+                                <td>{{ ucfirst($product->discount_type) ?? 'N/A' }}</td>
+                            </tr>
+                            @if(!empty($product->required_quantity) && $product->required_quantity > 0)
                             <tr>
                                 <th>{{ translate('Required Quantity') }}</th>
-                                <td>{{ $product->required_quantity ?? 'N/A' }}</td>
+                                <td>{{ $product->required_quantity }}</td>
                             </tr>
+                            @endif
+
                         </tbody>
                     </table>
                 </div>
                 <div class="col-md-6">
                     <table class="table table-bordered">
                         <tbody>
-                            <tr>
-                                <th width="40%">{{ translate('Category IDs') }}</th>
+                           <tr>
+                                <th width="40%">{{ translate('Categories') }}</th>
                                 <td>
-                                    @if(isset($product->categories) && $product->categories->count() > 0)
+                                    @if($product->categories && $product->categories->isNotEmpty())
                                         {{ $product->categories->pluck('name')->implode(', ') }}
                                     @else
                                         N/A
                                     @endif
                                 </td>
                             </tr>
+                               <?php if(isset($product->sub_categories)) { ?> 
                             <tr>
                                 <th>{{ translate('Sub Category IDs') }}</th>
                                 <td>
@@ -85,240 +103,244 @@
                                     @endif
                                 </td>
                             </tr>
-                            <tr>
-                                <th>{{ translate('Branch IDs') }}</th>
+                              <?php }?>
+                          <tr>
+                            <th>{{ translate('Branches') }}</th>
+                            <td>
+                                @if(!empty($product->branches) && $product->branches->count() > 0)
+                                    {{ $product->branches->pluck('name')->implode(', ') }}
+                                @else
+                                    N/A
+                                @endif
+                            </td>
+                         </tr>
+
+                            <?php if(isset($product->valid_until)) { ?> 
+                        <tr>
+                            <th>{{ translate('Tags') }}</th>
+                            <td>{{ $product->tags_ids ?? 'N/A' }}</td>
+                        </tr>
+                              <?php }?>
+                          <tr>
+                                <th>{{ translate('How to Work') }}</th>
                                 <td>
-                                    @if(isset($product->branches) && $product->branches->count() > 0)
-                                        {{ $product->branches->pluck('name')->implode(', ') }}
-                                    @else
-                                        N/A
-                                    @endif
+                                 @if($product->how_conditions && $product->how_conditions->count() > 0)
+                                    @foreach($product->how_conditions as $condition)
+                                        <div class="mb-2">
+                                            <strong>{{ $condition->guide_title }}</strong>
+
+                                            @php($sections = $condition->sections)
+
+                                            @if(is_array($sections))
+                                                <ul class="mt-1">
+                                                    @foreach($sections as $section)
+                                                        <li>
+                                                            <strong>{{ $section['title'] ?? '' }}</strong>
+
+                                                            @if(!empty($section['steps']) && is_array($section['steps']))
+                                                                <ol>
+                                                                    @foreach($section['steps'] as $step)
+                                                                        <li>{{ $step }}</li>
+                                                                    @endforeach
+                                                                </ol>
+                                                            @endif
+
+                                                        </li>
+                                                    @endforeach
+                                                </ul>
+                                            @endif
+                                        </div>
+                                    @endforeach
+                                @else
+                                    N/A
+                                @endif
+
                                 </td>
                             </tr>
-                            <tr>
-                                <th>{{ translate('Tags') }}</th>
-                                <td>{{ $product->tags_display ?? 'N/A' }}</td>
-                            </tr>
-                            <tr>
-                                <th>{{ translate('How & Conditions') }}</th>
-                               <td>
-                                    @php
-                                        $ids = array_filter(explode(',', $product->how_and_condition_ids));
-                                    @endphp
 
-                                    @if(count($ids) > 0)
-                                        {{ implode(', ', $ids) }}
-                                    @else
-                                        N/A
-                                    @endif
-                                </td>
+                           <tr>
+                            <th>{{ translate('Terms & Conditions') }}</th>
+                            <td>
+                              @if($product->terms_conditions && $product->terms_conditions->count() > 0)
 
-                            </tr>
-                            <tr>
-                                <th>{{ translate('Terms & Conditions') }}</th>
-                                <td>
-                                    @if(!empty($product->term_and_condition_ids))
-                                        {{ implode(', ', (array) explode(',', $product->term_and_condition_ids)) }}
-                                    @else
-                                        N/A
-                                    @endif
-                                </td>
+                                @foreach($product->terms_conditions as $term)
+                                    <div class="mb-3 p-2 border rounded">
 
-                            </tr>
+                                        {{-- Title --}}
+                                        <strong>{{ $term->baseinfor_condition_title }}</strong>
+
+                                        {{-- Description --}}
+                                        @if(!empty($term->baseinfor_description))
+                                            <p class="mb-1">{{ $term->baseinfor_description }}</p>
+                                        @endif
+
+                                        {{-- Days --}}
+                                        @if(is_array($term->timeandday_config_days))
+                                            <p>
+                                                <strong>Days:</strong>
+                                                {{ implode(', ', $term->timeandday_config_days) }}
+                                            </p>
+                                        @endif
+
+                                        {{-- Time Range --}}
+                                        <p>
+                                            <strong>Time:</strong>
+                                            {{ $term->timeandday_config_time_range_from }}
+                                            -
+                                            {{ $term->timeandday_config_time_range_to }}
+                                        </p>
+
+                                        {{-- Validity --}}
+                                        <p>
+                                            <strong>Valid:</strong>
+                                            {{ $term->timeandday_config_valid_from_date }}
+                                            to
+                                            {{ $term->timeandday_config_valid_until_date }}
+                                        </p>
+
+                                        {{-- Holiday Restrictions --}}
+                                        @if(is_array($term->holiday_occasions_holiday_restrictions))
+                                            <p>
+                                                <strong>Holiday Restrictions:</strong>
+                                                {{ implode(', ', $term->holiday_occasions_holiday_restrictions) }}
+                                            </p>
+                                        @endif
+
+                                        {{-- Special Occasions --}}
+                                        @if(is_array($term->holiday_occasions_special_occasions))
+                                            <p>
+                                                <strong>Special Occasions:</strong>
+                                                {{ implode(', ', $term->holiday_occasions_special_occasions) }}
+                                            </p>
+                                        @endif
+
+                                        {{-- Usage Limits --}}
+                                        <p>
+                                            <strong>Usage Limit:</strong>
+                                            {{ $term->usage_limits_limit_per_user }}
+                                            /
+                                            {{ ucfirst($term->usage_limits_period) }}
+                                        </p>
+
+                                        {{-- Location --}}
+                                        @if(is_array($term->location_availability_venue_types))
+                                            <p>
+                                                <strong>Available At:</strong>
+                                                {{ implode(', ', $term->location_availability_venue_types) }}
+                                            </p>
+                                        @endif
+
+                                        {{-- Restrictions --}}
+                                        @if(is_array($term->restriction_polices_restriction_type))
+                                            <p>
+                                                <strong>Restrictions:</strong>
+                                                {{ implode(', ', $term->restriction_polices_restriction_type) }}
+                                            </p>
+                                        @endif
+
+                                    </div>
+                                @endforeach
+
+                            @else
+                                N/A
+                            @endif
+
+                            </td>
+                          </tr>
+                          
                         </tbody>
                     </table>
                 </div>
-            </div>
-            
-            <!-- Product Details -->
-            @if(isset($product->product_details) && $product->product_details->count() > 0)
-            <div class="row mt-3">
-                <div class="col-12">
-                    <h5>{{ translate('Products') }}</h5>
+                  @if(isset($product->product_details) && $product->product_details->count() > 0)
+                    <div class="col-md-12 mt-3">
+                        <h5>{{ translate('Products') }}</h5>
+                        <div class="table-responsive">
+                            <table class="table table-bordered">
+                                <thead>
+                                    <tr>
+                                        <th>{{ translate('ID') }}</th>
+                                        <th>{{ translate('Name') }}</th>
+                                        <!-- <th>{{ translate('Image') }}</th> -->
+                                        <th>{{ translate('Price') }}</th>
+                                        <th>{{ translate('Description') }}</th>
+                                        <th>{{ translate('Stock') }}</th>
+                                        <th>{{ translate('Organic') }}</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach($product->product_details as $prod)
+                                        <tr>
+                                            <td>{{ $prod->id }}</td>
+                                            <td>{{ $prod->name ?? 'N/A' }}</td>
+                                            <!-- <td>
+                                                 @php($images = is_string($prod->images ?? []) ? json_decode($prod->images, true) : ($prod->images ?? []))
+
+
+                                                @if(is_array($images) && count($images) > 0)
+                                                    <img src="{{ asset('storage/'.$images[0]['img']) }}" alt="{{ $prod->name }}" width="50" height="50">
+                                                @else
+                                                    N/A
+                                                @endif
+                                            </td> -->
+                                            <td>{{ $prod->price ?? 'N/A' }}</td>
+                                            <td>{{ $prod->description ?? 'N/A' }}</td>
+                                            <td>{{ $prod->stock ?? 'N/A' }}</td>
+                                            <td>{{ $prod->organic ? 'Yes' : 'No' }}</td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    @endif
+
+                    @if(isset($product->product_details_b) && $product->product_details_b->count() > 0)
+                <div class="col-md-12 mt-3">
+                    <h5>{{ translate('Products B') }}</h5>
                     <div class="table-responsive">
                         <table class="table table-bordered">
                             <thead>
                                 <tr>
-                                    <th>{{ translate('Product ID') }}</th>
-                                    <th>{{ translate('Product Name') }}</th>
+                                    <th>{{ translate('ID') }}</th>
+                                    <th>{{ translate('Name') }}</th>
+                                    <!-- <th>{{ translate('Image') }}</th> -->
                                     <th>{{ translate('Price') }}</th>
+                                    <th>{{ translate('Description') }}</th>
+                                    <th>{{ translate('Stock') }}</th>
+                                    <th>{{ translate('Organic') }}</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                @foreach($product->product_details as $prod)
-                                <tr>
-                                    <td>{{ $prod->id }}</td>
-                                    <td>{{ $prod->name ?? 'N/A' }}</td>
-                                    <td>{{ $prod->price ?? 'N/A' }}</td>
-                                </tr>
+                                @foreach($product->product_details_b as $prod)
+                                    <tr>
+                                        <td>{{ $prod->id }}</td>
+                                        <td>{{ $prod->name ?? 'N/A' }}</td>
+                                        <!-- <td>
+                                            @php($images = is_string($prod->images ?? []) ? json_decode($prod->images, true) : ($prod->images ?? []))
+                                               
+                                            @if(is_array($images) && count($images) > 0)
+                                                <img src="{{ asset('storage/'.$images[0]['img']) }}" alt="{{ $prod->name }}" width="50" height="50">
+                                            @else
+                                                N/A
+                                            @endif
+                                        </td> -->
+                                        <td>{{ $prod->price ?? 'N/A' }}</td>
+                                        <td>{{ $prod->description ?? 'N/A' }}</td>
+                                        <td>{{ $prod->stock ?? 'N/A' }}</td>
+                                        <td>{{ $prod->organic ? 'Yes' : 'No' }}</td>
+                                    </tr>
                                 @endforeach
                             </tbody>
                         </table>
                     </div>
                 </div>
+                @endif
+
+
+
             </div>
-            @endif
             
-            <!-- Client Section -->
-            @if($product->clients_section && $product->clients_section != '[]')
-            <div class="row mt-3">
-                <div class="col-12">
-                    <h5>{{ translate('Client Section') }}</h5>
-                    <div class="table-responsive">
-                        @php
-                            try {
-                                $clients = json_decode($product->clients_section, true);
-                                if(is_array($clients) && count($clients) > 0) {
-                        @endphp
-                        <table class="table table-bordered json-table">
-                            <thead>
-                                <tr>
-                                    <th>#</th>
-                                    <th>{{ translate('Client ID') }}</th>
-                                    <th>{{ translate('App Name ID') }}</th>
-                                    <th>{{ translate('App Name') }}</th>
-                                    <th>{{ translate('Segments') }}</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach($clients as $index => $client)
-                                <tr>
-                                    <td>{{ $index + 1 }}</td>
-                                    <td>{{ $client['client_id'] ?? 'N/A' }}</td>
-                                    <td>{{ $client['app_name_id'] ?? 'N/A' }}</td>
-                                    <td>{{ $client['app_name'] ?? 'N/A' }}</td>
-                                    <td>
-                                        @if(isset($client['segment']) && is_array($client['segment']))
-                                            @foreach($client['segment'] as $segment)
-                                                <span class="segment-badge">{{ $segment }}</span>
-                                            @endforeach
-                                        @else
-                                            N/A
-                                        @endif
-                                    </td>
-                                </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
-                        @php
-                                } else {
-                                    echo '<p class="text-muted">No client data found.</p>';
-                                }
-                            } catch (Exception $e) {
-                                echo '<pre class="bg-light p-3">' . $product->clients_section . '</pre>';
-                            }
-                        @endphp
-                    </div>
-                </div>
-            </div>
-            @endif
-            
-            <!-- Product JSON Data -->
-            @if($product->product && $product->product != '[]')
-            <div class="row mt-3">
-                <div class="col-12">
-                    <h5>{{ translate('Products Data') }}</h5>
-                    <div class="table-responsive">
-                        @php
-                            try {
-                                $products = json_decode($product->product, true);
-                                if(is_array($products) && count($products) > 0) {
-                        @endphp
-                        <table class="table table-bordered json-table">
-                            <thead>
-                                <tr>
-                                    <th>#</th>
-                                    <th>{{ translate('Product ID') }}</th>
-                                    <th>{{ translate('Product Name') }}</th>
-                                    <th>{{ translate('Base Price') }}</th>
-                                    <th>{{ translate('Variations') }}</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach($products as $index => $prod)
-                                <tr>
-                                    <td>{{ $index + 1 }}</td>
-                                    <td>{{ $prod['product_id'] ?? 'N/A' }}</td>
-                                    <td>{{ $prod['product_name'] ?? 'N/A' }}</td>
-                                    <td>{{ $prod['base_price'] ?? 'N/A' }}</td>
-                                    <td>
-                                        @if(isset($prod['variations']) && is_array($prod['variations']))
-                                            {{ implode(', ', $prod['variations']) }}
-                                        @else
-                                            N/A
-                                        @endif
-                                    </td>
-                                </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
-                        @php
-                                } else {
-                                    echo '<p class="text-muted">No product data found.</p>';
-                                }
-                            } catch (Exception $e) {
-                                echo '<pre class="bg-light p-3">' . $product->product . '</pre>';
-                            }
-                        @endphp
-                    </div>
-                </div>
-            </div>
-            @endif
-            
-            <!-- Product B -->
-            @if($product->product_b && $product->product_b != '[]')
-            <div class="row mt-3">
-                <div class="col-12">
-                    <h5>{{ translate('Product B') }}</h5>
-                    <div class="table-responsive">
-                        @php
-                            try {
-                                $productB = json_decode($product->product_b, true);
-                                if(is_array($productB) && count($productB) > 0) {
-                        @endphp
-                        <table class="table table-bordered json-table">
-                            <thead>
-                                <tr>
-                                    <th>#</th>
-                                    <th>{{ translate('Data') }}</th>
-                                    <th>{{ translate('Value') }}</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach($productB as $index => $item)
-                                <tr>
-                                    <td>{{ $index + 1 }}</td>
-                                    <td colspan="2">
-                                        @if(is_array($item))
-                                            @foreach($item as $key => $value)
-                                                <div><strong>{{ ucfirst(str_replace('_', ' ', $key)) }}:</strong> 
-                                                    @if(is_array($value))
-                                                        {{ implode(', ', $value) }}
-                                                    @else
-                                                        {{ $value }}
-                                                    @endif
-                                                </div>
-                                            @endforeach
-                                        @else
-                                            {{ $item }}
-                                        @endif
-                                    </td>
-                                </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
-                        @php
-                                } else {
-                                    echo '<p class="text-muted">No product B data found.</p>';
-                                }
-                            } catch (Exception $e) {
-                                echo '<pre class="bg-light p-3">' . $product->product_b . '</pre>';
-                            }
-                        @endphp
-                    </div>
-                </div>
-            </div>
-            @endif
+        
         </div>
     </div>
     <!-- End Voucher Details Card -->
