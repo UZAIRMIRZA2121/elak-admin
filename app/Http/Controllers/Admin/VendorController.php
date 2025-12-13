@@ -733,13 +733,13 @@ class VendorController extends Controller
 
         } else if ($tab == 'item') {
             if ($sub_tab == 'pending-items' || $sub_tab == 'rejected-items') {
+                // dd("cdbvhdf");
 
-                $foods = TempProduct::withoutGlobalScope(\App\Scopes\StoreScope::class)->where('store_id', $store->id)
-                    ->where(function ($q) {
-                        $q->where('voucher_type', '!=', 'voucher')
-                            ->orWhereNull('voucher_type')
-                            ->orWhere('voucher_type', '');
-                    })
+                $foods = TempProduct::withoutGlobalScope(\App\Scopes\StoreScope::class)
+                    ->where('store_id', $store->id)
+                    ->whereIn('type', ['Product', 'Food'])
+                    
+               
                     ->when(isset($key), function ($q) use ($key) {
                         $q->where(function ($q) use ($key) {
                             foreach ($key as $value) {
@@ -759,30 +759,13 @@ class VendorController extends Controller
                     ->latest()->paginate(25);
             } else {
 
-                // $foods = Item::withoutGlobalScope(\App\Scopes\StoreScope::class)->where('store_id', $store->id)->where('voucher_type','!=' ,'voucher')
-                //     ->when(isset($key) , function($q) use($key){
-                //         $q->where(function ($q) use ($key) {
-                //             foreach ($key as $value) {
-                //                 $q->where('name', 'like', "%{$value}%");
-                //             }
-                //         });
-                //     })
-                //     ->when($sub_tab == 'active-items' , function($q){
-                //         $q->where('status' , 1);
-                //     })
-                //     ->when($sub_tab == 'inactive-items' , function($q){
-                //         $q->where('status' , 0);
-                //     })
-                //     ->latest()->paginate(25);
 
+            
 
                 $foods = Item::withoutGlobalScope(\App\Scopes\StoreScope::class)
                     ->where('store_id', $store->id)
-                    ->where(function ($q) {
-                        $q->where('voucher_type', '!=', 'voucher')
-                            ->orWhereNull('voucher_type')
-                            ->orWhere('voucher_type', '');
-                    })
+                    ->whereIn('type', ['Food', 'Product'])
+
                     ->when(isset($key), function ($q) use ($key) {
                         $q->where(function ($q) use ($key) {
                             foreach ($key as $value) {
@@ -800,12 +783,14 @@ class VendorController extends Controller
                         $q->where('status', 0);
                     })
                       ->when(!empty($item_type), function ($q) use ($item_type) {
-        $q->where('type', $item_type);
-    })
+                      $q->where('type', $item_type);
+                      })
                     ->latest()
                     ->paginate(25);
 
             }
+
+            // dd($foods);
 
             $taxData = Helpers::getTaxSystemType(getTaxVatList: false);
             $productWiseTax = $taxData['productWiseTax'];
