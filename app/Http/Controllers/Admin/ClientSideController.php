@@ -914,17 +914,14 @@ class ClientSideController extends Controller
     public function client_data($id, Request $request)
     {
         $Segment = Segment::where('client_id', $id)->get();
-
         // Find single client by ID
         $client = Client::find($id);
-
         if (!$client) {
             return response()->json([
                 'success' => false,
                 'message' => 'Client not found'
             ], 404);
         }
-
         // Add type_names attribute for client
         if ($client->type) {
             $ids = explode(',', $client->type);
@@ -932,13 +929,10 @@ class ClientSideController extends Controller
         } else {
             $client->type_names = [];
         }
-
         // Get apps for this client with banners and themes
         $apps = \App\Models\App::with(['banners', 'themes.colorCodes'])
             ->where('client_id', $id)
             ->get();
-            
-
         // Return JSON
         return response()->json([
             'success' => true,

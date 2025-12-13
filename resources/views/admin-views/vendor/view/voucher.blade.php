@@ -270,12 +270,17 @@
                                             {!! implode('<br>', $categories) !!}
                                         </td>
 
+                                                <?php
+                                                    $segmentIds = json_decode($food->segment_ids, true) ?? [];
 
-                                             @php( $Segment = \App\Models\Segment::whereIn('id', json_decode($food->segment_ids))->pluck('name')->toArray())
-                                            <td>
-                                                  {!! implode('<br>,', $Segment) !!}
-                                            </td>
+                                                    $Segment = \App\Models\Segment::whereIn('id', $segmentIds)
+                                                        ->pluck('name')
+                                                        ->toArray();
+                                                ?>
 
+                                                <td>
+                                                    {!! implode('<br>', $Segment) !!}
+                                                </td>
                                                 <td>
                                                     <div class="d-flex align-items-center gap-2">
                                                         <h5 class="text-hover-primary fw-medium mb-0">{{ $food->discount }}%
