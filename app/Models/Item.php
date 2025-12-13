@@ -60,6 +60,7 @@ class Item extends Model
         'product' => 'array',
         'product_b' => 'array',
         'required_quantity' => 'string',
+        'name' => 'string',
 
 
         'discount_configuration' => 'string',
