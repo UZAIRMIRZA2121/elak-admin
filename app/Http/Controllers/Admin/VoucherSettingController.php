@@ -148,13 +148,14 @@ class VoucherSettingController extends Controller
 
     public function store(Request $request)
     {
+      
         $request->validate([
             'validity_period' => 'required',
         ]);
 
         // Voucher_id aaya hai?
         $item_id = $request->item_id;
-        // dd($voucherId);
+
         // If record exists → UPDATE
         // If not exists → INSERT
         $VoucherSetting = VoucherSetting::updateOrCreate(

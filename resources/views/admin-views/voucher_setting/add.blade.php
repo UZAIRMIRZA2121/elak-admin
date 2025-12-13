@@ -168,7 +168,7 @@
                     <img src="{{asset('public/assets/admin/img/condition.png')}}" class="w--26" alt="">
                 </span>
                 <span>
-                   Add  Holiday & Occasion
+                   Add  Holiday & Occasion  
                 </span>
             </h1>
         </div>
@@ -183,7 +183,9 @@
                   <div class="card-body">
                     <form action="{{route('admin.VoucherSetting.store')}}" method="post" id="conditionsForm">
                         @csrf
-                        <input type="hidden" name="item_id" value="{{ $items->id}}"/>
+                       
+              
+
                         <div class="row">
                             <!-- LEFT SIDE - FORM -->
                             <div class="col-lg-7">
@@ -704,7 +706,7 @@
                   <div class="card-body">
                     <form action="{{route('admin.VoucherSetting.store')}}" method="post" id="conditionsForm">
                         @csrf
-                        <input type="hidden" name="voucher_id" value="{{ $items->id}}"/>
+                             <input type="hidden" name="item_id" value="{{ request()->route('id') }}">
 
                         <div class="condition-header" >
                            <div class="condition-title">
