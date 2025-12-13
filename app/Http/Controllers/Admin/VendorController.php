@@ -610,7 +610,7 @@ class VendorController extends Controller
 
     public function view(Request $request, $store_id, $tab = null, $sub_tab = 'cash')
     {
-       
+         
         $voucher_ids = $request->voucher_ids;
         $bundle_type = $request->bundle_type;
         $category_search = $request->category;
@@ -670,7 +670,7 @@ class VendorController extends Controller
 
             if ($sub_tab == 'pending-items' || $sub_tab == 'rejected-items') {
 
-                $foods = TempProduct::withoutGlobalScope(\App\Scopes\StoreScope::class)->where('store_id', $store->id)->where('voucher_type', 'voucher')
+                $foods = TempProduct::withoutGlobalScope(\App\Scopes\StoreScope::class)->where('store_id', $store->id)->where('type', 'voucher')
                     ->when(isset($key), function ($q) use ($key) {
                         $q->where(function ($q) use ($key) {
                             foreach ($key as $value) {
@@ -733,13 +733,13 @@ class VendorController extends Controller
 
         } else if ($tab == 'item') {
             if ($sub_tab == 'pending-items' || $sub_tab == 'rejected-items') {
+              
 
-                $foods = TempProduct::withoutGlobalScope(\App\Scopes\StoreScope::class)->where('store_id', $store->id)
-                    ->where(function ($q) {
-                        $q->where('voucher_type', '!=', 'voucher')
-                            ->orWhereNull('voucher_type')
-                            ->orWhere('voucher_type', '');
-                    })
+                $foods = TempProduct::withoutGlobalScope(\App\Scopes\StoreScope::class)
+                    ->where('store_id', $store->id)
+                    ->whereIn('type', ['Product', 'Food'])
+                    
+               
                     ->when(isset($key), function ($q) use ($key) {
                         $q->where(function ($q) use ($key) {
                             foreach ($key as $value) {
@@ -759,22 +759,8 @@ class VendorController extends Controller
                     ->latest()->paginate(25);
             } else {
 
-                // $foods = Item::withoutGlobalScope(\App\Scopes\StoreScope::class)->where('store_id', $store->id)->where('voucher_type','!=' ,'voucher')
-                //     ->when(isset($key) , function($q) use($key){
-                //         $q->where(function ($q) use ($key) {
-                //             foreach ($key as $value) {
-                //                 $q->where('name', 'like', "%{$value}%");
-                //             }
-                //         });
-                //     })
-                //     ->when($sub_tab == 'active-items' , function($q){
-                //         $q->where('status' , 1);
-                //     })
-                //     ->when($sub_tab == 'inactive-items' , function($q){
-                //         $q->where('status' , 0);
-                //     })
-                //     ->latest()->paginate(25);
 
+            
 
                 $foods = Item::withoutGlobalScope(\App\Scopes\StoreScope::class)
                     ->where('store_id', $store->id)
@@ -804,6 +790,8 @@ class VendorController extends Controller
 
 
             }
+
+            // dd($store->id);
 
             $taxData = Helpers::getTaxSystemType(getTaxVatList: false);
             $productWiseTax = $taxData['productWiseTax'];
@@ -986,7 +974,7 @@ class VendorController extends Controller
 
             ->sum('amount');
 
-        // dd($stores)
+        // dd($stores);
 
         return view('admin-views.vendor.list', compact('stores', 'zone', 'type', 'total_store', 'active_stores', 'inactive_stores', 'recent_stores', 'total_transaction', 'comission_earned', 'store_withdraws'));
     }

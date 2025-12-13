@@ -294,7 +294,7 @@
                                             <option value="" disabled selected>{{ translate('Select a Product') }}</option>
                                             @foreach (\App\Models\Item::whereIn('type', ['Food','Product'])->get() as $item)
                                                 @php(
-                                                    $variations = json_decode($item->food_variations, true) ?? []
+                                                    $variations = json_decode($item->variations, true) ?? []
                                                 )
                                                 @php(
                                                     $addonIds = json_decode($item->add_ons, true) ?? []
@@ -302,7 +302,6 @@
                                                 @php(
                                                     $addonDetails = []
                                                 )
-                                                
                                                 @if(!empty($addonIds))
                                                     @foreach($addonIds as $addonId)
                                                         @php(
@@ -326,10 +325,10 @@
                                                         data-addons='@json($addonDetails)'>
                                                     {{ $item->name }}
                                                 </option>
-                                                @endforeach
+                                            @endforeach
                                         </select>
                                     </div>
-                                     
+
                                     {{-- Product selection area --}}
                                     <div id="productDetails" class="mt-3 row mx-1"></div>
 
@@ -369,7 +368,7 @@
                                             <option value="" disabled selected>{{ translate('Select a Product') }}</option>
                                             @foreach (\App\Models\Item::whereIn('type', ['Food','Product'])->get() as $item)
                                                 @php(
-                                                    $variations = json_decode($item->food_variations, true) ?? []
+                                                    $variations = json_decode($item->variations, true) ?? []
                                                 )
                                                 @php(
                                                     $addonIds = json_decode($item->add_ons, true) ?? []
@@ -412,7 +411,7 @@
                                             <option value="" disabled selected>{{ translate('Select a Product') }}</option>
                                             @foreach (\App\Models\Item::whereIn('type', ['Food','Product'])->get() as $item)
                                                 @php(
-                                                    $variations = json_decode($item->food_variations, true) ?? []
+                                                    $variations = json_decode($item->variations, true) ?? []
                                                 )
                                                 @php(
                                                     $addonIds = json_decode($item->add_ons, true) ?? []
@@ -707,8 +706,7 @@
                         </div>
                     </div>
 
-
-                    @include("admin-views.voucher.store_include.include_voucher")
+                 @include("admin-views.voucher.store_include.include_voucher")
 
             </form>
         </div>
@@ -775,7 +773,6 @@
                 placeholder: 'Select a Product'
             });
 
-
             // Store selected products
             let selectedProductsArray = [];
             let productCounter = 0;
@@ -790,812 +787,673 @@
             let bundleType = $('#bundle_offer_type').val();
             updateFieldsVisibility(bundleType);
 
-            // ==================== ADD PRODUCT TO BUNDLE ====================
+            // When "Add Product to Bundle" button is clicked
             $('#addProductBtn').on('click', function() {
-                let bundleType = $('#bundle_offer_type').val();
-                
-                if (bundleType === 'bogo_free' || bundleType === 'mix_match') {
-                    $('#availableProducts_get_x_buy_y').show();
-                    $('#availableProducts').hide();
+                const bundleOfferType = $('#bundle_offer_type').val();
+                const availableProducts = $('#availableProducts');
+                const availableProductsGetXBuyY = $('#availableProducts_get_x_buy_y');
+
+                // Check if bundle offer type is selected
+                if (!bundleOfferType || bundleOfferType === "") {
+                    alert("Please select a bundle offer type first!");
+                    return;
+                }
+
+                if (bundleOfferType === "bogo_free") {
+                    // Hide normal products section first
+                    if (availableProducts.is(':visible')) {
+                        availableProducts.slideUp();
+                    }
+                    // Then show/hide BOGO section
+                    availableProductsGetXBuyY.slideToggle();
                 } else {
-                    $('#availableProducts').show();
-                    $('#availableProducts_get_x_buy_y').hide();
+                    // Hide BOGO section first
+                    if (availableProductsGetXBuyY.is(':visible')) {
+                        availableProductsGetXBuyY.slideUp();
+                    }
+                    // Then show/hide normal products section
+                    availableProducts.slideToggle();
                 }
             });
 
-            // Regular product selection
+            // ==================== REGULAR BUNDLE LOGIC ====================
             $('#select_pro').on('change', function() {
-                const selectedOption = $(this).find('option:selected');
-                const productId = selectedOption.val();
-                const productName = selectedOption.data('name');
-                const basePrice = parseFloat(selectedOption.data('price')) || 0;
-                const variations = selectedOption.data('variations');
-                const addons = selectedOption.data('addons');
-                
+                let selected = $(this).find('option:selected');
+                let productId = selected.val();
+                let productName = selected.data('name');
+                let basePrice = parseFloat(selected.data('price')) || 0;
+                let variations = selected.data('variations') || [];
+                let addons = selected.data('addons') || [];
+
                 if (!productId) return;
-                
-                productCounter++;
-                const cardHtml = createProductCard(productId, productName, basePrice, variations, addons, productCounter);
-                $('#productDetails').append(cardHtml);
-                updateBundleTotal();
-                
-                // Select reset karo
-                $(this).val('');
-            });
 
-            // Product A selection for BOGO
-            $('#select_pro1').on('change', function() {
-                const selectedOption = $(this).find('option:selected');
-                const productId = selectedOption.val();
-                const productName = selectedOption.data('name');
-                const basePrice = parseFloat(selectedOption.data('price')) || 0;
-                const variations = selectedOption.data('variations');
-                const addons = selectedOption.data('addons');
-                
-                if (!productId) return;
-                
-                bogoCounterA++;
-                const cardHtml = createBogoProductCard(productId, productName, basePrice, variations, addons, 'a', bogoCounterA);
-                $('#productDetails_section_a').append(cardHtml);
-                updateBogoTotal();
-                
-                // Select reset karo
-                $(this).val('');
-            });
+                let bundleOfferType = $('#bundle_offer_type').val();
 
-            // Product B selection for BOGO
-            $('#select_pro2').on('change', function() {
-                const selectedOption = $(this).find('option:selected');
-                const productId = selectedOption.val();
-                const productName = selectedOption.data('name');
-                const basePrice = parseFloat(selectedOption.data('price')) || 0;
-                const variations = selectedOption.data('variations');
-                const addons = selectedOption.data('addons');
-                
-                if (!productId) return;
-                
-                bogoCounterB++;
-                const cardHtml = createBogoProductCard(productId, productName, basePrice, variations, addons, 'b', bogoCounterB);
-                $('#productDetails_section_b').append(cardHtml);
-                updateBogoTotal();
-                
-                // Select reset karo
-                $(this).val('');
-            });
-
-        });
-        // ==================== GLOBAL VARIABLES ====================
-
-        // ==================== CREATE PRODUCT CARD (REGULAR) ====================
-        function createProductCard(productId, productName, basePrice, variations, addons, counter) {
-            // Normalize variations first
-            const normalizedVariations = normalizeVariations(variations);
-            
-            // Variations HTML generate karo
-            let variationsHtml = '';
-            if (normalizedVariations && normalizedVariations.length > 0) {
-                variationsHtml = `
-                <div class="variations mt-2">
-                    <strong>Variations:</strong>
-                `;
-                
-                // Group variations by groupName
-                const grouped = {};
-                normalizedVariations.forEach(v => {
-                    const group = v.groupName || 'Options';
-                    if (!grouped[group]) {
-                        grouped[group] = [];
+                // Handle different bundle types
+                if (bundleOfferType === 'simple') {
+                    $('#productDetails .card').remove();
+                    selectedProductsArray = [];
+                    productCounter = 0;
+                    $('#priceCalculator').hide();
+                    $('#price').val('0.00');
+                    $('#price_hidden').val('0.00');
+                } else if (bundleOfferType === 'bundle' || bundleOfferType === 'mix_match') {
+                    if (selectedProductsArray.includes(productId)) {
+                        alert(`"${productName}" is already added to the bundle!`);
+                        $('#select_pro').val('').trigger('change');
+                        return;
                     }
-                    grouped[group].push(v);
-                });
-                
-                // Har group ke liye HTML generate karo
-                Object.keys(grouped).forEach(groupName => {
-                    const groupVariations = grouped[groupName];
-                    
-                    variationsHtml += `
-                    <div class="variation-sub-group mb-1">
-                        <strong class="small">${groupName}:</strong>
-                    `;
-                    
-                    groupVariations.forEach(v => {
-                        variationsHtml += `
-                        <label class="ms-2 small">
-                            <input
-                                type="checkbox"
-                                name="variation_${counter}"
-                                class="variation-checkbox"
-                                value="${v.type || ''}"
-                                data-price="${v.price || 0}"
-                                data-type="${v.type || 'Option'}"
-                            >
-                            ${v.type || 'Option'} - $${v.price || 0}
-                            ${v.stock ? ` (Stock: ${v.stock})` : ''}
-                        </label>
-                        `;
-                    });
-                    
-                    variationsHtml += `</div>`;
-                });
-                
-                variationsHtml += `</div>`;
-            }
-            
-            let html = `
-            <div class="card p-3 shadow-sm mb-3 col-12 col-md-6" data-product-temp-id="${counter}" data-product-id="${productId}">
-                <div class="d-flex align-items-center justify-content-between flex-wrap gap-3 border rounded p-2">
-                    <!-- Product Name -->
-                    <div class="">
+                }
+
+                selectedProductsArray.push(productId);
+                let html = createProductCard(productId, productName, basePrice, variations, addons, productCounter);
+                $('#productDetails').append(html);
+                productCounter++;
+                $('#select_pro').val('').trigger('change');
+                $('#selectedProducts p').hide();
+                updateBundleTotal();
+            });
+
+            // ==================== BOGO PRODUCT A LOGIC (MULTIPLE) ====================
+            $('#select_pro1').on('change', function() {
+                let selected = $(this).find('option:selected');
+                let productId = selected.val();
+                let productName = selected.data('name');
+                let basePrice = parseFloat(selected.data('price')) || 0;
+                let variations = selected.data('variations') || [];
+                let addons = selected.data('addons') || [];
+
+                if (!productId) return;
+
+                // Check if product is already in Section A
+                if (bogoProductsA.includes(productId)) {
+                    alert(`"${productName}" is already added to Product A section!`);
+                    $('#select_pro1').val('').trigger('change');
+                    return;
+                }
+
+                // Add to Product A array
+                bogoProductsA.push(productId);
+
+                // Create product card for Product A with unique counter
+                let html = createBogoProductCard(productId, productName, basePrice, variations, addons, 'A', bogoCounterA);
+                $('#productDetails_section_a').append(html);
+
+                bogoCounterA++;
+                $('#select_pro1').val('').trigger('change');
+                updateBogoTotal();
+            });
+
+            // ==================== BOGO PRODUCT B LOGIC (MULTIPLE) ====================
+            $('#select_pro2').on('change', function() {
+                let selected = $(this).find('option:selected');
+                let productId = selected.val();
+                let productName = selected.data('name');
+                let basePrice = parseFloat(selected.data('price')) || 0;
+                let variations = selected.data('variations') || [];
+                let addons = selected.data('addons') || [];
+
+                if (!productId) return;
+
+                // Check if product is already in Section B
+                if (bogoProductsB.includes(productId)) {
+                    alert(`"${productName}" is already added to Product B section!`);
+                    $('#select_pro2').val('').trigger('change');
+                    return;
+                }
+
+                // Add to Product B array
+                bogoProductsB.push(productId);
+
+                // Create product card for Product B with unique counter
+                let html = createBogoProductCard(productId, productName, basePrice, variations, addons, 'B', bogoCounterB);
+                $('#productDetails_section_b').append(html);
+
+                bogoCounterB++;
+                $('#select_pro2').val('').trigger('change');
+                updateBogoTotal();
+            });
+
+            // ==================== CREATE PRODUCT CARD (REGULAR) ====================
+            function createProductCard(productId, productName, basePrice, variations, addons, counter) {
+                let html = `
+                <div class="card p-3 shadow-sm mb-3 col-12 col-md-6" data-product-temp-id="${counter}" data-product-id="${productId}">
+
+
+                    <div class="d-flex align-items-center justify-content-between flex-wrap gap-3 border rounded p-2">
+
+                        <!-- Product Name -->
+                        <div class="">
                         <h5 class="mb-0">${productName}</h5>
                         <!-- Variations -->
-                        ${variationsHtml}
+                        ${variations && variations.length > 0 ? `
+                            <div class="variations">
+                                <strong>Variations:</strong>
+                                ${variations.map(v => `
+                                    <label class="ms-2 small">
+                                        <input
+                                            type="checkbox"
+                                            name="variation_${counter}"
+                                            class="variation-checkbox"
+                                            value="${v.type || ''}"
+                                            data-price="${v.price || 0}"
+                                            data-type="${v.type || 'Option'}"
+                                        >
+                                        ${v.type || 'Option'} - $${v.price || 0}
+                                        ${v.stock ? ` (Stock: ${v.stock})` : ''}
+                                    </label>
+                                `).join('')}
+                            </div>
+                        ` : ''}
                     </div>
-                    <!-- Product Total -->
-                    <div class="p-2 text-nowrap">
-                        <span class="product-total text-success fw-bold" style="font-size: 1.2em;">
-                            $${basePrice.toFixed(2)}
-                        </span>
+                        <!-- Product Total -->
+                        <div class="p-2 text-nowrap">
+                            <span class="product-total text-success fw-bold" style="font-size: 1.2em;">
+                                $${basePrice.toFixed(2)}
+                            </span>
+                        </div>
+
+                        <!-- Delete Button -->
+                        <button
+                            type="button"
+                            class="btn btn-danger btn-sm remove-product-btn"
+                            data-temp-id="${counter}"
+                            data-product-id="${productId}"
+                        >
+                            <i class="fa fa-trash"></i>
+                        </button>
                     </div>
-                    <!-- Delete Button -->
-                    <button
-                        type="button"
-                        class="btn btn-danger btn-sm remove-product-btn"
-                        data-temp-id="${counter}"
-                        data-product-id="${productId}"
-                    >
-                        <i class="fa fa-trash"></i>
-                    </button>
+
+                    <input type="hidden" class="product-id" value="${productId}">
+                    <input type="hidden" class="product-name" value="${productName}">
+                    <input type="hidden" class="product-base-price" value="${basePrice}">
+                `;
+
+                return html;
+            }
+
+            // ==================== CREATE BOGO PRODUCT CARD (MULTIPLE) ====================
+            function createBogoProductCard(productId, productName, basePrice, variations, addons, section, counter) {
+                const variationsHtml = (variations && variations.length)
+                    ? `<div class="mt-2">
+                            <strong>Variations:</strong>
+                            ${variations.map((v, index) => `~
+                                <label class="d-block small mt-1">
+                                    <input
+                                        type="checkbox"
+                                        name="bogo_variation_${section}_${counter}_${index}"
+                                        class="bogo-variation-checkbox"
+                                        value="${v.type || ''}"
+                                        data-price="${v.price || 0}"
+                                        data-type="${v.type || 'Option'}"
+                                    >
+                                    ${v.type || 'Option'} - $${(v.price || 0).toFixed(2)}
+                                    ${v.stock ? ` (Stock: ${v.stock})` : ''}
+                                </label>
+                            `).join('')}
+                    </div>`
+                    : '';
+
+                const html = `
+                <div class="card p-3 shadow-sm mb-3 col-12" data-bogo-section="${section}" data-bogo-counter="${counter}" data-product-id="${productId}">
+                    <div class="d-flex align-items-center justify-content-between flex-wrap gap-3 border rounded p-2">
+
+                        <!-- Product Name + Info -->
+                        <div class="me-3 flex-grow-1">
+                            <h5 class="mb-1">Product ${section}: ${productName}</h5>
+                            ${variationsHtml}
+                        </div>
+
+                        <!-- Product Total -->
+                        <div class="p-2 text-nowrap">
+                            <span class="product-total text-success fw-bold" style="font-size: 1.2em;">
+                                $${basePrice.toFixed(2)}
+                            </span>
+                        </div>
+
+                        <!-- Delete Button -->
+                        <button type="button" class="btn btn-danger btn-sm remove-bogo-product-btn"
+                            data-section="${section}" data-counter="${counter}" data-product-id="${productId}">
+                            <i class="fa fa-trash"></i>
+                        </button>
+                    </div>
+
+                    <input type="hidden" class="bogo-product-id" value="${productId}">
+                    <input type="hidden" class="bogo-product-name" value="${productName}">
+                    <input type="hidden" class="bogo-product-base-price" value="${basePrice}">
                 </div>
-                <input type="hidden" class="product-id" value="${productId}">
-                <input type="hidden" class="product-name" value="${productName}">
-                <input type="hidden" class="product-base-price" value="${basePrice}">
-            </div>`;
+                `;
 
-            return html;
-        }
-
-        // ==================== CREATE BOGO PRODUCT CARD (MULTIPLE) ====================
-      // ==================== CREATE BOGO PRODUCT CARD (MULTIPLE) ====================
-        function createBogoProductCard(productId, productName, basePrice, variations, addons, section, counter) {
-            // Normalize variations for BOGO
-            const normalizedVariations = normalizeVariations(variations);
-            
-            let variationsHtml = '';
-            if (normalizedVariations && normalizedVariations.length > 0) {
-                variationsHtml = `<div class="mt-2"><strong>Variations:</strong>`;
-                
-                // Group variations by groupName
-                const grouped = {};
-                normalizedVariations.forEach(v => {
-                    const group = v.groupName || 'Options';
-                    if (!grouped[group]) {
-                        grouped[group] = [];
-                    }
-                    grouped[group].push(v);
-                });
-                
-                // Har group ke liye HTML generate karo
-                Object.keys(grouped).forEach(groupName => {
-                    const groupVariations = grouped[groupName];
-                    
-                    variationsHtml += `
-                    <div class="variation-sub-group mb-1">
-                        <strong class="small">${groupName}:</strong>
-                    `;
-                    
-                    groupVariations.forEach((v, index) => {
-                        variationsHtml += `
-                        <label class="d-block small mt-1">
-                            <input
-                                type="checkbox"
-                                name="bogo_variation_${section}_${counter}_${index}"
-                                class="bogo-variation-checkbox"
-                                value="${v.type || ''}"
-                                data-price="${v.price || 0}"
-                                data-type="${v.type || 'Option'}"
-                            >
-                            ${v.type || 'Option'} - <span class="text-success">$${(v.price || 0).toFixed(2)}</span>
-                            ${v.stock ? ` (Stock: ${v.stock})` : ''}
-                        </label>
-                        `;
-                    });
-                    
-                    variationsHtml += `</div>`;
-                });
-                
-                variationsHtml += `</div>`;
+                return html;
             }
 
-            const html = `
-            <div class="card p-3 shadow-sm mb-3 col-12" data-bogo-section="${section}" data-bogo-counter="${counter}" data-product-id="${productId}">
-                <div class="d-flex align-items-center justify-content-between flex-wrap gap-3 border rounded p-2">
-                    <!-- Product Name + Info -->
-                    <div class="me-3 flex-grow-1">
-                        <h5 class="mb-1">Product ${section}: ${productName}</h5>
-                        ${variationsHtml}
-                    </div>
-                    <!-- Product Total -->
-                    <div class="p-2 text-nowrap">
-                        <span class="product-total text-success fw-bold" style="font-size: 1.2em;">
-                            $${basePrice.toFixed(2)}
-                        </span>
-                    </div>
-                    <!-- Delete Button -->
-                    <button type="button" class="btn btn-danger btn-sm remove-bogo-product-btn"
-                        data-section="${section}" data-counter="${counter}" data-product-id="${productId}">
-                        <i class="fa fa-trash"></i>
-                    </button>
-                </div>
-                <input type="hidden" class="bogo-product-id" value="${productId}">
-                <input type="hidden" class="bogo-product-name" value="${productName}">
-                <input type="hidden" class="bogo-product-base-price" value="${basePrice}">
-            </div>`;
 
-            return html;
-        }
-        // ==================== FIXED NORMALIZE VARIATIONS FUNCTION ====================
-        function normalizeVariations(variations) {
-            if (!variations) return [];
-            
-            try {
-                // Agar variations string hai to parse karo
-                if (typeof variations === 'string') {
-                    variations = JSON.parse(variations);
-                }
-                
-                // Agar array nahi hai to empty array return karo
-                if (!Array.isArray(variations)) return [];
-                
-                let flat = [];
-                
-                variations.forEach(group => {
-                    // Check if group has values array
-                    if (group && group.values && Array.isArray(group.values)) {
-                        group.values.forEach(v => {
-                            if (v && typeof v === 'object') {
-                                flat.push({
-                                    type: v.label || v.type || "",
-                                    price: parseFloat(v.optionPrice || v.price || 0),
-                                    groupName: group.name || group.groupName || ""
-                                });
-                            }
-                        });
-                    } 
-                    // Agar direct variations array ho
-                    else if (group && (group.type || group.label)) {
-                        flat.push({
-                            type: group.label || group.type || "",
-                            price: parseFloat(group.optionPrice || group.price || 0),
-                            groupName: group.groupName || group.name || ""
-                        });
-                    }
-                });
-                
-                return flat;
-            } catch (error) {
-                console.error('Error normalizing variations:', error);
-                return [];
-            }
-        }
+            // ==================== REMOVE BOGO PRODUCT ====================
+            $(document).on('click', '.remove-bogo-product-btn', function() {
+                let section = $(this).data('section');
+                let counter = $(this).data('counter');
+                let productId = $(this).data('product-id');
 
-        // ==================== UPDATE PRODUCT TOTAL ====================
-        function updateProductTotal(card) {
-            const basePrice = parseFloat(card.find('.product-base-price').val()) || 0;
-            const productTotalElement = card.find('.product-total');
-            
-            let total = basePrice;
-            
-            // Add ALL selected variations prices
-            card.find('.variation-checkbox:checked').each(function() {
-                const variationPrice = parseFloat($(this).data('price')) || 0;
-                total += variationPrice;
-            });
-            
-            productTotalElement.text('$' + total.toFixed(2));
-        }
-
-        // ==================== UPDATE BOGO PRODUCT TOTAL ====================
-        function updateBogoProductTotal(card) {
-            const basePrice = parseFloat(card.find('.bogo-product-base-price').val()) || 0;
-            const productTotalElement = card.find('.product-total');
-            
-            let total = basePrice;
-            
-            // Add ALL selected variations prices
-            card.find('.bogo-variation-checkbox:checked').each(function() {
-                const variationPrice = parseFloat($(this).data('price')) || 0;
-                total += variationPrice;
-            });
-            
-            productTotalElement.text('$' + total.toFixed(2));
-        }
-
-        // ==================== UPDATE BUNDLE TOTAL ====================
-        function updateBundleTotal() {
-            let bundleTotal = 0;
-            let productCount = 0;
-            let breakdownHTML = '<h5>Bundle Price Breakdown:</h5><ul class="list-group">';
-
-            $('#productDetails .card').each(function() {
-                let productName = $(this).find('.product-name').val();
-                let basePrice = parseFloat($(this).find('.product-base-price').val()) || 0;
-                let quantity = 1;
-                
-                let productTotal = basePrice;
-                
-                let selectedVariations = $(this).find('.variation-checkbox:checked');
-                let variationText = '';
-                let variationTotal = 0;
-                
-                if (selectedVariations.length > 0) {
-                    variationText = '<div class="small text-muted ml-3">Variations:';
-                    selectedVariations.each(function() {
-                        let varType = $(this).data('type') || $(this).val();
-                        let variationPrice = parseFloat($(this).data('price')) || 0;
-                        variationTotal += variationPrice;
-                        variationText += `<br><span class="ml-2">└ ${varType} (+$${variationPrice.toFixed(2)})</span>`;
-                    });
-                    
-                    if (selectedVariations.length > 1) {
-                        variationText += `<br><span class="ml-2 text-info"><strong>└ Variations Total: +$${variationTotal.toFixed(2)}</strong></span>`;
-                    }
-                    
-                    variationText += '</div>';
-                    productTotal += variationTotal;
-                }
-                
-                productTotal = productTotal * quantity;
-                bundleTotal += productTotal;
-                productCount++;
-
-                breakdownHTML += `
-                    <li class="list-group-item">
-                        <div class="d-flex justify-content-between align-items-start">
-                            <div class="flex-grow-1">
-                                <strong>${productName}</strong> (x${quantity})
-                                <div class="small text-muted">Base: $${basePrice.toFixed(2)}</div>
-                                ${variationText}
-                            </div>
-                            <strong class="text-success ml-3">$${productTotal.toFixed(2)}</strong>
-                        </div>
-                    </li>`;
-                
-                $(this).find('.product-total').text('$' + productTotal.toFixed(2));
-            });
-
-            let discount = parseFloat($('#discount').val()) || 0;
-            let discountType = $('#discount_type').val();
-            let discountAmount = 0;
-
-            if (discountType === 'percent') {
-                discountAmount = (bundleTotal * discount) / 100;
-            } else {
-                discountAmount = discount;
-            }
-
-            let finalTotal = Math.max(bundleTotal - discountAmount, 0);
-
-            breakdownHTML += `
-                <li class="list-group-item">
-                    <strong>Subtotal: </strong><span class="text-primary">$${bundleTotal.toFixed(2)}</span>
-                </li>`;
-
-            if (discountAmount > 0) {
-                breakdownHTML += `
-                    <li class="list-group-item text-danger">
-                        <strong>Discount (${discountType === 'percent' ? discount + '%' : '$' + discount}): </strong>
-                        -$${discountAmount.toFixed(2)}
-                    </li>`;
-            }
-
-            breakdownHTML += `
-                <li class="list-group-item bg-success text-white">
-                    <strong>Final Bundle Total: </strong>
-                    <strong style="font-size: 1.3em;">$${finalTotal.toFixed(2)}</strong>
-                </li>
-            </ul>`;
-
-            if (productCount > 0) {
-                $('#priceCalculator').show();
-                $('#priceBreakdown').html(breakdownHTML);
-                $('#selectedProducts p').hide();
-            } else {
-                $('#priceCalculator').hide();
-                $('#selectedProducts p').show();
-            }
-
-            let bundleType = $('#bundle_offer_type').val();
-            if (bundleType === 'mix_match') {
-                // Mix & Match ka alag calculation
-                updateMixMatchTotal();
-            } else if (bundleType === 'bogo_free') {
-                $('#price').val(finalTotal.toFixed(2));
-                $('#price_hidden').val(finalTotal.toFixed(2));
-            } else {
-                $('#price').val(finalTotal.toFixed(2));
-                $('#price_hidden').val(bundleTotal.toFixed(2));
-            }
-        }
-
-        // ==================== UPDATE MIX & MATCH TOTAL ====================
-        function updateMixMatchTotal() {
-            let allProductPrices = [];
-            let breakdownHTML = '<h5>Mix & Match Bundle Breakdown:</h5><ul class="list-group">';
-            
-            // Sabhi selected products collect karo
-            $('#productDetails .card').each(function() {
-                let productName = $(this).find('.product-name').val();
-                let basePrice = parseFloat($(this).find('.product-base-price').val()) || 0;
-                let quantity = 1;
-                
-                let productTotal = basePrice;
-                
-                let selectedVariations = $(this).find('.variation-checkbox:checked');
-                let variationText = '';
-                let variationTotal = 0;
-                
-                if (selectedVariations.length > 0) {
-                    variationText = '<div class="small text-muted ml-3">Variations:';
-                    selectedVariations.each(function() {
-                        let varType = $(this).data('type') || $(this).val();
-                        let variationPrice = parseFloat($(this).data('price')) || 0;
-                        variationTotal += variationPrice;
-                        variationText += `<br><span class="ml-2">└ ${varType} (+$${variationPrice.toFixed(2)})</span>`;
-                    });
-                    
-                    if (selectedVariations.length > 1) {
-                        variationText += `<br><span class="ml-2 text-info"><strong>└ Variations Total: +$${variationTotal.toFixed(2)}</strong></span>`;
-                    }
-                    
-                    variationText += '</div>';
-                    productTotal += variationTotal;
-                }
-                
-                productTotal = productTotal * quantity;
-                allProductPrices.push(productTotal);
-
-                breakdownHTML += `
-                    <li class="list-group-item">
-                        <div class="d-flex justify-content-between align-items-start">
-                            <div class="flex-grow-1">
-                                <strong>${productName}</strong> (x${quantity})
-                                <div class="small text-muted">Base: $${basePrice.toFixed(2)}</div>
-                                ${variationText}
-                            </div>
-                            <strong class="text-success ml-3">$${productTotal.toFixed(2)}</strong>
-                        </div>
-                    </li>`;
-            });
-            
-            // Mix & Match Discount Calculate Karna
-            let subtotal = allProductPrices.reduce((sum, price) => sum + price, 0);
-            let finalTotal = subtotal;
-            let requiredQty = parseInt($('#required_qty').val()) || 0;
-            let discountValue = parseFloat($('#discount_value').val()) || 0;
-            let discount = 0;
-            
-            // Agar required quantity hai aur user ne usse zyada products select kiye hain
-            if (requiredQty > 0 && allProductPrices.length >= requiredQty) {
-                // Sort prices ascending (lowest to highest)
-                allProductPrices.sort((a, b) => a - b);
-                
-                // Har 'requiredQty' mein se sasta product free ya discount
-                let eligibleDiscounts = Math.floor(allProductPrices.length / requiredQty);
-                
-                for (let i = 0; i < eligibleDiscounts; i++) {
-                    // Har group ka sasta product discount pe
-                    discount += (allProductPrices[i] * discountValue) / 100;
-                }
-                
-                finalTotal = subtotal - discount;
-            }
-            
-            breakdownHTML += `
-                <li class="list-group-item">
-                    <strong>Subtotal: </strong><span class="text-primary">$${subtotal.toFixed(2)}</span>
-                </li>`;
-
-            if (discount > 0) {
-                breakdownHTML += `
-                    <li class="list-group-item text-danger">
-                        <strong>Mix & Match Discount (Buy ${requiredQty}, ${discountValue}% off on cheapest): </strong>
-                        -$${discount.toFixed(2)}
-                    </li>`;
-            }
-
-            breakdownHTML += `
-                <li class="list-group-item bg-success text-white">
-                    <strong>Final Bundle Total: </strong>
-                    <strong style="font-size: 1.3em;">$${finalTotal.toFixed(2)}</strong>
-                </li>
-            </ul>`;
-            
-            $('#priceBreakdown').html(breakdownHTML);
-            $('#price').val(finalTotal.toFixed(2));
-            $('#price_hidden').val(finalTotal.toFixed(2));
-        }
-
-        // ==================== UPDATE BOGO TOTAL (MULTIPLE PRODUCTS) ====================
-      // ==================== UPDATE BOGO TOTAL (MULTIPLE PRODUCTS) ====================
-        function updateBogoTotal() {
-            let totalProductsA = 0;
-            let totalProductsB = 0;
-            let breakdownHTML = '<h5>BOGO Bundle Breakdown:</h5><ul class="list-group">';
-
-            let allProductPrices = [];
-
-            // Calculate all Product A totals
-            $('#productDetails_section_a .card').each(function() {
-                let basePrice = parseFloat($(this).find('.bogo-product-base-price').val()) || 0;
-                let productName = $(this).find('.bogo-product-name').val();
-                let quantity = 1;
-                let productTotal = basePrice;
-
-                let selectedVariations = $(this).find('.bogo-variation-checkbox:checked');
-                let variationText = '';
-                let variationTotal = 0;
-                
-                if (selectedVariations.length > 0) {
-                    variationText = '<div class="small text-muted ml-3">Variations:';
-                    selectedVariations.each(function() {
-                        let varPrice = parseFloat($(this).data('price')) || 0;
-                        let varType = $(this).data('type');
-                        variationTotal += varPrice;
-                        variationText += `<br><span class="ml-2">└ ${varType} (+$${varPrice.toFixed(2)})</span>`; // FIXED: +$ sign
-                    });
-                    
-                    if (selectedVariations.length > 1) {
-                        variationText += `<br><span class="ml-2 text-info"><strong>└ Variations Total: +$${variationTotal.toFixed(2)}</strong></span>`;
-                    }
-                    
-                    variationText += '</div>';
-                    productTotal += variationTotal;
+                // Remove from respective array
+                if (section === 'A') {
+                    bogoProductsA = bogoProductsA.filter(id => id !== productId);
+                } else if (section === 'B') {
+                    bogoProductsB = bogoProductsB.filter(id => id !== productId);
                 }
 
-                productTotal = productTotal * quantity;
-                totalProductsA += productTotal;
-                allProductPrices.push(productTotal);
-
-                $(this).find('.product-total').text('$' + productTotal.toFixed(2));
-
-                breakdownHTML += `
-                    <li class="list-group-item">
-                        <div class="d-flex justify-content-between align-items-start">
-                            <div class="flex-grow-1">
-                                <strong>Product A: ${productName}</strong> (x${quantity})
-                                <div class="small text-muted">Base: $${basePrice.toFixed(2)}</div>
-                                ${variationText}
-                            </div>
-                            <strong class="text-success ml-3">$${productTotal.toFixed(2)}</strong>
-                        </div>
-                    </li>`;
-            });
-
-            // Calculate all Product B totals
-            $('#productDetails_section_b .card').each(function() {
-                let basePrice = parseFloat($(this).find('.bogo-product-base-price').val()) || 0;
-                let productName = $(this).find('.bogo-product-name').val();
-                let quantity = 1;
-                let productTotal = basePrice;
-
-                let selectedVariations = $(this).find('.bogo-variation-checkbox:checked');
-                let variationText = '';
-                let variationTotal = 0;
-                
-                if (selectedVariations.length > 0) {
-                    variationText = '<div class="small text-muted ml-3">Variations:';
-                    selectedVariations.each(function() {
-                        let varPrice = parseFloat($(this).data('price')) || 0;
-                        let varType = $(this).data('type');
-                        variationTotal += varPrice;
-                        variationText += `<br><span class="ml-2">└ ${varType} (+$${varPrice.toFixed(2)})</span>`; // FIXED: +$ sign
-                    });
-                    
-                    if (selectedVariations.length > 1) {
-                        variationText += `<br><span class="ml-2 text-info"><strong>└ Variations Total: +$${variationTotal.toFixed(2)}</strong></span>`;
-                    }
-                    
-                    variationText += '</div>';
-                    productTotal += variationTotal;
-                }
-
-                productTotal = productTotal * quantity;
-                totalProductsB += productTotal;
-                allProductPrices.push(productTotal);
-
-                $(this).find('.product-total').text('$' + productTotal.toFixed(2));
-
-                breakdownHTML += `
-                    <li class="list-group-item">
-                        <div class="d-flex justify-content-between align-items-start">
-                            <div class="flex-grow-1">
-                                <strong>Product B: ${productName}</strong> (x${quantity})
-                                <div class="small text-muted">Base: $${basePrice.toFixed(2)}</div>
-                                ${variationText}
-                            </div>
-                            <strong class="text-success ml-3">$${productTotal.toFixed(2)}</strong>
-                        </div>
-                    </li>`;
-            });
-
-            // Calculate BOGO discount
-            let subtotal = totalProductsA + totalProductsB;
-            let finalTotal = subtotal;
-            let discount = 0;
-
-            if (allProductPrices.length >= 2) {
-                // Sort prices descending (highest to lowest)
-                allProductPrices.sort((a, b) => b - a);
-
-                // BOGO logic: Every 2nd item is free (starting from 2nd item)
-                for (let i = 1; i < allProductPrices.length; i += 2) {
-                    discount += allProductPrices[i];
-                }
-
-                finalTotal = subtotal - discount;
-            }
-
-            breakdownHTML += `
-                <li class="list-group-item">
-                    <strong>Subtotal: </strong><span class="text-primary">$${subtotal.toFixed(2)}</span>
-                </li>`;
-
-            if (discount > 0) {
-                breakdownHTML += `
-                    <li class="list-group-item text-success"> <!-- Changed from text-danger to text-success -->
-                        <strong>BOGO Discount (Buy 1 Get 1 Free): </strong>
-                        -$${discount.toFixed(2)}
-                    </li>`;
-            }
-
-            breakdownHTML += `
-                <li class="list-group-item bg-success text-white">
-                    <strong>Final Bundle Total: </strong>
-                    <strong style="font-size: 1.3em;">$${finalTotal.toFixed(2)}</strong>
-                </li>
-            </ul>`;
-
-            let hasProducts = $('#productDetails_section_a .card').length > 0 || $('#productDetails_section_b .card').length > 0;
-
-            if (hasProducts) {
-                $('#priceCalculator').show();
-                $('#priceBreakdown').html(breakdownHTML);
-                $('#price').val(finalTotal.toFixed(2));
-                $('#price_hidden').val(finalTotal.toFixed(2));
-            } else {
-                $('#priceCalculator').hide();
-                $('#price').val('0.00');
-                $('#price_hidden').val('0.00');
-            }
-        }
-
-        // ==================== DOCUMENT READY ====================
-        $(document).ready(function() {
-            // Regular product variation checkbox change
-            $(document).on('change', '.variation-checkbox', function() {
-                updateProductTotal($(this).closest('.card'));
-                let bundleType = $('#bundle_offer_type').val();
-                if (bundleType === 'mix_match') {
-                    updateMixMatchTotal();
-                } else {
-                    updateBundleTotal();
-                }
-            });
-            
-            // BOGO product variation checkbox change
-            $(document).on('change', '.bogo-variation-checkbox', function() {
-                updateBogoProductTotal($(this).closest('.card'));
-                updateBogoTotal();
-            });
-            
-            // Add product button click
-            $('#addProductBtn').on('click', function() {
-                let bundleType = $('#bundle_offer_type').val();
-                
-                if (bundleType === 'bogo_free') {
-                    $('#availableProducts_get_x_buy_y').show();
-                    $('#availableProducts').hide();
-                } else {
-                    // Simple, Bundle, Mix & Match sab ke liye same product selection
-                    $('#availableProducts').show();
-                    $('#availableProducts_get_x_buy_y').hide();
-                }
-            });
-            
-            // Regular product selection (Simple, Bundle, Mix & Match ke liye)
-            $('#select_pro').on('change', function() {
-                const selectedOption = $(this).find('option:selected');
-                const productId = selectedOption.val();
-                const productName = selectedOption.data('name');
-                const basePrice = parseFloat(selectedOption.data('price')) || 0;
-                const variations = selectedOption.data('variations');
-                
-                if (!productId) return;
-                
-                productCounter++;
-                const cardHtml = createProductCard(productId, productName, basePrice, variations, [], productCounter);
-                $('#productDetails').append(cardHtml);
-                
-                let bundleType = $('#bundle_offer_type').val();
-                if (bundleType === 'mix_match') {
-                    updateMixMatchTotal();
-                } else {
-                    updateBundleTotal();
-                }
-                
-                $(this).val('');
-                $('#selectedProducts p').hide();
-            });
-            
-            // Product A selection for BOGO
-            $('#select_pro1').on('change', function() {
-                const selectedOption = $(this).find('option:selected');
-                const productId = selectedOption.val();
-                const productName = selectedOption.data('name');
-                const basePrice = parseFloat(selectedOption.data('price')) || 0;
-                const variations = selectedOption.data('variations');
-                
-                if (!productId) return;
-                
-                bogoCounterA++;
-                const cardHtml = createBogoProductCard(productId, productName, basePrice, variations, [], 'a', bogoCounterA);
-                $('#productDetails_section_a').append(cardHtml);
-                updateBogoTotal();
-                
-                $(this).val('');
-                $('#selectedProducts p').hide();
-            });
-            
-            // Product B selection for BOGO
-            $('#select_pro2').on('change', function() {
-                const selectedOption = $(this).find('option:selected');
-                const productId = selectedOption.val();
-                const productName = selectedOption.data('name');
-                const basePrice = parseFloat(selectedOption.data('price')) || 0;
-                const variations = selectedOption.data('variations');
-                
-                if (!productId) return;
-                
-                bogoCounterB++;
-                const cardHtml = createBogoProductCard(productId, productName, basePrice, variations, [], 'b', bogoCounterB);
-                $('#productDetails_section_b').append(cardHtml);
-                updateBogoTotal();
-                
-                $(this).val('');
-                $('#selectedProducts p').hide();
-            });
-            
-            // Remove product button
-            $(document).on('click', '.remove-product-btn', function() {
-                const tempId = $(this).data('temp-id');
-                $(this).closest('.card').fadeOut(300, function() {
+                // Remove card with animation
+                $(`[data-bogo-section="${section}"][data-bogo-counter="${counter}"]`).fadeOut(300, function() {
                     $(this).remove();
-                    let bundleType = $('#bundle_offer_type').val();
-                    if (bundleType === 'mix_match') {
-                        updateMixMatchTotal();
-                    } else {
-                        updateBundleTotal();
+                    updateBogoTotal();
+                });
+            });
+
+            // ==================== UPDATE BOGO TOTAL (MULTIPLE PRODUCTS) ====================
+            function updateBogoTotal() {
+                let totalProductsA = 0;
+                let totalProductsB = 0;
+                let breakdownHTML = '<h5>BOGO Bundle Breakdown:</h5><ul class="list-group">';
+
+                let allProductPrices = [];
+
+                // Calculate all Product A totals
+                $('#productDetails_section_a .card').each(function() {
+                    let basePrice = parseFloat($(this).find('.bogo-product-base-price').val()) || 0;
+                    let productName = $(this).find('.bogo-product-name').val();
+                    let quantity = parseInt($(this).find('.bogo-product-quantity').val()) || 1;
+                    let productTotal = basePrice;
+
+                    // Add variation price
+                    let selectedVariation = $(this).find('.bogo-variation-checkbox:checked');
+                    let variationText = '';
+                    if (selectedVariation.length) {
+                        let varPrice = parseFloat(selectedVariation.data('price')) || 0;
+                        let varType = selectedVariation.data('type');
+                        productTotal += varPrice;
+                        variationText = `<div class="small text-muted ml-3">└ ${varType} (+$${varPrice.toFixed(2)})</div>`;
                     }
-                    
+
+                    // Add addon prices
+                    let addonsText = '';
+                    $(this).find('.bogo-addon-checkbox:checked').each(function() {
+                        let addonPrice = parseFloat($(this).data('price')) || 0;
+                        let addonName = $(this).data('name');
+                        productTotal += addonPrice;
+                        addonsText += `<div class="small text-muted ml-3">└ ${addonName} (+$${addonPrice.toFixed(2)})</div>`;
+                    });
+
+                    // Multiply by quantity
+                    productTotal = productTotal * quantity;
+                    totalProductsA += productTotal;
+
+                    // Store individual price for BOGO calculation
+                    allProductPrices.push(productTotal);
+
+                    // Update display
+                    $(this).find('.bogo-product-total').text('$' + productTotal.toFixed(2));
+
+                    breakdownHTML += `
+                        <li class="list-group-item">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div class="flex-grow-1">
+                                    <strong>Product A: ${productName}</strong> (x${quantity})
+                                    <div class="small text-muted">Base: $${basePrice.toFixed(2)}</div>
+                                    ${variationText}
+                                    ${addonsText}
+                                </div>
+                                <strong class="text-success ml-3">$${productTotal.toFixed(2)}</strong>
+                            </div>
+                        </li>`;
+                });
+
+                // Calculate all Product B totals
+                $('#productDetails_section_b .card').each(function() {
+                    let basePrice = parseFloat($(this).find('.bogo-product-base-price').val()) || 0;
+                    let productName = $(this).find('.bogo-product-name').val();
+                    let quantity = parseInt($(this).find('.bogo-product-quantity').val()) || 1;
+                    let productTotal = basePrice;
+
+                    // Add variation price
+                    let selectedVariation = $(this).find('.bogo-variation-checkbox:checked');
+                    let variationText = '';
+                    if (selectedVariation.length) {
+                        let varPrice = parseFloat(selectedVariation.data('price')) || 0;
+                        let varType = selectedVariation.data('type');
+                        productTotal += varPrice;
+                        variationText = `<div class="small text-muted ml-3">└ ${varType} (+$${varPrice.toFixed(2)})</div>`;
+                    }
+
+                    // Add addon prices
+                    let addonsText = '';
+                    $(this).find('.bogo-addon-checkbox:checked').each(function() {
+                        let addonPrice = parseFloat($(this).data('price')) || 0;
+                        let addonName = $(this).data('name');
+                        productTotal += addonPrice;
+                        addonsText += `<div class="small text-muted ml-3">└ ${addonName} (+$${addonPrice.toFixed(2)})</div>`;
+                    });
+
+                    // Multiply by quantity
+                    productTotal = productTotal * quantity;
+                    totalProductsB += productTotal;
+
+                    // Store individual price for BOGO calculation
+                    allProductPrices.push(productTotal);
+
+                    // Update display
+                    $(this).find('.bogo-product-total').text('$' + productTotal.toFixed(2));
+
+                    breakdownHTML += `
+                        <li class="list-group-item">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div class="flex-grow-1">
+                                    <strong>Product B: ${productName}</strong> (x${quantity})
+                                    <div class="small text-muted">Base: $${basePrice.toFixed(2)}</div>
+                                    ${variationText}
+                                    ${addonsText}
+                                </div>
+                                <strong class="text-success ml-3">$${productTotal.toFixed(2)}</strong>
+                            </div>
+                        </li>`;
+                });
+
+                // Calculate BOGO discount
+                let subtotal = totalProductsA + totalProductsB;
+                let finalTotal = subtotal;
+                let discount = 0;
+
+                // BOGO Logic: Buy X Get Y Free (pay for higher priced items)
+                if (allProductPrices.length >= 2) {
+                    // Sort prices descending
+                    allProductPrices.sort((a, b) => b - a);
+
+                    // Calculate discount (every 2nd item is free, starting from cheapest)
+                    for (let i = 1; i < allProductPrices.length; i += 2) {
+                        discount += allProductPrices[i];
+                    }
+
+                    finalTotal = subtotal - discount;
+                }
+
+                breakdownHTML += `
+                    <li class="list-group-item">
+                        <strong>Subtotal: </strong><span class="text-primary">$${subtotal.toFixed(2)}</span>
+                    </li>`;
+
+
+                // Show price calculator if at least one product is selected
+                let hasProducts = $('#productDetails_section_a .card').length > 0 || $('#productDetails_section_b .card').length > 0;
+
+                if (hasProducts) {
+                    $('#priceCalculator').show();
+                    $('#priceBreakdown').html(breakdownHTML);
+                    $('#price').val(finalTotal.toFixed(2));
+                    $('#price_hidden').val(finalTotal.toFixed(2));
+                } else {
+                    $('#priceCalculator').hide();
+                    $('#price').val('0.00');
+                    $('#price_hidden').val('0.00');
+                }
+            }
+
+            // ==================== BOGO EVENT LISTENERS ====================
+            $(document).on('change', '.bogo-variation-checkbox, .bogo-addon-checkbox, .bogo-product-quantity', function() {
+                updateBogoTotal();
+            });
+
+            // ==================== REGULAR BUNDLE EVENT LISTENERS ====================
+            $(document).on('change', '.variation-checkbox, .addon-checkbox, .product-quantity', function() {
+                let productCard = $(this).closest('.card');
+                let basePrice = parseFloat(productCard.find('.product-base-price').val()) || 0;
+                let quantity = parseInt(productCard.find('.product-quantity').val()) || 1;
+                let total = basePrice;
+
+                let selectedVariation = productCard.find('.variation-checkbox:checked');
+                if (selectedVariation.length) {
+                    total += parseFloat(selectedVariation.data('price')) || 0;
+                }
+                productCard.find('.addon-checkbox:checked').each(function() {
+                    total += parseFloat($(this).data('price')) || 0;
+                });
+                
+                total = total * quantity;
+                productCard.find('.product-total').fadeOut(200, function() {
+                    $(this).text('$' + total.toFixed(2)).fadeIn(200);
+                });
+                // alert(total);
+
+                updateBundleTotal();
+            });
+
+            $(document).on('click', '.remove-product-btn', function() {
+                let tempId = $(this).data('temp-id');
+                let productId = $(this).data('product-id');
+
+                selectedProductsArray = selectedProductsArray.filter(id => id !== productId);
+
+                $(`[data-product-temp-id="${tempId}"]`).fadeOut(300, function() {
+                    $(this).remove();
+                    updateBundleTotal();
+
                     if ($('#productDetails .card').length === 0) {
                         $('#selectedProducts p').show();
                     }
                 });
             });
-            
-            // Remove BOGO product button
-            $(document).on('click', '.remove-bogo-product-btn', function() {
-                $(this).closest('.card').fadeOut(300, function() {
-                    $(this).remove();
-                    updateBogoTotal();
+
+
+
+            // ==================== UPDATE BUNDLE TOTAL (REGULAR) ====================
+            // function updateBundleTotal() {
+            //     let bundleTotal = 0;
+            //     let productCount = 0;
+            //     let breakdownHTML = '<h5>Bundle Price Breakdown:</h5><ul class="list-group">';
+
+            //     $('#productDetails .card').each(function() {
+            //         let productName = $(this).find('.product-name').val();
+            //         let basePrice = parseFloat($(this).find('.product-base-price').val()) || 0;
+            //       let productTotal = parseFloat($(this).find('.product-total').text().replace('$', '')) || 0;
+            //         let quantity = parseInt($(this).find('.product-quantity').val()) || 1;
+            //             // alert(basePrice);
+            //             // alert(productTotal);
+            //         bundleTotal += productTotal;
+            //         productCount++;
+
+            //         let selectedVariation = $(this).find('.variation-checkbox:checked');
+            //         let variationText = '';
+            //         if (selectedVariation.length) {
+            //             let varType = selectedVariation.data('type');
+            //             let variationPrice = parseFloat(selectedVariation.data('price')) || 0;
+            //             variationText = `<div class="small text-muted ml-3">└ ${varType} (+$${variationPrice.toFixed(2)})</div>`;
+            //         }
+
+            //         let addonsText = '';
+            //         $(this).find('.addon-checkbox:checked').each(function() {
+            //             let addonName = $(this).data('name');
+            //             let addonPrice = parseFloat($(this).data('price')) || 0;
+            //             addonsText += `<div class="small text-muted ml-3">└ ${addonName} (+$${addonPrice.toFixed(2)})</div>`;
+            //         });
+
+            //         let perItemPrice = productTotal / quantity;
+
+            //         // alert(bundleTotal);
+
+            //         breakdownHTML += `
+            //             <li class="list-group-item">
+            //                 <div class="d-flex justify-content-between align-items-start">
+            //                     <div class="flex-grow-1">
+            //                         <strong>${productName}</strong> (x${quantity})
+            //                         <div class="small text-muted">Base: $${basePrice.toFixed(2)}</div>
+            //                         ${variationText}
+            //                         ${addonsText}
+            //                         ${quantity > 1 ? `<div class="small text-info mt-1">Per item: $${perItemPrice.toFixed(2)}</div>` : ''}
+            //                     </div>
+            //                     <strong class="text-success ml-3">$${productTotal.toFixed(2)}</strong>
+            //                 </div>
+            //             </li>`;
+            //     });
+
+            //     let discount = parseFloat($('#discount').val()) || 0;
+            //     let discountType = $('#discount_type').val();
+            //     let discountAmount = 0;
+
+            //     if (discountType === 'percent') {
+            //         discountAmount = (bundleTotal * discount) / 100;
+            //     } else {
+            //         discountAmount = discount;
+            //     }
+
+            //     let finalTotal = Math.max(bundleTotal - discountAmount, 0);
+
+            //     breakdownHTML += `
+            //         <li class="list-group-item">
+            //             <strong>Subtotal: </strong><span class="text-primary">$${bundleTotal.toFixed(2)}</span>
+            //         </li>`;
+
+            //     if (discountAmount > 0) {
+            //         breakdownHTML += `
+            //             <li class="list-group-item text-danger">
+            //                 <strong>Discount (${discountType === 'percent' ? discount + '%' : '$' + discount}): </strong>
+            //                 -$${discountAmount.toFixed(2)}
+            //             </li>`;
+            //     }
+
+            //     breakdownHTML += `
+            //         <li class="list-group-item bg-success text-white">
+            //             <strong>Final Bundle Total: </strong>
+            //             <strong style="font-size: 1.3em;">$${finalTotal.toFixed(2)}</strong>
+            //         </li>
+            //     </ul>`;
+
+            //     if (productCount > 0) {
+            //         $('#priceCalculator').show();
+            //         $('#priceBreakdown').html(breakdownHTML);
+            //         $('#selectedProducts p').hide();
+            //     } else {
+            //         $('#priceCalculator').hide();
+            //         $('#selectedProducts p').show();
+            //     }
+
+            //     let bundleType = $('#bundle_offer_type').val();
+            //     if (bundleType === 'bogo_free' || bundleType === 'mix_match') {
+            //         $('#price').val(finalTotal.toFixed(2));
+            //         $('#price_hidden').val(finalTotal.toFixed(2));
+            //     } else {
+            //         $('#price').val(finalTotal.toFixed(2));
+            //         $('#price_hidden').val(bundleTotal.toFixed(2));
+            //     }
+            // }
+
+            function updateBundleTotal() {
+                let bundleTotal = 0;
+                let productCount = 0;
+                let breakdownHTML = '<h5>Bundle Price Breakdown:</h5><ul class="list-group">';
+
+                $('#productDetails .card').each(function() {
+                    let productName = $(this).find('.product-name').val();
+                    let basePrice = parseFloat($(this).find('.product-base-price').val()) || 0;
+                    let quantity = parseInt($(this).find('.product-quantity').val()) || 1;
                     
-                    if ($('#productDetails_section_a .card').length === 0 && $('#productDetails_section_b .card').length === 0) {
-                        $('#selectedProducts p').show();
+                    // ============ یہاں تبدیلی کی ہے ============
+                    // پہلے productTotal کو صرف basePrice سے شروع کریں
+                    let productTotal = basePrice;
+                    
+                    // پھر والیئشن کی قیمت شامل کریں
+                    let selectedVariation = $(this).find('.variation-checkbox:checked');
+                    let variationText = '';
+                    if (selectedVariation.length) {
+                        let varType = selectedVariation.data('type');
+                        let variationPrice = parseFloat(selectedVariation.data('price')) || 0;
+                        productTotal += variationPrice; // یہاں قیمت شامل کی ہے
+                        variationText = `<div class="small text-muted ml-3">└ ${varType} (+$${variationPrice.toFixed(2)})</div>`;
                     }
+                    
+                    // پھر addons کی قیمت شامل کریں
+                    let addonsText = '';
+                    $(this).find('.addon-checkbox:checked').each(function() {
+                        let addonName = $(this).data('name');
+                        let addonPrice = parseFloat($(this).data('price')) || 0;
+                        productTotal += addonPrice; // یہاں قیمت شامل کی ہے
+                        addonsText += `<div class="small text-muted ml-3">└ ${addonName} (+$${addonPrice.toFixed(2)})</div>`;
+                    });
+                    
+                    // آخر میں quantity سے ضرب دیں
+                    productTotal = productTotal * quantity;
+                    // ============ تبدیلی ختم ============
+                    
+                    bundleTotal += productTotal;
+                    productCount++;
+
+                    let perItemPrice = productTotal / quantity;
+
+                    breakdownHTML += `
+                        <li class="list-group-item">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div class="flex-grow-1">
+                                    <strong>${productName}</strong> (x${quantity})
+                                    <div class="small text-muted">Base: $${basePrice.toFixed(2)}</div>
+                                    ${variationText}
+                                    ${addonsText}
+                                    ${quantity > 1 ? `<div class="small text-info mt-1">Per item: $${perItemPrice.toFixed(2)}</div>` : ''}
+                                </div>
+                                <strong class="text-success ml-3">$${productTotal.toFixed(2)}</strong>
+                            </div>
+                        </li>`;
+                    
+                    // ڈسپلے پر product-total کو بھی اپڈیٹ کریں
+                    $(this).find('.product-total').text('$' + productTotal.toFixed(2));
                 });
-            });
-            
-            // Discount and discount type change
+
+                let discount = parseFloat($('#discount').val()) || 0;
+                let discountType = $('#discount_type').val();
+                let discountAmount = 0;
+
+                if (discountType === 'percent') {
+                    discountAmount = (bundleTotal * discount) / 100;
+                } else {
+                    discountAmount = discount;
+                }
+
+                let finalTotal = Math.max(bundleTotal - discountAmount, 0);
+
+                breakdownHTML += `
+                    <li class="list-group-item">
+                        <strong>Subtotal: </strong><span class="text-primary">$${bundleTotal.toFixed(2)}</span>
+                    </li>`;
+
+                if (discountAmount > 0) {
+                    breakdownHTML += `
+                        <li class="list-group-item text-danger">
+                            <strong>Discount (${discountType === 'percent' ? discount + '%' : '$' + discount}): </strong>
+                            -$${discountAmount.toFixed(2)}
+                        </li>`;
+                }
+
+                breakdownHTML += `
+                    <li class="list-group-item bg-success text-white">
+                        <strong>Final Bundle Total: </strong>
+                        <strong style="font-size: 1.3em;">$${finalTotal.toFixed(2)}</strong>
+                    </li>
+                </ul>`;
+
+                if (productCount > 0) {
+                    $('#priceCalculator').show();
+                    $('#priceBreakdown').html(breakdownHTML);
+                    $('#selectedProducts p').hide();
+                } else {
+                    $('#priceCalculator').hide();
+                    $('#selectedProducts p').show();
+                }
+
+                let bundleType = $('#bundle_offer_type').val();
+                if (bundleType === 'bogo_free' || bundleType === 'mix_match') {
+                    $('#price').val(finalTotal.toFixed(2));
+                    $('#price_hidden').val(finalTotal.toFixed(2));
+                } else {
+                    $('#price').val(finalTotal.toFixed(2));
+                    $('#price_hidden').val(bundleTotal.toFixed(2));
+                }
+            }
+
             $('#discount, #discount_type').on('change input', function() {
                 let discount = parseFloat($('#discount').val()) || 0;
                 let discountType = $('#discount_type').val();
@@ -1615,17 +1473,49 @@
 
                 updateBundleTotal();
             });
-            
-            // Required quantity and discount value change for Mix & Match
-            $('#required_qty, #discount_value').on('change input', function() {
-                let bundleType = $('#bundle_offer_type').val();
-                if (bundleType === 'mix_match') {
-                    updateMixMatchTotal();
-                }
-            });
 
-            // Bundle type change
-            $('#bundle_offer_type').on('change', function() {
+            function updateFieldsVisibility(bundleType) {
+                 if (bundleType === 'mix_match') {
+                    $('#price_input_hide').addClass('d-none');
+                    $('#discount_input_hide').removeClass('d-none');
+                    $('#required_qty').removeClass('d-none');
+                    $('#discount_value_input_hide').removeClass('d-none');
+                    $('#actual_price_input_hide').addClass('d-none');
+                    $('#Bundle_products_configuration').removeClass('d-none');
+                } else if (bundleType === 'bogo_free') {
+                    $('#price_input_hide').addClass('d-none');
+                    $('#discount_input_hide').addClass('d-none');
+                    $('#required_qty').addClass('d-none');
+                    $('#discount_value_input_hide').addClass('d-none');
+                    $('#actual_price_input_hide').addClass('d-none');
+                    $('#Bundle_products_configuration').removeClass('d-none');
+                } else if (bundleType === 'simple' || bundleType === 'bundle') {
+                    $('#price_input_hide').removeClass('d-none');
+                    $('#required_qty').addClass('d-none');
+                    $('#discount_input_hide').removeClass('d-none');
+                    $('#discount_value_input_hide').removeClass('d-none');
+                    $('#actual_price_input_hide').addClass('d-none');
+                    $('#Bundle_products_configuration').removeClass('d-none');
+                } else if(bundleType === 'simple x'){
+
+                    $('#price_input_hide').removeClass('d-none');
+                    $('#required_qty').addClass('d-none');
+                    $('#discount_input_hide').removeClass('d-none');
+                    $('#discount_value_input_hide').removeClass('d-none');
+                    $('#actual_price_input_hide').removeClass('d-none');
+                    $('#Bundle_products_configuration').addClass('d-none');
+
+                }else {
+                    $('#price_input_hide').removeClass('d-none');
+                    $('#required_qty').addClass('d-none');
+                    $('#discount_input_hide').removeClass('d-none');
+                    $('#discount_value_input_hide').removeClass('d-none');
+                    $('#actual_price_input_hide').addClass('d-none');
+                $('#Bundle_products_configuration').removeClass('d-none');
+                }
+            }
+
+             $('#bundle_offer_type').on('change', function() {
                 let bundleType = $(this).val();
                 updateFieldsVisibility(bundleType);
 
@@ -1633,12 +1523,18 @@
                 $('#availableProducts_get_x_buy_y').hide();
 
                 // Clear regular products
-                $('#productDetails').empty();
+                $('#productDetails .card').fadeOut(300, function() {
+                    $(this).remove();
+                    $('#selectedProducts p').show();
+                });
+                selectedProductsArray = [];
                 productCounter = 0;
 
                 // Clear BOGO products
                 $('#productDetails_section_a').empty();
                 $('#productDetails_section_b').empty();
+                bogoProductsA = [];
+                bogoProductsB = [];
                 bogoCounterA = 0;
                 bogoCounterB = 0;
 
@@ -1646,19 +1542,23 @@
                 $('#price').val('0.00');
                 $('#price_hidden').val('0.00');
                 $('#discount').val('0');
-                $('#selectedProducts p').show();
             });
 
-            // Price type change
             $('#price_type, input[name="price_type"]').on('change', function() {
                 let priceType = $(this).val() || $('input[name="price_type"]:checked').val();
 
                 if (priceType === 'fixed') {
-                    $('#productDetails').empty();
+                    $('#productDetails .card').fadeOut(300, function() {
+                        $(this).remove();
+                        $('#selectedProducts p').show();
+                    });
+                    selectedProductsArray = [];
                     productCounter = 0;
 
                     $('#productDetails_section_a').empty();
                     $('#productDetails_section_b').empty();
+                    bogoProductsA = [];
+                    bogoProductsB = [];
                     bogoCounterA = 0;
                     bogoCounterB = 0;
 
@@ -1668,33 +1568,8 @@
 
                     alert('Fixed price selected. All product selections have been reset.');
                 }
+               });
             });
-        });
-
-        // ==================== UPDATE FIELDS VISIBILITY ====================
-        function updateFieldsVisibility(bundleType) {
-            // Hide all first
-            $('#price_input_hide, #discount_input_hide, #required_qty, #discount_value_input_hide, #actual_price_input_hide, #Bundle_products_configuration, #availableProducts, #availableProducts_get_x_buy_y')
-                .addClass('d-none');
-            
-            if (bundleType === 'mix_match') {
-                // Mix & Match: Single product list + required quantity + discount value
-                $('#discount_input_hide, #required_qty, #discount_value_input_hide, #Bundle_products_configuration, #availableProducts').removeClass('d-none');
-            } else if (bundleType === 'bogo_free') {
-                // BOGO: A aur B alag product lists
-                $('#Bundle_products_configuration, #availableProducts_get_x_buy_y').removeClass('d-none');
-            } else if (bundleType === 'simple' || bundleType === 'bundle') {
-                // Simple aur Bundle: Single product list
-                $('#price_input_hide, #discount_input_hide, #discount_value_input_hide, #Bundle_products_configuration, #availableProducts').removeClass('d-none');
-            } else if (bundleType === 'simple x') {
-                $('#price_input_hide, #discount_input_hide, #discount_value_input_hide, #actual_price_input_hide').removeClass('d-none');
-                $('#Bundle_products_configuration').addClass('d-none');
-            } else {
-                $('#price_input_hide, #discount_input_hide, #discount_value_input_hide, #Bundle_products_configuration, #availableProducts').removeClass('d-none');
-            }
-        }
-    
-          
     </script>
 
     <script>
@@ -1873,7 +1748,7 @@
                                 onclick="toggleAccordion(${item.id})">
                                 
                                 <div class="d-flex align-items-center flex-grow-1">
-                                    <input type="checkbox" name="howto_work[]" value="${item.id}"
+                                    <input type="checkbox" name="howto_work[]"
                                         class="form-check-input record-checkbox me-3"
                                         id="record_${item.id}"
                                         data-item-id="${item.id}">

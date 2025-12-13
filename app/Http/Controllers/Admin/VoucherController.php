@@ -468,7 +468,7 @@ class VoucherController extends Controller
             $item->add_ons = $request->has('addon_ids') ? json_encode($request->addon_ids) : json_encode([]);
                 $item->required_quantity = $request->required_quantity ?? 0.00;
 
-            $item->name = $request->name ?? null;
+            // $item->name = $request->name ?? null;
             $item->client_id = json_encode($request->select_client ?? []);
             $item->segment_ids = json_encode($request->segment_type ?? []);
             $item->branch_ids = json_encode($request->sub_branch_id ?? []);
@@ -644,7 +644,7 @@ class VoucherController extends Controller
             // $item->voucher_ids = $request->hidden_values ?? null;
                 $item->required_quantity = $request->required_quantity ?? 0.00;
 
-            $item->name = $request->name ?? null;
+            // $item->name = $request->name ?? null;
             $item->client_id = json_encode($request->select_client ?? []);
             $item->segment_ids = json_encode($request->segment_type ?? []);
             $item->branch_ids = json_encode($request->sub_branch_id ?? []);
@@ -685,7 +685,7 @@ class VoucherController extends Controller
                     // Basic fields
                     $item->store_id = $request->store_id;
                     $item->module_id = Config::get('module.current_module_id');
-                    $item->name = is_string($request->name) ? $request->name : null;
+                    // $item->  = is_string($request->name) ? $request->name : null;
                     $item->voucher_ids = $request->hidden_name;
                     $item->bundle_type = $request->bundle_offer_type ?? null;
                     $item->type = "voucher";
@@ -878,11 +878,15 @@ public function view_voucher($id)
     }
 
     // CATEGORY IDs
-    if (!empty($product->category_ids)) {
         $category_ids = json_decode($product->category_ids, true);
 
-        $product->categories = Category::whereIn('id', $category_ids)->get();
-    }
+        // Extract only IDs from nested array
+        $ids = collect($category_ids)
+                ->pluck('id')        // gives arrays like ["2"]
+                ->flatten()          // removes nested level
+                ->toArray();         // convert to flat array [2,9]
+
+        $product->categories = Category::whereIn('id', $ids)->get();
 
     // SUB CATEGORY IDs
     if (!empty($product->sub_category_ids)) {
@@ -891,11 +895,11 @@ public function view_voucher($id)
         $product->sub_categories = Category::whereIn('parent_id', $sub_ids)->get();
     }
 
-    // BRANCH IDs
     if (!empty($product->branch_ids)) {
         $branch_ids = json_decode($product->branch_ids, true);
 
-        $product->branches = Item::whereIn('branch_ids', $branch_ids)->get();
+        // Fetch brands
+        $product->branches = Brand::whereIn('id', $branch_ids)->get();
     }
 
     // HOW & CONDITION IDs
@@ -921,6 +925,18 @@ public function view_voucher($id)
         $product->product_details = item::whereIn('id', $productIds)->get();
     }
 
+        // PRODUCT ARRAY
+    if (!empty($product->product_b)) {
+        $productArray = json_decode($product->product_b, true);
+
+        $productIds1 = collect($productArray)->pluck('product_id')->toArray();
+
+        $product->product_details_b = item::whereIn('id', $productIds)->get();
+    }
+
+
+
+//  dd($product->product_details);
     $reviews = Review::where(['item_id' => $id])->latest()->paginate(config('default_pagination'));
     // dd($product);
     return view('admin-views.voucher.view_voucher',  compact('product', 'reviews', 'productWiseTax'));

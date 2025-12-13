@@ -870,7 +870,7 @@
                                     <div class="d-flex align-items-center flex-grow-1">
                                         <input type="checkbox"
                                             class="form-check-input record-checkbox me-3"
-                                            id="record_${item.id}"
+                                            id="record_${item.id}" value="${item.id}"
                                             data-item-id="${item.id}"
                                             name="howto_work[]"
                                             onclick="event.stopPropagation()">
