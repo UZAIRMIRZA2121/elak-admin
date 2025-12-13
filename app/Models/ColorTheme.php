@@ -18,6 +18,7 @@ class ColorTheme extends Model
         "color_type",
         "status",
         "app_id", // NEW
+        "is_default", // NEW
     ];
 
     public function app()

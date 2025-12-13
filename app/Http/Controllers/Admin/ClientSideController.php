@@ -680,7 +680,7 @@ class ClientSideController extends Controller
                 }
 
                 DB::commit();
-              
+
                 Toastr::success('Color Theme and Colors added successfully');
                 return back();
 
@@ -887,30 +887,66 @@ class ClientSideController extends Controller
     }
 
     public function updateAppThemeForm(Request $request)
-{
-    $request->validate([
-        'app_id' => 'required|integer',
-        'themes' => 'array',
-    ]);
+    {
+        $request->validate([
+            'app_id' => 'required|integer',
+            'themes' => 'array',
+        ]);
 
-    $appId = $request->app_id;
+        $appId = $request->app_id;
 
-    // Remove all existing themes of this app
-    AppTheme::where('app_id', $appId)->delete();
+        // Remove all existing themes of this app
+        AppTheme::where('app_id', $appId)->delete();
 
-    // Insert new ones
-    if ($request->themes) {
-        foreach ($request->themes as $themeId) {
-            AppTheme::create([
-                'app_id' => $appId,
-                'theme_id' => $themeId,
-            ]);
+        // Insert new ones
+        if ($request->themes) {
+            foreach ($request->themes as $themeId) {
+                AppTheme::create([
+                    'app_id' => $appId,
+                    'theme_id' => $themeId,
+                ]);
+            }
         }
-    }
 
-    Toastr::success("Themes Updated Successfully!");
-    return back();
-}
+        Toastr::success("Themes Updated Successfully!");
+        return back();
+    }
+    public function client_data($id, Request $request)
+    {
+        $Segment = Segment::where('client_id', $id)->get();
+
+        // Find single client by ID
+        $client = Client::find($id);
+
+        if (!$client) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Client not found'
+            ], 404);
+        }
+
+        // Add type_names attribute for client
+        if ($client->type) {
+            $ids = explode(',', $client->type);
+            $client->type_names = \App\Models\Segment::whereIn('id', $ids)->pluck('name')->toArray();
+        } else {
+            $client->type_names = [];
+        }
+
+        // Get apps for this client with banners and themes
+        $apps = \App\Models\App::with(['banners', 'themes.colorCodes'])
+            ->where('client_id', $id)
+            ->get();
+            
+
+        // Return JSON
+        return response()->json([
+            'success' => true,
+            'client' => $client,
+            'segments' => $Segment,
+            'apps' => $apps
+        ]);
+    }
 
 
 
