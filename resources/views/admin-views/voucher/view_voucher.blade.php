@@ -291,7 +291,6 @@
                                 <th><i class="fas fa-percent mr-2"></i>Discount</th>
                                 <td><span class="badge-custom badge-warning">{{ ucfirst($product->discount) ?? '0' }}%</span></td>
                             </tr>
-                            @if(!empty($product->required_quantity) && $product->required_quantity > 0)
                             <tr>
                                 <th><i class="fas fa-tags mr-2"></i>Discount Type</th>
                                 <td>{{ ucfirst($product->discount_type) ?? 'N/A' }}</td>
