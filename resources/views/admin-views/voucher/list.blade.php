@@ -1,6 +1,6 @@
 @extends('layouts.admin.app')
 
-@section('title',translate('Item List'))
+@section('title', translate('Item List'))
 
 @push('css_or_js')
     <meta name="csrf-token" content="{{ csrf_token() }}">
@@ -14,10 +14,11 @@
                 <div class="col-md-9 col-12">
                     <h1 class="page-header-title">
                         <span class="page-header-icon">
-                            <img src="{{asset('public/assets/admin/img/items.png')}}" class="w--22" alt="">
+                            <img src="{{ asset('public/assets/admin/img/items.png') }}" class="w--22" alt="">
                         </span>
                         <span>
-                            {{translate('messages.item_list')}} <span class="badge badge-soft-dark ml-2" id="foodCount">{{$items->total()}}</span>
+                            {{ translate('messages.item_list') }} <span class="badge badge-soft-dark ml-2"
+                                id="foodCount">{{ $items->total() }}</span>
                         </span>
                     </h1>
                 </div>
@@ -28,98 +29,103 @@
         <!-- Card -->
 
         @php
-            $pharmacy =0;
-            if (Config::get('module.current_module_type') == 'pharmacy'){
-                $pharmacy =1;
+            $pharmacy = 0;
+            if (Config::get('module.current_module_type') == 'pharmacy') {
+                $pharmacy = 1;
             }
         @endphp
-            <div class="card mb-3">
-                <!-- Header -->
-                <div class="card-header py-2 border-0">
-                    <h1>{{ translate('search_data') }}</h1>
-                </div>
-                    <div class="row mr-1 ml-2 mb-5">
-                        <div class="col-sm-6 col-md-3">
-                            <div class="select-item">
-                            <select name="store_id" id="store" data-url="{{url()->full()}}" data-placeholder="{{translate('messages.select_store')}}" class="js-data-example-ajax form-control store-filter" required title="Select Store" oninvalid="this.setCustomValidity('{{translate('messages.please_select_store')}}')">
-                                @if($store)
-                                <option value="{{$store->id}}" selected>{{$store->name}}</option>
-                                @else
-                                <option value="all" selected>{{translate('messages.all_stores')}}</option>
-                                @endif
-                                </select>
-                            </div>
-                        </div>
-                        <div class="col-sm-6 col-md-3">
-                            @if(!isset(auth('admin')->user()->zone_id))
-                            <div class="select-item">
-                                <select name="zone_id" class="form-control js-select2-custom set-filter"
-                                        data-url="{{url()->full()}}" data-filter="zone_id">
-                                    <option value="" {{!request('zone_id')?'selected':''}}>{{ translate('messages.All_Zones') }}</option>
-                                    @foreach(\App\Models\Zone::orderBy('name')->get(['id','name']) as $z)
-                                        <option
-                                            value="{{$z['id']}}" {{request()?->zone_id == $z['id']?'selected':''}}>
-                                            {{$z['name']}}
-                                        </option>
-                                    @endforeach
-                                </select>
-                            </div>
+        <div class="card mb-3">
+            <!-- Header -->
+            <div class="card-header py-2 border-0">
+                <h1>{{ translate('search_data') }}</h1>
+            </div>
+            <div class="row mr-1 ml-2 mb-5">
+                <div class="col-sm-6 col-md-3">
+                    <div class="select-item">
+                        <select name="store_id" id="store" data-url="{{ url()->full() }}"
+                            data-placeholder="{{ translate('messages.select_store') }}"
+                            class="js-data-example-ajax form-control store-filter" required title="Select Store"
+                            oninvalid="this.setCustomValidity('{{ translate('messages.please_select_store') }}')">
+                            @if ($store)
+                                <option value="{{ $store->id }}" selected>{{ $store->name }}</option>
+                            @else
+                                <option value="all" selected>{{ translate('messages.all_stores') }}</option>
                             @endif
-                        </div>
-
-                        <div class="col-sm-6 col-md-{{ $pharmacy == 1 ? '2':'3' }}">
-                            <div class="select-item">
-
-                                <select name="category_id" id="category_id" data-placeholder="{{ translate('messages.select_category') }}"
-                                    class="js-data-example-ajax form-control set-filter" id="category_id"
-                                    data-url="{{url()->full()}}" data-filter="category_id">
-                                    @if($category)
-                                    <option value="{{$category->id}}" selected>{{$category->name}}</option>
-                                    @else
-                                    <option value="all" selected>{{translate('messages.all_category')}}</option>
-                                    @endif
-                                </select>
-                            </div>
-                        </div>
-                        <div class="col-sm-6 col-md-{{ $pharmacy == 1 ? '2':'3' }}">
-                            <div class="select-item">
-                                <select name="sub_category_id" class="form-control js-select2-custom set-filter" data-placeholder="{{ translate('messages.select_sub_category') }}" id="sub-categories" data-url="{{url()->full()}}" data-filter="sub_category_id">
-                                   @if (count($sub_categories) == 0 && $category )
-                                    <option selected>{{translate('messages.No_Subcategory')}}</option>
-
-                                    @else
-                                    <option value="all" selected>{{translate('messages.all_sub_category')}}</option>
-
-                                   @endif
-
-                                    @foreach($sub_categories as $z)
-                                    <option
-                                        value="{{$z['id']}}" {{ request()?->sub_category_id == $z['id']?'selected':''}}>
-                                        {{$z['name']}}
+                        </select>
+                    </div>
+                </div>
+                <div class="col-sm-6 col-md-3">
+                    @if (!isset(auth('admin')->user()->zone_id))
+                        <div class="select-item">
+                            <select name="zone_id" class="form-control js-select2-custom set-filter"
+                                data-url="{{ url()->full() }}" data-filter="zone_id">
+                                <option value="" {{ !request('zone_id') ? 'selected' : '' }}>
+                                    {{ translate('messages.All_Zones') }}</option>
+                                @foreach (\App\Models\Zone::orderBy('name')->get(['id', 'name']) as $z)
+                                    <option value="{{ $z['id'] }}"
+                                        {{ request()?->zone_id == $z['id'] ? 'selected' : '' }}>
+                                        {{ $z['name'] }}
                                     </option>
                                 @endforeach
-                                </select>
-                            </div>
+                            </select>
                         </div>
-                        @if ($pharmacy == 1)
-                            <div class="col-sm-6 col-md-2">
-                                <div class="select-item">
-                                <select name="condition_id" id="condition_id" class="form-control set-filter"
-                                    data-placeholder="{{ translate('messages.Select_Condition') }}"
-                                    data-url="{{url()->full()}}" data-filter="condition_id">
-                                    @if($condition)
-                                    <option value="{{$condition->id}}" selected>{{$condition->name}}</option>
-                                    @else
-                                    <option value="all" selected>{{translate('messages.all_conditions')}}</option>
-                                    @endif
-                                </select>
-                                </div>
-                            </div>
-                        @endif
+                    @endif
+                </div>
 
+                <div class="col-sm-6 col-md-{{ $pharmacy == 1 ? '2' : '3' }}">
+                    <div class="select-item">
+
+                        <select name="category_id" id="category_id"
+                            data-placeholder="{{ translate('messages.select_category') }}"
+                            class="js-data-example-ajax form-control set-filter" id="category_id"
+                            data-url="{{ url()->full() }}" data-filter="category_id">
+                            @if ($category)
+                                <option value="{{ $category->id }}" selected>{{ $category->name }}</option>
+                            @else
+                                <option value="all" selected>{{ translate('messages.all_category') }}</option>
+                            @endif
+                        </select>
                     </div>
+                </div>
+                <div class="col-sm-6 col-md-{{ $pharmacy == 1 ? '2' : '3' }}">
+                    <div class="select-item">
+                        <select name="sub_category_id" class="form-control js-select2-custom set-filter"
+                            data-placeholder="{{ translate('messages.select_sub_category') }}" id="sub-categories"
+                            data-url="{{ url()->full() }}" data-filter="sub_category_id">
+                            @if (count($sub_categories) == 0 && $category)
+                                <option selected>{{ translate('messages.No_Subcategory') }}</option>
+                            @else
+                                <option value="all" selected>{{ translate('messages.all_sub_category') }}</option>
+                            @endif
+
+                            @foreach ($sub_categories as $z)
+                                <option value="{{ $z['id'] }}"
+                                    {{ request()?->sub_category_id == $z['id'] ? 'selected' : '' }}>
+                                    {{ $z['name'] }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+                </div>
+                @if ($pharmacy == 1)
+                    <div class="col-sm-6 col-md-2">
+                        <div class="select-item">
+                            <select name="condition_id" id="condition_id" class="form-control set-filter"
+                                data-placeholder="{{ translate('messages.Select_Condition') }}"
+                                data-url="{{ url()->full() }}" data-filter="condition_id">
+                                @if ($condition)
+                                    <option value="{{ $condition->id }}" selected>{{ $condition->name }}</option>
+                                @else
+                                    <option value="all" selected>{{ translate('messages.all_conditions') }}</option>
+                                @endif
+                            </select>
+                        </div>
+                    </div>
+                @endif
 
             </div>
+
+        </div>
 
         <div class="card">
             <!-- Header -->
@@ -129,18 +135,23 @@
 
                         <!-- Search -->
                         <div class="input-group input--group">
-                            <input id="datatableSearch" name="search" value="{{ request()?->search ?? null }}" type="search" class="form-control h--40px" placeholder="{{translate('ex_:_search_item_by_name')}}" aria-label="{{translate('messages.search_here')}}">
+                            <input id="datatableSearch" name="search" value="{{ request()?->search ?? null }}"
+                                type="search" class="form-control h--40px"
+                                placeholder="{{ translate('ex_:_search_item_by_name') }}"
+                                aria-label="{{ translate('messages.search_here') }}">
                             <button type="submit" class="btn btn--secondary h--40px"><i class="tio-search"></i></button>
                         </div>
                         <!-- End Search -->
                     </form>
-                    @if(request()->get('search'))
-                    <button type="reset" class="btn btn--primary ml-2 location-reload-to-base" data-url="{{url()->full()}}">{{translate('messages.reset')}}</button>
+                    @if (request()->get('search'))
+                        <button type="reset" class="btn btn--primary ml-2 location-reload-to-base"
+                            data-url="{{ url()->full() }}">{{ translate('messages.reset') }}</button>
                     @endif
 
 
                     <div class="hs-unfold mr-2">
-                        <a class="js-hs-unfold-invoker btn btn-sm btn-white dropdown-toggle min-height-40" href="javascript:;"
+                        <a class="js-hs-unfold-invoker btn btn-sm btn-white dropdown-toggle min-height-40"
+                            href="javascript:;"
                             data-hs-unfold-options='{
                                     "target": "#usersExportDropdown",
                                     "type": "css-animation"
@@ -152,13 +163,15 @@
                             class="hs-unfold-content dropdown-unfold dropdown-menu dropdown-menu-sm-right">
 
                             <span class="dropdown-header">{{ translate('messages.download_options') }}</span>
-                            <a id="export-excel" class="dropdown-item" href="{{ route('admin.Voucher.export', ['type' => 'excel', request()->getQueryString()]) }}">
+                            <a id="export-excel" class="dropdown-item"
+                                href="{{ route('admin.Voucher.export', ['type' => 'excel', request()->getQueryString()]) }}">
                                 <img class="avatar avatar-xss avatar-4by3 mr-2"
                                     src="{{ asset('public/assets/admin') }}/svg/components/excel.svg"
                                     alt="Image Description">
                                 {{ translate('messages.excel') }}
                             </a>
-                            <a id="export-csv" class="dropdown-item" href="{{ route('admin.Voucher.export', ['type' => 'csv', request()->getQueryString()]) }}">
+                            <a id="export-csv" class="dropdown-item"
+                                href="{{ route('admin.Voucher.export', ['type' => 'csv', request()->getQueryString()]) }}">
                                 <img class="avatar avatar-xss avatar-4by3 mr-2"
                                     src="{{ asset('public/assets/admin') }}/svg/components/placeholder-csv-format.svg"
                                     alt="Image Description">
@@ -169,14 +182,16 @@
                     </div>
                     <!-- End Unfold -->
                     @if (Config::get('module.current_module_type') != 'food')
-                    <div>
-                        <a href="{{ route('admin.report.stock-report') }}" class="btn btn--primary font-regular">{{translate('messages.Low_Stock_List')}}</a>
-                    </div>
+                        <div>
+                            <a href="{{ route('admin.report.stock-report') }}"
+                                class="btn btn--primary font-regular">{{ translate('messages.Low_Stock_List') }}</a>
+                        </div>
                     @endif
                     @if (\App\CentralLogics\Helpers::get_mail_status('product_approval'))
-                    <div>
-                        <a href="{{ route('admin.Voucher.approval_list') }}" class="btn btn--primary font-regular">{{translate('messages.New_Product_Request')}}</a>
-                    </div>
+                        <div>
+                            <a href="{{ route('admin.Voucher.approval_list') }}"
+                                class="btn btn--primary font-regular">{{ translate('messages.New_Product_Request') }}</a>
+                        </div>
                     @endif
                 </div>
                 <!-- End Row -->
@@ -185,7 +200,8 @@
 
             <!-- Table -->
             <div class="table-responsive datatable-custom" id="table-div">
-                <table id="datatable" class="table table-borderless table-thead-bordered table-nowrap table-align-middle card-table"
+                <table id="datatable"
+                    class="table table-borderless table-thead-bordered table-nowrap table-align-middle card-table"
                     data-hs-datatables-options='{
                         "columnDefs": [{
                             "targets": [],
@@ -204,83 +220,94 @@
                         "paging":false
                     }'>
                     <thead class="thead-light">
-                    <tr>
-                        <th class="border-0">{{translate('sl')}}</th>
-                        <th class="border-0">{{translate('messages.name')}}</th>
-                        <th class="border-0">{{translate('messages.category')}}</th>
+                        <tr>
+                            <th class="border-0">{{ translate('sl') }}</th>
+                            <th class="border-0">{{ translate('messages.name') }}</th>
+                            <th class="border-0">{{ translate('QR-Code') }}</th>
+                            <th class="border-0">{{ translate('messages.category') }}</th>
 
-                        <th class="border-0">{{ translate('Segment') }}</th>
-                        <th class="border-0">{{ translate('discount') }}</th>
-                        <th class="border-0">{{ translate('Discount Type') }}</th>
-                        <th class="border-0">{{ translate('Bundle Type') }}</th>
-                        <th class="border-0">{{ translate('Voucher Name') }}</th>
+                            <th class="border-0">{{ translate('Segment') }}</th>
+                            <th class="border-0">{{ translate('discount') }}</th>
+                            <th class="border-0">{{ translate('Discount Type') }}</th>
+                            <th class="border-0">{{ translate('Bundle Type') }}</th>
+                            <th class="border-0">{{ translate('Voucher Name') }}</th>
 
-                        <th class="border-0">{{translate('messages.store')}}</th>
-                        <th class="border-0 text-center">{{translate('messages.price')}}</th>
+                            <th class="border-0">{{ translate('messages.store') }}</th>
+                            <th class="border-0 text-center">{{ translate('messages.price') }}</th>
 
-                        <th class="border-0 text-center">{{translate('messages.status')}}</th>
-                        <th class="border-0 text-center">{{translate('messages.action')}}</th>
-                    </tr>
+                            <th class="border-0 text-center">{{ translate('messages.status') }}</th>
+                            <th class="border-0 text-center">{{ translate('messages.action') }}</th>
+                        </tr>
                     </thead>
 
                     <tbody id="set-rows">
-                    @foreach($items as $key=>$item)
-                        <tr>
-                            <td>{{$key+$items->firstItem()}}</td>
-                            <td>
-                                <a class="media align-items-center" href="{{route('admin.Voucher.view',[$item['id']])}}">
-                                    <img class="avatar avatar-lg mr-3 onerror-image"
+                        @foreach ($items as $key => $item)
+                            <tr>
+                                <td>{{ $key + $items->firstItem() }}</td>
+                                <td>
+                                    <a class="media align-items-center"
+                                        href="{{ route('admin.Voucher.view', [$item['id']]) }}">
+                                        <img class="avatar avatar-lg mr-3 onerror-image"
+                                            src="{{ $item['image_full_url'] ?? asset('public/assets/admin/img/160x160/img2.jpg') }}"
+                                            data-onerror-image="{{ asset('public/assets/admin/img/160x160/img2.jpg') }}"
+                                            alt="{{ $item->name }} image">
+                                        <div title="{{ $item['name'] }}" class="media-body">
+                                            <h5 class="text-hover-primary mb-0">{{ Str::limit($item['name'], 20, '...') }}
+                                            </h5>
+                                        </div>
+                                    </a>
+                                </td>
+                                <td>
+                                    @if ($item->uuid)
+                                        {!! QrCode::size(80)->generate($item->uuid) !!}
+                                    @else
+                                      
+                                    @endif
+                                </td>
 
-                                    src="{{ $item['image_full_url'] ?? asset('public/assets/admin/img/160x160/img2.jpg') }}"
+                                <td>
+                                    @php
+                                        // Get first valid category ID
+                                        $catId = null;
 
-                                    data-onerror-image="{{asset('public/assets/admin/img/160x160/img2.jpg')}}" alt="{{$item->name}} image">
-                                    <div title="{{ $item['name'] }}" class="media-body">
-                                        <h5 class="text-hover-primary mb-0">{{Str::limit($item['name'],20,'...')}}</h5>
-                                        <h5 class="text-hover-primary mb-0">{{Str::limit($item['name'],20,'...')}}</h5>
-                                    </div>
-                                </a>
-                            </td>
-
-                            <td>
-                                @php
-                                    // Get first valid category ID
-                                    $catId = null;
-                                    
-                                    // Try from category_id first
-                                    if ($item->category_id && is_numeric($item->category_id)) {
-                                        $catId = $item->category_id;
-                                    } else {
-                                        // Try from category_ids
-                                        $decoded = json_decode($item->category_ids, true);
-                                        if (is_array($decoded)) {
-                                            foreach ($decoded as $cat) {
-                                                if (is_string($cat)) {
-                                                    $catId = $cat;
-                                                    break;
-                                                } elseif (is_array($cat) && isset($cat['id'])) {
-                                                    $catId = $cat['id'];
-                                                    break;
+                                        // Try from category_id first
+                                        if ($item->category_id && is_numeric($item->category_id)) {
+                                            $catId = $item->category_id;
+                                        } else {
+                                            // Try from category_ids
+                                            $decoded = json_decode($item->category_ids, true);
+                                            if (is_array($decoded)) {
+                                                foreach ($decoded as $cat) {
+                                                    if (is_string($cat)) {
+                                                        $catId = $cat;
+                                                        break;
+                                                    } elseif (is_array($cat) && isset($cat['id'])) {
+                                                        $catId = $cat['id'];
+                                                        break;
+                                                    }
                                                 }
                                             }
                                         }
-                                    }
-                                    
-                                    // Show category name
-                                    if ($catId) {
-                                        $category = \App\Models\Category::find($catId);
-                                        echo $category ? $category->name : 'N/A';
-                                    } else {
-                                        echo 'N/A';
-                                    }
-                                @endphp
-                            </td>
 
-                            <td>
-                                @php
-                                    $segments = \App\Models\Segment::whereIn('id', json_decode($item->segment_ids, true) ?? [])->pluck('name');
-                                @endphp
-                                {!! $segments->isNotEmpty() ? implode('<br>', $segments->toArray()) : 'N/A' !!}
-                            </td>
+                                        // Show category name
+                                        if ($catId) {
+                                            $category = \App\Models\Category::find($catId);
+                                            echo $category ? $category->name : 'N/A';
+                                        } else {
+                                            echo 'N/A';
+                                        }
+                                    @endphp
+                                </td>
+
+                                <td>
+                                    @php
+                                        $segments = \App\Models\Segment::whereIn(
+                                            'id',
+                                            json_decode($item->segment_ids, true) ?? [],
+                                        )->pluck('name');
+                                    @endphp
+                                    {!! $segments->isNotEmpty() ? implode('<br>', $segments->toArray()) : 'N/A' !!}
+                                </td>
 
                                 <td>
                                     <div class="d-flex align-items-center gap-2">
@@ -288,29 +315,32 @@
                                         </h5>
                                     </div>
                                 </td>
-                            <td> {{ $item->discount_type }}</td>
-                            <td> {{ $item->bundle_type }}</td>
+                                <td> {{ $item->discount_type }}</td>
+                                <td> {{ $item->bundle_type }}</td>
 
-                            {{-- @php( $voucher = \App\Models\VoucherType::find($item->voucher_ids)) --}}
-                            <td>
-                                {{ $item->voucher_ids }}
-                            </td>
+                                {{-- @php( $voucher = \App\Models\VoucherType::find($item->voucher_ids)) --}}
+                                <td>
+                                    {{ $item->voucher_ids }}
+                                </td>
 
-                            <td>
-                                @if ($item->store)
-                                <a title="{{ $item?->store?->name }}" href="{{route('admin.store.view', $item->store->id)}}" class="table-rest-info" alt="view store"> {{  Str::limit($item->store->name, 20, '...') }}</a>
-                                @else
-                                {{  translate('messages.store deleted!') }}
-                                @endif
+                                <td>
+                                    @if ($item->store)
+                                        <a title="{{ $item?->store?->name }}"
+                                            href="{{ route('admin.store.view', $item->store->id) }}"
+                                            class="table-rest-info" alt="view store">
+                                            {{ Str::limit($item->store->name, 20, '...') }}</a>
+                                    @else
+                                        {{ translate('messages.store deleted!') }}
+                                    @endif
 
-                            </td>
-                            <td>
-                                <div class="text-right mw--85px">
-                                    {{\App\CentralLogics\Helpers::format_currency($item['price'])}}
-                                </div>
-                            </td>
+                                </td>
+                                <td>
+                                    <div class="text-right mw--85px">
+                                        {{ \App\CentralLogics\Helpers::format_currency($item['price']) }}
+                                    </div>
+                                </td>
 
-                            {{-- @if ($productWiseTax)
+                                {{-- @if ($productWiseTax)
                                 <td>
                                     <span class="d-block font-size-sm text-body">
                                         @forelse ($item?->taxVats?->pluck('tax.name', 'tax.tax_rate')->toArray() as $key => $tax)
@@ -326,55 +356,62 @@
                                 @endif --}}
 
 
-                            <td>
-                                <label class="toggle-switch toggle-switch-sm" for="stocksCheckbox{{$item->id}}">
-                                    <input type="checkbox" class="toggle-switch-input redirect-url" data-url="{{route('admin.Voucher.status',[$item['id'],$item->status?0:1])}}" id="stocksCheckbox{{$item->id}}" {{$item->status?'checked':''}}>
-                                    <span class="toggle-switch-label mx-auto">
-                                        <span class="toggle-switch-indicator"></span>
-                                    </span>
-                                </label>
-                            </td>
-                            <td>
-                                <div class="btn--container justify-content-center">
-                                    <a class="btn action-btn btn--primary btn-outline-primary"
-                                        href="{{route('admin.Voucher.edit',[$item['id']])}}" title="{{translate('messages.edit_item')}}"><i class="tio-edit"></i>
-                                    </a>
-                                    <a class="ml-2 btn btn-sm btn--warning btn-outline-warning action-btn data-info-show"
-                                     href="{{route('admin.Voucher.view_voucher',[$item['id']])}}">
-                                        <i class="tio-invisible"></i>
-                                    </a>
-                                  <a class="ml-2 btn btn-sm btn--warning btn-outline-warning action-btn data-info-show"
-                                    href="{{ route('admin.VoucherSetting.add-new', ['id' => $item->id]) }}">
-                                        <i class="tio-settings"></i>
-                                    </a>
+                                <td>
+                                    <label class="toggle-switch toggle-switch-sm"
+                                        for="stocksCheckbox{{ $item->id }}">
+                                        <input type="checkbox" class="toggle-switch-input redirect-url"
+                                            data-url="{{ route('admin.Voucher.status', [$item['id'], $item->status ? 0 : 1]) }}"
+                                            id="stocksCheckbox{{ $item->id }}" {{ $item->status ? 'checked' : '' }}>
+                                        <span class="toggle-switch-label mx-auto">
+                                            <span class="toggle-switch-indicator"></span>
+                                        </span>
+                                    </label>
+                                </td>
+                                <td>
+                                    <div class="btn--container justify-content-center">
+                                        <a class="btn action-btn btn--primary btn-outline-primary"
+                                            href="{{ route('admin.Voucher.edit', [$item['id']]) }}"
+                                            title="{{ translate('messages.edit_item') }}"><i class="tio-edit"></i>
+                                        </a>
+                                        <a class="ml-2 btn btn-sm btn--warning btn-outline-warning action-btn data-info-show"
+                                            href="{{ route('admin.Voucher.view_voucher', [$item['id']]) }}">
+                                            <i class="tio-invisible"></i>
+                                        </a>
+                                        <a class="ml-2 btn btn-sm btn--warning btn-outline-warning action-btn data-info-show"
+                                            href="{{ route('admin.VoucherSetting.add-new', ['id' => $item->id]) }}">
+                                            <i class="tio-settings"></i>
+                                        </a>
 
 
-                                    <a class="btn  action-btn btn--danger btn-outline-danger form-alert" href="javascript:"
-                                        data-id="food-{{$item['id']}}" data-message="{{translate('messages.Want_to_delete_this_item')}}" title="{{translate('messages.delete_item')}}"><i class="tio-delete-outlined"></i>
-                                    </a>
-                                    <form action="{{route('admin.Voucher.delete',[$item['id']])}}"
-                                            method="post" id="food-{{$item['id']}}">
-                                        @csrf @method('delete')
-                                    </form>
-                                </div>
-                            </td>
-                        </tr>
-                    @endforeach
+                                        <a class="btn  action-btn btn--danger btn-outline-danger form-alert"
+                                            href="javascript:" data-id="food-{{ $item['id'] }}"
+                                            data-message="{{ translate('messages.Want_to_delete_this_item') }}"
+                                            title="{{ translate('messages.delete_item') }}"><i
+                                                class="tio-delete-outlined"></i>
+                                        </a>
+                                        <form action="{{ route('admin.Voucher.delete', [$item['id']]) }}" method="post"
+                                            id="food-{{ $item['id'] }}">
+                                            @csrf @method('delete')
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        @endforeach
                     </tbody>
                 </table>
             </div>
-            @if(count($items) !== 0)
+            @if (count($items) !== 0)
                 <hr>
             @endif
             <div class="page-area">
                 <tfoot class="border-top">
-                {!! $items->withQueryString()->links() !!}
+                    {!! $items->withQueryString()->links() !!}
             </div>
-            @if(count($items) === 0)
+            @if (count($items) === 0)
                 <div class="empty--data">
-                    <img src="{{asset('/public/assets/admin/svg/illustrations/sorry.svg')}}" alt="public">
+                    <img src="{{ asset('/public/assets/admin/svg/illustrations/sorry.svg') }}" alt="public">
                     <h5>
-                        {{translate('no_data_found')}}
+                        {{ translate('no_data_found') }}
                     </h5>
                 </div>
             @endif
@@ -394,12 +431,14 @@
                 </div>
                 <div class="modal-body pt-0">
 
-                    <form action="{{route('admin.Voucher.stock-update')}}" method="post">
+                    <form action="{{ route('admin.Voucher.stock-update') }}" method="post">
                         @csrf
                         <div class="mt-2 rest-part w-100"></div>
                         <div class="btn--container justify-content-end">
-                            <button type="reset" data-dismiss="modal" aria-label="Close" class="btn btn--reset">{{translate('cancel')}}</button>
-                            <button type="submit" id="submit_new_customer" class="btn btn--primary">{{translate('update_stock')}}</button>
+                            <button type="reset" data-dismiss="modal" aria-label="Close"
+                                class="btn btn--reset">{{ translate('cancel') }}</button>
+                            <button type="submit" id="submit_new_customer"
+                                class="btn btn--primary">{{ translate('update_stock') }}</button>
                         </div>
                     </form>
                 </div>
@@ -412,137 +451,83 @@
 @push('script_2')
     <script>
         "use strict";
-        $(document).on('ready', function () {
+        $(document).on('ready', function() {
             // INITIALIZATION OF DATATABLES
             // =======================================================
-        let datatable = $.HSCore.components.HSDatatables.init($('#datatable'), {
-          select: {
-            style: 'multi',
-            classMap: {
-              checkAll: '#datatableCheckAll',
-              counter: '#datatableCounter',
-              counterInfo: '#datatableCounterInfo'
-            }
-          },
-          language: {
-            zeroRecords: '<div class="text-center p-4">' +
-                '<img class="w-7rem mb-3" src="{{asset('public/assets/admin/svg/illustrations/sorry.svg')}}" alt="Image Description">' +
+            let datatable = $.HSCore.components.HSDatatables.init($('#datatable'), {
+                select: {
+                    style: 'multi',
+                    classMap: {
+                        checkAll: '#datatableCheckAll',
+                        counter: '#datatableCounter',
+                        counterInfo: '#datatableCounterInfo'
+                    }
+                },
+                language: {
+                    zeroRecords: '<div class="text-center p-4">' +
+                        '<img class="w-7rem mb-3" src="{{ asset('public/assets/admin/svg/illustrations/sorry.svg') }}" alt="Image Description">' +
 
-                '</div>'
-          }
-        });
+                        '</div>'
+                }
+            });
 
-        $('#datatableSearch').on('mouseup', function (e) {
-          let $input = $(this),
-            oldValue = $input.val();
+            $('#datatableSearch').on('mouseup', function(e) {
+                let $input = $(this),
+                    oldValue = $input.val();
 
-          if (oldValue == "") return;
+                if (oldValue == "") return;
 
-          setTimeout(function(){
-            let newValue = $input.val();
+                setTimeout(function() {
+                    let newValue = $input.val();
 
-            if (newValue == ""){
-              // Gotcha
-              datatable.search('').draw();
-            }
-          }, 1);
-        });
+                    if (newValue == "") {
+                        // Gotcha
+                        datatable.search('').draw();
+                    }
+                }, 1);
+            });
 
-        $('#toggleColumn_index').change(function (e) {
-          datatable.columns(0).visible(e.target.checked)
-        })
-        $('#toggleColumn_name').change(function (e) {
-          datatable.columns(1).visible(e.target.checked)
-        })
+            $('#toggleColumn_index').change(function(e) {
+                datatable.columns(0).visible(e.target.checked)
+            })
+            $('#toggleColumn_name').change(function(e) {
+                datatable.columns(1).visible(e.target.checked)
+            })
 
-        $('#toggleColumn_type').change(function (e) {
-          datatable.columns(2).visible(e.target.checked)
-        })
+            $('#toggleColumn_type').change(function(e) {
+                datatable.columns(2).visible(e.target.checked)
+            })
 
-        $('#toggleColumn_vendor').change(function (e) {
-          datatable.columns(3).visible(e.target.checked)
-        })
+            $('#toggleColumn_vendor').change(function(e) {
+                datatable.columns(3).visible(e.target.checked)
+            })
 
-        $('#toggleColumn_status').change(function (e) {
-          datatable.columns(5).visible(e.target.checked)
-        })
-        $('#toggleColumn_price').change(function (e) {
-          datatable.columns(4).visible(e.target.checked)
-        })
-        $('#toggleColumn_action').change(function (e) {
-          datatable.columns(6).visible(e.target.checked)
-        })
+            $('#toggleColumn_status').change(function(e) {
+                datatable.columns(5).visible(e.target.checked)
+            })
+            $('#toggleColumn_price').change(function(e) {
+                datatable.columns(4).visible(e.target.checked)
+            })
+            $('#toggleColumn_action').change(function(e) {
+                datatable.columns(6).visible(e.target.checked)
+            })
 
             // INITIALIZATION OF SELECT2
             // =======================================================
-            $('.js-select2-custom').each(function () {
+            $('.js-select2-custom').each(function() {
                 let select2 = $.HSCore.components.HSSelect2.init($(this));
             });
         });
 
         $('#store').select2({
             ajax: {
-                url: '{{url('/')}}/admin/store/get-stores',
-                data: function (params) {
-                    return {
-                        q: params.term, // search term
-                        all:true,
-                        module_id:{{Config::get('module.current_module_id')}},
-                        page: params.page
-                    };
-                },
-                processResults: function (data) {
-                    return {
-                    results: data
-                    };
-                },
-                __port: function (params, success, failure) {
-                    let $request = $.ajax(params);
-
-                    $request.then(success);
-                    $request.fail(failure);
-
-                    return $request;
-                }
-            }
-        });
-
-        $('#category_id').select2({
-            ajax: {
-                url: '{{route("admin.category.get-all")}}',
-                data: function (params) {
-                    return {
-                        q: params.term, // search term
-                        all:true,
-                        module_id:{{Config::get('module.current_module_id')}},
-                        page: params.page
-                    };
-                },
-                processResults: function (data) {
-                    return {
-                    results: data
-                    };
-                },
-                __port: function (params, success, failure) {
-                    let $request = $.ajax(params);
-
-                    $request.then(success);
-                    $request.fail(failure);
-
-                    return $request;
-                }
-            }
-        });
-
-
-        $('#condition_id').select2({
-            ajax: {
-                url: '{{ url('/') }}/admin/common-condition/get-all',
+                url: '{{ url('/') }}/admin/store/get-stores',
                 data: function(params) {
                     return {
                         q: params.term, // search term
-                        page: params.page,
-                        all:true,
+                        all: true,
+                        module_id: {{ Config::get('module.current_module_id') }},
+                        page: params.page
                     };
                 },
                 processResults: function(data) {
@@ -561,35 +546,88 @@
             }
         });
 
-        $('.update-quantity').on('click', function (){
-        let val = $(this).data('id');
-        $.get({
-            url: '{{ route('admin.Voucher.get_stock') }}',
-            data: { id: val },
-            dataType: 'json',
-            success: function (data) {
-                $('.rest-part').empty().html(data.view);
-                update_qty();
-            },
-        });
-    })
+        $('#category_id').select2({
+            ajax: {
+                url: '{{ route('admin.category.get-all') }}',
+                data: function(params) {
+                    return {
+                        q: params.term, // search term
+                        all: true,
+                        module_id: {{ Config::get('module.current_module_id') }},
+                        page: params.page
+                    };
+                },
+                processResults: function(data) {
+                    return {
+                        results: data
+                    };
+                },
+                __port: function(params, success, failure) {
+                    let $request = $.ajax(params);
 
-    function update_qty() {
+                    $request.then(success);
+                    $request.fail(failure);
+
+                    return $request;
+                }
+            }
+        });
+
+
+        $('#condition_id').select2({
+            ajax: {
+                url: '{{ url('/') }}/admin/common-condition/get-all',
+                data: function(params) {
+                    return {
+                        q: params.term, // search term
+                        page: params.page,
+                        all: true,
+                    };
+                },
+                processResults: function(data) {
+                    return {
+                        results: data
+                    };
+                },
+                __port: function(params, success, failure) {
+                    let $request = $.ajax(params);
+
+                    $request.then(success);
+                    $request.fail(failure);
+
+                    return $request;
+                }
+            }
+        });
+
+        $('.update-quantity').on('click', function() {
+            let val = $(this).data('id');
+            $.get({
+                url: '{{ route('admin.Voucher.get_stock') }}',
+                data: {
+                    id: val
+                },
+                dataType: 'json',
+                success: function(data) {
+                    $('.rest-part').empty().html(data.view);
+                    update_qty();
+                },
+            });
+        })
+
+        function update_qty() {
             let total_qty = 0;
             let qty_elements = $('input[name^="stock_"]');
             for (let i = 0; i < qty_elements.length; i++) {
                 total_qty += parseInt(qty_elements.eq(i).val());
             }
-            if(qty_elements.length > 0)
-            {
+            if (qty_elements.length > 0) {
 
                 $('input[name="current_stock"]').attr("readonly", 'readonly');
                 $('input[name="current_stock"]').val(total_qty);
-            }
-            else{
+            } else {
                 $('input[name="current_stock"]').attr("readonly", false);
             }
         }
-
     </script>
 @endpush
