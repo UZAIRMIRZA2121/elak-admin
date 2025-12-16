@@ -1063,33 +1063,33 @@
             }
         });
 
-        $('#sub-categories').select2({
-            ajax: {
-                url: '{{ url('/') }}/admin/item/get-categories',
-                data: function(params) {
-                    return {
-                        q: params.term, // search term
-                        page: params.page,
-                        module_id: {{ Config::get('module.current_module_id') }},
-                        parent_id: parent_category_id,
-                        sub_category: true
-                    };
-                },
-                processResults: function(data) {
-                    return {
-                        results: data
-                    };
-                },
-                __port: function(params, success, failure) {
-                    let $request = $.ajax(params);
+        // $('#sub-categories').select2({
+        //     ajax: {
+        //         url: '{{ url('/') }}/admin/item/get-categories',
+        //         data: function(params) {
+        //             return {
+        //                 q: params.term, // search term
+        //                 page: params.page,
+        //                 module_id: {{ Config::get('module.current_module_id') }},
+        //                 parent_id: parent_category_id,
+        //                 sub_category: true
+        //             };
+        //         },
+        //         processResults: function(data) {
+        //             return {
+        //                 results: data
+        //             };
+        //         },
+        //         __port: function(params, success, failure) {
+        //             let $request = $.ajax(params);
 
-                    $request.then(success);
-                    $request.fail(failure);
+        //             $request.then(success);
+        //             $request.fail(failure);
 
-                    return $request;
-                }
-            }
-        });
+        //             return $request;
+        //         }
+        //     }
+        // });
 
         $('#choice_attributes').on('change', function() {
             if (module_id == 0) {
@@ -1283,5 +1283,49 @@
                 }
             });
         })
+
+          $('.js-data-example-ajax_c').each(function() {
+                let select2 = $.HSCore.components.HSSelect2.init($(this));
+            });
+
+           function multiples_category() {
+            var category_ids_all = $('#category_id').val();
+
+            console.log("Selected category IDs:", category_ids_all);
+
+            if (!category_ids_all || category_ids_all.length === 0) {
+                alert("Please select at least one category!");
+                return;
+            }
+
+            $.ajax({
+                url: "{{ route('admin.Voucher.getSubcategories_product') }}",
+                type: "GET",
+                data: { category_ids_all: category_ids_all },
+                traditional: false,
+                dataType: "json",
+                success: function(response) {
+                    console.log("Subcategories Response:", response);
+
+                    if (!Array.isArray(response) || response.length === 0) {
+                        $('#sub-categories').html('<option disabled>No subcategories found</option>');
+                        return;
+                    }
+
+                    // Build option list dynamically
+                    let options = '';
+                    response.forEach(function(item) {
+                        options += `<option value="${item.id}">${item.name}</option>`;
+                    });
+
+                    // Put options in the select box
+                    $('#sub-categories').html(options);
+                    $('#sub-categories').trigger('change');
+                },
+                error: function(xhr, status, error) {
+                    console.error("AJAX Error:", error);
+                }
+            });
+        }
     </script>
 @endpush

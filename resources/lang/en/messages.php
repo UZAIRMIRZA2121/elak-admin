@@ -8404,4 +8404,8 @@ Smartly or Earn. ',
   'Products B' => 'Products B',
   'Organic' => 'Organic',
   'QR-Code' => 'QR-Code',
+  'Products A' => 'Products A',
+  'minimum_value_can_not_be_greater_then_maximum_value' => 'Minimum value can not be greater then maximum value',
+  'Minimum value can not be greater then maximum value' => 'Minimum value can not be greater then maximum value',
+  'Please add more options or change the max value forEmmanuel Gonzalez' => 'Please add more options or change the max value forEmmanuel Gonzalez',
 );
