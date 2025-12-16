@@ -204,14 +204,14 @@ class VoucherController extends Controller
 
         return [];
     }
-public function store(Request $request)
+    public function store(Request $request)
     {
 
         // dd($request->all());
-        $type_name =  $request->hidden_name;
-        $data = $request->products_data 
-        ?? $request->bogo_products_a 
-        ?? [];
+        $type_name = $request->hidden_name;
+        $data = $request->products_data
+            ?? $request->bogo_products_a
+            ?? [];
         // Agar string hai (JSON), to array bana do
         if (is_string($data)) {
             $decoded = json_decode($data, true);
@@ -224,58 +224,58 @@ public function store(Request $request)
             $data_b = json_decode($data_b, true) ?? [];
         }
 
-        if($type_name == "Delivery/Pickup" || $type_name == "In-Store"){
+        if ($type_name == "Delivery/Pickup" || $type_name == "In-Store") {
 
-             $validator = Validator::make($request->all(), [
-            'segment_type' => 'max:1000',
-            'store_id' => 'required',
-            'categories' => 'required',
-            'sub_categories_game' => 'nullable',
-            'sub_branch_id' => 'required',
-            'voucher_title' => 'required',
-            'item_images' => 'required',
-            'image' => 'required',
-            'description' => 'required',
-            'bundle_offer_type' => 'required',
-            'price' => 'required',
-            'price_hidden' => 'required',
-            'required_qty' => 'required',
-            'offer_type' => 'required',
-            'discount_type' => 'required',
-            'discount' => 'required',
-        ]);
+            $validator = Validator::make($request->all(), [
+                'segment_type' => 'max:1000',
+                'store_id' => 'required',
+                'categories' => 'required',
+                'sub_categories_game' => 'nullable',
+                'sub_branch_id' => 'required',
+                'voucher_title' => 'required',
+                'item_images' => 'required',
+                'image' => 'required',
+                'description' => 'required',
+                'bundle_offer_type' => 'required',
+                'price' => 'required',
+                'price_hidden' => 'required',
+                'required_qty' => 'required',
+                'offer_type' => 'required',
+                'discount_type' => 'required',
+                'discount' => 'required',
+            ]);
 
             if ($validator->fails()) {
                 return response()->json(['errors' => Helpers::error_processor($validator)], 422);
             }
-                $newFileNamethumb = null;
-                $images = [];
-                $disk = Helpers::getDisk();
+            $newFileNamethumb = null;
+            $images = [];
+            $disk = Helpers::getDisk();
 
-                if ($request->hasFile('image')) {
-                    $newFileNamethumb = Carbon::now()->toDateString() . '-' . uniqid() . '.png';
-                    $request->file('image')->storeAs(
+            if ($request->hasFile('image')) {
+                $newFileNamethumb = Carbon::now()->toDateString() . '-' . uniqid() . '.png';
+                $request->file('image')->storeAs(
+                    'product',
+                    $newFileNamethumb,
+                    $disk
+                );
+            }
+
+            if ($request->hasFile('item_images')) {
+                foreach ($request->file('item_images') as $img) {
+                    $fileName = Carbon::now()->toDateString() . '-' . uniqid() . '.png';
+                    $img->storeAs(
                         'product',
-                        $newFileNamethumb,
+                        $fileName,
                         $disk
                     );
-                }
 
-                if ($request->hasFile('item_images')) {
-                    foreach ($request->file('item_images') as $img) {
-                        $fileName = Carbon::now()->toDateString() . '-' . uniqid() . '.png';
-                        $img->storeAs(
-                            'product',
-                            $fileName,
-                            $disk
-                        );
-
-                        $images[] = [
-                            'img'     => $fileName,
-                            'storage' => $disk,
-                        ];
-                    }
+                    $images[] = [
+                        'img' => $fileName,
+                        'storage' => $disk,
+                    ];
                 }
+            }
 
             $item = new Item;
             $item->price = $request->price ?? 0;
@@ -285,7 +285,7 @@ public function store(Request $request)
             $item->name = $request->voucher_title;
             $item->description = $request->description;
             $item->module_id = Config::get('module.current_module_id');
-            $item->image = $request->hasFile('image')? Helpers::upload('product/', 'png', $request->file('image')): $newFileNamethumb ?? null;
+            $item->image = $request->hasFile('image') ? Helpers::upload('product/', 'png', $request->file('image')) : $newFileNamethumb ?? null;
             $category = [];
             $position = 1;
 
@@ -318,7 +318,7 @@ public function store(Request $request)
 
             $item->category_ids = json_encode($category);
 
-            $item->category_id = $request->sub_categories_game ? (is_array($request->sub_categories_game) ? $request->sub_categories_game[0] : $request->sub_categories_game): (is_array($request->categories) ? $request->categories[0] : $request->categories);
+            $item->category_id = $request->sub_categories_game ? (is_array($request->sub_categories_game) ? $request->sub_categories_game[0] : $request->sub_categories_game) : (is_array($request->categories) ? $request->categories[0] : $request->categories);
             $item->variations = json_encode(array_filter($request->variations ?? []));
             $item->branch_ids = json_encode(array_filter($request->sub_branch_id ?? []));
             $item->how_and_condition_ids = json_encode(array_filter($request->howto_work ?? []));
@@ -341,53 +341,53 @@ public function store(Request $request)
 
             return response()->json(['success' => translate('messages.voucher_created_successfully')], 200);
 
-        }else if($type_name == "Flat discount"){
+        } else if ($type_name == "Flat discount") {
 
-             $validator = Validator::make($request->all(), [
-            'segment_type' => 'max:1000',
-            'store_id' => 'required',
-            'voucher_title' => 'required',
-            'clients' => 'array',
-            'item_images' => 'required',
-            'image' => 'required',
-            'description' => 'required',
-            'tags' => 'required',
-            'discount_type' => 'required',
-            'bonus_tiers' => 'required',
+            $validator = Validator::make($request->all(), [
+                'segment_type' => 'max:1000',
+                'store_id' => 'required',
+                'voucher_title' => 'required',
+                'clients' => 'array',
+                'item_images' => 'required',
+                'image' => 'required',
+                'description' => 'required',
+                'tags' => 'required',
+                'discount_type' => 'required',
+                'bonus_tiers' => 'required',
             ]);
 
-        if ($validator->fails()) {
-            return response()->json(['errors' => Helpers::error_processor($validator)], 422);
-        }
+            if ($validator->fails()) {
+                return response()->json(['errors' => Helpers::error_processor($validator)], 422);
+            }
 
-                $newFileNamethumb = null;
-                $images = [];
-                $disk = Helpers::getDisk();
+            $newFileNamethumb = null;
+            $images = [];
+            $disk = Helpers::getDisk();
 
-                if ($request->hasFile('image')) {
-                    $newFileNamethumb = Carbon::now()->toDateString() . '-' . uniqid() . '.png';
-                    $request->file('image')->storeAs(
+            if ($request->hasFile('image')) {
+                $newFileNamethumb = Carbon::now()->toDateString() . '-' . uniqid() . '.png';
+                $request->file('image')->storeAs(
+                    'product',
+                    $newFileNamethumb,
+                    $disk
+                );
+            }
+
+            if ($request->hasFile('item_images')) {
+                foreach ($request->file('item_images') as $img) {
+                    $fileName = Carbon::now()->toDateString() . '-' . uniqid() . '.png';
+                    $img->storeAs(
                         'product',
-                        $newFileNamethumb,
+                        $fileName,
                         $disk
                     );
-                }
 
-                if ($request->hasFile('item_images')) {
-                    foreach ($request->file('item_images') as $img) {
-                        $fileName = Carbon::now()->toDateString() . '-' . uniqid() . '.png';
-                        $img->storeAs(
-                            'product',
-                            $fileName,
-                            $disk
-                        );
-
-                        $images[] = [
-                            'img'     => $fileName,
-                            'storage' => $disk,
-                        ];
-                    }
+                    $images[] = [
+                        'img' => $fileName,
+                        'storage' => $disk,
+                    ];
                 }
+            }
 
 
             $item = new Item;
@@ -451,96 +451,96 @@ public function store(Request $request)
             $item->save();
             return response()->json(['success' => translate('messages.voucher_created_successfully')], 200);
 
-        }else if($type_name == "Gift"){
-                $validator = Validator::make($request->all(), [
-                    'segment_type' => 'max:1000',
-                    'store_id' => 'required',
-                    'occasions_id' => 'required',
-                    'message_template_style' => 'required',
-                    'delivery_options' => 'required',
-                    'type' => 'required',
-                    'min_max_amount' => 'required', 
-                    'clients' => 'array',
-                ]);
+        } else if ($type_name == "Gift") {
+            $validator = Validator::make($request->all(), [
+                'segment_type' => 'max:1000',
+                'store_id' => 'required',
+                'occasions_id' => 'required',
+                'message_template_style' => 'required',
+                'delivery_options' => 'required',
+                'type' => 'required',
+                'min_max_amount' => 'required',
+                'clients' => 'array',
+            ]);
 
-                if ($validator->fails()) {
-                    return response()->json(['errors' => Helpers::error_processor($validator)], 422);
+            if ($validator->fails()) {
+                return response()->json(['errors' => Helpers::error_processor($validator)], 422);
+            }
+            $item = new Item;
+            $item->store_id = $request->store_id;
+            $item->module_id = Config::get('module.current_module_id');
+            $item->voucher_ids = $request->hidden_name;
+            $item->bundle_type = $request->bundle_offer_type ?? null;
+            $item->type = "voucher";
+            $item->required_quantity = $request->required_quantity ?? 0;
+            $category = [];
+            $position = 1;
+
+            if (!empty($request->categories) && is_array($request->categories)) {
+                foreach ($request->categories as $catId) {
+                    $category[] = [
+                        'id' => (string) $catId,
+                        'position' => $position++,
+                    ];
                 }
-                    $item = new Item;
-                    $item->store_id = $request->store_id;
-                    $item->module_id = Config::get('module.current_module_id');
-                    $item->voucher_ids = $request->hidden_name;
-                    $item->bundle_type = $request->bundle_offer_type ?? null;
-                    $item->type = "voucher";
-                    $item->required_quantity = $request->required_quantity ?? 0;
-                     $category = [];
-                    $position = 1;
+            }
 
-                    if (!empty($request->categories) && is_array($request->categories)) {
-                        foreach ($request->categories as $catId) {
-                            $category[] = [
-                                'id' => (string) $catId,
-                                'position' => $position++,
-                            ];
-                        }
-                    }
+            if (!empty($request->sub_categories_game) && is_array($request->sub_categories_game)) {
+                foreach ($request->sub_categories_game as $subCatId) {
+                    $category[] = [
+                        'id' => (string) $subCatId,
+                        'position' => $position++,
+                    ];
+                }
+            }
 
-                    if (!empty($request->sub_categories_game) && is_array($request->sub_categories_game)) {
-                        foreach ($request->sub_categories_game as $subCatId) {
-                            $category[] = [
-                                'id' => (string) $subCatId,
-                                'position' => $position++,
-                            ];
-                        }
-                    }
+            if (!empty($request->sub_sub_category_id) && is_array($request->sub_sub_category_id)) {
+                foreach ($request->sub_sub_category_id as $subSubCatId) {
+                    $category[] = [
+                        'id' => (string) $subSubCatId,
+                        'position' => $position++,
+                    ];
+                }
+            }
 
-                    if (!empty($request->sub_sub_category_id) && is_array($request->sub_sub_category_id)) {
-                        foreach ($request->sub_sub_category_id as $subSubCatId) {
-                            $category[] = [
-                                'id' => (string) $subSubCatId,
-                                'position' => $position++,
-                            ];
-                        }
-                    }
+            $item->category_ids = json_encode($category);
+            $item->category_id = $request->sub_categories_game ? (is_array($request->sub_categories_game) ? $request->sub_categories_game[0] : $request->sub_categories_game) : (is_array($request->categories) ? $request->categories[0] : $request->categories);
+            $item->variations = json_encode(array_filter($request->variations ?? []));
+            $item->branch_ids = json_encode(array_filter($request->sub_branch_id ?? []));
+            $item->how_and_condition_ids = json_encode(array_filter($request->howto_work ?? []));
+            $item->term_and_condition_ids = json_encode(array_filter($request->term_and_condition ?? []));
+            $item->product = json_encode(array_filter($data));
+            $item->product_b = json_encode(array_filter($data_b));
+            $item->clients_section = json_encode(array_filter($request->clients ?? []));
+            $item->add_ons = $request->has('addon_ids') ? json_encode($request->addon_ids) : json_encode([]);
+            $item->client_id = json_encode($request->select_client ?? []);
+            $item->segment_ids = json_encode($request->segment_type ?? []);
+            $item->clients_section = json_encode(array_filter($request->clients ?? []));
+            $form_fields = $request->form_fields ?? [];
+            $required_fields = $request->required_fields ?? [];
+            $settings = ["form_fields" => $form_fields, "required_fields" => $required_fields];
+            $item->recipient_info_form_fields = json_encode($settings);
+            $item->occasions_id = json_encode($request->occasions_id ?? []);
+            $item->message_template_style = json_encode($request->message_template_style ?? []);
+            $item->delivery_options = json_encode($request->delivery_options ?? []);
+            $item->amount_type = $request->type ?? null;
+            if ($request->type == "fixed") {
+                $item->enable_custom_amount = $request->enable_custom_amount ?? null;
+            } else {
+                $item->fixed_amount_options = json_encode($request->fixed_amounts ?? []);
+                $item->min_max_amount = json_encode($request->min_max_amount ?? []);
+            }
+            $item->bonus_configuration = json_encode($request->bonus_tiers ?? []);
+            $item->redemption_process = json_encode($request->redemption_process ?? []);
+            $item->validity_period = json_encode($request->validity_period ?? []);
+            $item->usage_restrictions = json_encode($request->usage_restrictions ?? []);
+            $item->blackout_dates = json_encode($request->blackout_dates ?? []);
+            $item->save();
 
-                    $item->category_ids = json_encode($category);
-                    $item->category_id = $request->sub_categories_game ? (is_array($request->sub_categories_game) ? $request->sub_categories_game[0] : $request->sub_categories_game) : (is_array($request->categories) ? $request->categories[0] : $request->categories);
-                    $item->variations = json_encode(array_filter($request->variations ?? []));
-                    $item->branch_ids = json_encode(array_filter($request->sub_branch_id ?? []));
-                    $item->how_and_condition_ids = json_encode(array_filter($request->howto_work ?? []));
-                    $item->term_and_condition_ids = json_encode(array_filter($request->term_and_condition ?? []));
-                    $item->product = json_encode(array_filter($data));
-                    $item->product_b = json_encode(array_filter($data_b));
-                    $item->clients_section = json_encode(array_filter($request->clients ?? []));
-                    $item->add_ons = $request->has('addon_ids') ? json_encode($request->addon_ids) : json_encode([]);
-                    $item->client_id = json_encode($request->select_client ?? []);
-                    $item->segment_ids  = json_encode($request->segment_type ?? []);
-                    $item->clients_section = json_encode(array_filter($request->clients ?? []));
-                    $form_fields = $request->form_fields ?? [];
-                    $required_fields = $request->required_fields ?? [];
-                    $settings = [ "form_fields" => $form_fields, "required_fields" => $required_fields];
-                    $item->recipient_info_form_fields = json_encode($settings);
-                    $item->occasions_id = json_encode($request->occasions_id ?? []);
-                    $item->message_template_style = json_encode($request->message_template_style ?? []);
-                    $item->delivery_options = json_encode($request->delivery_options ?? []);
-                    $item->amount_type = $request->type ?? null;
-                    if($request->type == "fixed"){
-                        $item->enable_custom_amount = $request->enable_custom_amount ?? null;
-                    }else{
-                        $item->fixed_amount_options = json_encode($request->fixed_amounts ?? []);
-                        $item->min_max_amount = json_encode($request->min_max_amount ?? []);
-                    }
-                    $item->bonus_configuration = json_encode($request->bonus_tiers ?? []);
-                    $item->redemption_process = json_encode($request->redemption_process ?? []);
-                    $item->validity_period = json_encode($request->validity_period ?? []);
-                    $item->usage_restrictions = json_encode($request->usage_restrictions ?? []);
-                    $item->blackout_dates = json_encode($request->blackout_dates ?? []);
-                    $item->save();
-
-                    return response()->json(['success' => translate('messages.voucher_created_successfully')], 200);
+            return response()->json(['success' => translate('messages.voucher_created_successfully')], 200);
         }
     }
-   
+
     public function view_voucher($id)
     {
         $taxData = Helpers::getTaxSystemType();

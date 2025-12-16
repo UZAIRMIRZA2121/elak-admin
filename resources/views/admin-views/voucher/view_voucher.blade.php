@@ -266,7 +266,8 @@
                                             data-onerror-image="{{ asset('public/assets/admin/img/160x160/img2.jpg') }}"
                                             alt="{{ $product->name }} image">
                                         <div title="{{ $product['name'] }}" class="media-body">
-                                            <h5 class="text-hover-primary mb-0">{{ Str::limit($product['name'], 20, '...') }}</h5>
+                                            <h5 class="text-hover-primary mb-0">
+                                                {{ Str::limit($product['name'], 20, '...') }}</h5>
                                         </div>
                                     </td>
                                 </tr>
@@ -340,39 +341,36 @@
                                     <td>
                                         @if ($product->categories && $product->categories->isNotEmpty())
                                             @foreach ($product->categories as $category)
-                                                <span class="badge-custom badge-primary">{{ $category->name }}</span>
+                                                @if($category->parent_id === 0)
+                                                    <span class="badge badge-success mb-2">{{ $category->name }}</span>
+                                                @else
+                                                     <span class="badge badge-warning mb-2">{{ $category->name }}</span>
+                                             
+                                                @endif
                                             @endforeach
                                         @else
                                             N/A
                                         @endif
                                     </td>
                                 </tr>
-                                @if (isset($product->sub_categories))
-                                    <tr>
-                                        <th><i class="fas fa-sitemap mr-2"></i>Sub Categories</th>
-                                        <td>
-                                            @if (isset($product->sub_categories) && $product->sub_categories->count() > 0)
-                                                @foreach ($product->sub_categories as $subCat)
-                                                    <span class="badge-custom badge-info">{{ $subCat->name }}</span>
-                                                @endforeach
-                                            @else
-                                                N/A
-                                            @endif
-                                        </td>
-                                    </tr>
-                                @endif
+
+
+
+
 
                                 @if (isset($product->tags_ids))
                                     <tr>
                                         <th><i class="fas fa-hashtag mr-2"></i>Tags</th>
-                                        <td>{{ $product->tags_ids ?? 'N/A' }}</td>
+                                        <td>
+                                              <span class="badge badge-info mb-2">{{ $product->tags_ids }}</span>
+                                        </td>
                                     </tr>
                                 @endif
                             </tbody>
                         </table>
                     </div>
                 </div>
-                @if ($product->bundle_type == 'simple')
+                {{-- @if ($product->bundle_type == 'simple')
                     <div class="row mt-4">
                         <div class="col-md-12">
                             <h5 class="section-title mb-3"><i class="fas fa-cogs mr-2"></i>Simple Product Info</h5>
@@ -381,15 +379,70 @@
                         </div>
                     </div>
                 @endif
-                   @if ($product->bundle_type == 'bogo_free')
+
+                @if ($product->bundle_type === 'bogo_free')
                     <div class="row mt-4">
                         <div class="col-md-12">
-                            <h5 class="section-title mb-3"><i class="fas fa-cogs mr-2"></i>BOGO Product Info</h5>
+                            <h5 class="section-title mb-3">
+                                <i class="fas fa-gift mr-2"></i>BOGO Product Info
+                            </h5>
 
+                            <div class="row">
+                                <!-- Product A (Buy Product) -->
+                                <div class="col-md-6">
+                                    <div class="condition-card p-3 border rounded shadow-sm h-100">
+                                        <h6 class="mb-3 text-success">
+                                            <i class="fas fa-shopping-cart mr-2"></i>Product A 
+                                        </h6>
 
+                                        @if ($product->relatedProducts()->isNotEmpty())
+                                            @foreach ($product->relatedProducts() as $related)
+                                                <div class="mb-2 d-flex">
+                                                    <strong class="w-40">Name:</strong>
+                                                    <span>{{ $related->name }}</span>
+                                                </div>
+                                                <div class="mb-2 d-flex">
+                                                    <strong class="w-40">Price:</strong>
+                                                    <span>${{ $related->price }}</span>
+                                                </div>
+                                                
+                                                <hr>
+                                            @endforeach
+                                        @else
+                                            <p class="text-muted mb-0">No Product A available</p>
+                                        @endif
+                                    </div>
+                                </div>
+
+                                <!-- Product B (Free Product) -->
+                                <div class="col-md-6">
+                                    <div class="condition-card p-3 border rounded shadow-sm h-100">
+                                        <h6 class="mb-3 text-warning">
+                                            <i class="fas fa-gift mr-2"></i>Product B 
+                                        </h6>
+
+                                        @if ($product->relatedProductsB()->isNotEmpty())
+                                            @foreach ($product->relatedProductsB() as $relatedB)
+                                                <div class="mb-2 d-flex">
+                                                    <strong class="w-40">Name:</strong>
+                                                    <span>{{ $relatedB->name }}</span>
+                                                </div>
+                                                <div class="mb-2 d-flex">
+                                                    <strong class="w-40">Price:</strong>
+                                                    <span>${{ $relatedB->price }}</span>
+                                                </div>
+                                              
+                                                <hr>
+                                            @endforeach
+                                        @else
+                                            <p class="text-muted mb-0">No Product B available</p>
+                                        @endif
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                @endif
+                @endif --}}
 
 
                 <!-- Client Info Section -->
