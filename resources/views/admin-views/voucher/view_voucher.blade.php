@@ -470,12 +470,8 @@
         </div>
     </div>
 
-    <!-- Products Section -->
-    @if(isset($product->product_details) && $product->product_details->count() > 0)
-    <div class="modern-card">
-        <div class="modern-card-body" style="padding: 0; background: transparent;">
-            <div style="background: #005555; padding: 20px 24px; border-radius: 12px 12px 0 0;">
-                <h4 style="color: white; font-weight: 700; font-size: 20px; margin: 0;"><i class="fas fa-box-open mr-2"></i>{{ translate('Products A') }}</h4>
+                
+
             </div>
         <div class="modern-card-body">
             <div class="table-responsive">

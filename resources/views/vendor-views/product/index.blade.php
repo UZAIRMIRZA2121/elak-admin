@@ -166,7 +166,7 @@
                                     <div class="form-group mb-0">
                                         <label class="input-label" for="exampleFormControlSelect1">{{translate('messages.category')}}<span
                                                 class="input-label-secondary">*</span></label>
-                                        <select name="category_id" id="category_id" class="form-control js-select2-custom get-request"
+                                        <select name="category_id" onchange="multiples_category()" id="category_id" class="form-control js-select2-custom get-request"
                                                 data-url="{{url('/')}}/vendor-panel/item/get-categories?parent_id=" data-id="sub-categories">
                                             <option value="">---{{translate('messages.select')}}---</option>
                                             @foreach($categories as $category)
@@ -179,7 +179,7 @@
                                     <div class="form-group mb-0">
                                         <label class="input-label" for="exampleFormControlSelect1">{{translate('messages.sub_category')}}<span
                                                 class="input-label-secondary"></span></label>
-                                        <select name="sub_category_id" id="sub-categories" class="form-control js-select2-custom get-request" data-url="{{url('/')}}/vendor-panel/item/get-categories?parent_id=" data-id="sub-sub-categories">
+                                        <select name="sub_category_id" id="sub-categories"  class="form-control js-select2-custom get-request" data-url="{{url('/')}}/vendor-panel/item/get-categories?parent_id=" data-id="sub-sub-categories">
                                         </select>
                                     </div>
                                 </div>
@@ -896,6 +896,74 @@
             }
         });
     })
+
+     $('#category_id').select2({
+        //  alert("sdvn djh");
+            ajax: {
+                url: '{{ url('/') }}/admin/item/get-categories?parent_id=0',
+                data: function(params) {
+                    return {
+                        q: params.term, // search term
+                        page: params.page,
+                        module_id:{{Config::get('module.current_module_id')}},
+                    };
+                },
+                processResults: function(data) {
+                    return {
+                        results: data
+                    };
+                },
+                __port: function(params, success, failure) {
+                    let $request = $.ajax(params);
+
+                    $request.then(success);
+                    $request.fail(failure);
+
+                    return $request;
+                }
+            }
+        });
+
+
+        function multiples_category() {
+            var category_ids_all = $('#categories').val();
+
+            console.log("Selected category IDs:", category_ids_all);
+
+            if (!category_ids_all || category_ids_all.length === 0) {
+                alert("Please select at least one category!");
+                return;
+            }
+
+            $.ajax({
+                url: "{{ route('admin.Voucher.getSubcategories') }}",
+                type: "GET",
+                data: { category_ids_all: category_ids_all },
+                traditional: false,
+                dataType: "json",
+                success: function(response) {
+                    console.log("Subcategories Response:", response);
+
+                    if (!Array.isArray(response) || response.length === 0) {
+                        $('#sub-categories').html('<option disabled>No subcategories found</option>');
+                        return;
+                    }
+
+                    // Build option list dynamically
+                    let options = '';
+                    response.forEach(function(item) {
+                        options += `<option value="${item.id}">${item.name}</option>`;
+                    });
+
+                    // Put options in the select box
+                    $('#sub-categories').html(options);
+                    $('#sub-categories').trigger('change');
+                },
+                error: function(xhr, status, error) {
+                    console.error("AJAX Error:", error);
+                }
+            });
+        }
 </script>
 @endpush
 
