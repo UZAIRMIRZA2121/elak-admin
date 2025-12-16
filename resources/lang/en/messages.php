@@ -8403,4 +8403,5 @@ Smartly or Earn. ',
   'How to Work' => 'How to Work',
   'Products B' => 'Products B',
   'Organic' => 'Organic',
+  'QR-Code' => 'QR-Code',
 );

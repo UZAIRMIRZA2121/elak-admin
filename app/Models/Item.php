@@ -14,11 +14,20 @@ use Illuminate\Database\Eloquent\Relations\MorphOne;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Modules\TaxModule\Entities\Taxable;
 
+use Illuminate\Database\Eloquent\Collection;
+use App\Models\Store;
+use App\Models\Client;
+use App\Models\App;
+use App\Models\Segment;
+
+
+
+
 class Item extends Model
 {
     use HasFactory, ReportFilter;
     protected $guarded = ['id'];
-    protected $with = ['translations','storage'];
+    protected $with = ['translations', 'storage'];
     protected $casts = [
         'tax' => 'float',
         'price' => 'float',
@@ -46,7 +55,7 @@ class Item extends Model
         'unit_id' => 'integer',
         'is_halal' => 'integer',
         'type' => 'string',
-         'clients_section' => 'array',
+        'clients_section' => 'array',
         'client_id' => 'array',
         'segment_ids' => 'array',
         'sub_category_ids' => 'array',
@@ -300,9 +309,11 @@ class Item extends Model
         });
 
         static::addGlobalScope('translate', function (Builder $builder) {
-            $builder->with(['translations' => function ($query) {
-                return $query->where('locale', app()->getLocale());
-            }]);
+            $builder->with([
+                'translations' => function ($query) {
+                    return $query->where('locale', app()->getLocale());
+                }
+            ]);
         });
     }
 
@@ -357,6 +368,11 @@ class Item extends Model
             $item->slug = $item->generateSlug($item->name);
             $item->save();
         });
+        static::creating(function ($item) {
+            if (empty($item->uuid)) {
+                $item->uuid = (string) Str::uuid();
+            }
+        });
         static::saved(function ($model) {
             if ($model->isDirty('image')) {
                 $value = Helpers::getDisk();
@@ -391,7 +407,8 @@ class Item extends Model
         $slug = Str::slug($name);
         if ($max_slug = static::where('slug', 'like', "{$slug}%")->latest('id')->value('slug')) {
 
-            if ($max_slug == $slug) return "{$slug}-2";
+            if ($max_slug == $slug)
+                return "{$slug}-2";
 
             $max_slug = explode('-', $max_slug);
             $count = array_pop($max_slug);
@@ -407,4 +424,93 @@ class Item extends Model
     {
         return $this->morphMany(Taxable::class, 'taxable');
     }
+
+
+
+
+
+
+    public function branches(): Collection
+    {
+        $branchIds = $this->branch_ids;
+
+        // Decode the JSON string safely
+        if (is_string($branchIds)) {
+            // The extra escapes need double decoding
+            $branchIds = json_decode($branchIds, true);
+            if (is_string($branchIds)) {
+                // In case it’s still a string after first decode
+                $branchIds = json_decode($branchIds, true);
+            }
+        }
+
+        // Ensure it's an array
+        if (!is_array($branchIds)) {
+            $branchIds = [];
+        }
+
+        return Store::whereIn('id', $branchIds)->get();
+    }
+
+
+    /**
+     * Get clients from clients_section JSON
+     */
+    public function clients(): Collection
+    {
+        $clientsSection = $this->clients_section;
+
+        if (is_string($clientsSection)) {
+            $clientsSection = json_decode($clientsSection, true);
+            if (!is_array($clientsSection))
+                $clientsSection = [];
+        }
+
+        $clientIds = collect($clientsSection)->pluck('client_id')->filter()->toArray();
+
+        return Client::whereIn('id', $clientIds)->get();
+    }
+
+    /**
+     * Get apps from clients_section JSON
+     */
+    public function apps(): Collection
+    {
+        $clientsSection = $this->clients_section;
+
+        if (is_string($clientsSection)) {
+            $clientsSection = json_decode($clientsSection, true);
+            if (!is_array($clientsSection))
+                $clientsSection = [];
+        }
+
+        $appIds = collect($clientsSection)->pluck('app_name_id')->filter()->toArray();
+
+        return App::whereIn('id', $appIds)->get();
+    }
+
+    /**
+     * Get segments from clients_section JSON
+     */
+    public function segments(): Collection
+    {
+        $clientsSection = $this->clients_section;
+
+        if (is_string($clientsSection)) {
+            $clientsSection = json_decode($clientsSection, true);
+            if (!is_array($clientsSection))
+                $clientsSection = [];
+        }
+
+        // pluck all segment arrays and flatten them
+        $segmentIds = collect($clientsSection)
+            ->pluck('segment')
+            ->flatten()
+            ->filter()
+            ->toArray();
+
+        return Segment::whereIn('id', $segmentIds)->get();
+    }
+
+
 }
