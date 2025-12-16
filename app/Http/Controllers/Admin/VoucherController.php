@@ -56,17 +56,17 @@ class VoucherController extends Controller
         $voucherTypeId = $request->voucher_type_id;
         $voucherType = VoucherType::find($voucherTypeId);
         $managementIds = explode(",", $voucherType->management_id);
-        $all_module = ManagementType::whereIn("id", $managementIds)->where("status","active")->get()->map(function($item) {
+        $all_module = ManagementType::whereIn("id", $managementIds)->where("status", "active")->get()->map(function ($item) {
             return [
                 'id' => $item->id,
                 'module_name' => $item->name,
                 'desc' => $item->desc,
                 'thumbnail' => $item->logo
-                ? asset('/' . $item->logo)
-                : asset('/default.png'),
+                    ? asset('/' . $item->logo)
+                    : asset('/default.png'),
             ];
         });
-          return response()->json([
+        return response()->json([
             'success' => true,
             'message' => 'VoucherType ID received',
             'all_ids' => $all_module
@@ -80,34 +80,34 @@ class VoucherController extends Controller
         $All_segmnet = Segment::where('client_id', $clientId)->where('status', "active")->get();
         $clients = App::where('client_id', $clientId)->first();
         return response()->json([
-            'app_name' => $clients->app_name ?? null,    
+            'app_name' => $clients->app_name ?? null,
             'segments' => $All_segmnet
         ]);
     }
-  public function getSubcategories(Request $request)
+    public function getSubcategories(Request $request)
     {
-        $category_ids = $request->input('category_ids_all', []); 
+        $category_ids = $request->input('category_ids_all', []);
         $subcategories = Category::whereIn('parent_id', $category_ids)
-            ->select('id', 'name','image','parent_id')
+            ->select('id', 'name', 'image', 'parent_id')
             ->get();
         return response()->json($subcategories);
     }
 
 
-      public function getSubcategories_product(Request $request)
+    public function getSubcategories_product(Request $request)
     {
-        $category_ids = $request->input('category_ids_all'); 
+        $category_ids = $request->input('category_ids_all');
         $subcategories = Category::where('parent_id', $category_ids)
-            ->select('id', 'name','image','parent_id')
+            ->select('id', 'name', 'image', 'parent_id')
             ->get();
         return response()->json($subcategories);
     }
 
-  public function getCategoty(Request $request)
+    public function getCategoty(Request $request)
     {
-        $category_ids = $request->category_ids_all; 
+        $category_ids = $request->category_ids_all;
         $subcategories = Category::whereIn('id', $category_ids)
-            ->select('id', 'name','image','parent_id')
+            ->select('id', 'name', 'image', 'parent_id')
             ->get();
         return response()->json($subcategories);
     }
@@ -144,7 +144,7 @@ class VoucherController extends Controller
         $productWiseTax = $taxData['productWiseTax'];
         $taxVats = $taxData['taxVats'];
 
-            return view('admin-views.voucher.index_flat_discount', compact('categories', 'productWiseTax', 'taxVats'));
+        return view('admin-views.voucher.index_flat_discount', compact('categories', 'productWiseTax', 'taxVats'));
 
     }
 
@@ -164,7 +164,7 @@ class VoucherController extends Controller
             ->get();
 
         return response()->json([
-            'branches'   => $branches,
+            'branches' => $branches,
             'categories' => $categories,
         ]);
     }
@@ -177,11 +177,11 @@ class VoucherController extends Controller
 
     public function get_document(Request $request)
     {
-        $id = $request->voucher_id ;
+        $id = $request->voucher_id;
 
-         $WorkManagement = \DB::table('work_managements')
-        ->where('voucher_id', $id)
-        ->get();
+        $WorkManagement = \DB::table('work_managements')
+            ->where('voucher_id', $id)
+            ->get();
         $WorkManagement = WorkManagement::where('voucher_id', $id)->get();
         $UsageTermManagement = UsageTermManagement::get();
         return response()->json([
@@ -204,9 +204,7 @@ class VoucherController extends Controller
 
         return [];
     }
-
-
-   public function store(Request $request)
+public function store(Request $request)
     {
 
         // dd($request->all());
@@ -542,8 +540,6 @@ class VoucherController extends Controller
                     return response()->json(['success' => translate('messages.voucher_created_successfully')], 200);
         }
     }
-
-   
     public function view_voucher($id)
     {
         $taxData = Helpers::getTaxSystemType();
@@ -552,17 +548,17 @@ class VoucherController extends Controller
 
         if (!empty($product->tags_ids)) {
             $tagNames = Tag::whereIn('id', explode(',', $product->tags_ids))
-                            ->pluck('tag')
-                            ->toArray();
+                ->pluck('tag')
+                ->toArray();
 
             $product->tags_display = implode(', ', $tagNames);
         }
-            $category_ids = json_decode($product->category_ids, true);
-            $ids = collect($category_ids)
-                    ->pluck('id')        
-                    ->flatten()          
-                    ->toArray();         
-            $product->categories = Category::whereIn('id', $ids)->get();
+        $category_ids = json_decode($product->category_ids, true);
+        $ids = collect($category_ids)
+            ->pluck('id')
+            ->flatten()
+            ->toArray();
+        $product->categories = Category::whereIn('id', $ids)->get();
         if (!empty($product->sub_category_ids)) {
             $sub_ids = json_decode($product->sub_category_ids, true);
 
@@ -572,7 +568,7 @@ class VoucherController extends Controller
             $branch_ids = json_decode($product->branch_ids, true);
             $product->branches = Brand::whereIn('id', $branch_ids)->get();
         }
-    //   dd();
+        //   dd();
         if (!empty($product->how_and_condition_ids)) {
             $how_ids = json_decode($product->how_and_condition_ids, true);
             $product->how_conditions = WorkManagement::whereIn('id', $how_ids)->get();
@@ -592,12 +588,12 @@ class VoucherController extends Controller
             $productIds1 = collect($productArray)->pluck('product_id')->toArray();
             $product->product_details_b = item::whereIn('id', $productIds)->get();
         }
-        dd($product);
+
         $reviews = Review::where(['item_id' => $id])->latest()->paginate(config('default_pagination'));
 
-        return view('admin-views.voucher.view_voucher',  compact('product', 'reviews', 'productWiseTax'));
+        return view('admin-views.voucher.view_voucher', compact('product', 'reviews', 'productWiseTax'));
     }
-  
+
 
     public function view($id)
     {
@@ -762,7 +758,7 @@ class VoucherController extends Controller
         $images = $item['images'];
         if (!$request?->temp_product) {
             foreach ($item->images as $key => $value) {
-                if (in_array(is_array($value) ?   $value['img'] : $value, explode(",", $request->removedImageKeys))) {
+                if (in_array(is_array($value) ? $value['img'] : $value, explode(",", $request->removedImageKeys))) {
                     $value = is_array($value) ? $value : ['img' => $value, 'storage' => 'public'];
                     Helpers::check_and_delete('product/', $value['img']);
                     unset($images[$key]);
@@ -780,7 +776,7 @@ class VoucherController extends Controller
 
         $item->category_id = $request->sub_category_id ? $request->sub_category_id : $request->category_id;
         $item->category_ids = json_encode($category);
-        $item->description =  $request->description[array_search('default', $request->lang)];
+        $item->description = $request->description[array_search('default', $request->lang)];
 
         $choice_options = [];
         if ($request->has('choice')) {
@@ -822,7 +818,7 @@ class VoucherController extends Controller
                 $temp['type'] = $str;
                 $temp['price'] = abs($request['price_' . str_replace('.', '_', $str)]);
 
-                if ($request->discount_type == 'amount' &&  $temp['price']  <   $request->discount) {
+                if ($request->discount_type == 'amount' && $temp['price'] < $request->discount) {
                     $validator->getMessageBag()->add('unit_price', translate("Variation price must be greater than discount amount"));
                     return response()->json(['errors' => Helpers::error_processor($validator)]);
                 }
@@ -841,7 +837,7 @@ class VoucherController extends Controller
                 $temp_variation['type'] = $option['type'];
                 $temp_variation['min'] = $option['min'] ?? 0;
                 $temp_variation['max'] = $option['max'] ?? 0;
-                if ($option['min'] > 0 &&  $option['min'] > $option['max']) {
+                if ($option['min'] > 0 && $option['min'] > $option['max']) {
                     $validator->getMessageBag()->add('name', translate('messages.minimum_value_can_not_be_greater_then_maximum_value'));
                     return response()->json(['errors' => Helpers::error_processor($validator)]);
                 }
@@ -875,7 +871,7 @@ class VoucherController extends Controller
         $item->available_time_starts = $request->available_time_starts ?? '00:00:00';
         $item->available_time_ends = $request->available_time_ends ?? '23:59:59';
 
-        $item->discount =  $request->discount;
+        $item->discount = $request->discount;
         $item->discount_type = $request->discount_type;
         $item->unit_id = $request->unit;
         $item->attributes = $request->has('attribute_id') ? json_encode($request->attribute_id) : json_encode([]);
@@ -895,7 +891,7 @@ class VoucherController extends Controller
 
             if ($request->removedImageKeys) {
                 foreach ($images as $key => $value) {
-                    if (in_array(is_array($value) ?   $value['img'] : $value, explode(",", $request->removedImageKeys))) {
+                    if (in_array(is_array($value) ? $value['img'] : $value, explode(",", $request->removedImageKeys))) {
                         unset($images[$key]);
                     }
                 }
@@ -949,7 +945,7 @@ class VoucherController extends Controller
             $item->is_approved = 1;
             try {
 
-                if (Helpers::getNotificationStatusData('store', 'store_product_approve', 'push_notification_status', $item?->store->id)  &&  $item?->store?->vendor?->firebase_token) {
+                if (Helpers::getNotificationStatusData('store', 'store_product_approve', 'push_notification_status', $item?->store->id) && $item?->store?->vendor?->firebase_token) {
                     $data = [
                         'title' => translate('product_approved'),
                         'description' => translate('Product_Request_Has_Been_Approved_By_Admin'),
@@ -967,7 +963,7 @@ class VoucherController extends Controller
                     ]);
                 }
 
-                if (config('mail.status') && Helpers::get_mail_status('product_approve_mail_status_store') == '1' &&  Helpers::getNotificationStatusData('store', 'store_product_approve', 'mail_status', $item?->store?->id)) {
+                if (config('mail.status') && Helpers::get_mail_status('product_approve_mail_status_store') == '1' && Helpers::getNotificationStatusData('store', 'store_product_approve', 'mail_status', $item?->store?->id)) {
                     Mail::to($item?->store?->vendor?->email)->send(new \App\Mail\VendorProductMail($item?->store?->name, 'approved'));
                 }
             } catch (\Exception $e) {
@@ -1003,7 +999,7 @@ class VoucherController extends Controller
 
         if (addon_published_status('TaxModule')) {
             $taxVatIds = $item->taxVats()->pluck('tax_id')->toArray() ?? [];
-            $newTaxVatIds =  array_map('intval', $request['tax_ids'] ?? []);
+            $newTaxVatIds = array_map('intval', $request['tax_ids'] ?? []);
             sort($newTaxVatIds);
             sort($taxVatIds);
             if ($newTaxVatIds != $taxVatIds) {
@@ -1323,7 +1319,7 @@ class VoucherController extends Controller
         $productWiseTax = $taxData['productWiseTax'];
 
         // dd($items);
-        return view('admin-views.voucher.list', compact('items', 'store', 'category', 'type', 'sub_categories', 'condition','productWiseTax'));
+        return view('admin-views.voucher.list', compact('items', 'store', 'category', 'type', 'sub_categories', 'condition', 'productWiseTax'));
     }
 
     public function remove_image(Request $request)
@@ -1391,7 +1387,7 @@ class VoucherController extends Controller
             })->module(Config::get('module.current_module_id'))->where('is_approved', 1);
 
         if (isset($request->product_gallery) && $request->product_gallery == 1) {
-            $items =   $items->limit(12)->get();
+            $items = $items->limit(12)->get();
             $view = 'admin-views.voucher.partials._gallery';
         } else {
             $items = $items->latest()->limit(50)->get();
@@ -1547,7 +1543,7 @@ class VoucherController extends Controller
                         Toastr::error(translate('messages.Discount_must_be_greater_then_0_on_id') . ' ' . $collection['Id']);
                         return back();
                     }
-                    if (data_get($collection, 'Image') != "" &&  strlen(data_get($collection, 'Image')) > 30) {
+                    if (data_get($collection, 'Image') != "" && strlen(data_get($collection, 'Image')) > 30) {
                         Toastr::error(translate('messages.Image_name_must_be_in_30_char._on_id') . ' ' . $collection['Id']);
                         return back();
                     }
@@ -1636,7 +1632,7 @@ class VoucherController extends Controller
                     Toastr::error(translate('messages.Discount_must_be_less_then_100') . ' ' . $collection['Id']);
                     return back();
                 }
-                if (data_get($collection, 'Image') != "" &&  strlen(data_get($collection, 'Image')) > 30) {
+                if (data_get($collection, 'Image') != "" && strlen(data_get($collection, 'Image')) > 30) {
                     Toastr::error(translate('messages.Image_name_must_be_in_30_char_on_id') . ' ' . $collection['Id']);
                     return back();
                 }
@@ -1986,7 +1982,7 @@ class VoucherController extends Controller
                 $temp_variation['min'] = $option['min'] ?? 0;
                 $temp_variation['max'] = $option['max'] ?? 0;
                 $temp_variation['required'] = $option['required'] ?? 'off';
-                if ($option['min'] > 0 &&  $option['min'] > $option['max']) {
+                if ($option['min'] > 0 && $option['min'] > $option['max']) {
                     $validator->getMessageBag()->add('name', translate('messages.minimum_value_can_not_be_greater_then_maximum_value'));
                     return response()->json(['errors' => Helpers::error_processor($validator)]);
                 }
@@ -2085,8 +2081,8 @@ class VoucherController extends Controller
         $type = $request->query('type', 'all');
         $filter = $request->query('filter');
         $key = explode(' ', $request['search']);
-        $from =  $request->query('from');
-        $to =  $request->query('to');
+        $from = $request->query('from');
+        $to = $request->query('to');
 
         $items = TempProduct::withoutGlobalScope(StoreScope::class)
             ->when($request->query('module_id', null), function ($query) use ($request) {
@@ -2154,7 +2150,7 @@ class VoucherController extends Controller
 
         try {
 
-            if (Helpers::getNotificationStatusData('store', 'store_product_reject', 'push_notification_status', $data?->store->id)  &&  $data?->store?->vendor?->firebase_token) {
+            if (Helpers::getNotificationStatusData('store', 'store_product_reject', 'push_notification_status', $data?->store->id) && $data?->store?->vendor?->firebase_token) {
                 $ndata = [
                     'title' => translate('product_rejected'),
                     'description' => translate('Product_Request_Has_Been_Rejected_By_Admin'),
@@ -2173,7 +2169,7 @@ class VoucherController extends Controller
             }
 
 
-            if (config('mail.status') && Helpers::get_mail_status('product_deny_mail_status_store')  == '1' &&  Helpers::getNotificationStatusData('store', 'store_product_reject', 'mail_status', $data?->store?->id)) {
+            if (config('mail.status') && Helpers::get_mail_status('product_deny_mail_status_store') == '1' && Helpers::getNotificationStatusData('store', 'store_product_reject', 'mail_status', $data?->store?->id)) {
                 Mail::to($data?->store?->vendor?->email)->send(new \App\Mail\VendorProductMail($data?->store?->name, 'denied'));
             }
         } catch (\Exception $e) {
@@ -2188,7 +2184,7 @@ class VoucherController extends Controller
         $item = Item::withoutGlobalScope(StoreScope::class)->withoutGlobalScope('translate')->with('translations')->findOrfail($data->item_id);
 
         $item->name = $data->name;
-        $item->description =  $data->description;
+        $item->description = $data->description;
 
 
         if ($item->image) {
@@ -2226,7 +2222,7 @@ class VoucherController extends Controller
 
         $item->organic = $data->organic;
         $item->is_halal = $data->is_halal;
-        $item->stock =  $data->stock;
+        $item->stock = $data->stock;
         $item->is_approved = 1;
 
         $item->save();
@@ -2269,7 +2265,7 @@ class VoucherController extends Controller
 
         try {
 
-            if (Helpers::getNotificationStatusData('store', 'store_product_approve', 'push_notification_status', $item?->store->id)  &&  $item?->store?->vendor?->firebase_token) {
+            if (Helpers::getNotificationStatusData('store', 'store_product_approve', 'push_notification_status', $item?->store->id) && $item?->store?->vendor?->firebase_token) {
                 $data = [
                     'title' => translate('product_approved'),
                     'description' => translate('Product_Request_Has_Been_Approved_By_Admin'),
@@ -2288,7 +2284,7 @@ class VoucherController extends Controller
             }
 
 
-            if (config('mail.status') && Helpers::get_mail_status('product_approve_mail_status_store') == '1' &&  Helpers::getNotificationStatusData('store', 'store_product_approve', 'mail_status', $item?->store?->id)) {
+            if (config('mail.status') && Helpers::get_mail_status('product_approve_mail_status_store') == '1' && Helpers::getNotificationStatusData('store', 'store_product_approve', 'mail_status', $item?->store?->id)) {
                 Mail::to($item?->store?->vendor?->email)->send(new \App\Mail\VendorProductMail($item?->store?->name, 'approved'));
             }
         } catch (\Exception $e) {
@@ -2325,13 +2321,13 @@ class VoucherController extends Controller
                 });
             })
             ->orderByRaw("FIELD(name, ?) DESC", [$request['name']])
-           ->whereNotNull('type')
+            ->whereNotNull('type')
             ->where('is_approved', 1)
             ->module(Config::get('module.current_module_id'))
             ->type($type)
             // ->latest()->paginate(config('default_pagination'));
             ->inRandomOrder()->limit(12)->get();
-            // dd();
+        // dd();
         $store = $store_id != 'all' ? Store::findOrFail($store_id) : null;
         $category = $category_id != 'all' ? Category::findOrFail($category_id) : null;
         return view('admin-views.voucher.product_gallery', compact('items', 'store', 'category', 'type'));
