@@ -153,7 +153,7 @@
                                 data-placement="right"
                                 data-original-title="{{ translate('messages.Required.') }}"> *
                             </span></label>
-                        <select name="category_id" id="category_id"
+                        <select name="category_id" id="category_id" onchange="multiples_category()" 
                             data-placeholder="{{ translate('messages.select_category') }}"
                             class="js-data-example-ajax form-control">
                         </select>
@@ -167,7 +167,7 @@
                                 title="{{ translate('messages.category_required_warning') }}"><img
                                     src="{{ asset('/public/assets/admin/img/info-circle.svg') }}"
                                     alt="{{ translate('messages.category_required_warning') }}"></span></label>
-                        <select name="sub_category_id" class="js-data-example-ajax form-control"
+                        <select name="sub_category_id" class="js-data-example-ajax_c form-control"
                             data-placeholder="{{ translate('messages.select_sub_category') }}"
                             id="sub-categories">
 

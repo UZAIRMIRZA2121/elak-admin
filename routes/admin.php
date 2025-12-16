@@ -139,6 +139,7 @@ Route::group(['namespace' => 'Admin', 'as' => 'admin.'], function () {
 
             //ajax request
             Route::get('get-subcategories', 'VoucherController@getSubcategories')->name('getSubcategories');
+            Route::get('get-subcategories-product', 'VoucherController@getSubcategories_product')->name('getSubcategories_product');
             Route::get('/get-category-ids', 'VoucherController@getCategoty')->name('getCategoty');
             Route::get('get-categories', 'VoucherController@get_categories')->name('get-categories');
             Route::get('get-Vouchers', 'VoucherController@get_Vouchers')->name('getVouchers');
