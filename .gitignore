@@ -17,5 +17,8 @@ error_log
 .DS_Store
 docker-local/
 
-# Keep language files
+# Ignore all language files
+/resources/lang/*
+
+# But keep English language folder
 !/resources/lang/en/
