@@ -542,7 +542,6 @@ class VoucherController extends Controller
                     return response()->json(['success' => translate('messages.voucher_created_successfully')], 200);
         }
     }
-
    
     public function view_voucher($id)
     {
@@ -592,7 +591,7 @@ class VoucherController extends Controller
             $productIds1 = collect($productArray)->pluck('product_id')->toArray();
             $product->product_details_b = item::whereIn('id', $productIds)->get();
         }
-        dd($product);
+        // dd($product);
         $reviews = Review::where(['item_id' => $id])->latest()->paginate(config('default_pagination'));
 
         return view('admin-views.voucher.view_voucher',  compact('product', 'reviews', 'productWiseTax'));
