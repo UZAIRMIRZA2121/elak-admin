@@ -155,7 +155,7 @@ class VoucherSettingController extends Controller
 
 
         // Voucher_id aaya hai?
-        $item_id = $request->item_id;
+        $item_id = $request->item_id ?? $request->voucher_id;
      
         // If record exists → UPDATE
         // If not exists → INSERT
