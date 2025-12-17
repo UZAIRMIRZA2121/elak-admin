@@ -87,42 +87,13 @@ class VoucherSettingController extends Controller
             if (!empty($VoucherSetting)) {
                 $check_data = 1;  // data exists
 
-                // $validityPeriod = json_decode($VoucherSetting->validity_period, true) ?? [];
-                // $specificDays = json_decode($VoucherSetting->specific_days_of_week, true) ?? [];
-                // $holidays = json_decode($VoucherSetting->holidays_occasions, true) ?? [];
-                // $custom_blackout_dates = json_decode($VoucherSetting->custom_blackout_dates, true) ?? [];
-                // $userLimit = json_decode($VoucherSetting->usage_limit_per_user, true) ?? [];
-                // $storeLimit = json_decode($VoucherSetting->usage_limit_per_store, true) ?? [];
-                // $generalRestrictions = json_decode($VoucherSetting->general_restrictions, true) ?? [];
-
-                $validityPeriod = is_string($VoucherSetting->validity_period) 
-                  ? json_decode($VoucherSetting->validity_period, true) 
-                  : ($VoucherSetting->validity_period ?? []);
-
-                $specificDays = is_string($VoucherSetting->specific_days_of_week) 
-                                ? json_decode($VoucherSetting->specific_days_of_week, true) 
-                                : ($VoucherSetting->specific_days_of_week ?? []);
-
-                $holidays = is_string($VoucherSetting->holidays_occasions) 
-                                ? json_decode($VoucherSetting->holidays_occasions, true) 
-                                : ($VoucherSetting->holidays_occasions ?? []);
-
-                $custom_blackout_dates = is_string($VoucherSetting->custom_blackout_dates) 
-                                ? json_decode($VoucherSetting->custom_blackout_dates, true) 
-                                : ($VoucherSetting->custom_blackout_dates ?? []);
-
-                $userLimit = is_string($VoucherSetting->usage_limit_per_user) 
-                                ? json_decode($VoucherSetting->usage_limit_per_user, true) 
-                                : ($VoucherSetting->usage_limit_per_user ?? []);
-
-                $storeLimit = is_string($VoucherSetting->usage_limit_per_store) 
-                                ? json_decode($VoucherSetting->usage_limit_per_store, true) 
-                                : ($VoucherSetting->usage_limit_per_store ?? []);
-
-                $generalRestrictions = is_string($VoucherSetting->general_restrictions) 
-                                ? json_decode($VoucherSetting->general_restrictions, true) 
-                                : ($VoucherSetting->general_restrictions ?? []);
-
+                $validityPeriod = json_decode($VoucherSetting->validity_period, true) ?? [];
+                $specificDays = json_decode($VoucherSetting->specific_days_of_week, true) ?? [];
+                $holidays = json_decode($VoucherSetting->holidays_occasions, true) ?? [];
+                $custom_blackout_dates = json_decode($VoucherSetting->custom_blackout_dates, true) ?? [];
+                $userLimit = json_decode($VoucherSetting->usage_limit_per_user, true) ?? [];
+                $storeLimit = json_decode($VoucherSetting->usage_limit_per_store, true) ?? [];
+                $generalRestrictions = json_decode($VoucherSetting->general_restrictions, true) ?? [];
             } else {
                 $check_data = 0; // no data
 
@@ -184,8 +155,8 @@ class VoucherSettingController extends Controller
 
 
         // Voucher_id aaya hai?
-        $item_id = $request->voucher_id;
-  
+        $item_id = $request->item_id;
+     
         // If record exists → UPDATE
         // If not exists → INSERT
         $VoucherSetting = VoucherSetting::updateOrCreate(
