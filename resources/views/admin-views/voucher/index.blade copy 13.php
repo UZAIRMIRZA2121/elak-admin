@@ -766,8 +766,7 @@
 
 
 </script>
- 
-<script>
+   <script>
         $(document).ready(function() {
             // Initialize Select2
             $('#select_pro, #select_pro1, #select_pro2').select2({
@@ -788,17 +787,6 @@
             // On page load
             let bundleType = $('#bundle_offer_type').val();
             updateFieldsVisibility(bundleType);
-
-            // Discount field change event
-            $('#discount, #discount_type, #discount_value, #required_qty').on('change input', function() {
-                let bundleType = $('#bundle_offer_type').val();
-                
-                if (bundleType === 'mix_match') {
-                    updateMixMatchTotal();
-                } else if (bundleType === 'simple' || bundleType === 'bundle') {
-                    updateBundleTotal();
-                }
-            });
 
             // ==================== ADD PRODUCT TO BUNDLE ====================
             $('#addProductBtn').on('click', function() {
@@ -1339,14 +1327,14 @@
                         </li>`;
                 });
 
-                let discountValue = parseFloat($('#discount').val()) || 0;
+                let discount = parseFloat($('#discount').val()) || 0;
                 let discountType = $('#discount_type').val();
                 let discountAmount = 0;
 
                 if (discountType === 'percent') {
-                    discountAmount = (bundleTotal * discountValue) / 100;
+                    discountAmount = (bundleTotal * discount) / 100;
                 } else {
-                    discountAmount = discountValue;
+                    discountAmount = discount;
                 }
 
                 let finalTotal = Math.max(bundleTotal - discountAmount, 0);
@@ -1359,7 +1347,7 @@
                 if (discountAmount > 0) {
                     breakdownHTML += `
                         <li class="list-group-item text-danger">
-                            <strong>Discount (${discountType === 'percent' ? discountValue + '%' : '$' + discountValue}): </strong>
+                            <strong>Discount (${discountType === 'percent' ? discount + '%' : '$' + discount}): </strong>
                             -$${discountAmount.toFixed(2)}
                         </li>`;
                 }
@@ -1411,8 +1399,8 @@
                 let subtotal = allProductPrices.reduce((sum, price) => sum + price, 0);
                 let finalTotal = subtotal;
                 let requiredQty = parseInt($('#required_qty').val()) || 0;
-                let mixMatchDiscountValue = parseFloat($('#discount_value').val()) || 0;
-                let discountAmount = 0;
+                let discountValue = parseFloat($('#discount_value').val()) || 0;
+                let discount = 0;
                 
                 if (requiredQty > 0 && allProductPrices.length >= requiredQty) {
                     allProductPrices.sort((a, b) => a - b);
@@ -1420,10 +1408,10 @@
                     let eligibleDiscounts = Math.floor(allProductPrices.length / requiredQty);
                     
                     for (let i = 0; i < eligibleDiscounts; i++) {
-                        discountAmount += (allProductPrices[i] * mixMatchDiscountValue) / 100;
+                        discount += (allProductPrices[i] * discountValue) / 100;
                     }
                     
-                    finalTotal = subtotal - discountAmount;
+                    finalTotal = subtotal - discount;
                 }
                 
                 breakdownHTML += `
@@ -1431,11 +1419,11 @@
                         <strong>Subtotal: </strong><span class="text-primary">$${subtotal.toFixed(2)}</span>
                     </li>`;
 
-                if (discountAmount > 0) {
+                if (discount > 0) {
                     breakdownHTML += `
                         <li class="list-group-item text-danger">
-                            <strong>Mix & Match Discount (Buy ${requiredQty}, ${mixMatchDiscountValue}% off on cheapest): </strong>
-                            -$${discountAmount.toFixed(2)}
+                            <strong>Mix & Match Discount (Buy ${requiredQty}, ${discountValue}% off on cheapest): </strong>
+                            -$${discount.toFixed(2)}
                         </li>`;
                 }
 
@@ -1497,30 +1485,28 @@
                 // Calculate BOGO discount
                 let subtotal = allProductPrices.reduce((sum, item) => sum + item.total, 0);
                 let finalTotal = subtotal;
-                let discountAmount = 0;
+                let discount = 0;
 
-                // BOGO logic: For every pair (A + B), one is free
-                // Pair the products based on their order
-                for (let i = 0; i < Math.min(bogoSelectedProductsA.length, bogoSelectedProductsB.length); i++) {
-                    let priceA = allProductPrices.find(p => p.section === 'A' && p.name === bogoSelectedProductsA[i]?.name)?.total || 0;
-                    let priceB = allProductPrices.find(p => p.section === 'B' && p.name === bogoSelectedProductsB[i]?.name)?.total || 0;
+                if (allProductPrices.length >= 2) {
+                    allProductPrices.sort((a, b) => b.total - a.total);
                     
-                    // Add the cheaper one to discount (free item)
-                    discountAmount += Math.min(priceA, priceB);
-                }
+                    for (let i = 1; i < allProductPrices.length; i += 2) {
+                        discount += allProductPrices[i].total;
+                    }
 
-                finalTotal = subtotal - discountAmount;
+                    finalTotal = subtotal - discount;
+                }
 
                 breakdownHTML += `
                     <li class="list-group-item">
                         <strong>Subtotal: </strong><span class="text-primary">$${subtotal.toFixed(2)}</span>
                     </li>`;
 
-                if (discountAmount > 0) {
+                if (discount > 0) {
                     breakdownHTML += `
                         <li class="list-group-item text-success">
                             <strong>BOGO Discount (Buy 1 Get 1 Free): </strong>
-                            -$${discountAmount.toFixed(2)}
+                            -$${discount.toFixed(2)}
                         </li>`;
                 }
 
@@ -1674,20 +1660,14 @@
             $('#price_input_hide, #discount_input_hide, #required_qty, #discount_value_input_hide, #actual_price_input_hide, #Bundle_products_configuration, #availableProducts, #availableProducts_get_x_buy_y')
                 .addClass('d-none');
             
-            // Hide all panels first
-            $('.bogo_free_div, .bundle_div, .mix_match_div').hide();
-            
             if (bundleType === 'mix_match') {
                 $('#discount_input_hide, #required_qty, #discount_value_input_hide, #Bundle_products_configuration, #availableProducts').removeClass('d-none');
-                $('.mix_match_div').show();
             } else if (bundleType === 'bogo_free') {
                 $('#Bundle_products_configuration, #availableProducts_get_x_buy_y').removeClass('d-none');
-                $('.bogo_free_div').show();
             } else if (bundleType === 'simple') {
                 $('#price_input_hide, #discount_input_hide, #discount_value_input_hide, #Bundle_products_configuration, #availableProducts').removeClass('d-none');
             } else if (bundleType === 'bundle') {
                 $('#price_input_hide, #discount_input_hide, #discount_value_input_hide, #Bundle_products_configuration, #availableProducts').removeClass('d-none');
-                $('.bundle_div').show();
             } else if (bundleType === 'simple x') {
                 $('#price_input_hide, #discount_input_hide, #discount_value_input_hide, #actual_price_input_hide').removeClass('d-none');
                 $('#Bundle_products_configuration').addClass('d-none');
@@ -1695,7 +1675,7 @@
                 $('#price_input_hide, #discount_input_hide, #discount_value_input_hide, #Bundle_products_configuration, #availableProducts').removeClass('d-none');
             }
         }
-   </script>
+</script>
 
     <script>
         document.addEventListener("DOMContentLoaded", function () {
