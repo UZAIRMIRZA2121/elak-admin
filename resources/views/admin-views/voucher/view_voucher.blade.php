@@ -372,6 +372,137 @@
                         </table>
                     </div>
                 </div>
+
+
+              @if(isset($product->VoucherSetting))
+<div class="mt-4">
+    <h5 class="section-title">Voucher Settings</h5>
+
+    <table class="info-table">
+        <tbody>
+
+            {{-- Validity Period --}}
+            @if($product->VoucherSetting->validity_period)
+            <tr>
+                <th><i class="fas fa-calendar mr-2"></i>Validity Period</th>
+                <td>
+                    Status: {{ $product->VoucherSetting->validity_period['active'] ?? 'N/A' }} <br>
+                    Start: {{ $product->VoucherSetting->validity_period['start'] ?? 'N/A' }} <br>
+                    End: {{ $product->VoucherSetting->validity_period['end'] ?? 'N/A' }}
+                </td>
+            </tr>
+            @endif
+
+            {{-- Specific Days of Week --}}
+            @if($product->VoucherSetting->specific_days_of_week)
+            <tr>
+                <th><i class="fas fa-clock mr-2"></i>Day Wise Timing</th>
+                <td>
+                    @foreach($product->VoucherSetting->specific_days_of_week as $day => $time)
+                        <span class="badge-custom badge-info">
+                            {{ ucfirst($day) }}: {{ $time['start'] ?? 'N/A' }} - {{ $time['end'] ?? 'N/A' }}
+                        </span>
+                    @endforeach
+                </td>
+            </tr>
+            @endif
+
+            {{-- Holidays / Occasions --}}
+            @if($product->HolidayOccasion && $product->HolidayOccasion->count())
+            <tr>
+                <th><i class="fas fa-umbrella-beach mr-2"></i>Holidays</th>
+                <td>
+                    @foreach($product->HolidayOccasion as $holiday)
+                        <span class="badge-custom badge-warning">{{ $holiday->name_en ?? $holiday->name_ar }}</span>
+                    @endforeach
+                </td>
+            </tr>
+            @endif
+
+            {{-- Custom Blackout Dates --}}
+            @if($product->CustomBlackoutDates && $product->CustomBlackoutDates->count())
+            <tr>
+                <th><i class="fas fa-ban mr-2"></i>Blackout Dates</th>
+                <td>
+                    @foreach($product->CustomBlackoutDates as $date)
+                        <span class="badge-custom badge-danger">{{ $date->date }} - {{ $date->description }}</span>
+                    @endforeach
+                </td>
+            </tr>
+            @endif
+
+            {{-- General Restrictions --}}
+            @if($product->GeneralRestrictions && $product->GeneralRestrictions->count())
+            <tr>
+                <th><i class="fas fa-exclamation-triangle mr-2"></i>General Restrictions</th>
+                <td>
+                    @foreach($product->GeneralRestrictions as $restriction)
+                        <span class="badge-custom badge-secondary">{{ $restriction->name ?? 'N/A' }}</span>
+                    @endforeach
+                </td>
+            </tr>
+            @endif
+
+            {{-- Age Restriction --}}
+            <tr>
+                <th><i class="fas fa-user mr-2"></i>Age Restriction</th>
+                <td>{{ $product->VoucherSetting->age_restriction ?? 'N/A' }}</td>
+            </tr>
+
+            {{-- Group Size --}}
+            <tr>
+                <th><i class="fas fa-users mr-2"></i>Group Size</th>
+                <td>{{ $product->VoucherSetting->group_size_requirement ?? 'N/A' }}</td>
+            </tr>
+
+            {{-- Usage Limit Per User --}}
+            @if($product->VoucherSetting->usage_limit_per_user)
+            <tr>
+                <th><i class="fas fa-user-check mr-2"></i>Usage Per User</th>
+                <td>
+                    {{ $product->VoucherSetting->usage_limit_per_user[0] ?? 'N/A' }}
+                    ({{ $product->VoucherSetting->usage_limit_per_user[1] ?? 'N/A' }})
+                </td>
+            </tr>
+            @endif
+
+            {{-- Usage Limit Per Store --}}
+            @if($product->VoucherSetting->usage_limit_per_store)
+            <tr>
+                <th><i class="fas fa-store mr-2"></i>Usage Per Store</th>
+                <td>
+                    {{ $product->VoucherSetting->usage_limit_per_store[0] ?? 'N/A' }}
+                    ({{ $product->VoucherSetting->usage_limit_per_store[1] ?? 'N/A' }})
+                </td>
+            </tr>
+            @endif
+
+            {{-- Offer Validity After Purchase --}}
+            <tr>
+                <th><i class="fas fa-hourglass mr-2"></i>Offer Validity</th>
+                <td>{{ $product->VoucherSetting->offer_validity_after_purchase ?? 'N/A' }}</td>
+            </tr>
+
+            {{-- Status --}}
+            <tr>
+                <th><i class="fas fa-toggle-on mr-2"></i>Status</th>
+                <td>
+                    <span class="badge-custom badge-success">
+                        {{ ucfirst($product->VoucherSetting->status) }}
+                    </span>
+                </td>
+            </tr>
+
+        </tbody>
+    </table>
+</div>
+@endif
+
+
+
+
+
+
                 @if ($product->bundle_type == 'simple')
                     <div class="row mt-4">
                         <div class="col-md-12">
