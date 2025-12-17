@@ -19,6 +19,8 @@ use App\Models\Store;
 use App\Models\Client;
 use App\Models\App;
 use App\Models\Segment;
+use App\Models\Category;
+
 
 
 
@@ -510,6 +512,110 @@ class Item extends Model
             ->toArray();
 
         return Segment::whereIn('id', $segmentIds)->get();
+    }
+    /**
+     * Get related products from `product` JSON column
+     */
+    public function relatedProducts(): Collection
+    {
+        $products = $this->product;
+
+        if (is_string($products)) {
+            $products = json_decode($products, true);
+            if (!is_array($products))
+                $products = [];
+        }
+
+        $productIds = collect($products)->pluck('product_id')->filter()->toArray();
+
+        return self::whereIn('id', $productIds)->get();
+    }
+
+    /**
+     * Get related products from `product_b` JSON column
+     */
+    public function relatedProductsB(): Collection
+    {
+        $productsB = $this->product_b;
+
+        if (is_string($productsB)) {
+            $productsB = json_decode($productsB, true);
+            if (!is_array($productsB))
+                $productsB = [];
+        }
+
+        $productIds = collect($productsB)->pluck('product_id')->filter()->toArray();
+
+        return self::whereIn('id', $productIds)->get();
+    }
+
+    /**
+     * All categories (ordered)
+     */
+    public function categories(): Collection
+    {
+        $data = $this->category_id;
+
+        if (is_string($data)) {
+            $data = json_decode($data, true);
+        }
+
+        if (!is_array($data)) {
+            return collect();
+        }
+
+        $ids = collect($data)->pluck('id')->toArray();
+
+        return Category::whereIn('id', $ids)->get();
+    }
+
+    /**
+     * Main category (last one)
+     */
+    public function mainCategory(): ?Category
+    {
+        $data = $this->category_id;
+
+        if (is_string($data)) {
+            $data = json_decode($data, true);
+        }
+
+        if (!is_array($data) || empty($data)) {
+            return null;
+        }
+
+        $last = collect($data)->last();
+
+        return Category::find($last['id'] ?? null);
+    }
+
+    /**
+     * Sub categories (all except last)
+     */
+    public function subCategories(): Collection
+    {
+        $data = $this->category_ids;
+
+        if (is_string($data)) {
+            $data = json_decode($data, true);
+        }
+
+        if (!is_array($data) || empty($data)) {
+            return new Collection();
+        }
+
+        // If ONLY one category → treat as sub category
+        if (count($data) === 1) {
+            return Category::where('id', $data[0]['id'])->get();
+        }
+
+        // More than one → all except last are sub categories
+        $subIds = collect($data)
+            ->slice(0, -1)
+            ->pluck('id')
+            ->toArray();
+
+        return Category::whereIn('id', $subIds)->get();
     }
 
 
