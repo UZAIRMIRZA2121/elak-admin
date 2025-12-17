@@ -8409,4 +8409,6 @@ Smartly or Earn. ',
   'Minimum value can not be greater then maximum value' => 'Minimum value can not be greater then maximum value',
   'Please add more options or change the max value forEmmanuel Gonzalez' => 'Please add more options or change the max value forEmmanuel Gonzalez',
   'The categories field is required.' => 'The categories field is required.',
+  'store_is_closed_at_order_time' => 'Store is closed at order time',
+  'You_can_not_place_empty_orders' => 'You can not place empty orders',
 );
