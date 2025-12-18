@@ -355,7 +355,7 @@ class VoucherController extends Controller
                 'item_images' => 'required',
                 'image' => 'required',
                 'description' => 'required',
-                'tags' => 'required',
+                'tags' => 'nullable',
                 'discount_type' => 'required',
                 'bonus_tiers' => 'required',
             ]);
@@ -453,8 +453,9 @@ class VoucherController extends Controller
             $item->is_halal = $request->is_halal ?? 0;
             $item->discount_type = $request->discount_type ?? 0;
             $item->save();
+                dd("Flat discount");
             return response()->json(['success' => translate('messages.voucher_created_successfully')], 200);
-
+        
         } else if ($type_name == "Gift") {
 
 

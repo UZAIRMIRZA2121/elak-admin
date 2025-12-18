@@ -430,6 +430,66 @@
                                 </tbody>
                             </table>
                         @endif
+                        @if ($product->voucher_ids == 'Flat discount')
+                            <table class="info-table">
+                                <tbody>
+                                    <tr>
+                                        <th><i class="fas fa-heading mr-2"></i>Voucher </th>
+                                        <td> <img class="avatar avatar-lg mr-3 onerror-image"
+                                                src="{{ $product['image_full_url'] ?? asset('public/assets/admin/img/160x160/img2.jpg') }}"
+                                                data-onerror-image="{{ asset('public/assets/admin/img/160x160/img2.jpg') }}"
+                                                alt="{{ $product->name }} image">
+                                            <div title="{{ $product['name'] }}" class="media-body">
+                                                <h5 class="text-hover-primary mb-0">
+                                                    {{ Str::limit($product['name'], 20, '...') }}</h5>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                     <tr>
+                                        <th><i class="fas fa-align-left mr-2"></i>Description</th>
+                                        <td>
+                                            {{ $product->description }}
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <th><i class="fas fa-align-left mr-2"></i>Qr Code</th>
+                                        <td>
+                                            @if ($product->uuid)
+                                                {!! QrCode::size(80)->generate($product->uuid) !!}
+                                            @else
+                                                N/A
+                                            @endif
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <th><i class="fas fa-tag mr-2"></i>Type</th>
+                                        <td><span class="badge-custom badge-info">Flat discount</span>
+                                        </td>
+                                    </tr>
+                                    @php
+                                        // Decode JSON or set empty array if null
+                                        $bonusConfig = json_decode($product->discount_configuration ?? '[]', true);
+                                    @endphp
+
+                                    <tr>
+                                        <th><i class="fas fa-gift mr-2"></i> Bonus Configuration</th>
+                                        <td>
+                                            @forelse($bonusConfig as $bonus)
+                                                <span class="badge-custom badge-info mr-1 mb-1">
+                                                    Min: {{ $bonus['min_amount'] }}, Max: {{ $bonus['max_amount'] }},
+                                                    Bonus: {{ $bonus['bonus_percentage'] }}%
+                                                </span>
+                                            @empty
+                                                —
+                                            @endforelse
+                                        </td>
+                                    </tr>
+
+
+
+                                </tbody>
+                            </table>
+                        @endif
                     </div>
                     <!-- Right Column -->
                     <div>
