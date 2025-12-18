@@ -245,6 +245,37 @@
 @endpush
 
 @section('content')
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     <div class="content container-fluid">
 
         <!-- Voucher Details Card -->
@@ -257,79 +288,148 @@
                     <!-- Left Column -->
                     <div>
                         <h5 class="section-title">Basic Information</h5>
-                        <table class="info-table">
-                            <tbody>
-                                <tr>
-                                    <th><i class="fas fa-heading mr-2"></i>Voucher </th>
-                                    <td> <img class="avatar avatar-lg mr-3 onerror-image"
-                                            src="{{ $product['image_full_url'] ?? asset('public/assets/admin/img/160x160/img2.jpg') }}"
-                                            data-onerror-image="{{ asset('public/assets/admin/img/160x160/img2.jpg') }}"
-                                            alt="{{ $product->name }} image">
-                                        <div title="{{ $product['name'] }}" class="media-body">
-                                            <h5 class="text-hover-primary mb-0">
-                                                {{ Str::limit($product['name'], 20, '...') }}</h5>
-                                        </div>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <th><i class="fas fa-align-left mr-2"></i>Qr Code</th>
-                                    <td>
-                                        @if ($product->uuid)
-                                            {!! QrCode::size(80)->generate($product->uuid) !!}
-                                        @else
-                                            N/A
-                                        @endif
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <th><i class="fas fa-align-left mr-2"></i>Description</th>
-                                    <td>{{ $product->description ?? 'N/A' }}</td>
-                                </tr>
-                                <tr>
-                                    <th><i class="fas fa-tag mr-2"></i>Voucher Type</th>
-                                    <td><span class="badge-custom badge-info">{{ ucfirst($product->type) ?? 'N/A' }}</span>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <th><i class="fas fa-box mr-2"></i>Bundle Type</th>
-                                    <td><span
-                                            class="badge-custom badge-success">{{ ucfirst($product->bundle_type) ?? 'N/A' }}</span>
-                                    </td>
-                                </tr>
-                                @if (isset($product->valid_until))
+                        @if ($product->voucher_ids == 'Gift')
+                            <table class="info-table">
+                                <tbody>
                                     <tr>
-                                        <th><i class="fas fa-calendar-check mr-2"></i>Valid Until</th>
-                                        <td><strong
-                                                class="text-danger">{{ $product->valid_until ? \Carbon\Carbon::parse($product->valid_until)->format('d M Y') : 'N/A' }}</strong>
+                                        <th><i class="fas fa-heading mr-2"></i>Voucher </th>
+                                        <td> <img class="avatar avatar-lg mr-3 onerror-image"
+                                                src="{{ $product['image_full_url'] ?? asset('public/assets/admin/img/160x160/img2.jpg') }}"
+                                                data-onerror-image="{{ asset('public/assets/admin/img/160x160/img2.jpg') }}"
+                                                alt="{{ $product->name }} image">
+                                            <div title="{{ $product['name'] }}" class="media-body">
+                                                <h5 class="text-hover-primary mb-0">
+                                                    {{ Str::limit($product['name'], 20, '...') }}</h5>
+                                            </div>
                                         </td>
                                     </tr>
-                                @endif
-                                <tr>
-                                    <th><i class="fas fa-dollar-sign mr-2"></i>Price</th>
-                                    <td><strong
-                                            style="color: #388e3c; font-size: 16px;">${{ ucfirst($product->price) ?? 'N/A' }}</strong>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <th><i class="fas fa-percent mr-2"></i>Discount</th>
-                                    <td><span
-                                            class="badge-custom badge-warning">{{ ucfirst($product->discount) ?? '0' }}%</span>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <th><i class="fas fa-tags mr-2"></i>Discount Type</th>
-                                    <td>{{ ucfirst($product->discount_type) ?? 'N/A' }}</td>
-                                </tr>
-                                @if (!empty($product->required_quantity) && $product->required_quantity > 0)
                                     <tr>
-                                        <th><i class="fas fa-shopping-cart mr-2"></i>Required Quantity</th>
-                                        <td><span
-                                                class="badge-custom badge-primary">{{ $product->required_quantity }}</span>
+                                        <th><i class="fas fa-align-left mr-2"></i>Qr Code</th>
+                                        <td>
+                                            @if ($product->uuid)
+                                                {!! QrCode::size(80)->generate($product->uuid) !!}
+                                            @else
+                                                N/A
+                                            @endif
                                         </td>
                                     </tr>
-                                @endif
-                            </tbody>
-                        </table>
+                                    <tr>
+                                        <th><i class="fas fa-tag mr-2"></i>Type</th>
+                                        <td><span class="badge-custom badge-info">Gift</span>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <th><i class="fas fa-tag mr-2"></i> Gift Occasion</th>
+                                        <td>
+                                            @forelse($product->gift_occasions as $occasion)
+                                                <span class="badge-custom badge-info mr-1 mb-1">
+                                                    {{ $occasion->title }}
+                                                </span>
+                                            @empty
+                                                —
+                                            @endforelse
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <th><i class="fas fa-asterisk mr-2"></i> Required Fields</th>
+                                        <td>
+                                            @php
+                                                $requiredFields =
+                                                    $product->recipient_info_form_fields['required_fields'] ?? [];
+                                            @endphp
+
+                                            @forelse($requiredFields as $field)
+                                                <span class="badge-custom badge-danger mr-1 mb-1">
+                                                    {{ ucwords(str_replace('_', ' ', $field)) }}
+                                                </span>
+                                            @empty
+                                                —
+                                            @endforelse
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <th><i class="fas fa-truck mr-2"></i> Delivery Options</th>
+                                        <td>
+                                            @forelse($product->delivery_options as $option)
+                                                <span class="badge-custom badge-success mr-1 mb-1">
+                                                    {{ $option->title }}
+                                                </span>
+                                            @empty
+                                                —
+                                            @endforelse
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <th><i class="fas fa-truck mr-2"></i>Amount Type</th>
+                                        <td>
+                                            <span class="badge-custom badge-info mr-1 mb-1">
+                                                {{ $product->amount_type }}
+                                            </span>
+
+
+
+                                            {{-- Range Amount --}}
+                                            {{-- Range Amount --}}
+                                            @if ($product->amount_type === 'range')
+                                                @php
+                                                    $minMaxAmounts = is_array($product->min_max_amount)
+                                                        ? $product->min_max_amount
+                                                        : json_decode($product->min_max_amount ?? '[]', true);
+
+                                                    $min = $minMaxAmounts[0] ?? '—';
+                                                    $max = $minMaxAmounts[1] ?? '—';
+                                                @endphp
+
+                                                <span class="badge-custom badge-success mr-1 mb-1">Min:
+                                                    {{ $min }}</span>
+                                                <span class="badge-custom badge-success mr-1 mb-1">Max:
+                                                    {{ $max }}</span>
+                                            @endif
+
+                                            {{-- Fixed Amount --}}
+                                            @if ($product->amount_type === 'fixed')
+                                                @php
+                                                    $fixedAmounts = is_array($product->fixed_amount_options)
+                                                        ? $product->fixed_amount_options
+                                                        : json_decode($product->fixed_amount_options ?? '[]', true);
+                                                @endphp
+
+                                                @forelse($fixedAmounts as $option)
+                                                    <span class="badge-custom badge-success mr-1 mb-1">
+                                                        {{ is_object($option) ? $option->title : $option }}
+                                                    </span>
+                                                @empty
+                                                    —
+                                                @endforelse
+                                            @endif
+                                        </td>
+                                    </tr>
+
+
+                                    @php
+                                        // Decode JSON or set empty array if null
+                                        $bonusConfig = json_decode($product->bonus_configuration ?? '[]', true);
+                                    @endphp
+
+                                    <tr>
+                                        <th><i class="fas fa-gift mr-2"></i> Bonus Configuration</th>
+                                        <td>
+                                            @forelse($bonusConfig as $bonus)
+                                                <span class="badge-custom badge-info mr-1 mb-1">
+                                                    Min: {{ $bonus['min_amount'] }}, Max: {{ $bonus['max_amount'] }},
+                                                    Bonus: {{ $bonus['bonus_percentage'] }}%
+                                                </span>
+                                            @empty
+                                                —
+                                            @endforelse
+                                        </td>
+                                    </tr>
+
+
+
+                                </tbody>
+                            </table>
+                        @endif
                     </div>
                     <!-- Right Column -->
                     <div>
@@ -341,11 +441,10 @@
                                     <td>
                                         @if ($product->categories && $product->categories->isNotEmpty())
                                             @foreach ($product->categories as $category)
-                                                @if($category->parent_id === 0)
+                                                @if ($category->parent_id === 0)
                                                     <span class="badge badge-success mb-2">{{ $category->name }}</span>
                                                 @else
-                                                     <span class="badge badge-warning mb-2">{{ $category->name }}</span>
-                                             
+                                                    <span class="badge badge-warning mb-2">{{ $category->name }}</span>
                                                 @endif
                                             @endforeach
                                         @else
@@ -353,16 +452,11 @@
                                         @endif
                                     </td>
                                 </tr>
-
-
-
-
-
                                 @if (isset($product->tags_ids))
                                     <tr>
                                         <th><i class="fas fa-hashtag mr-2"></i>Tags</th>
                                         <td>
-                                              <span class="badge badge-info mb-2">{{ $product->tags_ids }}</span>
+                                            <span class="badge badge-info mb-2">{{ $product->tags_ids }}</span>
                                         </td>
                                     </tr>
                                 @endif
@@ -370,131 +464,133 @@
                         </table>
                     </div>
                 </div>
+                @if (isset($product->VoucherSetting))
+                    <div class="mt-4">
+                        <h5 class="section-title">Voucher Settings</h5>
 
+                        <table class="info-table">
+                            <tbody>
 
-              @if(isset($product->VoucherSetting))
-<div class="mt-4">
-    <h5 class="section-title">Voucher Settings</h5>
+                                {{-- Validity Period --}}
+                                @if ($product->VoucherSetting->validity_period)
+                                    <tr>
+                                        <th><i class="fas fa-calendar mr-2"></i>Validity Period</th>
+                                        <td>
+                                            Status: {{ $product->VoucherSetting->validity_period['active'] ?? 'N/A' }} <br>
+                                            Start: {{ $product->VoucherSetting->validity_period['start'] ?? 'N/A' }} <br>
+                                            End: {{ $product->VoucherSetting->validity_period['end'] ?? 'N/A' }}
+                                        </td>
+                                    </tr>
+                                @endif
 
-    <table class="info-table">
-        <tbody>
+                                {{-- Specific Days of Week --}}
+                                @if ($product->VoucherSetting->specific_days_of_week)
+                                    <tr>
+                                        <th><i class="fas fa-clock mr-2"></i>Day Wise Timing</th>
+                                        <td>
+                                            @foreach ($product->VoucherSetting->specific_days_of_week as $day => $time)
+                                                <span class="badge-custom badge-info">
+                                                    {{ ucfirst($day) }}: {{ $time['start'] ?? 'N/A' }} -
+                                                    {{ $time['end'] ?? 'N/A' }}
+                                                </span>
+                                            @endforeach
+                                        </td>
+                                    </tr>
+                                @endif
 
-            {{-- Validity Period --}}
-            @if($product->VoucherSetting->validity_period)
-            <tr>
-                <th><i class="fas fa-calendar mr-2"></i>Validity Period</th>
-                <td>
-                    Status: {{ $product->VoucherSetting->validity_period['active'] ?? 'N/A' }} <br>
-                    Start: {{ $product->VoucherSetting->validity_period['start'] ?? 'N/A' }} <br>
-                    End: {{ $product->VoucherSetting->validity_period['end'] ?? 'N/A' }}
-                </td>
-            </tr>
-            @endif
+                                {{-- Holidays / Occasions --}}
+                                @if ($product->HolidayOccasion && $product->HolidayOccasion->count())
+                                    <tr>
+                                        <th><i class="fas fa-umbrella-beach mr-2"></i>Holidays</th>
+                                        <td>
+                                            @foreach ($product->HolidayOccasion as $holiday)
+                                                <span
+                                                    class="badge-custom badge-warning">{{ $holiday->name_en ?? $holiday->name_ar }}</span>
+                                            @endforeach
+                                        </td>
+                                    </tr>
+                                @endif
 
-            {{-- Specific Days of Week --}}
-            @if($product->VoucherSetting->specific_days_of_week)
-            <tr>
-                <th><i class="fas fa-clock mr-2"></i>Day Wise Timing</th>
-                <td>
-                    @foreach($product->VoucherSetting->specific_days_of_week as $day => $time)
-                        <span class="badge-custom badge-info">
-                            {{ ucfirst($day) }}: {{ $time['start'] ?? 'N/A' }} - {{ $time['end'] ?? 'N/A' }}
-                        </span>
-                    @endforeach
-                </td>
-            </tr>
-            @endif
+                                {{-- Custom Blackout Dates --}}
+                                @if ($product->CustomBlackoutDates && $product->CustomBlackoutDates->count())
+                                    <tr>
+                                        <th><i class="fas fa-ban mr-2"></i>Blackout Dates</th>
+                                        <td>
+                                            @foreach ($product->CustomBlackoutDates as $date)
+                                                <span class="badge-custom badge-danger">{{ $date->date }} -
+                                                    {{ $date->description }}</span>
+                                            @endforeach
+                                        </td>
+                                    </tr>
+                                @endif
 
-            {{-- Holidays / Occasions --}}
-            @if($product->HolidayOccasion && $product->HolidayOccasion->count())
-            <tr>
-                <th><i class="fas fa-umbrella-beach mr-2"></i>Holidays</th>
-                <td>
-                    @foreach($product->HolidayOccasion as $holiday)
-                        <span class="badge-custom badge-warning">{{ $holiday->name_en ?? $holiday->name_ar }}</span>
-                    @endforeach
-                </td>
-            </tr>
-            @endif
+                                {{-- General Restrictions --}}
+                                @if ($product->GeneralRestrictions && $product->GeneralRestrictions->count())
+                                    <tr>
+                                        <th><i class="fas fa-exclamation-triangle mr-2"></i>General Restrictions</th>
+                                        <td>
+                                            @foreach ($product->GeneralRestrictions as $restriction)
+                                                <span
+                                                    class="badge-custom badge-secondary">{{ $restriction->name ?? 'N/A' }}</span>
+                                            @endforeach
+                                        </td>
+                                    </tr>
+                                @endif
 
-            {{-- Custom Blackout Dates --}}
-            @if($product->CustomBlackoutDates && $product->CustomBlackoutDates->count())
-            <tr>
-                <th><i class="fas fa-ban mr-2"></i>Blackout Dates</th>
-                <td>
-                    @foreach($product->CustomBlackoutDates as $date)
-                        <span class="badge-custom badge-danger">{{ $date->date }} - {{ $date->description }}</span>
-                    @endforeach
-                </td>
-            </tr>
-            @endif
+                                {{-- Age Restriction --}}
+                                <tr>
+                                    <th><i class="fas fa-user mr-2"></i>Age Restriction</th>
+                                    <td>{{ $product->VoucherSetting->age_restriction ?? 'N/A' }}</td>
+                                </tr>
 
-            {{-- General Restrictions --}}
-            @if($product->GeneralRestrictions && $product->GeneralRestrictions->count())
-            <tr>
-                <th><i class="fas fa-exclamation-triangle mr-2"></i>General Restrictions</th>
-                <td>
-                    @foreach($product->GeneralRestrictions as $restriction)
-                        <span class="badge-custom badge-secondary">{{ $restriction->name ?? 'N/A' }}</span>
-                    @endforeach
-                </td>
-            </tr>
-            @endif
+                                {{-- Group Size --}}
+                                <tr>
+                                    <th><i class="fas fa-users mr-2"></i>Group Size</th>
+                                    <td>{{ $product->VoucherSetting->group_size_requirement ?? 'N/A' }}</td>
+                                </tr>
 
-            {{-- Age Restriction --}}
-            <tr>
-                <th><i class="fas fa-user mr-2"></i>Age Restriction</th>
-                <td>{{ $product->VoucherSetting->age_restriction ?? 'N/A' }}</td>
-            </tr>
+                                {{-- Usage Limit Per User --}}
+                                @if ($product->VoucherSetting->usage_limit_per_user)
+                                    <tr>
+                                        <th><i class="fas fa-user-check mr-2"></i>Usage Per User</th>
+                                        <td>
+                                            {{ $product->VoucherSetting->usage_limit_per_user[0] ?? 'N/A' }}
+                                            ({{ $product->VoucherSetting->usage_limit_per_user[1] ?? 'N/A' }})
+                                        </td>
+                                    </tr>
+                                @endif
 
-            {{-- Group Size --}}
-            <tr>
-                <th><i class="fas fa-users mr-2"></i>Group Size</th>
-                <td>{{ $product->VoucherSetting->group_size_requirement ?? 'N/A' }}</td>
-            </tr>
+                                {{-- Usage Limit Per Store --}}
+                                @if ($product->VoucherSetting->usage_limit_per_store)
+                                    <tr>
+                                        <th><i class="fas fa-store mr-2"></i>Usage Per Store</th>
+                                        <td>
+                                            {{ $product->VoucherSetting->usage_limit_per_store[0] ?? 'N/A' }}
+                                            ({{ $product->VoucherSetting->usage_limit_per_store[1] ?? 'N/A' }})
+                                        </td>
+                                    </tr>
+                                @endif
 
-            {{-- Usage Limit Per User --}}
-            @if($product->VoucherSetting->usage_limit_per_user)
-            <tr>
-                <th><i class="fas fa-user-check mr-2"></i>Usage Per User</th>
-                <td>
-                    {{ $product->VoucherSetting->usage_limit_per_user[0] ?? 'N/A' }}
-                    ({{ $product->VoucherSetting->usage_limit_per_user[1] ?? 'N/A' }})
-                </td>
-            </tr>
-            @endif
+                                {{-- Offer Validity After Purchase --}}
+                                <tr>
+                                    <th><i class="fas fa-hourglass mr-2"></i>Offer Validity</th>
+                                    <td>{{ $product->VoucherSetting->offer_validity_after_purchase ?? 'N/A' }}</td>
+                                </tr>
 
-            {{-- Usage Limit Per Store --}}
-            @if($product->VoucherSetting->usage_limit_per_store)
-            <tr>
-                <th><i class="fas fa-store mr-2"></i>Usage Per Store</th>
-                <td>
-                    {{ $product->VoucherSetting->usage_limit_per_store[0] ?? 'N/A' }}
-                    ({{ $product->VoucherSetting->usage_limit_per_store[1] ?? 'N/A' }})
-                </td>
-            </tr>
-            @endif
+                                {{-- Status --}}
+                                <tr>
+                                    <th><i class="fas fa-toggle-on mr-2"></i>Status</th>
+                                    <td>
+                                        <span class="badge-custom badge-success">
+                                            {{ ucfirst($product->VoucherSetting->status) }}
+                                        </span>
+                                    </td>
+                                </tr>
 
-            {{-- Offer Validity After Purchase --}}
-            <tr>
-                <th><i class="fas fa-hourglass mr-2"></i>Offer Validity</th>
-                <td>{{ $product->VoucherSetting->offer_validity_after_purchase ?? 'N/A' }}</td>
-            </tr>
-
-            {{-- Status --}}
-            <tr>
-                <th><i class="fas fa-toggle-on mr-2"></i>Status</th>
-                <td>
-                    <span class="badge-custom badge-success">
-                        {{ ucfirst($product->VoucherSetting->status) }}
-                    </span>
-                </td>
-            </tr>
-
-        </tbody>
-    </table>
-</div>
-@endif
+                            </tbody>
+                        </table>
+                    </div>
+                @endif
 
 
 
@@ -523,7 +619,7 @@
                                 <div class="col-md-6">
                                     <div class="condition-card p-3 border rounded shadow-sm h-100">
                                         <h6 class="mb-3 text-success">
-                                            <i class="fas fa-shopping-cart mr-2"></i>Product A 
+                                            <i class="fas fa-shopping-cart mr-2"></i>Product A
                                         </h6>
 
                                         @if ($product->relatedProducts()->isNotEmpty())
@@ -536,7 +632,7 @@
                                                     <strong class="w-40">Price:</strong>
                                                     <span>${{ $related->price }}</span>
                                                 </div>
-                                                
+
                                                 <hr>
                                             @endforeach
                                         @else
@@ -549,7 +645,7 @@
                                 <div class="col-md-6">
                                     <div class="condition-card p-3 border rounded shadow-sm h-100">
                                         <h6 class="mb-3 text-warning">
-                                            <i class="fas fa-gift mr-2"></i>Product B 
+                                            <i class="fas fa-gift mr-2"></i>Product B
                                         </h6>
 
                                         @if ($product->relatedProductsB()->isNotEmpty())
@@ -562,7 +658,7 @@
                                                     <strong class="w-40">Price:</strong>
                                                     <span>${{ $relatedB->price }}</span>
                                                 </div>
-                                              
+
                                                 <hr>
                                             @endforeach
                                         @else
@@ -573,7 +669,7 @@
                             </div>
                         </div>
                     </div>
-                @endif --}}
+                @endif
 
 
                 <!-- Client Info Section -->
@@ -951,6 +1047,19 @@
             </div>
         </div>
     </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
 @endsection
 
 @push('script_2')

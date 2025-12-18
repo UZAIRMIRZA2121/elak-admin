@@ -456,6 +456,8 @@ class VoucherController extends Controller
             return response()->json(['success' => translate('messages.voucher_created_successfully')], 200);
 
         } else if ($type_name == "Gift") {
+
+
             $validator = Validator::make($request->all(), [
                 'segment_type' => 'max:1000',
                 'store_id' => 'required',
@@ -507,6 +509,7 @@ class VoucherController extends Controller
                 }
             }
 
+
             $item->category_ids = json_encode($category);
             $item->category_id = $request->sub_categories_game ? (is_array($request->sub_categories_game) ? $request->sub_categories_game[0] : $request->sub_categories_game) : (is_array($request->categories) ? $request->categories[0] : $request->categories);
             $item->variations = json_encode(array_filter($request->variations ?? []));
@@ -528,19 +531,18 @@ class VoucherController extends Controller
             $item->message_template_style = json_encode($request->message_template_style ?? []);
             $item->delivery_options = json_encode($request->delivery_options ?? []);
             $item->amount_type = $request->type ?? null;
-            if ($request->type == "fixed") {
-                $item->enable_custom_amount = $request->enable_custom_amount ?? null;
-            } else {
-                $item->fixed_amount_options = json_encode($request->fixed_amounts ?? []);
-                $item->min_max_amount = json_encode($request->min_max_amount ?? []);
-            }
+            $item->bundle_type = 'gift';
+
+            $item->enable_custom_amount = $request->enable_custom_amount ?? null;
+            $item->fixed_amount_options = json_encode($request->fixed_amounts ?? []);
+            $item->min_max_amount = json_encode($request->min_max_amount ?? []);
             $item->bonus_configuration = json_encode($request->bonus_tiers ?? []);
             $item->redemption_process = json_encode($request->redemption_process ?? []);
             $item->validity_period = json_encode($request->validity_period ?? []);
             $item->usage_restrictions = json_encode($request->usage_restrictions ?? []);
             $item->blackout_dates = json_encode($request->blackout_dates ?? []);
             $item->save();
-
+          
             return response()->json(['success' => translate('messages.voucher_created_successfully')], 200);
         }
     }
@@ -609,42 +611,67 @@ class VoucherController extends Controller
         //       $product->VoucherSetting = GeneralRestriction::where('', $product->VoucherSetting->general_restrictions)->get();
         // }
 
+
         if (!empty($product->id)) {
-                $product->VoucherSetting = VoucherSetting::where('item_id', $product->id)->first();
 
-                // Decode JSON fields if needed
-                $holidays = $product->VoucherSetting->holidays_occasions;
-                if (is_string($holidays)) {
-                    $holidays = json_decode($holidays, true);
-                }
+            // Get voucher setting (may be null)
+            $voucherSetting = VoucherSetting::where('item_id', $product->id)->first();
 
-                $blackoutDates = $product->VoucherSetting->custom_blackout_dates;
-                if (is_string($blackoutDates)) {
-                    $blackoutDates = json_decode($blackoutDates, true);
-                }
+            // Attach it (optional)
+            $product->VoucherSetting = $voucherSetting;
 
-                $generalRestrictions = $product->VoucherSetting->general_restrictions;
-                if (is_string($generalRestrictions)) {
-                    $generalRestrictions = json_decode($generalRestrictions, true);
-                }
+            // -----------------------------
+            // Holidays Occasions
+            // -----------------------------
+            $holidays = optional($voucherSetting)->holidays_occasions;
 
-                // Query related models.  
-                $product->HolidayOccasion = !empty($holidays)
-                    ? HolidayOccasion::whereIn('id', $holidays)->get()
-                    : collect();
-
-                $product->CustomBlackoutDates = !empty($blackoutDates)
-                    ? CustomBlackoutData::whereIn('id', $blackoutDates)->get()
-                    : collect();
-
-                $product->GeneralRestrictions = !empty($generalRestrictions)
-                    ? GeneralRestriction::whereIn('id', $generalRestrictions)->get()
-                    : collect();
+            if (is_string($holidays)) {
+                $holidays = json_decode($holidays, true);
             }
 
-            // dd($product);
+            $holidays = is_array($holidays) ? $holidays : [];
 
-      
+            // -----------------------------
+            // Custom Blackout Dates
+            // -----------------------------
+            $blackoutDates = optional($voucherSetting)->custom_blackout_dates;
+
+            if (is_string($blackoutDates)) {
+                $blackoutDates = json_decode($blackoutDates, true);
+            }
+
+            $blackoutDates = is_array($blackoutDates) ? $blackoutDates : [];
+
+            // -----------------------------
+            // General Restrictions
+            // -----------------------------
+            $generalRestrictions = optional($voucherSetting)->general_restrictions;
+
+            if (is_string($generalRestrictions)) {
+                $generalRestrictions = json_decode($generalRestrictions, true);
+            }
+
+            $generalRestrictions = is_array($generalRestrictions) ? $generalRestrictions : [];
+
+            // -----------------------------
+            // Query related models safely
+            // -----------------------------
+            $product->HolidayOccasion = !empty($holidays)
+                ? HolidayOccasion::whereIn('id', $holidays)->get()
+                : collect();
+
+            $product->CustomBlackoutDates = !empty($blackoutDates)
+                ? CustomBlackoutData::whereIn('id', $blackoutDates)->get()
+                : collect();
+
+            $product->GeneralRestrictions = !empty($generalRestrictions)
+                ? GeneralRestriction::whereIn('id', $generalRestrictions)->get()
+                : collect();
+        }
+
+        // dd($product);
+
+
         $reviews = Review::where(['item_id' => $id])->latest()->paginate(config('default_pagination'));
 
         return view('admin-views.voucher.view_voucher', compact('product', 'reviews', 'productWiseTax'));

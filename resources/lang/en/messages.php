@@ -8411,4 +8411,5 @@ Smartly or Earn. ',
   'The categories field is required.' => 'The categories field is required.',
   'store_is_closed_at_order_time' => 'Store is closed at order time',
   'You_can_not_place_empty_orders' => 'You can not place empty orders',
+  'The message template style field is required.' => 'The message template style field is required.',
 );

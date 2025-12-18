@@ -20,10 +20,9 @@ use App\Models\Client;
 use App\Models\App;
 use App\Models\Segment;
 use App\Models\Category;
-
-
-
-
+use App\Models\GiftOccasions;
+use App\Models\MessageTemplate;
+use App\Models\DeliveryOption;
 
 class Item extends Model
 {
@@ -76,15 +75,15 @@ class Item extends Model
 
         'discount_configuration' => 'string',
 
-        'occasions_id' => 'string',//add
-        'recipient_info_form_fields' => 'string',//add
+        'occasions_id' => 'array',
+        'recipient_info_form_fields' => 'array',//add
         'message_template_style' => 'string',//add
-        'delivery_options' => 'string',//add//add
+        'delivery_options' => 'array',
         'amount_configuration' => 'string',
         'amount_type' => 'string',//add
         'enable_custom_amount' => 'string',//add
-        'fixed_amount_options' => 'string', //add
-        'min_max_amount' => 'string', //add
+        'fixed_amount_options' => 'array', //add
+        'min_max_amount' => 'array', //add
         'bonus_configuration' => 'string', //add
 
         'redemption_process' => 'string',
@@ -618,5 +617,45 @@ class Item extends Model
         return Category::whereIn('id', $subIds)->get();
     }
 
+
+
+    public function getGiftOccasionsAttribute()
+    {
+        $ids = $this->occasions_id;
+
+        // If it's empty or null, return null
+        if (empty($ids)) {
+            return null;
+        }
+
+        // Decode JSON safely if needed
+        if (is_string($ids)) {
+            $ids = json_decode($ids, true);
+        }
+
+        // If after decoding it's still empty, return null
+        if (empty($ids) || !is_array($ids)) {
+            return null;
+        }
+
+        // Return collection of GiftOccasions
+        return GiftOccasions::whereIn('id', $ids)->get();
+    }
+
+
+    public function getMessageTemplatesAttribute()
+    {
+        return empty($this->message_template_style)
+            ? collect()
+            : MessageTemplate::whereIn('id', $this->message_template_style)->get();
+    }
+
+
+    public function getDeliveryOptionsAttribute()
+    {
+        return empty($this->delivery_options)
+            ? collect()
+            : DeliveryOption::whereIn('id', $this->delivery_options)->get();
+    }
 
 }
