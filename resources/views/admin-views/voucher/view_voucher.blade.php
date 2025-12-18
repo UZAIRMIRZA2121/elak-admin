@@ -445,7 +445,7 @@
                                             </div>
                                         </td>
                                     </tr>
-                                     <tr>
+                                    <tr>
                                         <th><i class="fas fa-align-left mr-2"></i>Description</th>
                                         <td>
                                             {{ $product->description }}
@@ -461,6 +461,26 @@
                                             @endif
                                         </td>
                                     </tr>
+                                    @php
+                                        // Decode JSON safely
+                                        $images = is_array($product->images)
+                                            ? $product->images
+                                            : json_decode($product->images ?? '[]', true);
+                                    @endphp
+
+                                    <tr>
+                                        <th><i class="fas fa-image mr-2"></i> Images</th>
+                                        <td>
+                                            @forelse($images as $image)
+                                                <img src="{{ asset('storage/product/' . $image['img']) }}"
+                                                    alt="Product Image"
+                                                    style="width: 80px; height: 80px; object-fit: cover; margin-right: 5px;">
+                                            @empty
+                                                —
+                                            @endforelse
+                                        </td>
+                                    </tr>
+
                                     <tr>
                                         <th><i class="fas fa-tag mr-2"></i>Type</th>
                                         <td><span class="badge-custom badge-info">Flat discount</span>
