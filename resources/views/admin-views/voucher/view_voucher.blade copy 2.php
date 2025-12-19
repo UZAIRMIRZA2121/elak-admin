@@ -476,96 +476,40 @@
                                 <div class="condition-card p-3 border rounded shadow-sm mb-3">
                                         <div class="d-flex align-items-center mb-2">
                                             <strong class="w-25">Bundle Type Selection :</strong>
-                                            <span>{{ $product->bundle_type ?? "N/A" }}</span>
+                                            <span>{{ $product->voucher_ids }}</span>
                                         </div>
                                         <hr class="my-2">
-                                        @php
-                                            $productsA = !empty($product->product)
-                                                ? json_decode($product->product, true)
-                                                : [];
-
-                                            $productsB = !empty($product->product_b)
-                                                ? json_decode($product->product_b, true)
-                                                : [];
-                                        @endphp
-
-                                     @if(empty($productsB))
-                                        {{-- ================= PRODUCT A ONLY ================= --}}
                                         <div class="d-flex align-items-center mb-2">
                                             <strong class="w-25">Products :</strong>
-                                            <div>
-                                                @foreach($productsA as $prod)
-                                                    <div>
-                                                        <strong>{{ $prod['product_name'] }}</strong>
-                                                        (Price: {{ $prod['base_price'] }})
-
-                                                        @if(!empty($prod['variations']))
-                                                            <ul class="mb-1">
-                                                                @foreach($prod['variations'] as $var)
-                                                                    <li>{{ $var }}</li>
-                                                                @endforeach
-                                                            </ul>
-                                                        @else
-                                                            <small>No variations</small>
-                                                        @endif
-                                                    </div>
-                                                    <hr>
-                                                @endforeach
-                                            </div>
+                                            <span>{{ $product->voucher_ids }}</span>
                                         </div>
-
-                                    @else
-                                        {{-- ================= PRODUCT A ================= --}}
+                                        <hr class="my-2">
                                         <div class="d-flex align-items-center mb-2">
+                                            <strong class="w-25">Products Variations :</strong>
+                                            <span>{{ $product->voucher_ids }}</span>
+                                        </div>
+                                        <hr class="my-2">
+
+                                              <div class="d-flex align-items-center mb-2">
                                             <strong class="w-25">Products A :</strong>
-                                            <div>
-                                                @foreach($productsA as $prod)
-                                                    <div>
-                                                        <strong>{{ $prod['product_name'] }}</strong>
-                                                        (Price: {{ $prod['base_price'] }})
-
-                                                        @if(!empty($prod['variations']))
-                                                            <ul class="mb-1">
-                                                                @foreach($prod['variations'] as $var)
-                                                                    <li>{{ $var }}</li>
-                                                                @endforeach
-                                                            </ul>
-                                                        @else
-                                                            <small>No variations</small>
-                                                        @endif
-                                                    </div>
-                                                    <hr>
-                                                @endforeach
-                                            </div>
+                                            <span>{{ $product->voucher_ids }}</span>
                                         </div>
-
-                                        {{-- ================= PRODUCT B ================= --}}
+                                        <hr class="my-2">
                                         <div class="d-flex align-items-center mb-2">
-                                            <strong class="w-25">Products B :</strong>
-                                            <div>
-                                                @foreach($productsB as $prod)
-                                                    <div>
-                                                        <strong>{{ $prod['product_name'] }}</strong>
-                                                        (Price: {{ $prod['base_price'] }})
-
-                                                        @if(!empty($prod['variations']))
-                                                            <ul class="mb-1">
-                                                                @foreach($prod['variations'] as $var)
-                                                                    <li>{{ $var }}</li>
-                                                                @endforeach
-                                                            </ul>
-                                                        @else
-                                                            <small>No variations</small>
-                                                        @endif
-                                                    </div>
-                                                    <hr>
-                                                @endforeach
-                                            </div>
+                                            <strong class="w-25">Products Variations :</strong>
+                                            <span>{{ $product->voucher_ids }}</span>
                                         </div>
-                                    @endif
-
-
-
+                                        <hr class="my-2">
+                                              <div class="d-flex align-items-center mb-2">
+                                            <strong class="w-25">Products B :</strong>
+                                            <span>{{ $product->voucher_ids }}</span>
+                                        </div>
+                                        <hr class="my-2">
+                                        <div class="d-flex align-items-center mb-2">
+                                            <strong class="w-25">Products Variations :</strong>
+                                            <span>{{ $product->voucher_ids }}</span>
+                                        </div>
+                                        <hr class="my-2">
                                 </div>
                         
                     </div>
@@ -577,34 +521,10 @@
                             </h5>
                             <div class="condition-card p-3 border rounded shadow-sm mb-3">
                                     <div class="d-flex align-items-center mb-2">
-                                        <strong class="w-25">Price:</strong>
-                                        <span>{{ $product->price ?? "N/A" }}</span>
+                                        <strong class="w-25">Voucher Name:</strong>
+                                        <span>{{ $product->voucher_ids }}</span>
                                     </div>
                                     <hr class="my-2">
-                                    <div class="d-flex align-items-center mb-2">
-                                        <strong class="w-25">Offer Type:</strong>
-                                        <span>{{ $product->offer_type ?? "N/A" }}</span>
-                                    </div>
-                                    <hr class="my-2">
-                                    <div class="d-flex align-items-center mb-2">
-                                        <strong class="w-25">   Discount Type:</strong>
-                                        <span>{{ $product->discount_type ?? "N/A" }}</span>
-                                    </div>
-                                    <hr class="my-2">
-                                    <div class="d-flex align-items-center mb-2">
-                                        <strong class="w-25">Discount Value:</strong>
-                                        <span>{{ $product->discount ?? "N/A" }}</span>
-                                    </div>
-                                    <hr class="my-2">
-                                    @if(!is_null($product->required_quantity) && $product->required_quantity > 0)
-                                        <div class="d-flex align-items-center mb-2">
-                                            <strong class="w-25">Required Quantity :</strong>
-                                            <span>{{ $product->required_quantity }}</span>
-                                        </div>
-                                        <hr class="my-2">
-                                    @endif
-
-
                             </div>
                     
                     </div>
@@ -734,6 +654,11 @@
                         </table>
                     </div>
                     @endif
+
+
+
+
+
 
                 @if ($product->bundle_type == 'simple')
                     <div class="row mt-4">
@@ -933,7 +858,100 @@
                 </div>
             </div>
         </div>
-     
+
+        <!-- Products Section -->
+        @if (isset($product->product_details) && $product->product_details->count() > 0)
+            <div class="modern-card">
+                <div class="modern-card-body" style="padding: 0; background: transparent;">
+                    <div style="background: #005555; padding: 20px 24px; border-radius: 12px 12px 0 0;">
+                        <h4 style="color: white; font-weight: 700; font-size: 20px; margin: 0;"><i
+                                class="fas fa-box-open mr-2"></i>{{ translate('Products A') }}</h4>
+                    </div>
+                    <div class="modern-card-body">
+                        <div class="table-responsive">
+                            <table class="products-table">
+                                <thead>
+                                    <tr>
+                                        <th><i class="fas fa-hashtag mr-2"></i>ID</th>
+                                        <th><i class="fas fa-tag mr-2"></i>Name</th>
+                                        <th><i class="fas fa-dollar-sign mr-2"></i>Price</th>
+                                        <th><i class="fas fa-align-left mr-2"></i>Description</th>
+                                        <th><i class="fas fa-warehouse mr-2"></i>Stock</th>
+                                        <th><i class="fas fa-leaf mr-2"></i>Organic</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach ($product->product_details as $prod)
+                                        <tr>
+                                            <td><span class="badge-custom badge-primary">{{ $prod->id }}</span></td>
+                                            <td><strong>{{ $prod->name ?? 'N/A' }}</strong></td>
+                                            <td><strong style="color: #388e3c;">${{ $prod->price ?? 'N/A' }}</strong></td>
+                                            <td>{{ $prod->description ?? 'N/A' }}</td>
+                                            <td><span class="badge-custom badge-info">{{ $prod->stock ?? 'N/A' }}</span>
+                                            </td>
+                                            <td>
+                                                @if ($prod->organic)
+                                                    <span class="badge-custom badge-success"><i
+                                                            class="fas fa-check mr-1"></i>Yes</span>
+                                                @else
+                                                    <span class="badge-custom badge-warning"><i
+                                                            class="fas fa-times mr-1"></i>No</span>
+                                                @endif
+                                            </td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+        @endif
+
+        <!-- Products B Section -->
+        <!-- Products B Section -->
+        @if (isset($product->product_details_b) && $product->product_details_b->count() > 0)
+            <div class="modern-card">
+                <div class="modern-card-header" style="background: linear-gradient(135deg, #059669 0%, #047857 100%);">
+                    <h4><i class="fas fa-boxes"></i> {{ translate('Products B') }}</h4>
+                </div>
+                <div class="modern-card-body">
+                    <div class="table-responsive">
+                        <table class="products-table">
+                            <thead>
+                                <tr>
+                                    <th><i class="fas fa-hashtag mr-2"></i>ID</th>
+                                    <th><i class="fas fa-tag mr-2"></i>Name</th>
+                                    <th><i class="fas fa-dollar-sign mr-2"></i>Price</th>
+                                    <th><i class="fas fa-align-left mr-2"></i>Description</th>
+                                    <th><i class="fas fa-warehouse mr-2"></i>Stock</th>
+                                    <th><i class="fas fa-leaf mr-2"></i>Organic</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach ($product->product_details_b as $prod)
+                                    <tr>
+                                        <td><span class="badge-custom badge-primary">{{ $prod->id }}</span></td>
+                                        <td><strong>{{ $prod->name ?? 'N/A' }}</strong></td>
+                                        <td><strong style="color: #388e3c;">${{ $prod->price ?? 'N/A' }}</strong></td>
+                                        <td>{{ $prod->description ?? 'N/A' }}</td>
+                                        <td><span class="badge-custom badge-info">{{ $prod->stock ?? 'N/A' }}</span></td>
+                                        <td>
+                                            @if ($prod->organic)
+                                                <span class="badge-custom badge-success"><i
+                                                        class="fas fa-check mr-1"></i>Yes</span>
+                                            @else
+                                                <span class="badge-custom badge-warning"><i
+                                                        class="fas fa-times mr-1"></i>No</span>
+                                            @endif
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        @endif
     </div>
 
     {{-- Add Quantity Modal --}}

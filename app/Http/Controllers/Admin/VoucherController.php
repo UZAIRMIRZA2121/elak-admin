@@ -285,6 +285,7 @@ public function store(Request $request)
             $item->price = $request->price ?? 0;
             $item->discount_type = $request->discount_type;
             $item->discount = $request->discount;
+            $item->offer_type = $request->offer_type;
             $item->store_id = $request->store_id;
             $item->name = $request->voucher_title;
             $item->description = $request->description;
@@ -569,10 +570,10 @@ public function store(Request $request)
 
             $product->sub_categories = Category::whereIn('parent_id', $sub_ids)->get();
         }
-        if (!empty($product->branch_ids)) {
-            $branch_ids = json_decode($product->branch_ids, true);
-            $product->branches = Brand::whereIn('id', $branch_ids)->get();
-        }
+        // if (!empty($product->branch_ids)) {
+        //     $branch_ids = json_decode($product->branch_ids, true);
+        //     $product->branches = Brand::whereIn('id', $branch_ids)->get();
+        // }
         //   dd();
         if (!empty($product->how_and_condition_ids)) {
             $how_ids = json_decode($product->how_and_condition_ids, true);
@@ -594,9 +595,19 @@ public function store(Request $request)
             $product->product_details_b = item::whereIn('id', $productIds)->get();
         }
         // dd($product->id);
-        // if (!empty($product->id)) {
-        //       $product->VoucherSetting = VoucherSetting::where('item_id', $product->id)->first();
-        // }
+        if (!empty($product->store_id)) {
+              $product->store = Store::where('id', $product->store_id)->first();
+        }
+
+        $branchIds = json_decode($product->branch_ids, true);
+        $product->branches = Store::whereIn('parent_id', $branchIds)
+            ->orWhereIn('id', $branchIds)
+            ->where('status', 1)
+            ->orderBy('created_at')
+            ->select('id', 'name', 'type')
+            ->get();
+
+    //    dd($product->branches);
         //   dd($product->VoucherSetting);
         // if(!empty($product->VoucherSetting->holidays_occasions)){
         //       $product->HolidayOccasion = VoucherSetting::where('', $product->VoucherSetting->holidays_occasions)->get();
@@ -612,35 +623,44 @@ public function store(Request $request)
         if (!empty($product->id)) {
                 $product->VoucherSetting = VoucherSetting::where('item_id', $product->id)->first();
 
-                // Decode JSON fields if needed
-                $holidays = $product->VoucherSetting->holidays_occasions;
-                if (is_string($holidays)) {
-                    $holidays = json_decode($holidays, true);
+                if (!empty($product->VoucherSetting)) {
+                    // Decode JSON fields if needed
+                    $holidays = $product->VoucherSetting->holidays_occasions;
+                    if (is_string($holidays)) {
+                        $holidays = json_decode($holidays, true);
+                    }
+
+                    $blackoutDates = $product->VoucherSetting->custom_blackout_dates;
+                    if (is_string($blackoutDates)) {
+                        $blackoutDates = json_decode($blackoutDates, true);
+                    }
+
+                    $generalRestrictions = $product->VoucherSetting->general_restrictions;
+                    if (is_string($generalRestrictions)) {
+                        $generalRestrictions = json_decode($generalRestrictions, true);
+                    }
+
+                    // Query related models.  
+                    $product->HolidayOccasion = !empty($holidays)
+                        ? HolidayOccasion::whereIn('id', $holidays)->get()
+                        : collect();
+
+                    $product->CustomBlackoutDates = !empty($blackoutDates)
+                        ? CustomBlackoutData::whereIn('id', $blackoutDates)->get()
+                        : collect();
+
+                    $product->GeneralRestrictions = !empty($generalRestrictions)
+                        ? GeneralRestriction::whereIn('id', $generalRestrictions)->get()
+                        : collect();
+                } else {
+                    // VoucherSetting null hai, empty collections assign karo
+                    $product->HolidayOccasion = collect();
+                    $product->CustomBlackoutDates = collect();
+                    $product->GeneralRestrictions = collect();
                 }
-
-                $blackoutDates = $product->VoucherSetting->custom_blackout_dates;
-                if (is_string($blackoutDates)) {
-                    $blackoutDates = json_decode($blackoutDates, true);
-                }
-
-                $generalRestrictions = $product->VoucherSetting->general_restrictions;
-                if (is_string($generalRestrictions)) {
-                    $generalRestrictions = json_decode($generalRestrictions, true);
-                }
-
-                // Query related models.  
-                $product->HolidayOccasion = !empty($holidays)
-                    ? HolidayOccasion::whereIn('id', $holidays)->get()
-                    : collect();
-
-                $product->CustomBlackoutDates = !empty($blackoutDates)
-                    ? CustomBlackoutData::whereIn('id', $blackoutDates)->get()
-                    : collect();
-
-                $product->GeneralRestrictions = !empty($generalRestrictions)
-                    ? GeneralRestriction::whereIn('id', $generalRestrictions)->get()
-                    : collect();
             }
+
+            
 
             // dd($product);
 

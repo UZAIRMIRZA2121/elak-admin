@@ -61,6 +61,7 @@ class Item extends Model
         'sub_category_ids' => 'array',
         'branch_ids' => 'array',
         'valid_until' => 'string',
+        'offer_type' => 'string',
         'voucher_ids' => 'string',
         'bundle_type' => 'string',
         'tags_ids' => 'array',
