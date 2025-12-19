@@ -245,37 +245,6 @@
 @endpush
 
 @section('content')
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     <div class="content container-fluid">
 
         <!-- Voucher Details Card -->
@@ -284,267 +253,365 @@
                 <h4><i class="fas fa-ticket-alt"></i> {{ translate('Voucher Details') }}</h4>
             </div>
             <div class="modern-card-body">
-                <div class="grid-container">
-                    <!-- Left Column -->
-                    <div>
-                        <h5 class="section-title">Basic Information</h5>
-                        @if ($product->voucher_ids == 'Gift')
-                            <table class="info-table">
-                                <tbody>
-                                    <tr>
-                                        <th><i class="fas fa-heading mr-2"></i>Voucher </th>
-                                        <td> <img class="avatar avatar-lg mr-3 onerror-image"
-                                                src="{{ $product['image_full_url'] ?? asset('public/assets/admin/img/160x160/img2.jpg') }}"
-                                                data-onerror-image="{{ asset('public/assets/admin/img/160x160/img2.jpg') }}"
-                                                alt="{{ $product->name }} image">
-                                            <div title="{{ $product['name'] }}" class="media-body">
-                                                <h5 class="text-hover-primary mb-0">
-                                                    {{ Str::limit($product['name'], 20, '...') }}</h5>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <th><i class="fas fa-align-left mr-2"></i>Qr Code</th>
-                                        <td>
-                                            @if ($product->uuid)
-                                                {!! QrCode::size(80)->generate($product->uuid) !!}
-                                            @else
-                                                N/A
-                                            @endif
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <th><i class="fas fa-tag mr-2"></i>Type</th>
-                                        <td><span class="badge-custom badge-info">Gift</span>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <th><i class="fas fa-tag mr-2"></i> Gift Occasion</th>
-                                        <td>
-                                            @forelse($product->gift_occasions as $occasion)
-                                                <span class="badge-custom badge-info mr-1 mb-1">
-                                                    {{ $occasion->title }}
-                                                </span>
-                                            @empty
-                                                —
-                                            @endforelse
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <th><i class="fas fa-asterisk mr-2"></i> Required Fields</th>
-                                        <td>
-                                            @php
-                                                $requiredFields =
-                                                    $product->recipient_info_form_fields['required_fields'] ?? [];
-                                            @endphp
 
-                                            @forelse($requiredFields as $field)
-                                                <span class="badge-custom badge-danger mr-1 mb-1">
-                                                    {{ ucwords(str_replace('_', ' ', $field)) }}
-                                                </span>
-                                            @empty
-                                                —
-                                            @endforelse
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <th><i class="fas fa-truck mr-2"></i> Delivery Options</th>
-                                        <td>
-                                            @forelse($product->delivery_options as $option)
-                                                <span class="badge-custom badge-success mr-1 mb-1">
-                                                    {{ $option->title }}
-                                                </span>
-                                            @empty
-                                                —
-                                            @endforelse
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <th><i class="fas fa-truck mr-2"></i>Amount Type</th>
-                                        <td>
-                                            <span class="badge-custom badge-info mr-1 mb-1">
-                                                {{ $product->amount_type }}
-                                            </span>
+                <div class="row mt-4">
+                    <div class="col-md-12">
+                            <h5 class="section-title mb-3"><i class="fas fa-cogs mr-2"></i> Voucher Type</h5>
+                                <div class="condition-card p-3 border rounded shadow-sm mb-3">
+                                        <div class="d-flex align-items-center mb-2">
+                                            <strong class="w-25">Voucher Name:</strong>
+                                            <span>{{ $product->voucher_ids }}</span>
+                                        </div>
+                                        <hr class="my-2">
+                                </div>
+                        
+                    </div>
+                </div>
 
 
+                  <!-- Client Info Section -->
+               <div class="row mt-4"> 
 
-                                            {{-- Range Amount --}}
-                                            {{-- Range Amount --}}
-                                            @if ($product->amount_type === 'range')
-                                                @php
-                                                    $minMaxAmounts = is_array($product->min_max_amount)
-                                                        ? $product->min_max_amount
-                                                        : json_decode($product->min_max_amount ?? '[]', true);
+                    <div class="col-md-12">
+                        @if ($product->clients()->isNotEmpty() || $product->apps()->isNotEmpty() || $product->segments()->isNotEmpty())
+                            <h5 class="section-title mb-3"><i class="fas fa-cogs mr-2"></i> Client Info</h5>
 
-                                                    $min = $minMaxAmounts[0] ?? '—';
-                                                    $max = $minMaxAmounts[1] ?? '—';
-                                                @endphp
+                            <!-- Clients -->
+                            @if ($product->clients()->isNotEmpty())
+                                <h6 class="mb-2"><i class="fas fa-user mr-2"></i>Clients</h6>
+                                <div class="condition-card p-3 border rounded shadow-sm mb-3">
+                                    @foreach ($product->clients() as $client)
+                                        <div class="d-flex align-items-center mb-2">
+                                            <strong class="w-25">Client Name:</strong>
+                                            <span>{{ $client->name }}</span>
+                                        </div>
+                                      
+                                    @endforeach
+                                    @if ($product->apps()->isNotEmpty())
+                                        <h6 class="mb-2"><i class="fas fa-mobile-alt mr-2"></i>Apps</h6>
+                                        <div class="condition-card p-3 border rounded shadow-sm mb-3">
+                                            @foreach ($product->apps() as $app)
+                                                <div class="d-flex align-items-center mb-2">
+                                                    <strong class="w-25">App Name:</strong>
+                                                    <span>{{ $app->app_name }}</span>
+                                                </div>
+                                                <hr class="my-2">
+                                            @endforeach
+                                        </div>
+                                    @endif
+                                    
+                                    @if ($product->segments()->isNotEmpty())
+                                        <h6 class="mb-2"><i class="fas fa-layer-group mr-2"></i>Segments</h6>
+                                        <div class="condition-card p-3 border rounded shadow-sm mb-3">
+                                            @foreach ($product->segments() as $segment)
+                                                <div class="d-flex align-items-center mb-2">
+                                                    <strong class="w-25">Segment Name:</strong>
+                                                    <span>{{ $segment->name }}</span>
+                                                </div>
+                                                <hr class="my-2">
+                                            @endforeach
+                                        </div>
+                                    @endif
+                                </div>
+                                     <!-- Segments -->
+                            @endif
 
-                                                <span class="badge-custom badge-success mr-1 mb-1">Min:
-                                                    {{ $min }}</span>
-                                                <span class="badge-custom badge-success mr-1 mb-1">Max:
-                                                    {{ $max }}</span>
-                                            @endif
-
-                                            {{-- Fixed Amount --}}
-                                            @if ($product->amount_type === 'fixed')
-                                                @php
-                                                    $fixedAmounts = is_array($product->fixed_amount_options)
-                                                        ? $product->fixed_amount_options
-                                                        : json_decode($product->fixed_amount_options ?? '[]', true);
-                                                @endphp
-
-                                                @forelse($fixedAmounts as $option)
-                                                    <span class="badge-custom badge-success mr-1 mb-1">
-                                                        {{ is_object($option) ? $option->title : $option }}
-                                                    </span>
-                                                @empty
-                                                    —
-                                                @endforelse
-                                            @endif
-                                        </td>
-                                    </tr>
-
-
-                                    @php
-                                        // Decode JSON or set empty array if null
-                                        $bonusConfig = json_decode($product->bonus_configuration ?? '[]', true);
-                                    @endphp
-
-                                    <tr>
-                                        <th><i class="fas fa-gift mr-2"></i> Bonus Configuration</th>
-                                        <td>
-                                            @forelse($bonusConfig as $bonus)
-                                                <span class="badge-custom badge-info mr-1 mb-1">
-                                                    Min: {{ $bonus['min_amount'] }}, Max: {{ $bonus['max_amount'] }},
-                                                    Bonus: {{ $bonus['bonus_percentage'] }}%
-                                                </span>
-                                            @empty
-                                                —
-                                            @endforelse
-                                        </td>
-                                    </tr>
-
-
-
-                                </tbody>
-                            </table>
-                        @endif
-                        @if ($product->voucher_ids == 'Flat discount')
-                            <table class="info-table">
-                                <tbody>
-                                    <tr>
-                                        <th><i class="fas fa-heading mr-2"></i>Voucher </th>
-                                        <td> <img class="avatar avatar-lg mr-3 onerror-image"
-                                                src="{{ $product['image_full_url'] ?? asset('public/assets/admin/img/160x160/img2.jpg') }}"
-                                                data-onerror-image="{{ asset('public/assets/admin/img/160x160/img2.jpg') }}"
-                                                alt="{{ $product->name }} image">
-                                            <div title="{{ $product['name'] }}" class="media-body">
-                                                <h5 class="text-hover-primary mb-0">
-                                                    {{ Str::limit($product['name'], 20, '...') }}</h5>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <th><i class="fas fa-align-left mr-2"></i>Description</th>
-                                        <td>
-                                            {{ $product->description }}
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <th><i class="fas fa-align-left mr-2"></i>Qr Code</th>
-                                        <td>
-                                            @if ($product->uuid)
-                                                {!! QrCode::size(80)->generate($product->uuid) !!}
-                                            @else
-                                                N/A
-                                            @endif
-                                        </td>
-                                    </tr>
-                                    @php
-                                        // Decode JSON safely
-                                        $images = is_array($product->images)
-                                            ? $product->images
-                                            : json_decode($product->images ?? '[]', true);
-                                    @endphp
-
-                                    <tr>
-                                        <th><i class="fas fa-image mr-2"></i> Images</th>
-                                        <td>
-                                            @forelse($images as $image)
-                                                <img src="{{ asset('storage/product/' . $image['img']) }}"
-                                                    alt="Product Image"
-                                                    style="width: 80px; height: 80px; object-fit: cover; margin-right: 5px;">
-                                            @empty
-                                                —
-                                            @endforelse
-                                        </td>
-                                    </tr>
-
-                                    <tr>
-                                        <th><i class="fas fa-tag mr-2"></i>Type</th>
-                                        <td><span class="badge-custom badge-info">Flat discount</span>
-                                        </td>
-                                    </tr>
-                                    @php
-                                        // Decode JSON or set empty array if null
-                                        $bonusConfig = json_decode($product->discount_configuration ?? '[]', true);
-                                    @endphp
-
-                                    <tr>
-                                        <th><i class="fas fa-gift mr-2"></i> Bonus Configuration</th>
-                                        <td>
-                                            @forelse($bonusConfig as $bonus)
-                                                <span class="badge-custom badge-info mr-1 mb-1">
-                                                    Min: {{ $bonus['min_amount'] }}, Max: {{ $bonus['max_amount'] }},
-                                                    Bonus: {{ $bonus['bonus_percentage'] }}%
-                                                </span>
-                                            @empty
-                                                —
-                                            @endforelse
-                                        </td>
-                                    </tr>
-
-
-
-                                </tbody>
-                            </table>
+                        @else
+                            <p>No client info available.</p>
                         @endif
                     </div>
-                    <!-- Right Column -->
-                    <div>
-                        <h5 class="section-title">Category & Location</h5>
+                </div>
+
+              
+
+                    <!-- Left Column -->
+                    <div class="row mt-4">
+                        <h5 class="section-title">Partner Information</h5>
                         <table class="info-table">
                             <tbody>
                                 <tr>
-                                    <th><i class="fas fa-folder mr-2"></i>Categories</th>
+                                    <th><i class="fas fa-heading mr-2"></i>Store </th>
+                                    <td> 
+                                        {{ $product->store->name }}
+                                    </td>
+                                </tr>
+
+                                @php
+                                    use App\Models\Category;
+
+                                    $categoryIds = collect(json_decode($product->category_ids, true))
+                                                    ->pluck('id')
+                                                    ->toArray();
+
+                                    $categories = Category::whereIn('id', $categoryIds)->get();
+
+                                    $mainCategories = $categories->where('parent_id', 0);
+                                    $subCategories  = $categories->where('parent_id', '!=', 0);
+                                @endphp
+
+
+
+                             <tr>
+                                <th><i class="fas fa-align-left mr-2"></i>Category</th>
+                                <td>
+                                    @if($mainCategories->count())
+                                        @foreach($mainCategories as $cat)
+                                            <span class="badge badge-primary mr-1">
+                                                {{ $cat->name }}
+                                            </span>
+                                        @endforeach
+                                    @else
+                                        <span>No category</span>
+                                    @endif
+                                </td>
+                            </tr>
+
+                               <tr>
+                                    <th><i class="fas fa-align-left mr-2"></i>Sub Category</th>
                                     <td>
-                                        @if ($product->categories && $product->categories->isNotEmpty())
-                                            @foreach ($product->categories as $category)
-                                                @if ($category->parent_id === 0)
-                                                    <span class="badge badge-success mb-2">{{ $category->name }}</span>
-                                                @else
-                                                    <span class="badge badge-warning mb-2">{{ $category->name }}</span>
-                                                @endif
+                                        @if($subCategories->count())
+                                            @foreach($subCategories as $sub)
+                                                <span class="badge badge-info mr-1">
+                                                    {{ $sub->name }}
+                                                </span>
                                             @endforeach
                                         @else
-                                            N/A
+                                            <span>No sub category</span>
                                         @endif
                                     </td>
                                 </tr>
+
+                                <tr>
+                                    <th><i class="fas fa-tag mr-2"></i>Branch</th>
+                                    <td>
+                                          @if($product->branches && $product->branches->count())
+                                            @foreach ($product->branches as $branch)
+                                                <div class="mb-2 p-2 border rounded">
+                                                    <div class="d-flex mb-1">
+                                                        <strong>Name:</strong>&nbsp; {{ $branch->name }}
+                                                    </div>
+
+                                                    <div class="d-flex mb-1">
+                                                        <strong>Type:</strong>&nbsp; {{ $branch->type }}
+                                                    </div>
+                                                   
+                                                </div>
+                                            @endforeach
+                                        @else
+                                            <p>No branches available.</p>
+                                        @endif
+
+
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+
+                    <!-- Right Column -->
+                     <div class="row mt-4">
+                        <h5 class="section-title">Voucher Details</h5>
+                        <table class="info-table">
+                            <tbody>
+                                <tr>
+                                    <th><i class="fas fa-folder mr-2"></i>Voucher Title </th>
+                                    <td>    {{ $product->name ?? "N/A" }} </td>
+                                </tr>
+                                <tr>
+                                    
+                                    <th><i class="fas fa-folder mr-2"></i> Images</th>
+                                 <td>
+                                    @php
+                                        $images = json_decode($product->images, true);
+                                    @endphp
+
+                                    @if(!empty($images))
+                                        @foreach($images as $image)
+                                            @if(isset($image['img']))
+                                                <img class="avatar avatar-lg mr-2 mb-2 onerror-image"
+                                                    src="{{ asset('storage/' . $image['img']) }}"
+                                                    data-onerror-image="{{ asset('public/assets/admin/img/160x160/img2.jpg') }}"
+                                                    alt="{{ $product->name }} image">
+                                            @endif
+                                        @endforeach
+                                    @else
+                                        <img class="avatar avatar-lg mr-3"
+                                            src="{{ asset('public/assets/admin/img/160x160/img2.jpg') }}"
+                                            alt="No image">
+                                    @endif
+                                </td>
+
+
+                                </tr>
+                                <tr>
+                                    <th><i class="fas fa-folder mr-2"></i>Thumnail Image </th>
+                                    <td>   <img class="avatar avatar-lg mr-3 onerror-image"
+                                            src="{{ $product->image ?? asset('public/assets/admin/img/160x160/img2.jpg') }}"
+                                            data-onerror-image="{{ asset('public/assets/admin/img/160x160/img2.jpg') }}"
+                                            alt="{{ $product->name }} image"> </td>
+                                </tr>
+                                <tr>
+                                    <th><i class="fas fa-folder mr-2"></i>Description </th>
+                                    <td>  {{ $product->description ?? " N/A" }}  </td>
+                                </tr>
+                               
                                 @if (isset($product->tags_ids))
                                     <tr>
                                         <th><i class="fas fa-hashtag mr-2"></i>Tags</th>
-                                        <td>
-                                            <span class="badge badge-info mb-2">{{ $product->tags_ids }}</span>
-                                        </td>
+                                        <td>{{ $product->tags_ids ?? 'N/A' }}</td>
                                     </tr>
                                 @endif
                             </tbody>
                         </table>
                     </div>
                 </div>
-                @if (isset($product->VoucherSetting))
+
+
+
+
+                 <div class="row mt-4">
+                    <div class="col-md-12">
+                            <h5 class="section-title mb-3"><i class="fas fa-cogs mr-2"></i> Bundle Products Configuration </h5>
+                                <div class="condition-card p-3 border rounded shadow-sm mb-3">
+                                        <div class="d-flex align-items-center mb-2">
+                                            <strong class="w-25">Bundle Type Selection :</strong>
+                                            <span>{{ $product->bundle_type ?? "N/A" }}</span>
+                                        </div>
+                                        <hr class="my-2">
+                                        @php
+                                            $productsA = !empty($product->product)
+                                                ? json_decode($product->product, true)
+                                                : [];
+
+                                            $productsB = !empty($product->product_b)
+                                                ? json_decode($product->product_b, true)
+                                                : [];
+                                        @endphp
+
+                                     @if(empty($productsB))
+                                        {{-- ================= PRODUCT A ONLY ================= --}}
+                                        <div class="d-flex align-items-center mb-2">
+                                            <strong class="w-25">Products :</strong>
+                                            <div>
+                                                @foreach($productsA as $prod)
+                                                    <div>
+                                                        <strong>{{ $prod['product_name'] }}</strong>
+                                                        (Price: {{ $prod['base_price'] }})
+
+                                                        @if(!empty($prod['variations']))
+                                                            <ul class="mb-1">
+                                                                @foreach($prod['variations'] as $var)
+                                                                    <li>{{ $var }}</li>
+                                                                @endforeach
+                                                            </ul>
+                                                        @else
+                                                            <small>No variations</small>
+                                                        @endif
+                                                    </div>
+                                                    <hr>
+                                                @endforeach
+                                            </div>
+                                        </div>
+
+                                    @else
+                                        {{-- ================= PRODUCT A ================= --}}
+                                        <div class="d-flex align-items-center mb-2">
+                                            <strong class="w-25">Products A :</strong>
+                                            <div>
+                                                @foreach($productsA as $prod)
+                                                    <div>
+                                                        <strong>{{ $prod['product_name'] }}</strong>
+                                                        (Price: {{ $prod['base_price'] }})
+
+                                                        @if(!empty($prod['variations']))
+                                                            <ul class="mb-1">
+                                                                @foreach($prod['variations'] as $var)
+                                                                    <li>{{ $var }}</li>
+                                                                @endforeach
+                                                            </ul>
+                                                        @else
+                                                            <small>No variations</small>
+                                                        @endif
+                                                    </div>
+                                                    <hr>
+                                                @endforeach
+                                            </div>
+                                        </div>
+
+                                        {{-- ================= PRODUCT B ================= --}}
+                                        <div class="d-flex align-items-center mb-2">
+                                            <strong class="w-25">Products B :</strong>
+                                            <div>
+                                                @foreach($productsB as $prod)
+                                                    <div>
+                                                        <strong>{{ $prod['product_name'] }}</strong>
+                                                        (Price: {{ $prod['base_price'] }})
+
+                                                        @if(!empty($prod['variations']))
+                                                            <ul class="mb-1">
+                                                                @foreach($prod['variations'] as $var)
+                                                                    <li>{{ $var }}</li>
+                                                                @endforeach
+                                                            </ul>
+                                                        @else
+                                                            <small>No variations</small>
+                                                        @endif
+                                                    </div>
+                                                    <hr>
+                                                @endforeach
+                                            </div>
+                                        </div>
+                                    @endif
+
+
+
+                                </div>
+                        
+                    </div>
+                </div>
+
+                   <div class="row mt-4">
+                    <div class="col-md-12">
+                            <h5 class="section-title mb-3"><i class="fas fa-cogs mr-2"></i> Price Information
+                            </h5>
+                            <div class="condition-card p-3 border rounded shadow-sm mb-3">
+                                    <div class="d-flex align-items-center mb-2">
+                                        <strong class="w-25">Price:</strong>
+                                        <span>{{ $product->price ?? "N/A" }}</span>
+                                    </div>
+                                    <hr class="my-2">
+                                    <div class="d-flex align-items-center mb-2">
+                                        <strong class="w-25">Offer Type:</strong>
+                                        <span>{{ $product->offer_type ?? "N/A" }}</span>
+                                    </div>
+                                    <hr class="my-2">
+                                    <div class="d-flex align-items-center mb-2">
+                                        <strong class="w-25">   Discount Type:</strong>
+                                        <span>{{ $product->discount_type ?? "N/A" }}</span>
+                                    </div>
+                                    <hr class="my-2">
+                                    <div class="d-flex align-items-center mb-2">
+                                        <strong class="w-25">Discount Value:</strong>
+                                        <span>{{ $product->discount ?? "N/A" }}</span>
+                                    </div>
+                                    <hr class="my-2">
+                                    @if(!is_null($product->required_quantity) && $product->required_quantity > 0)
+                                        <div class="d-flex align-items-center mb-2">
+                                            <strong class="w-25">Required Quantity :</strong>
+                                            <span>{{ $product->required_quantity }}</span>
+                                        </div>
+                                        <hr class="my-2">
+                                    @endif
+
+
+                            </div>
+                    
+                    </div>
+                </div>
+
+
+                <!-- @if(isset($product->VoucherSetting))
                     <div class="mt-4">
                         <h5 class="section-title">Voucher Settings</h5>
 
@@ -552,69 +619,65 @@
                             <tbody>
 
                                 {{-- Validity Period --}}
-                                @if ($product->VoucherSetting->validity_period)
-                                    <tr>
-                                        <th><i class="fas fa-calendar mr-2"></i>Validity Period</th>
-                                        <td>
-                                            Status: {{ $product->VoucherSetting->validity_period['active'] ?? 'N/A' }} <br>
-                                            Start: {{ $product->VoucherSetting->validity_period['start'] ?? 'N/A' }} <br>
-                                            End: {{ $product->VoucherSetting->validity_period['end'] ?? 'N/A' }}
-                                        </td>
-                                    </tr>
+                                @if($product->VoucherSetting->validity_period)
+                                <tr>
+                                    <th><i class="fas fa-calendar mr-2"></i>Validity Period</th>
+                                    <td>
+                                        Status: {{ $product->VoucherSetting->validity_period['active'] ?? 'N/A' }} <br>
+                                        Start: {{ $product->VoucherSetting->validity_period['start'] ?? 'N/A' }} <br>
+                                        End: {{ $product->VoucherSetting->validity_period['end'] ?? 'N/A' }}
+                                    </td>
+                                </tr>
                                 @endif
 
                                 {{-- Specific Days of Week --}}
-                                @if ($product->VoucherSetting->specific_days_of_week)
-                                    <tr>
-                                        <th><i class="fas fa-clock mr-2"></i>Day Wise Timing</th>
-                                        <td>
-                                            @foreach ($product->VoucherSetting->specific_days_of_week as $day => $time)
-                                                <span class="badge-custom badge-info">
-                                                    {{ ucfirst($day) }}: {{ $time['start'] ?? 'N/A' }} -
-                                                    {{ $time['end'] ?? 'N/A' }}
-                                                </span>
-                                            @endforeach
-                                        </td>
-                                    </tr>
+                                @if($product->VoucherSetting->specific_days_of_week)
+                                <tr>
+                                    <th><i class="fas fa-clock mr-2"></i>Day Wise Timing</th>
+                                    <td>
+                                        @foreach($product->VoucherSetting->specific_days_of_week as $day => $time)
+                                            <span class="badge-custom badge-info">
+                                                {{ ucfirst($day) }}: {{ $time['start'] ?? 'N/A' }} - {{ $time['end'] ?? 'N/A' }}
+                                            </span>
+                                        @endforeach
+                                    </td>
+                                </tr>
                                 @endif
 
                                 {{-- Holidays / Occasions --}}
-                                @if ($product->HolidayOccasion && $product->HolidayOccasion->count())
-                                    <tr>
-                                        <th><i class="fas fa-umbrella-beach mr-2"></i>Holidays</th>
-                                        <td>
-                                            @foreach ($product->HolidayOccasion as $holiday)
-                                                <span
-                                                    class="badge-custom badge-warning">{{ $holiday->name_en ?? $holiday->name_ar }}</span>
-                                            @endforeach
-                                        </td>
-                                    </tr>
+                                @if($product->HolidayOccasion && $product->HolidayOccasion->count())
+                                <tr>
+                                    <th><i class="fas fa-umbrella-beach mr-2"></i>Holidays</th>
+                                    <td>
+                                        @foreach($product->HolidayOccasion as $holiday)
+                                            <span class="badge-custom badge-warning">{{ $holiday->name_en ?? $holiday->name_ar }}</span>
+                                        @endforeach
+                                    </td>
+                                </tr>
                                 @endif
 
                                 {{-- Custom Blackout Dates --}}
-                                @if ($product->CustomBlackoutDates && $product->CustomBlackoutDates->count())
-                                    <tr>
-                                        <th><i class="fas fa-ban mr-2"></i>Blackout Dates</th>
-                                        <td>
-                                            @foreach ($product->CustomBlackoutDates as $date)
-                                                <span class="badge-custom badge-danger">{{ $date->date }} -
-                                                    {{ $date->description }}</span>
-                                            @endforeach
-                                        </td>
-                                    </tr>
+                                @if($product->CustomBlackoutDates && $product->CustomBlackoutDates->count())
+                                <tr>
+                                    <th><i class="fas fa-ban mr-2"></i>Blackout Dates</th>
+                                    <td>
+                                        @foreach($product->CustomBlackoutDates as $date)
+                                            <span class="badge-custom badge-danger">{{ $date->date }} - {{ $date->description }}</span>
+                                        @endforeach
+                                    </td>
+                                </tr>
                                 @endif
 
                                 {{-- General Restrictions --}}
-                                @if ($product->GeneralRestrictions && $product->GeneralRestrictions->count())
-                                    <tr>
-                                        <th><i class="fas fa-exclamation-triangle mr-2"></i>General Restrictions</th>
-                                        <td>
-                                            @foreach ($product->GeneralRestrictions as $restriction)
-                                                <span
-                                                    class="badge-custom badge-secondary">{{ $restriction->name ?? 'N/A' }}</span>
-                                            @endforeach
-                                        </td>
-                                    </tr>
+                                @if($product->GeneralRestrictions && $product->GeneralRestrictions->count())
+                                <tr>
+                                    <th><i class="fas fa-exclamation-triangle mr-2"></i>General Restrictions</th>
+                                    <td>
+                                        @foreach($product->GeneralRestrictions as $restriction)
+                                            <span class="badge-custom badge-secondary">{{ $restriction->name ?? 'N/A' }}</span>
+                                        @endforeach
+                                    </td>
+                                </tr>
                                 @endif
 
                                 {{-- Age Restriction --}}
@@ -630,25 +693,25 @@
                                 </tr>
 
                                 {{-- Usage Limit Per User --}}
-                                @if ($product->VoucherSetting->usage_limit_per_user)
-                                    <tr>
-                                        <th><i class="fas fa-user-check mr-2"></i>Usage Per User</th>
-                                        <td>
-                                            {{ $product->VoucherSetting->usage_limit_per_user[0] ?? 'N/A' }}
-                                            ({{ $product->VoucherSetting->usage_limit_per_user[1] ?? 'N/A' }})
-                                        </td>
-                                    </tr>
+                                @if($product->VoucherSetting->usage_limit_per_user)
+                                <tr>
+                                    <th><i class="fas fa-user-check mr-2"></i>Usage Per User</th>
+                                    <td>
+                                        {{ $product->VoucherSetting->usage_limit_per_user[0] ?? 'N/A' }}
+                                        ({{ $product->VoucherSetting->usage_limit_per_user[1] ?? 'N/A' }})
+                                    </td>
+                                </tr>
                                 @endif
 
                                 {{-- Usage Limit Per Store --}}
-                                @if ($product->VoucherSetting->usage_limit_per_store)
-                                    <tr>
-                                        <th><i class="fas fa-store mr-2"></i>Usage Per Store</th>
-                                        <td>
-                                            {{ $product->VoucherSetting->usage_limit_per_store[0] ?? 'N/A' }}
-                                            ({{ $product->VoucherSetting->usage_limit_per_store[1] ?? 'N/A' }})
-                                        </td>
-                                    </tr>
+                                @if($product->VoucherSetting->usage_limit_per_store)
+                                <tr>
+                                    <th><i class="fas fa-store mr-2"></i>Usage Per Store</th>
+                                    <td>
+                                        {{ $product->VoucherSetting->usage_limit_per_store[0] ?? 'N/A' }}
+                                        ({{ $product->VoucherSetting->usage_limit_per_store[1] ?? 'N/A' }})
+                                    </td>
+                                </tr>
                                 @endif
 
                                 {{-- Offer Validity After Purchase --}}
@@ -670,12 +733,7 @@
                             </tbody>
                         </table>
                     </div>
-                @endif
-
-
-
-
-
+                    @endif
 
                 @if ($product->bundle_type == 'simple')
                     <div class="row mt-4">
@@ -686,154 +744,27 @@
                         </div>
                     </div>
                 @endif
-
-                @if ($product->bundle_type === 'bogo_free')
+                   @if ($product->bundle_type == 'bogo_free')
                     <div class="row mt-4">
                         <div class="col-md-12">
-                            <h5 class="section-title mb-3">
-                                <i class="fas fa-gift mr-2"></i>BOGO Product Info
-                            </h5>
+                            <h5 class="section-title mb-3"><i class="fas fa-cogs mr-2"></i>BOGO Product Info</h5>
 
-                            <div class="row">
-                                <!-- Product A (Buy Product) -->
-                                <div class="col-md-6">
-                                    <div class="condition-card p-3 border rounded shadow-sm h-100">
-                                        <h6 class="mb-3 text-success">
-                                            <i class="fas fa-shopping-cart mr-2"></i>Product A
-                                        </h6>
 
-                                        @if ($product->relatedProducts()->isNotEmpty())
-                                            @foreach ($product->relatedProducts() as $related)
-                                                <div class="mb-2 d-flex">
-                                                    <strong class="w-40">Name:</strong>
-                                                    <span>{{ $related->name }}</span>
-                                                </div>
-                                                <div class="mb-2 d-flex">
-                                                    <strong class="w-40">Price:</strong>
-                                                    <span>${{ $related->price }}</span>
-                                                </div>
-
-                                                <hr>
-                                            @endforeach
-                                        @else
-                                            <p class="text-muted mb-0">No Product A available</p>
-                                        @endif
-                                    </div>
-                                </div>
-
-                                <!-- Product B (Free Product) -->
-                                <div class="col-md-6">
-                                    <div class="condition-card p-3 border rounded shadow-sm h-100">
-                                        <h6 class="mb-3 text-warning">
-                                            <i class="fas fa-gift mr-2"></i>Product B
-                                        </h6>
-
-                                        @if ($product->relatedProductsB()->isNotEmpty())
-                                            @foreach ($product->relatedProductsB() as $relatedB)
-                                                <div class="mb-2 d-flex">
-                                                    <strong class="w-40">Name:</strong>
-                                                    <span>{{ $relatedB->name }}</span>
-                                                </div>
-                                                <div class="mb-2 d-flex">
-                                                    <strong class="w-40">Price:</strong>
-                                                    <span>${{ $relatedB->price }}</span>
-                                                </div>
-
-                                                <hr>
-                                            @endforeach
-                                        @else
-                                            <p class="text-muted mb-0">No Product B available</p>
-                                        @endif
-                                    </div>
-                                </div>
-                            </div>
                         </div>
                     </div>
-                @endif
+                @endif -->
 
 
-                <!-- Client Info Section -->
-                <div class="row mt-4">
-                    <div class="col-md-12">
-                        @if ($product->clients()->isNotEmpty() || $product->apps()->isNotEmpty() || $product->segments()->isNotEmpty())
-                            <h5 class="section-title mb-3"><i class="fas fa-cogs mr-2"></i> Client Info</h5>
+              
 
-                            <!-- Clients -->
-                            @if ($product->clients()->isNotEmpty())
-                                <h6 class="mb-2"><i class="fas fa-user mr-2"></i>Clients</h6>
-                                <div class="condition-card p-3 border rounded shadow-sm mb-3">
-                                    @foreach ($product->clients() as $client)
-                                        <div class="d-flex align-items-center mb-2">
-                                            <strong class="w-25">Client Name:</strong>
-                                            <span>{{ $client->name }}</span>
-                                        </div>
-                                        <div class="d-flex align-items-center mb-2">
-                                            <strong class="w-25">Client Email:</strong>
-                                            <span>{{ $client->email }}</span>
-                                        </div>
-                                        <hr class="my-2">
-                                    @endforeach
-                                </div>
-                            @endif
-
-                            <!-- Apps -->
-                            @if ($product->apps()->isNotEmpty())
-                                <h6 class="mb-2"><i class="fas fa-mobile-alt mr-2"></i>Apps</h6>
-                                <div class="condition-card p-3 border rounded shadow-sm mb-3">
-                                    @foreach ($product->apps() as $app)
-                                        <div class="d-flex align-items-center mb-2">
-                                            <strong class="w-25">App Name:</strong>
-                                            <span>{{ $app->app_name }}</span>
-                                        </div>
-                                        <div class="d-flex align-items-center mb-2">
-                                            <strong class="w-25">App status:</strong>
-                                            <span><span
-                                                    class="badge {{ $app->status == 'active' ? 'badge-success' : 'badge-danger' }} mb-2">{{ $app->status ? 'Active' : 'Inactive' }}</span></span>
-                                        </div>
-
-                                        <hr class="my-2">
-                                    @endforeach
-                                </div>
-                            @endif
-
-                            <!-- Segments -->
-                            @if ($product->segments()->isNotEmpty())
-                                <h6 class="mb-2"><i class="fas fa-layer-group mr-2"></i>Segments</h6>
-                                <div class="condition-card p-3 border rounded shadow-sm mb-3">
-                                    @foreach ($product->segments() as $segment)
-                                        <div class="d-flex align-items-center mb-2">
-                                            <strong class="w-25">Segment Name:</strong>
-                                            <span>{{ $segment->name }}</span>
-                                        </div>
-                                        <div class="d-flex align-items-center mb-2">
-                                            <strong class="w-25">Segment type:</strong>
-                                            <span><span
-                                                    class="badge {{ $segment->type == 'free' ? 'badge-info' : 'badge-secondary' }} mb-2">{{ $segment->type }}</span></span>
-                                        </div>
-                                        <div class="d-flex align-items-center mb-2">
-                                            <strong class="w-25">Segment status:</strong>
-                                            <span><span
-                                                    class="badge {{ $segment->status == 'active' ? 'badge-success' : 'badge-danger' }} mb-2">{{ $segment->status ? 'Active' : 'Inactive' }}</span></span>
-                                        </div>
-                                        <hr class="my-2">
-                                    @endforeach
-                                </div>
-                            @endif
-                        @else
-                            <p>No client info available.</p>
-                        @endif
-                    </div>
-                </div>
-
-                <!-- Store Info Section -->
-                <div class="row mt-4">
+                 <!-- Store Info Section -->
+                <!-- <div class="row mt-4">
                     <div class="col-md-12">
                         @if ($product->store)
                             <h5 class="section-title mb-3"><i class="fas fa-cogs mr-2"></i> Store Info</h5>
 
                             <div class="condition-card p-3 border rounded shadow-sm">
 
-                                <!-- Main Store Info -->
                                 <h6 class="mb-2"><i class="fas fa-code-branch mr-2"></i>Main Store</h6>
                                 <div class="mb-2 d-flex">
                                     <strong class="w-25"><i class="fas fa-store mr-2"></i>Name:</strong>
@@ -848,12 +779,10 @@
                                     <span>{{ $product->store->phone }}</span>
                                 </div>
 
-                                <!-- Branches Info -->
                                 <h6 class="mb-2"><i class="fas fa-code-branch mr-2"></i>Selected Branches</h6>
                                 @if ($product->branches()->isNotEmpty())
                                     @foreach ($product->branches() as $branch)
                                         <div class="mb-2 p-2 border rounded">
-                                            <!-- Badge for Main/Sub-branch -->
                                             @php
                                                 $badge = $branch->parent_id ? 'Sub-branch' : 'Main';
                                                 $badgeClass = $branch->parent_id ? 'badge-warning' : 'badge-success';
@@ -881,7 +810,7 @@
                             </div>
                         @endif
                     </div>
-                </div>
+                </div>  -->
 
 
                 <!-- How to Work & Terms Section in 2 Columns -->
@@ -915,6 +844,7 @@
                         @endif
                     </div>
                 </div>
+                
                 <div class="row mt-4">
                     <!-- Terms & Conditions Section - Right Column -->
                     <div class="col-md-12">
@@ -1001,100 +931,7 @@
                 </div>
             </div>
         </div>
-
-        <!-- Products Section -->
-        @if (isset($product->product_details) && $product->product_details->count() > 0)
-            <div class="modern-card">
-                <div class="modern-card-body" style="padding: 0; background: transparent;">
-                    <div style="background: #005555; padding: 20px 24px; border-radius: 12px 12px 0 0;">
-                        <h4 style="color: white; font-weight: 700; font-size: 20px; margin: 0;"><i
-                                class="fas fa-box-open mr-2"></i>{{ translate('Products A') }}</h4>
-                    </div>
-                    <div class="modern-card-body">
-                        <div class="table-responsive">
-                            <table class="products-table">
-                                <thead>
-                                    <tr>
-                                        <th><i class="fas fa-hashtag mr-2"></i>ID</th>
-                                        <th><i class="fas fa-tag mr-2"></i>Name</th>
-                                        <th><i class="fas fa-dollar-sign mr-2"></i>Price</th>
-                                        <th><i class="fas fa-align-left mr-2"></i>Description</th>
-                                        <th><i class="fas fa-warehouse mr-2"></i>Stock</th>
-                                        <th><i class="fas fa-leaf mr-2"></i>Organic</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach ($product->product_details as $prod)
-                                        <tr>
-                                            <td><span class="badge-custom badge-primary">{{ $prod->id }}</span></td>
-                                            <td><strong>{{ $prod->name ?? 'N/A' }}</strong></td>
-                                            <td><strong style="color: #388e3c;">${{ $prod->price ?? 'N/A' }}</strong></td>
-                                            <td>{{ $prod->description ?? 'N/A' }}</td>
-                                            <td><span class="badge-custom badge-info">{{ $prod->stock ?? 'N/A' }}</span>
-                                            </td>
-                                            <td>
-                                                @if ($prod->organic)
-                                                    <span class="badge-custom badge-success"><i
-                                                            class="fas fa-check mr-1"></i>Yes</span>
-                                                @else
-                                                    <span class="badge-custom badge-warning"><i
-                                                            class="fas fa-times mr-1"></i>No</span>
-                                                @endif
-                                            </td>
-                                        </tr>
-                                    @endforeach
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-        @endif
-
-        <!-- Products B Section -->
-        <!-- Products B Section -->
-        @if (isset($product->product_details_b) && $product->product_details_b->count() > 0)
-            <div class="modern-card">
-                <div class="modern-card-header" style="background: linear-gradient(135deg, #059669 0%, #047857 100%);">
-                    <h4><i class="fas fa-boxes"></i> {{ translate('Products B') }}</h4>
-                </div>
-                <div class="modern-card-body">
-                    <div class="table-responsive">
-                        <table class="products-table">
-                            <thead>
-                                <tr>
-                                    <th><i class="fas fa-hashtag mr-2"></i>ID</th>
-                                    <th><i class="fas fa-tag mr-2"></i>Name</th>
-                                    <th><i class="fas fa-dollar-sign mr-2"></i>Price</th>
-                                    <th><i class="fas fa-align-left mr-2"></i>Description</th>
-                                    <th><i class="fas fa-warehouse mr-2"></i>Stock</th>
-                                    <th><i class="fas fa-leaf mr-2"></i>Organic</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach ($product->product_details_b as $prod)
-                                    <tr>
-                                        <td><span class="badge-custom badge-primary">{{ $prod->id }}</span></td>
-                                        <td><strong>{{ $prod->name ?? 'N/A' }}</strong></td>
-                                        <td><strong style="color: #388e3c;">${{ $prod->price ?? 'N/A' }}</strong></td>
-                                        <td>{{ $prod->description ?? 'N/A' }}</td>
-                                        <td><span class="badge-custom badge-info">{{ $prod->stock ?? 'N/A' }}</span></td>
-                                        <td>
-                                            @if ($prod->organic)
-                                                <span class="badge-custom badge-success"><i
-                                                        class="fas fa-check mr-1"></i>Yes</span>
-                                            @else
-                                                <span class="badge-custom badge-warning"><i
-                                                        class="fas fa-times mr-1"></i>No</span>
-                                            @endif
-                                        </td>
-                                    </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        @endif
+     
     </div>
 
     {{-- Add Quantity Modal --}}
@@ -1127,19 +964,6 @@
             </div>
         </div>
     </div>
-
-
-
-
-
-
-
-
-
-
-
-
-
 @endsection
 
 @push('script_2')

@@ -285,6 +285,7 @@ class VoucherController extends Controller
             $item->price = $request->price ?? 0;
             $item->discount_type = $request->discount_type;
             $item->discount = $request->discount;
+            $item->offer_type = $request->offer_type;
             $item->store_id = $request->store_id;
             $item->name = $request->voucher_title;
             $item->description = $request->description;
@@ -453,9 +454,9 @@ class VoucherController extends Controller
             $item->is_halal = $request->is_halal ?? 0;
             $item->discount_type = $request->discount_type ?? 0;
             $item->save();
-                dd("Flat discount");
+
             return response()->json(['success' => translate('messages.voucher_created_successfully')], 200);
-        
+
         } else if ($type_name == "Gift") {
 
 
@@ -543,11 +544,10 @@ class VoucherController extends Controller
             $item->usage_restrictions = json_encode($request->usage_restrictions ?? []);
             $item->blackout_dates = json_encode($request->blackout_dates ?? []);
             $item->save();
-          
+
             return response()->json(['success' => translate('messages.voucher_created_successfully')], 200);
         }
     }
-
     public function view_voucher($id)
     {
         $taxData = Helpers::getTaxSystemType();
@@ -572,11 +572,7 @@ class VoucherController extends Controller
 
             $product->sub_categories = Category::whereIn('parent_id', $sub_ids)->get();
         }
-        if (!empty($product->branch_ids)) {
-            $branch_ids = json_decode($product->branch_ids, true);
-            $product->branches = Brand::whereIn('id', $branch_ids)->get();
-        }
-        //   dd();
+
         if (!empty($product->how_and_condition_ids)) {
             $how_ids = json_decode($product->how_and_condition_ids, true);
             $product->how_conditions = WorkManagement::whereIn('id', $how_ids)->get();
@@ -597,78 +593,59 @@ class VoucherController extends Controller
             $product->product_details_b = item::whereIn('id', $productIds)->get();
         }
         // dd($product->id);
-        // if (!empty($product->id)) {
-        //       $product->VoucherSetting = VoucherSetting::where('item_id', $product->id)->first();
-        // }
-        //   dd($product->VoucherSetting);
-        // if(!empty($product->VoucherSetting->holidays_occasions)){
-        //       $product->HolidayOccasion = VoucherSetting::where('', $product->VoucherSetting->holidays_occasions)->get();
-        // }
+        if (!empty($product->store_id)) {
+            $product->store = Store::where('id', $product->store_id)->first();
+        }
 
-        //  if(!empty($product->VoucherSetting->custom_blackout_dates)){
-        //       $product->VoucherSetting = CustomBlackoutData::where('', $product->VoucherSetting->custom_blackout_dates)->get();
-        // }
-        //  if(!empty($product->VoucherSetting->general_restrictions)){
-        //       $product->VoucherSetting = GeneralRestriction::where('', $product->VoucherSetting->general_restrictions)->get();
-        // }
-
+        $branchIds = json_decode($product->branch_ids, true);
+        $product->branches = Store::whereIn('parent_id', $branchIds)
+            ->orWhereIn('id', $branchIds)
+            ->where('status', 1)
+            ->orderBy('created_at')
+            ->select('id', 'name', 'type')
+            ->get();
 
         if (!empty($product->id)) {
+            $product->VoucherSetting = VoucherSetting::where('item_id', $product->id)->first();
 
-            // Get voucher setting (may be null)
-            $voucherSetting = VoucherSetting::where('item_id', $product->id)->first();
+            if (!empty($product->VoucherSetting)) {
+                // Decode JSON fields if needed
+                $holidays = $product->VoucherSetting->holidays_occasions;
+                if (is_string($holidays)) {
+                    $holidays = json_decode($holidays, true);
+                }
 
-            // Attach it (optional)
-            $product->VoucherSetting = $voucherSetting;
+                $blackoutDates = $product->VoucherSetting->custom_blackout_dates;
+                if (is_string($blackoutDates)) {
+                    $blackoutDates = json_decode($blackoutDates, true);
+                }
 
-            // -----------------------------
-            // Holidays Occasions
-            // -----------------------------
-            $holidays = optional($voucherSetting)->holidays_occasions;
+                $generalRestrictions = $product->VoucherSetting->general_restrictions;
+                if (is_string($generalRestrictions)) {
+                    $generalRestrictions = json_decode($generalRestrictions, true);
+                }
 
-            if (is_string($holidays)) {
-                $holidays = json_decode($holidays, true);
+                // Query related models.  
+                $product->HolidayOccasion = !empty($holidays)
+                    ? HolidayOccasion::whereIn('id', $holidays)->get()
+                    : collect();
+
+                $product->CustomBlackoutDates = !empty($blackoutDates)
+                    ? CustomBlackoutData::whereIn('id', $blackoutDates)->get()
+                    : collect();
+
+                $product->GeneralRestrictions = !empty($generalRestrictions)
+                    ? GeneralRestriction::whereIn('id', $generalRestrictions)->get()
+                    : collect();
+            } else {
+                // VoucherSetting null hai, empty collections assign karo
+                $product->HolidayOccasion = collect();
+                $product->CustomBlackoutDates = collect();
+                $product->GeneralRestrictions = collect();
             }
-
-            $holidays = is_array($holidays) ? $holidays : [];
-
-            // -----------------------------
-            // Custom Blackout Dates
-            // -----------------------------
-            $blackoutDates = optional($voucherSetting)->custom_blackout_dates;
-
-            if (is_string($blackoutDates)) {
-                $blackoutDates = json_decode($blackoutDates, true);
-            }
-
-            $blackoutDates = is_array($blackoutDates) ? $blackoutDates : [];
-
-            // -----------------------------
-            // General Restrictions
-            // -----------------------------
-            $generalRestrictions = optional($voucherSetting)->general_restrictions;
-
-            if (is_string($generalRestrictions)) {
-                $generalRestrictions = json_decode($generalRestrictions, true);
-            }
-
-            $generalRestrictions = is_array($generalRestrictions) ? $generalRestrictions : [];
-
-            // -----------------------------
-            // Query related models safely
-            // -----------------------------
-            $product->HolidayOccasion = !empty($holidays)
-                ? HolidayOccasion::whereIn('id', $holidays)->get()
-                : collect();
-
-            $product->CustomBlackoutDates = !empty($blackoutDates)
-                ? CustomBlackoutData::whereIn('id', $blackoutDates)->get()
-                : collect();
-
-            $product->GeneralRestrictions = !empty($generalRestrictions)
-                ? GeneralRestriction::whereIn('id', $generalRestrictions)->get()
-                : collect();
         }
+
+
 
         // dd($product);
 
@@ -677,7 +654,6 @@ class VoucherController extends Controller
 
         return view('admin-views.voucher.view_voucher', compact('product', 'reviews', 'productWiseTax'));
     }
-
 
     public function view($id)
     {
