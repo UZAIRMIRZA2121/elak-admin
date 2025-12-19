@@ -268,10 +268,8 @@
                     </div>
                 </div>
 
-
                   <!-- Client Info Section -->
                <div class="row mt-4"> 
-
                     <div class="col-md-12">
                         @if ($product->clients()->isNotEmpty() || $product->apps()->isNotEmpty() || $product->segments()->isNotEmpty())
                             <h5 class="section-title mb-3"><i class="fas fa-cogs mr-2"></i> Client Info</h5>
@@ -466,9 +464,6 @@
                         </table>
                     </div>
                 </div>
-
-
-
 
                  <div class="row mt-4">
                     <div class="col-md-12">
@@ -844,8 +839,6 @@
                         @endif
                     </div>
                 </div>
-
-
                 
                 <div class="row mt-4">
                     <!-- Terms & Conditions Section - Right Column -->

@@ -91,7 +91,7 @@
                         </div>
 
                         {{-- panel1 --}}
-                        <div class="col-12 mt-5" id="panel1">
+                        <!-- <div class="col-12 mt-5" id="panel1">
                             <div class="row g-3 bundle_div" style="display:none;">
                                 <div id="bundleConfigSection" class="bundle-config-section show my-4">
                                     <div id="configContent"><h4> Bundle Configuration</h4>
@@ -104,10 +104,8 @@
                                     </div>
                                 </div>
                                 <div class="card border-0 shadow-sm">
-                                    <!-- Group Product Bundle Configuration -->
                                     <div class="p-3 bg-white mb-4">
                                         <h4 class="mb-3"> Group Product Bundle</h4>
-                                        <!-- Bundle Products -->
                                         <div class="row">
                                             <div class="col-md-6 mt-3">
                                                 <label class="form-label">Bundle Discount Type</label>
@@ -134,7 +132,6 @@
                             </div>
                             <div class="row g-3 bogo_free_div" style="display:none;">
                                 <div class="card border-0 shadow-sm">
-                                    <!-- BOGO Configuration -->
                                     <div class="p-3 bg-white mb-4">
                                         <h4 class="mb-3"> BOGO Configuration</h4>
                                         <div class="row">
@@ -175,7 +172,6 @@
                                     </div>
                                 </div>
                                 <div class="card border-0 shadow-sm">
-                                    <!-- Mix and Match Collection -->
                                     <div class="p-3 bg-white mb-4">
                                         <h4 class="mb-3">🔀 Mix and Match Collection</h4>
                                         <div class="row">
@@ -193,7 +189,6 @@
                                                     </select>
                                                 </div>
                                             </div>
-                                            <!-- 3-column grid -->
                                             <div class="col-md-4 mt-3">
                                                 <label class="form-label">Buy Quantity</label>
                                                 <input
@@ -234,7 +229,7 @@
                                     </div>
                                 </div>
                             </div>
-                        </div>
+                        </div> -->
 
                         {{-- tags --}}
                         <div class="col-12 mt-3">
@@ -521,11 +516,10 @@
                                 </div>
                             </div>
                             <!-- Example divs to show/hide panel2 -->
-                            <div class="col-12 mt-4" id="panel2">
+                            <!-- <div class="col-12 mt-4" id="panel2">
                                 <div class="row g-3 bogo_free_div" style="display:none;">
                                     <div class="card border-0 shadow-sm">
                                         <h4 class="card-title mb-4"> Bundle Pricing Configuration</h4>
-                                        <!-- BOGO Section -->
                                         <div class="mb-4">
                                             <h5 class="text-muted mb-3"> BOGO Pricing Settings</h5>
                                             <div class="p-3 bg-white border rounded">
@@ -533,9 +527,7 @@
                                                     For BOGO offers, set the regular price for one item.
                                                     The system will automatically apply the free item.
                                                 </p>
-                                                <!-- Grid System -->
                                                 <div class="row g-3">
-                                                    <!-- Regular Item Price -->
                                                     <div class="col-md-6">
                                                         <label class="form-label">Regular Item Price</label>
                                                         <div class="input-group">
@@ -550,7 +542,6 @@
                                                             >
                                                         </div>
                                                     </div>
-                                                    <!-- Total Available Sets -->
                                                     <div class="col-md-6">
                                                         <label class="form-label">Total Available Sets</label>
                                                         <input
@@ -564,19 +555,15 @@
                                                 </div>
                                             </div>
                                         </div>
-                                        <!-- /BOGO Section -->
                                     </div>
                                 </div>
                                 <div class="row g-3 bundle_div" style="display:none;">
                                     <div class="card border-0 shadow-sm">
                                         <h4 class="card-title mb-4"> Bundle Pricing Configuration</h4>
-                                        <!-- Group Product Bundle Section -->
                                         <div class="mb-4">
                                             <h5 class="text-muted mb-3"> Group Product Bundle Pricing</h5>
                                             <div class="p-3 bg-white border rounded">
-                                                <!-- Grid System -->
                                                 <div class="row g-3">
-                                                    <!-- Individual Items Total -->
                                                     <div class="col-md-6">
                                                     <label class="form-label">Individual Items Total</label>
                                                     <div class="input-group">
@@ -592,7 +579,6 @@
                                                     </div>
                                                     </div>
 
-                                                    <!-- Bundle Discount (%) -->
                                                     <div class="col-md-6">
                                                     <label class="form-label">Bundle Discount (%)</label>
                                                     <input
@@ -606,7 +592,6 @@
                                                     </div>
                                                 </div>
 
-                                                <!-- Bundle Summary -->
                                                 <div class="mt-4 p-3 bg-light border rounded">
                                                     <p class="small fw-bold mb-1"> Bundle Summary:</p>
                                                     <p class="small text-muted mb-1">
@@ -619,7 +604,6 @@
                                                     </p>
                                                 </div>
 
-                                                <!-- Available Bundles -->
                                                 <div class="mt-4">
                                                     <label class="form-label">Available Bundles</label>
                                                     <input
@@ -632,19 +616,15 @@
                                                 </div>
                                             </div>
                                         </div>
-                                        <!-- /Group Product Bundle Section -->
                                     </div>
                                 </div>
                                 <div class="row g-3 mix_match_div" style="display:none;">
                                     <div class="card border-0 shadow-sm">
                                         <h4 class="card-title mb-4"> Bundle Pricing Configuration</h4>
-                                        <!-- Mix & Match Section -->
                                         <div class="mb-4">
                                             <h5 class="text-muted mb-3"> Mix and Match Pricing</h5>
                                             <div class="p-3 bg-white border rounded">
-                                                <!-- Grid System -->
                                                 <div class="row g-3">
-                                                    <!-- Regular Price Each -->
                                                     <div class="col-md-4">
                                                         <label class="form-label">Regular Price Each</label>
                                                         <div class="input-group">
@@ -659,7 +639,6 @@
                                                             >
                                                         </div>
                                                     </div>
-                                                    <!-- Mix & Match Discount -->
                                                     <div class="col-md-4">
                                                         <label class="form-label">Mix &amp; Match Discount</label>
                                                         <div class="input-group">
@@ -674,7 +653,6 @@
                                                             >
                                                         </div>
                                                     </div>
-                                                    <!-- Required Quantity -->
                                                     <div class="col-md-4">
                                                         <label class="form-label">Required Quantity</label>
                                                         <input
@@ -686,7 +664,6 @@
                                                         >
                                                     </div>
                                                 </div>
-                                                <!-- Mix & Match Summary -->
                                                 <div class="mt-4 p-3 bg-light border rounded">
                                                     <p class="small fw-bold mb-1">Mix & Match Summary:</p>
                                                     <p class="small text-muted mb-1">
@@ -700,10 +677,9 @@
                                                 </div>
                                             </div>
                                         </div>
-                                        <!-- /Mix & Match Section -->
                                     </div>
                                 </div>
-                            </div>
+                            </div> -->
                         </div>
                     </div>
 

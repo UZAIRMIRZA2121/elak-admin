@@ -45,9 +45,10 @@ class VoucherSettingController extends Controller
             return view('admin-views.voucher_setting.index', compact('VoucherSetting','HolidayOccasion','GeneralRestriction'));
         }
 
-
+//   voucher setting insert  or update
         public function index(Request $request, $id)
         {
+            // dd($id);
             $items = item::findOrFail($id);
 
             $days = [
@@ -60,80 +61,74 @@ class VoucherSettingController extends Controller
                 7 => 'sunday'
             ];
 
-            // Use first() instead of findOrFail() to avoid exception
-            $StoreSchedule = StoreSchedule::where('store_id', $items->store_id)->first();
+                    // Use first() instead of findOrFail() to avoid exception
+                    $StoreSchedule = StoreSchedule::where('store_id', $items->store_id)->first();
 
-            if ($StoreSchedule) {
-                // Convert day number to string
-                $dayKey = $days[$StoreSchedule->day] ?? null;
+                    if ($StoreSchedule) {
+                        // Convert day number to string
+                        $dayKey = $days[$StoreSchedule->day] ?? null;
 
-                // 24-hour format for <input type="time">
-                $opening = date("H:i", strtotime($StoreSchedule->opening_time));
-                $closing = date("H:i", strtotime($StoreSchedule->closing_time));
+                        // 24-hour format for <input type="time">
+                        $opening = date("H:i", strtotime($StoreSchedule->opening_time));
+                        $closing = date("H:i", strtotime($StoreSchedule->closing_time));
 
-                // Working hours array
-                $working_hours = [
-                    $dayKey => [
-                        "start" => $opening,
-                        "end"   => $closing,
-                    ]
-                ];
-            } else {
-                // If store schedule doesn't exist, set empty array
-                $working_hours = [];
-            }
+                        // Working hours array
+                        $working_hours = [
+                            $dayKey => [
+                                "start" => $opening,
+                                "end"   => $closing,
+                            ]
+                        ];
+                    } else {
+                        // If store schedule doesn't exist, set empty array
+                        $working_hours = [];
+                    }
 
             $VoucherSetting = VoucherSetting::where("item_id", $items->id)->first();
-            if (!empty($VoucherSetting)) {
-                $check_data = 1;  // data exists
 
-                // $validityPeriod = json_decode($VoucherSetting->validity_period, true) ?? [];
-                // $specificDays = json_decode($VoucherSetting->specific_days_of_week, true) ?? [];
-                // $holidays = json_decode($VoucherSetting->holidays_occasions, true) ?? [];
-                // $custom_blackout_dates = json_decode($VoucherSetting->custom_blackout_dates, true) ?? [];
-                // $userLimit = json_decode($VoucherSetting->usage_limit_per_user, true) ?? [];
-                // $storeLimit = json_decode($VoucherSetting->usage_limit_per_store, true) ?? [];
-                // $generalRestrictions = json_decode($VoucherSetting->general_restrictions, true) ?? [];
+                    if (!empty($VoucherSetting)) {
+                        $check_data = 1;  // data exists
 
-                $validityPeriod = is_string($VoucherSetting->validity_period) 
-                  ? json_decode($VoucherSetting->validity_period, true) 
-                  : ($VoucherSetting->validity_period ?? []);
+                    
+                        $validityPeriod = is_string($VoucherSetting->validity_period) 
+                        ? json_decode($VoucherSetting->validity_period, true) 
+                        : ($VoucherSetting->validity_period ?? []);
 
-                $specificDays = is_string($VoucherSetting->specific_days_of_week) 
-                                ? json_decode($VoucherSetting->specific_days_of_week, true) 
-                                : ($VoucherSetting->specific_days_of_week ?? []);
+                        $specificDays = is_string($VoucherSetting->specific_days_of_week) 
+                                        ? json_decode($VoucherSetting->specific_days_of_week, true) 
+                                        : ($VoucherSetting->specific_days_of_week ?? []);
 
-                $holidays = is_string($VoucherSetting->holidays_occasions) 
-                                ? json_decode($VoucherSetting->holidays_occasions, true) 
-                                : ($VoucherSetting->holidays_occasions ?? []);
+                        $holidays = is_string($VoucherSetting->holidays_occasions) 
+                                        ? json_decode($VoucherSetting->holidays_occasions, true) 
+                                        : ($VoucherSetting->holidays_occasions ?? []);
 
-                $custom_blackout_dates = is_string($VoucherSetting->custom_blackout_dates) 
-                                ? json_decode($VoucherSetting->custom_blackout_dates, true) 
-                                : ($VoucherSetting->custom_blackout_dates ?? []);
+                        $custom_blackout_dates = is_string($VoucherSetting->custom_blackout_dates) 
+                                        ? json_decode($VoucherSetting->custom_blackout_dates, true) 
+                                        : ($VoucherSetting->custom_blackout_dates ?? []);
 
-                $userLimit = is_string($VoucherSetting->usage_limit_per_user) 
-                                ? json_decode($VoucherSetting->usage_limit_per_user, true) 
-                                : ($VoucherSetting->usage_limit_per_user ?? []);
+                        $userLimit = is_string($VoucherSetting->usage_limit_per_user) 
+                                        ? json_decode($VoucherSetting->usage_limit_per_user, true) 
+                                        : ($VoucherSetting->usage_limit_per_user ?? []);
 
-                $storeLimit = is_string($VoucherSetting->usage_limit_per_store) 
-                                ? json_decode($VoucherSetting->usage_limit_per_store, true) 
-                                : ($VoucherSetting->usage_limit_per_store ?? []);
+                        $storeLimit = is_string($VoucherSetting->usage_limit_per_store) 
+                                        ? json_decode($VoucherSetting->usage_limit_per_store, true) 
+                                        : ($VoucherSetting->usage_limit_per_store ?? []);
 
-                $generalRestrictions = is_string($VoucherSetting->general_restrictions) 
-                                ? json_decode($VoucherSetting->general_restrictions, true) 
-                                : ($VoucherSetting->general_restrictions ?? []);
+                        $generalRestrictions = is_string($VoucherSetting->general_restrictions) 
+                                        ? json_decode($VoucherSetting->general_restrictions, true) 
+                                        : ($VoucherSetting->general_restrictions ?? []);
 
-            } else {
-                $check_data = 0; // no data
+                    } else {
+                        $check_data = 0; // no data
 
-                $validityPeriod = [];
-                $specificDays = [];
-                $holidays = [];
-                $custom_blackout_dates = [];
-                $userLimit = [];
-                $storeLimit = [];
-                $generalRestrictions = [];
-            }
+                        $validityPeriod = [];
+                        $specificDays = [];
+                        $holidays = [];
+                        $custom_blackout_dates = [];
+                        $userLimit = [];
+                        $storeLimit = [];
+                        $generalRestrictions = [];
+                    }
 
             $search = $request->input('search');
             $CustomBlackoutData = CustomBlackoutData::get();
@@ -144,6 +139,8 @@ class VoucherSettingController extends Controller
             $UsagePeriod = UsagePeriod::get();
             $OfferValidatyPeroid = OfferValidatyPeroid::get();
 
+            // dd($VoucherSettings);
+
             $VoucherSettings = VoucherSetting::query()
                 ->when($search, function ($q) use ($search) {
                     $q->where('validity_period', 'like', "%{$search}%");
@@ -151,26 +148,29 @@ class VoucherSettingController extends Controller
                 ->orderBy('validity_period', 'asc')
                 ->paginate(config('default_pagination'));
 
-            return view('admin-views.voucher_setting.add', compact(
-                'VoucherSetting',
-                'CustomBlackoutData',
-                'HolidayOccasion',
-                'GeneralRestriction',
-                'AgeRestrictin',
-                'GroupSizeRequirement',
-                'UsagePeriod',
-                'OfferValidatyPeroid',
-                'items',
-                'check_data',
-                'custom_blackout_dates',
-                'validityPeriod',
-                'specificDays',
-                'holidays',
-                'userLimit',
-                'storeLimit',
-                'generalRestrictions',
-                'working_hours'
-            ));
+            // dd($VoucherSetting->group_size_requirement);
+
+
+                return view('admin-views.voucher_setting.add', compact(
+                    'VoucherSetting',
+                    'CustomBlackoutData',
+                    'HolidayOccasion',
+                    'GeneralRestriction',
+                    'AgeRestrictin',
+                    'GroupSizeRequirement',
+                    'UsagePeriod',
+                    'OfferValidatyPeroid',
+                    'items',
+                    'check_data',
+                    'custom_blackout_dates',
+                    'validityPeriod',
+                    'specificDays',
+                    'holidays',
+                    'userLimit',
+                    'storeLimit',
+                    'generalRestrictions',
+                    'working_hours'
+                ));
         }
 
 
@@ -184,7 +184,7 @@ class VoucherSettingController extends Controller
 
         // Voucher_id aaya hai?
         $item_id = $request->item_id;
-
+        // dd($item_id);
         // If record exists → UPDATE
         // If not exists → INSERT
         $VoucherSetting = VoucherSetting::updateOrCreate(
@@ -194,8 +194,12 @@ class VoucherSettingController extends Controller
                 'specific_days_of_week' => json_encode($request->working_hours ?? []),
                 'holidays_occasions' => json_encode($request->exclude_national ?? []),
                 'custom_blackout_dates' => json_encode($request->custom_blackout_dates ?? []),
-                'age_restriction' => $request->age_restriction ?? null,
-                'group_size_requirement' => $request->group_size ?? null,
+                // 'age_restriction' =>  json_encode($request->age_restriction ?? []), 
+                // 'group_size_requirement' =>  json_encode($request->group_size ?? []),  
+                'age_restriction' =>  json_encode($request->age_restriction ?? []), 
+                'group_size_requirement' =>  json_encode($request->group_size ?? []),  
+                // Store
+
                 'usage_limit_per_user' => json_encode($request->user_limit ?? []),
                 'usage_limit_per_store' => json_encode($request->store_limit ?? []),
                 'offer_validity_after_purchase' => $request->validity_after ?? null,
@@ -209,92 +213,6 @@ class VoucherSettingController extends Controller
     }
 
 
-
-    // public function edit($id)
-    // {
-    //     $VoucherSetting = VoucherSetting::where('id', $id)->first();
-    //     $HolidayOccasion = HolidayOccasion::get();
-    //     $GeneralRestriction = GeneralRestriction::get();
-
-    //     // JSON data ko decode karo
-    //     $validityPeriod = json_decode($VoucherSetting->validity_period, true);
-    //     $specificDays = json_decode($VoucherSetting->specific_days_of_week, true);
-    //     $holidays = json_decode($VoucherSetting->holidays_occasions, true);
-    //     $custom_blackout_dates = json_decode($VoucherSetting->custom_blackout_dates, true);
-    //     $userLimit = json_decode($VoucherSetting->usage_limit_per_user, true);
-    //     $storeLimit = json_decode($VoucherSetting->usage_limit_per_store, true);
-    //     $generalRestrictions = json_decode($VoucherSetting->general_restrictions, true);
-
-    //     return view('admin-views.voucher_setting.edit', compact(
-    //         'VoucherSetting',
-    //         'HolidayOccasion',
-    //         'custom_blackout_dates',
-    //         'GeneralRestriction',
-    //         'validityPeriod',
-    //         'specificDays',
-    //         'holidays',
-    //         'userLimit',
-    //         'storeLimit',
-    //         'generalRestrictions'
-    //     ));
-    // }
-
-    // public function update(Request $request, $id)
-    // {
-    //     dd($request->all());
-    //         //  Validation
-    //         $request->validate([
-    //         'validity_period' => 'required|array', // expect array with start & end
-    //         'working_hours' => 'nullable|array',
-    //         'exclude_national' => 'nullable|array',
-    //         'custom_blackout_dates' => 'nullable|array',
-    //         'user_limit' => 'nullable|array',
-    //         'store_limit' => 'nullable|array',
-    //         'no_other_offers' => 'nullable|array',
-    //     ]);
-
-    //         //  Record find and update
-    //         $VoucherSetting = VoucherSetting::findOrFail($id);
-    //         $VoucherSetting->validity_period         = json_encode($request->validity_period);
-    //         $VoucherSetting->specific_days_of_week = json_encode($request->working_hours);
-    //         $VoucherSetting->specific_days_of_week         = json_encode($request->working_hours);
-    //         $VoucherSetting->holidays_occasions         = json_encode($request->exclude_national);
-    //         $VoucherSetting->custom_blackout_dates         = json_encode($request->custom_blackout_dates);
-    //         $VoucherSetting->age_restriction         = $request->age_restriction;
-    //         $VoucherSetting->group_size_requirement         = $request->group_size;
-    //         $VoucherSetting->voucher_id         = $id;
-    //         $VoucherSetting->usage_limit_per_user         = json_encode($request->user_limit);
-    //         $VoucherSetting->usage_limit_per_store         = json_encode($request->store_limit);
-    //         $VoucherSetting->offer_validity_after_purchase         = $request->validity_after;
-    //         $VoucherSetting->general_restrictions         = json_encode($request->no_other_offers);
-    //         $VoucherSetting->save();
-
-    //         Toastr::success(' Holiday & Occasion updated successfully');
-    //         return back();
-    // }
-
-
-    // public function delete(Request $request, $id)
-    // {
-    //     $VoucherSetting = VoucherSetting::findOrFail($id);
-
-    //     $VoucherSetting->delete();
-
-    //     Toastr::success(' Holiday & Occasion deleted successfully');
-    //     return back();
-    // }
-
-    // public function status( $id)
-    // {
-    //     $VoucherSetting = VoucherSetting::findOrFail($id);
-    //     // dd($VoucherSetting);
-    //     // agar active hai to inactive karo, warna active karo
-    //     $VoucherSetting->status = $VoucherSetting->status === 'active' ? 'inactive' : 'active';
-    //     $VoucherSetting->save();
-    //     Toastr::success(' Holiday & Occasion Status successfully  '.$VoucherSetting->status);
-    //     return back();
-
-    // }
 
 
       public function add_setting(Request $request)

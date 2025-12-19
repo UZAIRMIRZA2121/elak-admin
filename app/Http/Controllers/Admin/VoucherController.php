@@ -194,7 +194,6 @@ class VoucherController extends Controller
         ]);
     }
 
-
     function normalizeArray($data)
     {
         if (is_array($data)) {
@@ -208,7 +207,7 @@ class VoucherController extends Controller
 
         return [];
     }
-public function store(Request $request)
+   public function store(Request $request)
     {
 
         // dd($request->all());
@@ -570,11 +569,7 @@ public function store(Request $request)
 
             $product->sub_categories = Category::whereIn('parent_id', $sub_ids)->get();
         }
-        // if (!empty($product->branch_ids)) {
-        //     $branch_ids = json_decode($product->branch_ids, true);
-        //     $product->branches = Brand::whereIn('id', $branch_ids)->get();
-        // }
-        //   dd();
+     
         if (!empty($product->how_and_condition_ids)) {
             $how_ids = json_decode($product->how_and_condition_ids, true);
             $product->how_conditions = WorkManagement::whereIn('id', $how_ids)->get();
@@ -606,19 +601,6 @@ public function store(Request $request)
             ->orderBy('created_at')
             ->select('id', 'name', 'type')
             ->get();
-
-    //    dd($product->branches);
-        //   dd($product->VoucherSetting);
-        // if(!empty($product->VoucherSetting->holidays_occasions)){
-        //       $product->HolidayOccasion = VoucherSetting::where('', $product->VoucherSetting->holidays_occasions)->get();
-        // }
-
-        //  if(!empty($product->VoucherSetting->custom_blackout_dates)){
-        //       $product->VoucherSetting = CustomBlackoutData::where('', $product->VoucherSetting->custom_blackout_dates)->get();
-        // }
-        //  if(!empty($product->VoucherSetting->general_restrictions)){
-        //       $product->VoucherSetting = GeneralRestriction::where('', $product->VoucherSetting->general_restrictions)->get();
-        // }
 
         if (!empty($product->id)) {
                 $product->VoucherSetting = VoucherSetting::where('item_id', $product->id)->first();
@@ -670,7 +652,6 @@ public function store(Request $request)
         return view('admin-views.voucher.view_voucher', compact('product', 'reviews', 'productWiseTax'));
     }
 
-
     public function view($id)
     {
         $taxData = Helpers::getTaxSystemType();
@@ -680,7 +661,6 @@ public function store(Request $request)
         $reviews = Review::where(['item_id' => $id])->latest()->paginate(config('default_pagination'));
         return view('admin-views.voucher.view', compact('product', 'reviews', 'productWiseTax'));
     }
-
 
     public function edit(Request $request, $id)
     {
@@ -709,7 +689,6 @@ public function store(Request $request)
         $productWiseTax = $taxData['productWiseTax'];
         $taxVats = $taxData['taxVats'];
         $taxVatIds = $productWiseTax ? $product->taxVats()->pluck('tax_id')->toArray() : [];
-
 
         return view('admin-views.voucher.edit', compact('product', 'sub_category', 'category', 'temp_product', 'productWiseTax', 'taxVats', 'taxVatIds'));
     }
@@ -903,8 +882,6 @@ public function store(Request $request)
             }
         }
         //combinations end
-
-
 
         $food_variations = [];
         if (isset($request->options)) {

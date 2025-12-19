@@ -32,6 +32,8 @@ class VoucherSetting extends Model
             'usage_limit_per_user' => 'array',
             'usage_limit_per_store' => 'array',
             'general_restrictions' => 'array',
+            'age_restriction' => 'array',
+            'group_size_requirement' => 'array',
         ];
 
     }

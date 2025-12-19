@@ -8409,4 +8409,6 @@ Smartly or Earn. ',
   'Minimum value can not be greater then maximum value' => 'Minimum value can not be greater then maximum value',
   'Please add more options or change the max value forEmmanuel Gonzalez' => 'Please add more options or change the max value forEmmanuel Gonzalez',
   'The categories field is required.' => 'The categories field is required.',
+  'Age Restriction' => 'Age Restriction',
+  'Group Size Requirement' => 'Group Size Requirement',
 );

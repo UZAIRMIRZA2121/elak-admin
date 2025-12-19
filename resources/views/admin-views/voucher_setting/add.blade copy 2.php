@@ -183,7 +183,7 @@
                   <div class="card-body">
                     <form action="{{route('admin.VoucherSetting.store')}}" method="post" id="conditionsForm">
                         @csrf
-                         <input type="hidden" name="item_id" value="{{ request()->route('id') }}">
+
                         <div class="row">
                             <!-- LEFT SIDE - FORM -->
                             <div class="col-lg-7">
@@ -534,37 +534,31 @@
 
                                         <!-- Age Restriction -->
 
-                                          <div class="form-group">
-                                        <div class="form-group mb-0">
-                                            <label class="input-label"
-                                                for="age_restriction">{{ translate('Age Restriction') }}
-                                            </label>
-                                            <!-- Dropdown: Only Percent & Fixed -->
-                                            <select name="age_restriction[]" id="ageRestriction"  class="form-control js-select2-custom" multiple>
-                                              <option value="">No requirement</option>
-                                            @foreach ($AgeRestrictin as $item)
+
+                                        <!-- Group Size -->
+                                        <div class="form-group">
+                                            <label>No Age Restriction</label>
+
+                                            <select class="form-control" name="age_restriction[]" id="ageRestriction" multiple>
+                                                <option value="">No requirement</option>
+                                                @foreach ($AgeRestrictin as $item)
                                                 <option value="{{ $item->id}}"> {{ $item->name_en}}</option>
                                                  @endforeach
                                             </select>
                                         </div>
-                                    </div>
 
-                                           <div class="form-group">
-                                        <div class="form-group mb-0">
-                                            <label class="input-label"
-                                                for="group_size">{{ translate('Group Size Requirement') }}
-                                            </label>
-                                            <!-- Dropdown: Only Percent & Fixed -->
-                                            <select name="group_size[]" id="groupSize"  class="form-control js-select2-custom" multiple>
-                                                   <option value="">No requirement</option>
-                                                      @foreach ($GroupSizeRequirement as $item)
+
+                                        <!-- Group Size -->
+                                        <div class="form-group">
+                                            <label>Group Size Requirement</label>
+
+                                            <select class="form-control" name="group_size[]" id="groupSize" multiple>
+                                                <option value="">No requirement</option>
+                                                @foreach ($GroupSizeRequirement as $item)
                                                 <option value="{{ $item->id}}"> {{ $item->name_en}}</option>
                                                  @endforeach
                                             </select>
                                         </div>
-                                    </div>
-
-                                  
 
                                         <!-- Usage Limit per User -->
                                         <div class="form-group">
@@ -710,8 +704,8 @@
                   <div class="card-body">
                     <form action="{{route('admin.VoucherSetting.store')}}" method="post" id="conditionsForm">
                         @csrf
-                             <!-- <input type="hidden" name="item_id" value="{{ request()->route('id') }}"> -->
-                              <input type="hidden" name="item_id" value="{{ $items->id }}">
+                             <input type="hidden" name="item_id" value="{{ request()->route('id') }}">
+
                         <div class="condition-header" >
                            <div class="condition-title">
                                <span>Voucher Name:</span> {{ $items->name}} ,
@@ -969,31 +963,42 @@
                                     <div class="collapse show condition-body" id="generalRestrictions">
 
                                   <!-- Age Restriction -->
-                                  <div class="form-group">
-                                        <label class="input-label" for="age_restriction">{{ translate('Age Restriction') }}</label>
-                                        <select name="age_restriction[]" id="ageRestriction_{{ $setting->id ?? '' }}"  
-                                                class="form-control js-select2-custom" multiple>
-                                            @foreach ($AgeRestrictin as $itemn)
-                                                <option value="{{ $itemn->id }}" 
-                                                    {{ in_array($itemn->id, $VoucherSetting->age_restriction ?? []) ? 'selected' : '' }}>
-                                                    {{ $itemn->name_en }}
-                                                </option>
-                                            @endforeach
-                                        </select>
+                                    <div class="form-group">
+                                        <div class="form-group mb-0">
+                                            <label class="input-label"
+                                                for="age_restriction">{{ translate('Age Restriction') }}
+                                            </label>
+                                            <!-- Dropdown: Only Percent & Fixed -->
+                                            <select name="age_restriction[]" id="ageRestriction_{{ $setting->id ?? '' }}"  class="form-control js-select2-custom" multiple>
+                                                      @foreach ($AgeRestrictin as $age)
+                                                    <option value="{{ $age->id }}"
+                                                        {{ $VoucherSetting->age_restriction == $age->id ? 'selected' : '' }}>
+                                                        {{ $age->name_en }}
+                                                    </option>
+                                                      @endforeach
+                                            </select>
+                                        </div>
                                     </div>
 
-                            <div class="form-group">
-                                <label class="input-label" for="group_size">{{ translate('Group Size Requirement') }}</label>
-                                <select name="group_size[]" id="groupSize" class="form-control js-select2-custom" multiple>
-                                    @foreach ($GroupSizeRequirement as $group)
-                                        <option value="{{ $group->id }}"
-                                            {{ in_array($group->id, $VoucherSetting->group_size_requirement ?? []) ? 'selected' : '' }}>
-                                            {{ $group->name_en }}
-                                        </option>
-                                    @endforeach
-                                </select>
-                            </div>
+                                           <div class="form-group">
+                                        <div class="form-group mb-0">
+                                            <label class="input-label"
+                                                for="group_size">{{ translate('Group Size Requirement') }}
+                                            </label>
+                                            <!-- Dropdown: Only Percent & Fixed -->
+                                            <select name="group_size[]" id="groupSize"  class="form-control js-select2-custom" multiple>
+                                                       @foreach ($GroupSizeRequirement as $group)
+                                                     <option value="{{ $group->id }}"
+                                                            {{ $VoucherSetting->group_size_requirement == $group->id ? 'selected' : '' }} >
+                                                            {{ $group->name_en }}
+                                                        </option>
+                                                      @endforeach
+                                            </select>
+                                        </div>
+                                    </div>
+                          
 
+                                    
 
                                         <!-- Usage Limit per User -->
                                         <div class="form-group">
