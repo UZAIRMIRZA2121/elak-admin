@@ -468,6 +468,7 @@ class ItemController extends Controller
                     $query->where('slug', $id);
                 })
                 ->first();
+         
 
             if (!$item) {
                 return response()->json([
@@ -496,32 +497,36 @@ class ItemController extends Controller
 
             $item = Helpers::product_data_formatting($item, false, true, app()->getLocale());
             $item['store_details'] = $store;
+  
+
+            if ($item['type'] == 'voucher') {
+                $item['product'] = $item->relatedProducts() ?? [];
+                $item['product_b'] = $item->relatedProductsB() ?? [];
+
+                // Send how_and_condition_ids as array
+                $item['how_it_works'] = $item->usageTerms() ?? [];
+                // Return full branch data
+                $item['branches'] = $item->branches(); // calls the method and returns collection
+
+                $settings = $item->voucherSetting;
+
+                $item['settings'] = $settings ? [
+                    'validity_period' => json_decode($settings->validity_period),
+                    'specific_days_of_week' => json_decode($settings->specific_days_of_week),
+                    'holidays_occasions' => $settings->holiday_occasions, // ← accessor here
+                    'custom_blackout_dates' => $settings->custom_blackout_dates, // full CustomBlackoutData objects
+                    'age_restriction' => (int) $settings->age_restriction,
+                    'group_size_requirement' => (int) $settings->group_size_requirement,
+                    'usage_limit_per_user' => json_decode($settings->usage_limit_per_user),
+                    'usage_limit_per_store' => json_decode($settings->usage_limit_per_store),
+                    'offer_validity_after_purchase' => (int) $settings->offer_validity_after_purchase,
+                    'general_restrictions' => json_decode($settings->general_restrictions),
+                    'status' => $settings->status,
+                ] : null;
+
+            }
 
 
-            $item['product'] = $item->relatedProducts() ?? [];
-            $item['product_b'] = $item->relatedProductsB() ?? [];
-
-            // Example: other fields can also be dynamic if needed
-            // Send how_and_condition_ids as array
-            $item['how_it_works'] = $item->usageTerms() ?? [];
-            // Return full branch data
-            $item['branches'] = $item->branches(); // calls the method and returns collection
-
-            $settings = $item->voucherSetting;
-
-            $item['settings'] = $settings ? [
-                'validity_period' => json_decode($settings->validity_period),
-                'specific_days_of_week' => json_decode($settings->specific_days_of_week),
-               'holidays_occasions' => $settings->holiday_occasions, // ← accessor here
-                 'custom_blackout_dates' => $settings->custom_blackout_dates, // full CustomBlackoutData objects
-                'age_restriction' => (int) $settings->age_restriction,
-                'group_size_requirement' => (int) $settings->group_size_requirement,
-                'usage_limit_per_user' => json_decode($settings->usage_limit_per_user),
-                'usage_limit_per_store' => json_decode($settings->usage_limit_per_store),
-                'offer_validity_after_purchase' => (int) $settings->offer_validity_after_purchase,
-                'general_restrictions' => json_decode($settings->general_restrictions),
-                'status' => $settings->status,
-            ] : null;
 
 
             return response()->json($item, 200);
