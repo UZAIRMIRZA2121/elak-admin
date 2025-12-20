@@ -194,7 +194,6 @@ class VoucherController extends Controller
         ]);
     }
 
-
     function normalizeArray($data)
     {
         if (is_array($data)) {
@@ -208,7 +207,7 @@ class VoucherController extends Controller
 
         return [];
     }
-    public function store(Request $request)
+   public function store(Request $request)
     {
 
         // dd($request->all());
@@ -280,7 +279,7 @@ class VoucherController extends Controller
             }
 
             $item = new Item;
-            $item->price = $request->price ?? 0;
+            $item->price = $request->product_real_price ?? 0;
             $item->discount_type = $request->discount_type;
             $item->discount = $request->discount;
             $item->offer_type = $request->offer_type;
@@ -570,7 +569,7 @@ class VoucherController extends Controller
 
             $product->sub_categories = Category::whereIn('parent_id', $sub_ids)->get();
         }
-
+     
         if (!empty($product->how_and_condition_ids)) {
             $how_ids = json_decode($product->how_and_condition_ids, true);
             $product->how_conditions = WorkManagement::whereIn('id', $how_ids)->get();
@@ -592,7 +591,7 @@ class VoucherController extends Controller
         }
         // dd($product->id);
         if (!empty($product->store_id)) {
-            $product->store = Store::where('id', $product->store_id)->first();
+              $product->store = Store::where('id', $product->store_id)->first();
         }
 
         $branchIds = json_decode($product->branch_ids, true);
@@ -606,40 +605,41 @@ class VoucherController extends Controller
         if (!empty($product->id)) {
             $product->VoucherSetting = VoucherSetting::where('item_id', $product->id)->first();
 
-            if (!empty($product->VoucherSetting)) {
-                // Decode JSON fields if needed
-                $holidays = $product->VoucherSetting->holidays_occasions;
-                if (is_string($holidays)) {
-                    $holidays = json_decode($holidays, true);
+                if (!empty($product->VoucherSetting)) {
+                    // Decode JSON fields if needed
+                    $holidays = $product->VoucherSetting->holidays_occasions;
+                    if (is_string($holidays)) {
+                        $holidays = json_decode($holidays, true);
+                    }
+
+                    $blackoutDates = $product->VoucherSetting->custom_blackout_dates;
+                    if (is_string($blackoutDates)) {
+                        $blackoutDates = json_decode($blackoutDates, true);
+                    }
+
+                    $generalRestrictions = $product->VoucherSetting->general_restrictions;
+                    if (is_string($generalRestrictions)) {
+                        $generalRestrictions = json_decode($generalRestrictions, true);
+                    }
+
+                    // Query related models.  
+                    $product->HolidayOccasion = !empty($holidays)
+                        ? HolidayOccasion::whereIn('id', $holidays)->get()
+                        : collect();
+
+                    $product->CustomBlackoutDates = !empty($blackoutDates)
+                        ? CustomBlackoutData::whereIn('id', $blackoutDates)->get()
+                        : collect();
+
+                    $product->GeneralRestrictions = !empty($generalRestrictions)
+                        ? GeneralRestriction::whereIn('id', $generalRestrictions)->get()
+                        : collect();
+                } else {
+                    // VoucherSetting null hai, empty collections assign karo
+                    $product->HolidayOccasion = collect();
+                    $product->CustomBlackoutDates = collect();
+                    $product->GeneralRestrictions = collect();
                 }
-
-                $blackoutDates = $product->VoucherSetting->custom_blackout_dates;
-                if (is_string($blackoutDates)) {
-                    $blackoutDates = json_decode($blackoutDates, true);
-                }
-
-                $generalRestrictions = $product->VoucherSetting->general_restrictions;
-                if (is_string($generalRestrictions)) {
-                    $generalRestrictions = json_decode($generalRestrictions, true);
-                }
-
-                // Query related models.  
-                $product->HolidayOccasion = !empty($holidays)
-                    ? HolidayOccasion::whereIn('id', $holidays)->get()
-                    : collect();
-
-                $product->CustomBlackoutDates = !empty($blackoutDates)
-                    ? CustomBlackoutData::whereIn('id', $blackoutDates)->get()
-                    : collect();
-
-                $product->GeneralRestrictions = !empty($generalRestrictions)
-                    ? GeneralRestriction::whereIn('id', $generalRestrictions)->get()
-                    : collect();
-            } else {
-                // VoucherSetting null hai, empty collections assign karo
-                $product->HolidayOccasion = collect();
-                $product->CustomBlackoutDates = collect();
-                $product->GeneralRestrictions = collect();
             }
         }
 
@@ -647,6 +647,9 @@ class VoucherController extends Controller
 
         // dd($product);
 
+            
+
+            // dd($product);
 
         $reviews = Review::where(['item_id' => $id])->latest()->paginate(config('default_pagination'));
 
@@ -662,7 +665,6 @@ class VoucherController extends Controller
         $reviews = Review::where(['item_id' => $id])->latest()->paginate(config('default_pagination'));
         return view('admin-views.voucher.view', compact('product', 'reviews', 'productWiseTax'));
     }
-
 
     public function edit(Request $request, $id)
     {
@@ -691,7 +693,6 @@ class VoucherController extends Controller
         $productWiseTax = $taxData['productWiseTax'];
         $taxVats = $taxData['taxVats'];
         $taxVatIds = $productWiseTax ? $product->taxVats()->pluck('tax_id')->toArray() : [];
-
 
         return view('admin-views.voucher.edit', compact('product', 'sub_category', 'category', 'temp_product', 'productWiseTax', 'taxVats', 'taxVatIds'));
     }
@@ -885,8 +886,6 @@ class VoucherController extends Controller
             }
         }
         //combinations end
-
-
 
         $food_variations = [];
         if (isset($request->options)) {

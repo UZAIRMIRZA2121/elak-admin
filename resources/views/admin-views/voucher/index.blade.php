@@ -90,152 +90,6 @@
                             </div>
                         </div>
 
-                        {{-- panel1 --}}
-                        <div class="col-12 mt-5" id="panel1">
-                            <div class="row g-3 bundle_div" style="display:none;">
-                                <div id="bundleConfigSection" class="bundle-config-section show my-4">
-                                    <div id="configContent"><h4> Bundle Configuration</h4>
-                                        <div class="form-row">
-                                            <div class="form-group">
-                                                <label>Bundle Fixed Price</label>
-                                                <input type="number" name="bundle_fixed_price" id="totalItemsToChoose" class="form-control" min="2" value="5">
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="card border-0 shadow-sm">
-                                    <!-- Group Product Bundle Configuration -->
-                                    <div class="p-3 bg-white mb-4">
-                                        <h4 class="mb-3"> Group Product Bundle</h4>
-                                        <!-- Bundle Products -->
-                                        <div class="row">
-                                            <div class="col-md-6 mt-3">
-                                                <label class="form-label">Bundle Discount Type</label>
-                                                <select class="form-control" name="bundle_discount_type" data-testid="select-bundle-discount-type">
-                                                <option>% Percentage Off</option>
-                                                <option>$ Fixed Amount Off</option>
-                                                </select>
-                                            </div>
-                                            <div class="col-md-6 mt-3">
-                                                <label class="form-label">Discount Amount</label>
-                                                <input
-                                                type="number"
-                                                step="0.01"
-                                                name="discount_account"
-                                                class="form-control"
-                                                placeholder="10"
-                                                data-testid="input-bundle-discount"
-                                                value="0"
-                                                >
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="row g-3 bogo_free_div" style="display:none;">
-                                <div class="card border-0 shadow-sm">
-                                    <!-- BOGO Configuration -->
-                                    <div class="p-3 bg-white mb-4">
-                                        <h4 class="mb-3"> BOGO Configuration</h4>
-                                        <div class="row">
-                                            <div class="col-md-6 mt-3">
-                                                <div class="form-group">
-                                                    <label class="input-label"
-                                                        for="buy_quantity">{{ translate('Buy Quantity') }}
-                                                    </label>
-                                                    <input type="text" name="buy_quantity" value="1" id="buy_quantity"  class="form-control" placeholder="{{ translate('Buy Quantity') }}" >
-                                                </div>
-                                            </div>
-                                            <div class="col-md-6 mt-3">
-                                                <div class="form-group">
-                                                    <label class="input-label"
-                                                        for="get_quantity">{{ translate('Get Quantity') }}
-                                                    </label>
-                                                    <input type="text" name="get_quantity" value="1" id="get_quantity"  class="form-control" placeholder="{{ translate('Get Quantity') }}" >
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="row g-3 mix_match_div" style="display:none;">
-                                <div id="bundleConfigSection" class="bundle-config-section show my-4">
-                                    <div id="configContent"><h4>⚙️ Bundle Configuration</h4>
-                                        <div class="form-row">
-                                            <div class="form-group">
-                                                <label>Total Items Customer Must Choose</label>
-                                                <input type="number" name="total_item" id="totalItemsToChoose" class="form-control" min="2" value="5">
-                                            </div>
-                                            <div class="form-group">
-                                                <label>Bundle Price</label>
-                                                <input type="number" name="bundle_price" id="mixMatchPrice" class="form-control" step="0.01" placeholder="Total price for selection">
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="card border-0 shadow-sm">
-                                    <!-- Mix and Match Collection -->
-                                    <div class="p-3 bg-white mb-4">
-                                        <h4 class="mb-3">🔀 Mix and Match Collection</h4>
-                                        <div class="row">
-                                            <div class="col-sm-12 col-lg-12">
-                                                <div class="form-group mb-0">
-                                                    <label class="input-label"
-                                                        for="select_category_all">{{ translate('Collection Category') }}<span class="form-label-secondary text-danger"
-                                                        data-toggle="tooltip" data-placement="right"
-                                                        data-original-title="{{ translate('messages.Required.')}}"> *
-                                                        </span></label>
-                                                        <select name="select_category_all" name="select_category_all" id="select_category_all" class="form-control js-select2-custom" multiple>
-                                                        @foreach (\App\Models\Category::all() as $item)
-                                                            <option value="{{ $item->id }}">{{ $item->name }}</option>
-                                                        @endforeach
-                                                    </select>
-                                                </div>
-                                            </div>
-                                            <!-- 3-column grid -->
-                                            <div class="col-md-4 mt-3">
-                                                <label class="form-label">Buy Quantity</label>
-                                                <input
-                                                type="number"
-                                                step="0.01"
-                                                name="buy_quantity"
-                                                class="form-control"
-                                                placeholder="10"
-                                                data-testid="input-bundle-discount"
-                                                value="0"
-                                                >
-                                            </div>
-                                            <div class="col-md-4 mt-3">
-                                                <label class="form-label">Discount Amount</label>
-                                                <input
-                                                type="number"
-                                                step="0.01"
-                                                name="discount_amount"
-                                                class="form-control"
-                                                placeholder="10"
-                                                data-testid="input-bundle-discount"
-                                                value="0"
-                                                >
-                                            </div>
-                                            <div class="col-md-4 mt-3">
-                                                <label class="form-label">Max Uses Per Customer</label>
-                                                <input
-                                                type="number"
-                                                step="0.01"
-                                                name="max_user_per_customer"
-                                                class="form-control"
-                                                placeholder="10"
-                                                data-testid="input-bundle-discount"
-                                                value="0"
-                                                >
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
                         {{-- tags --}}
                         <div class="col-12 mt-3">
                             <div class="form-group">
@@ -471,6 +325,7 @@
                                     <label class="input-label"  for="exampleFormControlInput1">{{ translate('Actual Price') }} <span class="form-label-secondary text-danger"  data-toggle="tooltip" data-placement="right" data-original-title="{{ translate('messages.Required.')}}"> *  </span> </label>
                                     <input type="number" min="0" id="actual_price" max="999999999999.99" step="0.01" value="1" name="actual_price_input_hide" class="form-control"placeholder="{{ translate('messages.Ex:') }} 100" required>
                                     <input type="hidden"  id="actual_price_input_hide"name="actual_price_input_hide" >
+                                    <input type="hidden"  id="product_real_price"name="product_real_price" value="" >
                                 </div>
                             </div>
                             <div class="col-6 col-md-3" id="price_input_hide">
@@ -518,190 +373,6 @@
                                         <input type="number" min="0" max="9999999999999999999999" value="0"
                                             name="discount" id="discount" class="form-control"
                                             placeholder="{{ translate('messages.Ex:') }} 100">
-                                </div>
-                            </div>
-                            <!-- Example divs to show/hide panel2 -->
-                            <div class="col-12 mt-4" id="panel2">
-                                <div class="row g-3 bogo_free_div" style="display:none;">
-                                    <div class="card border-0 shadow-sm">
-                                        <h4 class="card-title mb-4"> Bundle Pricing Configuration</h4>
-                                        <!-- BOGO Section -->
-                                        <div class="mb-4">
-                                            <h5 class="text-muted mb-3"> BOGO Pricing Settings</h5>
-                                            <div class="p-3 bg-white border rounded">
-                                                <p class="small text-muted mb-3">
-                                                    For BOGO offers, set the regular price for one item.
-                                                    The system will automatically apply the free item.
-                                                </p>
-                                                <!-- Grid System -->
-                                                <div class="row g-3">
-                                                    <!-- Regular Item Price -->
-                                                    <div class="col-md-6">
-                                                        <label class="form-label">Regular Item Price</label>
-                                                        <div class="input-group">
-                                                            <span class="input-group-text">$</span>
-                                                            <input
-                                                            type="number"
-                                                            name="regular_item_price"
-                                                            class="form-control"
-                                                            placeholder="29.99"
-                                                            step="0.01"
-                                                            data-testid="input-bogo-price"
-                                                            >
-                                                        </div>
-                                                    </div>
-                                                    <!-- Total Available Sets -->
-                                                    <div class="col-md-6">
-                                                        <label class="form-label">Total Available Sets</label>
-                                                        <input
-                                                            type="number"
-                                                            name="total_available_sets"
-                                                            class="form-control"
-                                                            placeholder="50"
-                                                            data-testid="input-bogo-stock"
-                                                        >
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <!-- /BOGO Section -->
-                                    </div>
-                                </div>
-                                <div class="row g-3 bundle_div" style="display:none;">
-                                    <div class="card border-0 shadow-sm">
-                                        <h4 class="card-title mb-4"> Bundle Pricing Configuration</h4>
-                                        <!-- Group Product Bundle Section -->
-                                        <div class="mb-4">
-                                            <h5 class="text-muted mb-3"> Group Product Bundle Pricing</h5>
-                                            <div class="p-3 bg-white border rounded">
-                                                <!-- Grid System -->
-                                                <div class="row g-3">
-                                                    <!-- Individual Items Total -->
-                                                    <div class="col-md-6">
-                                                    <label class="form-label">Individual Items Total</label>
-                                                    <div class="input-group">
-                                                        <span class="input-group-text">$</span>
-                                                        <input
-                                                        type="number"
-                                                        name="Individual_price"
-                                                        class="form-control"
-                                                        placeholder="79.99"
-                                                        step="0.01"
-                                                        data-testid="input-bundle-total-price"
-                                                        >
-                                                    </div>
-                                                    </div>
-
-                                                    <!-- Bundle Discount (%) -->
-                                                    <div class="col-md-6">
-                                                    <label class="form-label">Bundle Discount (%)</label>
-                                                    <input
-                                                        type="number"
-                                                        class="form-control"
-                                                        placeholder="15"
-                                                        name="Individual_discount"
-                                                        step="1"
-                                                        data-testid="input-group-bundle-discount"
-                                                    >
-                                                    </div>
-                                                </div>
-
-                                                <!-- Bundle Summary -->
-                                                <div class="mt-4 p-3 bg-light border rounded">
-                                                    <p class="small fw-bold mb-1"> Bundle Summary:</p>
-                                                    <p class="small text-muted mb-1">
-                                                    Please enter a valid total price for group bundle
-                                                    </p>
-                                                    <p class="small mb-0">
-                                                    Individual Total: <span class="fw-semibold">$</span> |
-                                                    Bundle Price: <span class="fw-semibold text-primary">$0.00</span> |
-                                                    You Save: <span class="fw-semibold text-success">$0.00</span>
-                                                    </p>
-                                                </div>
-
-                                                <!-- Available Bundles -->
-                                                <div class="mt-4">
-                                                    <label class="form-label">Available Bundles</label>
-                                                    <input
-                                                    type="number"
-                                                    name="available_bundle"
-                                                    class="form-control"
-                                                    placeholder="25"
-                                                    data-testid="input-bundle-quantity"
-                                                    >
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <!-- /Group Product Bundle Section -->
-                                    </div>
-                                </div>
-                                <div class="row g-3 mix_match_div" style="display:none;">
-                                    <div class="card border-0 shadow-sm">
-                                        <h4 class="card-title mb-4"> Bundle Pricing Configuration</h4>
-                                        <!-- Mix & Match Section -->
-                                        <div class="mb-4">
-                                            <h5 class="text-muted mb-3"> Mix and Match Pricing</h5>
-                                            <div class="p-3 bg-white border rounded">
-                                                <!-- Grid System -->
-                                                <div class="row g-3">
-                                                    <!-- Regular Price Each -->
-                                                    <div class="col-md-4">
-                                                        <label class="form-label">Regular Price Each</label>
-                                                        <div class="input-group">
-                                                            <span class="input-group-text">$</span>
-                                                            <input
-                                                            type="number"
-                                                            name="regular_price_each"
-                                                            class="form-control"
-                                                            placeholder="24.99"
-                                                            step="0.01"
-                                                            data-testid="input-mix-match-regular-price"
-                                                            >
-                                                        </div>
-                                                    </div>
-                                                    <!-- Mix & Match Discount -->
-                                                    <div class="col-md-4">
-                                                        <label class="form-label">Mix &amp; Match Discount</label>
-                                                        <div class="input-group">
-                                                            <span class="input-group-text">$</span>
-                                                            <input
-                                                            type="number"
-                                                            name="mix_match_discount"
-                                                            class="form-control"
-                                                            placeholder="5.00"
-                                                            step="0.01"
-                                                            data-testid="input-mix-match-discount"
-                                                            >
-                                                        </div>
-                                                    </div>
-                                                    <!-- Required Quantity -->
-                                                    <div class="col-md-4">
-                                                        <label class="form-label">Required Quantity</label>
-                                                        <input
-                                                            type="number"
-                                                            name="required_quantity"
-                                                            class="form-control"
-                                                            placeholder="3"
-                                                            data-testid="input-mix-match-quantity"
-                                                        >
-                                                    </div>
-                                                </div>
-                                                <!-- Mix & Match Summary -->
-                                                <div class="mt-4 p-3 bg-light border rounded">
-                                                    <p class="small fw-bold mb-1">Mix & Match Summary:</p>
-                                                    <p class="small text-muted mb-1">
-                                                    Please enter a valid price per item for mix &amp; match
-                                                    </p>
-                                                    <p class="small mb-0">
-                                                    Regular Price (1 items): <span class="fw-semibold">$</span> |
-                                                    Mix &amp; Match Price: <span class="fw-semibold text-primary">$0.00</span> |
-                                                    You Save: <span class="fw-semibold text-success">$0.00</span>
-                                                    </p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <!-- /Mix & Match Section -->
-                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -1278,6 +949,9 @@
                 
                 // Update hidden inputs
                 createHiddenInputs();
+                // alert(total);
+                // $("#product_real_price").val("");
+                $("#product_real_price").val(total);
                 
                 return total;
             }
@@ -1348,14 +1022,14 @@
                 } else {
                     discountAmount = discountValue;
                 }
-
                 let finalTotal = Math.max(bundleTotal - discountAmount, 0);
+                // alert(finalTotal);
 
                 breakdownHTML += `
                     <li class="list-group-item">
                         <strong>Subtotal: </strong><span class="text-primary">$${bundleTotal.toFixed(2)}</span>
                     </li>`;
-
+                  $("#product_real_price").val(bundleTotal);
                 if (discountAmount > 0) {
                     breakdownHTML += `
                         <li class="list-group-item text-danger">
@@ -1515,7 +1189,7 @@
                     <li class="list-group-item">
                         <strong>Subtotal: </strong><span class="text-primary">$${subtotal.toFixed(2)}</span>
                     </li>`;
-
+                  $("#product_real_price").val(bundleTotal);
                 if (discountAmount > 0) {
                     breakdownHTML += `
                         <li class="list-group-item text-success">
