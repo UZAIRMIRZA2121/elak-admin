@@ -213,9 +213,7 @@ class VoucherController extends Controller
 
         // dd($request->all());
         $type_name = $request->hidden_name;
-        $data = $request->products_data
-            ?? $request->bogo_products_a
-            ?? [];
+        $data = $request->products_data ?? $request->bogo_products_a ?? [];
         // Agar string hai (JSON), to array bana do
         if (is_string($data)) {
             $decoded = json_decode($data, true);
@@ -229,7 +227,7 @@ class VoucherController extends Controller
         }
 
         if ($type_name == "Delivery/Pickup" || $type_name == "In-Store") {
-
+           
             $validator = Validator::make($request->all(), [
                 'segment_type' => 'max:1000',
                 'store_id' => 'required',

@@ -93,6 +93,8 @@ class Item extends Model
         'blackout_dates' => 'string',
 
 
+
+
     ];
 
 
@@ -657,5 +659,44 @@ class Item extends Model
             ? collect()
             : DeliveryOption::whereIn('id', $this->delivery_options)->get();
     }
+
+    public function usageTerms(): Collection
+    {
+        $usageTermIds = $this->how_and_condition_ids; // JSON column in items table
+
+        // Decode JSON safely
+        if (is_string($usageTermIds)) {
+            $usageTermIds = json_decode($usageTermIds, true);
+            if (is_string($usageTermIds)) {
+                $usageTermIds = json_decode($usageTermIds, true);
+            }
+        }
+
+        if (!is_array($usageTermIds)) {
+            $usageTermIds = [];
+        }
+
+        // Fetch related usage terms
+        return \App\Models\WorkManagement::whereIn('id', $usageTermIds)->get();
+    }
+    /** 🔗 Relation: Item → VoucherSetting */
+    public function voucherSetting()
+    {
+        return $this->hasOne(VoucherSetting::class, 'item_id', 'id');
+    }
+
+    /** Get full HolidayOccasion objects */
+    public function holidays()
+    {
+        return HolidayOccasion::whereIn('id', $this->holidays_occasions ?? [])->get();
+    }
+
+    /** Optional accessor for API */
+    public function getHolidaysOccasionsAttribute()
+    {
+        return $this->holidays();
+    }
+
+
 
 }
