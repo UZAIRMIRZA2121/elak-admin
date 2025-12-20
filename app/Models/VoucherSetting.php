@@ -36,9 +36,50 @@ class VoucherSetting extends Model
             'group_size_requirement' => 'array',
         ];
 
+  
+
+    /** 🔗 Relation: VoucherSetting → Item */
+    public function item()
+    {
+        return $this->belongsTo(Item::class, 'item_id', 'id');
     }
 
+    /** 🔗 Relation: VoucherSetting → HolidayOccasions */
+    public function holidays()
+    {
+        return HolidayOccasion::whereIn('id', $this->getArray($this->holidays_occasions))->get();
+    }
 
+    /** Accessor for full HolidayOccasion objects */
+    public function getHolidayOccasionsAttribute()
+    {
+        return HolidayOccasion::whereIn('id', $this->getArray($this->holidays_occasions))->get();
+    }
 
+    /** 🔗 Relation: VoucherSetting → CustomBlackoutData */
+    public function blackoutDates()
+    {
+        return CustomBlackoutData::whereIn('id', $this->getArray($this->custom_blackout_dates))->get();
+    }
 
+    /** Accessor for full CustomBlackoutData objects */
+    public function getCustomBlackoutDatesAttribute()
+    {
+        return CustomBlackoutData::whereIn('id', $this->getArray($this->custom_blackout_dates))->get();
+    }
 
+    /** Helper function to safely decode array from JSON or array */
+    private function getArray($value)
+    {
+        if (is_array($value)) {
+            return $value;
+        }
+
+        if (is_string($value)) {
+            return json_decode($value, true) ?? [];
+        }
+
+        return [];
+    }
+
+}

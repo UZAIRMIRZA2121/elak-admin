@@ -184,6 +184,10 @@
                     <form action="{{route('admin.VoucherSetting.store')}}" method="post" id="conditionsForm">
                         @csrf
                          <input type="hidden" name="item_id" value="{{ request()->route('id') }}">
+                      
+                       
+              
+
                         <div class="row">
                             <!-- LEFT SIDE - FORM -->
                             <div class="col-lg-7">

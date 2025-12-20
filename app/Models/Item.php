@@ -20,10 +20,9 @@ use App\Models\Client;
 use App\Models\App;
 use App\Models\Segment;
 use App\Models\Category;
-
-
-
-
+use App\Models\GiftOccasions;
+use App\Models\MessageTemplate;
+use App\Models\DeliveryOption;
 
 class Item extends Model
 {
@@ -77,15 +76,15 @@ class Item extends Model
 
         'discount_configuration' => 'string',
 
-        'occasions_id' => 'string',//add
-        'recipient_info_form_fields' => 'string',//add
+        'occasions_id' => 'array',
+        'recipient_info_form_fields' => 'array',//add
         'message_template_style' => 'string',//add
-        'delivery_options' => 'string',//add//add
+        'delivery_options' => 'array',
         'amount_configuration' => 'string',
         'amount_type' => 'string',//add
         'enable_custom_amount' => 'string',//add
-        'fixed_amount_options' => 'string', //add
-        'min_max_amount' => 'string', //add
+        'fixed_amount_options' => 'array', //add
+        'min_max_amount' => 'array', //add
         'bonus_configuration' => 'string', //add
 
         'redemption_process' => 'string',
@@ -93,6 +92,8 @@ class Item extends Model
         'validity_period' => 'string',
         'usage_restrictions' => 'string',
         'blackout_dates' => 'string',
+
+
 
 
     ];
@@ -517,37 +518,72 @@ class Item extends Model
     /**
      * Get related products from `product` JSON column
      */
+
+
     public function relatedProducts(): Collection
     {
         $products = $this->product;
 
+        // Decode JSON if stored as string
         if (is_string($products)) {
             $products = json_decode($products, true);
-            if (!is_array($products))
+            if (!is_array($products)) {
                 $products = [];
+            }
         }
 
-        $productIds = collect($products)->pluck('product_id')->filter()->toArray();
+        // Get product IDs
+        $productIds = collect($products)
+            ->pluck('product_id')
+            ->filter()
+            ->toArray();
 
-        return self::whereIn('id', $productIds)->get();
+        // Fetch products with selected fields and relations
+        $productsCollection = self::whereIn('id', $productIds)
+
+            ->get();
+
+        // Map through each product to apply formatting
+        $formattedProducts = $productsCollection->map(function ($item) {
+            return Helpers::product_data_formatting($item, false, true, app()->getLocale());
+        });
+
+        return $formattedProducts;
     }
 
     /**
      * Get related products from `product_b` JSON column
      */
+
     public function relatedProductsB(): Collection
     {
-        $productsB = $this->product_b;
+        $products = $this->product;
 
-        if (is_string($productsB)) {
-            $productsB = json_decode($productsB, true);
-            if (!is_array($productsB))
-                $productsB = [];
+        // Decode JSON if stored as string
+        if (is_string($products)) {
+            $products = json_decode($products, true);
+            if (!is_array($products)) {
+                $products = [];
+            }
         }
 
-        $productIds = collect($productsB)->pluck('product_id')->filter()->toArray();
+        // Get product IDs
+        $productIds = collect($products)
+            ->pluck('product_id')
+            ->filter()
+            ->toArray();
 
-        return self::whereIn('id', $productIds)->get();
+        // Fetch products with selected fields and relations
+        $productsCollection = self::whereIn('id', $productIds)
+
+            ->get();
+
+        // Map through each product to apply formatting
+        $formattedProducts = $productsCollection->map(function ($item) {
+            return Helpers::product_data_formatting($item, false, true, app()->getLocale());
+        });
+
+        return $formattedProducts;
     }
 
     /**
@@ -618,6 +654,85 @@ class Item extends Model
 
         return Category::whereIn('id', $subIds)->get();
     }
+
+
+
+    public function getGiftOccasionsAttribute()
+    {
+        $ids = $this->occasions_id;
+
+        // If it's empty or null, return null
+        if (empty($ids)) {
+            return null;
+        }
+
+        // Decode JSON safely if needed
+        if (is_string($ids)) {
+            $ids = json_decode($ids, true);
+        }
+
+        // If after decoding it's still empty, return null
+        if (empty($ids) || !is_array($ids)) {
+            return null;
+        }
+
+        // Return collection of GiftOccasions
+        return GiftOccasions::whereIn('id', $ids)->get();
+    }
+
+
+    public function getMessageTemplatesAttribute()
+    {
+        return empty($this->message_template_style)
+            ? collect()
+            : MessageTemplate::whereIn('id', $this->message_template_style)->get();
+    }
+
+
+    public function getDeliveryOptionsAttribute()
+    {
+        return empty($this->delivery_options)
+            ? collect()
+            : DeliveryOption::whereIn('id', $this->delivery_options)->get();
+    }
+
+    public function usageTerms(): Collection
+    {
+        $usageTermIds = $this->how_and_condition_ids; // JSON column in items table
+
+        // Decode JSON safely
+        if (is_string($usageTermIds)) {
+            $usageTermIds = json_decode($usageTermIds, true);
+            if (is_string($usageTermIds)) {
+                $usageTermIds = json_decode($usageTermIds, true);
+            }
+        }
+
+        if (!is_array($usageTermIds)) {
+            $usageTermIds = [];
+        }
+
+        // Fetch related usage terms
+        return \App\Models\WorkManagement::whereIn('id', $usageTermIds)->get();
+    }
+    /** 🔗 Relation: Item → VoucherSetting */
+    public function voucherSetting()
+    {
+        return $this->hasOne(VoucherSetting::class, 'item_id', 'id');
+    }
+
+    /** Get full HolidayOccasion objects */
+    public function holidays()
+    {
+        return HolidayOccasion::whereIn('id', $this->holidays_occasions ?? [])->get();
+    }
+
+    /** Optional accessor for API */
+    public function getHolidaysOccasionsAttribute()
+    {
+        return $this->holidays();
+    }
+
 
 
 }

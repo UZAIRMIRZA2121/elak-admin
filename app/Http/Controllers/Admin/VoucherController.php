@@ -212,9 +212,7 @@ class VoucherController extends Controller
 
         // dd($request->all());
         $type_name = $request->hidden_name;
-        $data = $request->products_data
-            ?? $request->bogo_products_a
-            ?? [];
+        $data = $request->products_data ?? $request->bogo_products_a ?? [];
         // Agar string hai (JSON), to array bana do
         if (is_string($data)) {
             $decoded = json_decode($data, true);
@@ -228,7 +226,7 @@ class VoucherController extends Controller
         }
 
         if ($type_name == "Delivery/Pickup" || $type_name == "In-Store") {
-
+           
             $validator = Validator::make($request->all(), [
                 'segment_type' => 'max:1000',
                 'store_id' => 'required',
@@ -355,7 +353,7 @@ class VoucherController extends Controller
                 'item_images' => 'required',
                 'image' => 'required',
                 'description' => 'required',
-                'tags' => 'required',
+                'tags' => 'nullable',
                 'discount_type' => 'required',
                 'bonus_tiers' => 'required',
             ]);
@@ -453,9 +451,12 @@ class VoucherController extends Controller
             $item->is_halal = $request->is_halal ?? 0;
             $item->discount_type = $request->discount_type ?? 0;
             $item->save();
+
             return response()->json(['success' => translate('messages.voucher_created_successfully')], 200);
 
         } else if ($type_name == "Gift") {
+
+
             $validator = Validator::make($request->all(), [
                 'segment_type' => 'max:1000',
                 'store_id' => 'required',
@@ -507,6 +508,7 @@ class VoucherController extends Controller
                 }
             }
 
+
             $item->category_ids = json_encode($category);
             $item->category_id = $request->sub_categories_game ? (is_array($request->sub_categories_game) ? $request->sub_categories_game[0] : $request->sub_categories_game) : (is_array($request->categories) ? $request->categories[0] : $request->categories);
             $item->variations = json_encode(array_filter($request->variations ?? []));
@@ -528,12 +530,11 @@ class VoucherController extends Controller
             $item->message_template_style = json_encode($request->message_template_style ?? []);
             $item->delivery_options = json_encode($request->delivery_options ?? []);
             $item->amount_type = $request->type ?? null;
-            if ($request->type == "fixed") {
-                $item->enable_custom_amount = $request->enable_custom_amount ?? null;
-            } else {
-                $item->fixed_amount_options = json_encode($request->fixed_amounts ?? []);
-                $item->min_max_amount = json_encode($request->min_max_amount ?? []);
-            }
+            $item->bundle_type = 'gift';
+
+            $item->enable_custom_amount = $request->enable_custom_amount ?? null;
+            $item->fixed_amount_options = json_encode($request->fixed_amounts ?? []);
+            $item->min_max_amount = json_encode($request->min_max_amount ?? []);
             $item->bonus_configuration = json_encode($request->bonus_tiers ?? []);
             $item->redemption_process = json_encode($request->redemption_process ?? []);
             $item->validity_period = json_encode($request->validity_period ?? []);
@@ -544,7 +545,6 @@ class VoucherController extends Controller
             return response()->json(['success' => translate('messages.voucher_created_successfully')], 200);
         }
     }
-
     public function view_voucher($id)
     {
         $taxData = Helpers::getTaxSystemType();
@@ -603,7 +603,7 @@ class VoucherController extends Controller
             ->get();
 
         if (!empty($product->id)) {
-                $product->VoucherSetting = VoucherSetting::where('item_id', $product->id)->first();
+            $product->VoucherSetting = VoucherSetting::where('item_id', $product->id)->first();
 
                 if (!empty($product->VoucherSetting)) {
                     // Decode JSON fields if needed
@@ -641,12 +641,16 @@ class VoucherController extends Controller
                     $product->GeneralRestrictions = collect();
                 }
             }
+        }
+
+
+
+        // dd($product);
 
             
 
             // dd($product);
 
-      
         $reviews = Review::where(['item_id' => $id])->latest()->paginate(config('default_pagination'));
 
         return view('admin-views.voucher.view_voucher', compact('product', 'reviews', 'productWiseTax'));
