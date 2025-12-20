@@ -281,7 +281,7 @@ class VoucherController extends Controller
                 }
 
             $item = new Item;
-            $item->price = $request->price ?? 0;
+            $item->price = $request->product_real_price ?? 0;
             $item->discount_type = $request->discount_type;
             $item->discount = $request->discount;
             $item->offer_type = $request->offer_type;
