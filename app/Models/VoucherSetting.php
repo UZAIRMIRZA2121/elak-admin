@@ -34,6 +34,8 @@ class VoucherSetting extends Model
         'usage_limit_per_user' => 'array',
         'usage_limit_per_store' => 'array',
         'general_restrictions' => 'array',
+        'age_restriction' => 'array',
+        'group_size_requirement' => 'array',
     ];
 
     /** 🔗 Relation: VoucherSetting → Item */
@@ -45,39 +47,46 @@ class VoucherSetting extends Model
     /** 🔗 Relation: VoucherSetting → HolidayOccasions */
     public function holidays()
     {
-        return HolidayOccasion::whereIn('id', $this->getArray($this->holidays_occasions))->get();
+        return HolidayOccasion::whereIn('id', $this->holidays_occasions ?? [])->get();
     }
 
+    /** Optional: accessor to always return structured holidays */
     /** Accessor for full HolidayOccasion objects */
     public function getHolidayOccasionsAttribute()
     {
-        return HolidayOccasion::whereIn('id', $this->getArray($this->holidays_occasions))->get();
-    }
+        // $this->holidays_occasions is casted to array
+        $ids = is_array($this->holidays_occasions) ? $this->holidays_occasions : json_decode($this->holidays_occasions, true) ?? [];
 
-    /** 🔗 Relation: VoucherSetting → CustomBlackoutData */
-    public function blackoutDates()
-    {
-        return CustomBlackoutData::whereIn('id', $this->getArray($this->custom_blackout_dates))->get();
+        return HolidayOccasion::whereIn('id', $ids)->get();
     }
+    /** 🔗 Relation: VoucherSetting → CustomBlackoutData */
+
 
     /** Accessor for full CustomBlackoutData objects */
     public function getCustomBlackoutDatesAttribute()
     {
-        return CustomBlackoutData::whereIn('id', $this->getArray($this->custom_blackout_dates))->get();
-    }
+        $value = $this->attributes['custom_blackout_dates'] ?? null;
 
-    /** Helper function to safely decode array from JSON or array */
-    private function getArray($value)
-    {
+        $ids = [];
+
         if (is_array($value)) {
-            return $value;
+            $ids = $value;
+        } elseif (is_string($value)) {
+            $decoded = json_decode($value, true);
+
+            // If still a string, decode again
+            if (is_string($decoded)) {
+                $decoded = json_decode($decoded, true);
+            }
+
+            if (is_array($decoded)) {
+                $ids = $decoded;
+            }
         }
 
-        if (is_string($value)) {
-            return json_decode($value, true) ?? [];
-        }
-
-        return [];
+        // Now $ids is guaranteed to be an array
+        return CustomBlackoutData::whereIn('id', $ids)->get();
     }
+
 
 }

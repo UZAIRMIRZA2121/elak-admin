@@ -468,7 +468,7 @@ class ItemController extends Controller
                     $query->where('slug', $id);
                 })
                 ->first();
-         
+
 
             if (!$item) {
                 return response()->json([
@@ -497,7 +497,7 @@ class ItemController extends Controller
 
             $item = Helpers::product_data_formatting($item, false, true, app()->getLocale());
             $item['store_details'] = $store;
-  
+
 
             if ($item['type'] == 'voucher') {
                 $item['product'] = $item->relatedProducts() ?? [];
@@ -513,8 +513,8 @@ class ItemController extends Controller
                 $item['settings'] = $settings ? [
                     'validity_period' => json_decode($settings->validity_period),
                     'specific_days_of_week' => json_decode($settings->specific_days_of_week),
-                    'holidays_occasions' => $settings->holiday_occasions, // ← accessor here
-                    'custom_blackout_dates' => $settings->custom_blackout_dates, // full CustomBlackoutData objects
+                    'holidays_occasions' => json_decode($settings->holiday_occasions), // ← accessor here
+                    'custom_blackout_dates' => json_decode($settings->custom_blackout_dates), // full CustomBlackoutData objects
                     'age_restriction' => (int) $settings->age_restriction,
                     'group_size_requirement' => (int) $settings->group_size_requirement,
                     'usage_limit_per_user' => json_decode($settings->usage_limit_per_user),
@@ -524,17 +524,22 @@ class ItemController extends Controller
                     'status' => $settings->status,
                 ] : null;
 
-            }
-
+            }// Get related holidays
 
 
 
             return response()->json($item, 200);
 
         } catch (\Exception $e) {
+            // Optional: log the error for debugging
+            \Log::error('API Error: ' . $e->getMessage());
+
             return response()->json([
-                'errors' => ['code' => 'product-001', 'message' => translate('messages.not_found')]
-            ], 404);
+                'success' => false,
+                'error_code' => 'internal_error',
+                'message' => 'Something went wrong. Please try again later.',
+                'details' => $e->getMessage() // optional: remove in production
+            ], 500);
         }
     }
 

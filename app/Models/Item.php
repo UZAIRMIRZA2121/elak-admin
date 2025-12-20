@@ -573,9 +573,7 @@ class Item extends Model
             ->toArray();
 
         // Fetch products with selected fields and relations
-        $productsCollection = self::whereIn('id', $productIds)
-
-            ->get();
+        $productsCollection = self::whereIn('id', $productIds)->get();
 
         // Map through each product to apply formatting
         $formattedProducts = $productsCollection->map(function ($item) {
