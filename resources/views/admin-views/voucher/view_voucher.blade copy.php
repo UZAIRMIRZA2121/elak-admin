@@ -288,6 +288,78 @@
                     <!-- Left Column -->
                     <div>
                         <h5 class="section-title">Basic Information</h5>
+                        <table class="info-table">
+                            <tbody>
+                                <tr>
+                                    <th><i class="fas fa-heading mr-2"></i>Voucher </th>
+                                    <td> <img class="avatar avatar-lg mr-3 onerror-image"
+                                            src="{{ $product['image_full_url'] ?? asset('public/assets/admin/img/160x160/img2.jpg') }}"
+                                            data-onerror-image="{{ asset('public/assets/admin/img/160x160/img2.jpg') }}"
+                                            alt="{{ $product->name }} image">
+                                        <div title="{{ $product['name'] }}" class="media-body">
+                                            <h5 class="text-hover-primary mb-0">{{ Str::limit($product['name'], 20, '...') }}</h5>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th><i class="fas fa-align-left mr-2"></i>Qr Code</th>
+                                    <td>
+                                        @if ($product->uuid)
+                                            {!! QrCode::size(80)->generate($product->uuid) !!}
+                                        @else
+                                            N/A
+                                        @endif
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th><i class="fas fa-align-left mr-2"></i>Description</th>
+                                    <td>{{ $product->description ?? 'N/A' }}</td>
+                                </tr>
+                                <tr>
+                                    <th><i class="fas fa-tag mr-2"></i>Voucher Type</th>
+                                    <td><span class="badge-custom badge-info">{{ ucfirst($product->type) ?? 'N/A' }}</span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th><i class="fas fa-box mr-2"></i>Bundle Type</th>
+                                    <td><span
+                                            class="badge-custom badge-success">{{ ucfirst($product->bundle_type) ?? 'N/A' }}</span>
+                                    </td>
+                                </tr>
+                                @if (isset($product->valid_until))
+                                    <tr>
+                                        <th><i class="fas fa-calendar-check mr-2"></i>Valid Until</th>
+                                        <td><strong
+                                                class="text-danger">{{ $product->valid_until ? \Carbon\Carbon::parse($product->valid_until)->format('d M Y') : 'N/A' }}</strong>
+                                        </td>
+                                    </tr>
+                                @endif
+                                <tr>
+                                    <th><i class="fas fa-dollar-sign mr-2"></i>Price</th>
+                                    <td><strong
+                                            style="color: #388e3c; font-size: 16px;">${{ ucfirst($product->price) ?? 'N/A' }}</strong>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th><i class="fas fa-percent mr-2"></i>Discount</th>
+                                    <td><span
+                                            class="badge-custom badge-warning">{{ ucfirst($product->discount) ?? '0' }}%</span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th><i class="fas fa-tags mr-2"></i>Discount Type</th>
+                                    <td>{{ ucfirst($product->discount_type) ?? 'N/A' }}</td>
+                                </tr>
+                                @if (!empty($product->required_quantity) && $product->required_quantity > 0)
+                                    <tr>
+                                        <th><i class="fas fa-shopping-cart mr-2"></i>Required Quantity</th>
+                                        <td><span
+                                                class="badge-custom badge-primary">{{ $product->required_quantity }}</span>
+                                        </td>
+                                    </tr>
+                                @endif
+                            </tbody>
+                        </table>
                         @if ($product->voucher_ids == 'Gift')
                             <table class="info-table">
                                 <tbody>
@@ -521,28 +593,161 @@
                                     <td>
                                         @if ($product->categories && $product->categories->isNotEmpty())
                                             @foreach ($product->categories as $category)
-                                                @if ($category->parent_id === 0)
-                                                    <span class="badge badge-success mb-2">{{ $category->name }}</span>
-                                                @else
-                                                    <span class="badge badge-warning mb-2">{{ $category->name }}</span>
-                                                @endif
+                                                <span class="badge-custom badge-primary">{{ $category->name }}</span>
                                             @endforeach
                                         @else
                                             N/A
                                         @endif
                                     </td>
                                 </tr>
+                                @if (isset($product->sub_categories))
+                                    <tr>
+                                        <th><i class="fas fa-sitemap mr-2"></i>Sub Categories</th>
+                                        <td>
+                                            @if (isset($product->sub_categories) && $product->sub_categories->count() > 0)
+                                                @foreach ($product->sub_categories as $subCat)
+                                                    <span class="badge-custom badge-info">{{ $subCat->name }}</span>
+                                                @endforeach
+                                            @else
+                                                N/A
+                                            @endif
+                                        </td>
+                                    </tr>
+                                @endif
+
                                 @if (isset($product->tags_ids))
                                     <tr>
                                         <th><i class="fas fa-hashtag mr-2"></i>Tags</th>
-                                        <td>
-                                            <span class="badge badge-info mb-2">{{ $product->tags_ids }}</span>
-                                        </td>
+                                        <td>{{ $product->tags_ids ?? 'N/A' }}</td>
                                     </tr>
                                 @endif
                             </tbody>
                         </table>
                     </div>
+                </div>
+
+
+              @if(isset($product->VoucherSetting))
+                <div class="mt-4">
+                    <h5 class="section-title">Voucher Settings</h5>
+
+                    <table class="info-table">
+                        <tbody>
+
+                            {{-- Validity Period --}}
+                            @if($product->VoucherSetting->validity_period)
+                            <tr>
+                                <th><i class="fas fa-calendar mr-2"></i>Validity Period</th>
+                                <td>
+                                    Status: {{ $product->VoucherSetting->validity_period['active'] ?? 'N/A' }} <br>
+                                    Start: {{ $product->VoucherSetting->validity_period['start'] ?? 'N/A' }} <br>
+                                    End: {{ $product->VoucherSetting->validity_period['end'] ?? 'N/A' }}
+                                </td>
+                            </tr>
+                            @endif
+
+                            {{-- Specific Days of Week --}}
+                            @if($product->VoucherSetting->specific_days_of_week)
+                            <tr>
+                                <th><i class="fas fa-clock mr-2"></i>Day Wise Timing</th>
+                                <td>
+                                    @foreach($product->VoucherSetting->specific_days_of_week as $day => $time)
+                                        <span class="badge-custom badge-info">
+                                            {{ ucfirst($day) }}: {{ $time['start'] ?? 'N/A' }} - {{ $time['end'] ?? 'N/A' }}
+                                        </span>
+                                    @endforeach
+                                </td>
+                            </tr>
+                            @endif
+
+                            {{-- Holidays / Occasions --}}
+                            @if($product->HolidayOccasion && $product->HolidayOccasion->count())
+                            <tr>
+                                <th><i class="fas fa-umbrella-beach mr-2"></i>Holidays</th>
+                                <td>
+                                    @foreach($product->HolidayOccasion as $holiday)
+                                        <span class="badge-custom badge-warning">{{ $holiday->name_en ?? $holiday->name_ar }}</span>
+                                    @endforeach
+                                </td>
+                            </tr>
+                            @endif
+
+                            {{-- Custom Blackout Dates --}}
+                            @if($product->CustomBlackoutDates && $product->CustomBlackoutDates->count())
+                            <tr>
+                                <th><i class="fas fa-ban mr-2"></i>Blackout Dates</th>
+                                <td>
+                                    @foreach($product->CustomBlackoutDates as $date)
+                                        <span class="badge-custom badge-danger">{{ $date->date }} - {{ $date->description }}</span>
+                                    @endforeach
+                                </td>
+                            </tr>
+                            @endif
+
+                            {{-- General Restrictions --}}
+                            @if($product->GeneralRestrictions && $product->GeneralRestrictions->count())
+                            <tr>
+                                <th><i class="fas fa-exclamation-triangle mr-2"></i>General Restrictions</th>
+                                <td>
+                                    @foreach($product->GeneralRestrictions as $restriction)
+                                        <span class="badge-custom badge-secondary">{{ $restriction->name ?? 'N/A' }}</span>
+                                    @endforeach
+                                </td>
+                            </tr>
+                            @endif
+
+                            {{-- Age Restriction --}}
+                            <tr>
+                                <th><i class="fas fa-user mr-2"></i>Age Restriction</th>
+                                <td>{{ $product->VoucherSetting->age_restriction ?? 'N/A' }}</td>
+                            </tr>
+
+                            {{-- Group Size --}}
+                            <tr>
+                                <th><i class="fas fa-users mr-2"></i>Group Size</th>
+                                <td>{{ $product->VoucherSetting->group_size_requirement ?? 'N/A' }}</td>
+                            </tr>
+
+                            {{-- Usage Limit Per User --}}
+                            @if($product->VoucherSetting->usage_limit_per_user)
+                            <tr>
+                                <th><i class="fas fa-user-check mr-2"></i>Usage Per User</th>
+                                <td>
+                                    {{ $product->VoucherSetting->usage_limit_per_user[0] ?? 'N/A' }}
+                                    ({{ $product->VoucherSetting->usage_limit_per_user[1] ?? 'N/A' }})
+                                </td>
+                            </tr>
+                            @endif
+
+                            {{-- Usage Limit Per Store --}}
+                            @if($product->VoucherSetting->usage_limit_per_store)
+                            <tr>
+                                <th><i class="fas fa-store mr-2"></i>Usage Per Store</th>
+                                <td>
+                                    {{ $product->VoucherSetting->usage_limit_per_store[0] ?? 'N/A' }}
+                                    ({{ $product->VoucherSetting->usage_limit_per_store[1] ?? 'N/A' }})
+                                </td>
+                            </tr>
+                            @endif
+
+                            {{-- Offer Validity After Purchase --}}
+                            <tr>
+                                <th><i class="fas fa-hourglass mr-2"></i>Offer Validity</th>
+                                <td>{{ $product->VoucherSetting->offer_validity_after_purchase ?? 'N/A' }}</td>
+                            </tr>
+
+                            {{-- Status --}}
+                            <tr>
+                                <th><i class="fas fa-toggle-on mr-2"></i>Status</th>
+                                <td>
+                                    <span class="badge-custom badge-success">
+                                        {{ ucfirst($product->VoucherSetting->status) }}
+                                    </span>
+                                </td>
+                            </tr>
+
+                        </tbody>
+                    </table>
                 </div>
                 @if (isset($product->VoucherSetting))
                     <div class="mt-4">
@@ -686,6 +891,12 @@
                         </div>
                     </div>
                 @endif
+                   @if ($product->bundle_type == 'bogo_free')
+                    <div class="row mt-4">
+                        <div class="col-md-12">
+                            <h5 class="section-title mb-3"><i class="fas fa-cogs mr-2"></i>BOGO Product Info</h5>
+
+
 
                 @if ($product->bundle_type === 'bogo_free')
                     <div class="row mt-4">
@@ -1127,17 +1338,6 @@
             </div>
         </div>
     </div>
-
-
-
-
-
-
-
-
-
-
-
 
 
 @endsection

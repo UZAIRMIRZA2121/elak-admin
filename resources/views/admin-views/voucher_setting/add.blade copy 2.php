@@ -183,10 +183,6 @@
                   <div class="card-body">
                     <form action="{{route('admin.VoucherSetting.store')}}" method="post" id="conditionsForm">
                         @csrf
-                         <input type="hidden" name="item_id" value="{{ request()->route('id') }}">
-                      
-                       
-              
 
                         <div class="row">
                             <!-- LEFT SIDE - FORM -->
@@ -538,37 +534,31 @@
 
                                         <!-- Age Restriction -->
 
-                                          <div class="form-group">
-                                        <div class="form-group mb-0">
-                                            <label class="input-label"
-                                                for="age_restriction">{{ translate('Age Restriction') }}
-                                            </label>
-                                            <!-- Dropdown: Only Percent & Fixed -->
-                                            <select name="age_restriction[]" id="ageRestriction"  class="form-control js-select2-custom" multiple>
-                                              <option value="">No requirement</option>
-                                            @foreach ($AgeRestrictin as $item)
+
+                                        <!-- Group Size -->
+                                        <div class="form-group">
+                                            <label>No Age Restriction</label>
+
+                                            <select class="form-control" name="age_restriction[]" id="ageRestriction" multiple>
+                                                <option value="">No requirement</option>
+                                                @foreach ($AgeRestrictin as $item)
                                                 <option value="{{ $item->id}}"> {{ $item->name_en}}</option>
                                                  @endforeach
                                             </select>
                                         </div>
-                                    </div>
 
-                                           <div class="form-group">
-                                        <div class="form-group mb-0">
-                                            <label class="input-label"
-                                                for="group_size">{{ translate('Group Size Requirement') }}
-                                            </label>
-                                            <!-- Dropdown: Only Percent & Fixed -->
-                                            <select name="group_size[]" id="groupSize"  class="form-control js-select2-custom" multiple>
-                                                   <option value="">No requirement</option>
-                                                      @foreach ($GroupSizeRequirement as $item)
+
+                                        <!-- Group Size -->
+                                        <div class="form-group">
+                                            <label>Group Size Requirement</label>
+
+                                            <select class="form-control" name="group_size[]" id="groupSize" multiple>
+                                                <option value="">No requirement</option>
+                                                @foreach ($GroupSizeRequirement as $item)
                                                 <option value="{{ $item->id}}"> {{ $item->name_en}}</option>
                                                  @endforeach
                                             </select>
                                         </div>
-                                    </div>
-
-                                  
 
                                         <!-- Usage Limit per User -->
                                         <div class="form-group">
@@ -707,462 +697,465 @@
                     </form>
                   </div>
         </div>
-            <?php }else{ ?>  
-                <!-- update voucher setting -->
-                <?php 
+            <?php }else{ ?>
+          <div class="row g-3">
+            <div class="col-12">
+                <div class="card">
+                  <div class="card-body">
+                    <form action="{{route('admin.VoucherSetting.store')}}" method="post" id="conditionsForm">
+                        @csrf
+                             <input type="hidden" name="item_id" value="{{ request()->route('id') }}">
 
-                    $ageRestrictions = json_decode($VoucherSetting->age_restriction, true) ?? [];
-                $group_size_requirement = json_decode($VoucherSetting->group_size_requirement, true) ?? [];
-                    ?>
-                <div class="row g-3">
-                    <div class="col-12">
-                        <div class="card">
-                        <div class="card-body">
-                            <form action="{{route('admin.VoucherSetting.store')}}" method="post" id="conditionsForm">
-                                @csrf
-                                    <!-- <input type="hidden" name="item_id" value="{{ request()->route('id') }}"> -->
-                                    <input type="hidden" name="item_id" value="{{ $items->id }}">
-                                <div class="condition-header" >
-                                <div class="condition-title">
-                                    <span>Voucher Name:</span> {{ $items->name}} ,
-                                    <span>Voucher Type:</span> {{ $items->voucher_ids}}
-                                </div>
-                                <div class="condition-title">
-                                    <span>edit Setting</span>
-                                </div>
-                            </div>
-                            <div class="row">
-                                    <!-- LEFT SIDE - FORM -->
-                                    <div class="col-lg-7">
+                        <div class="condition-header" >
+                           <div class="condition-title">
+                               <span>Voucher Name:</span> {{ $items->name}} ,
+                               <span>Voucher Type:</span> {{ $items->voucher_ids}}
+                           </div>
+                           <div class="condition-title">
+                               <span>edit Setting</span>
+                           </div>
+                       </div>
+                     <div class="row">
+                            <!-- LEFT SIDE - FORM -->
+                            <div class="col-lg-7">
 
-                                        <!-- TIME CONDITIONS -->
-                                        <div class="condition-card">
-                                            <div class="condition-header" data-bs-toggle="collapse" data-bs-target="#timeConditions">
-                                                <div class="condition-title">
-                                                    <i class="tio-time" style="font-size: 20px;"></i>
-                                                    <span>Time Conditions</span>
-                                                    <span class="active-badge" id="timeActiveCount">0 Active</span>
-                                                </div>
-                                                <i class="tio-chevron-down"></i>
+                                <!-- TIME CONDITIONS -->
+                                <div class="condition-card">
+                                    <div class="condition-header" data-bs-toggle="collapse" data-bs-target="#timeConditions">
+                                        <div class="condition-title">
+                                            <i class="tio-time" style="font-size: 20px;"></i>
+                                            <span>Time Conditions</span>
+                                            <span class="active-badge" id="timeActiveCount">0 Active</span>
+                                        </div>
+                                        <i class="tio-chevron-down"></i>
+                                    </div>
+                                    <div class="collapse show condition-body" id="timeConditions">
+
+                                        <!-- Validity Period -->
+                                    <div class="form-group">
+                                            <div class="custom-control custom-checkbox">
+
+                                                <input type="checkbox" class="custom-control-input" id="validityPeriod"
+                                                    name="validity_period[active]"
+                                                    {{ isset($validityPeriod['active']) ? 'checked' : '' }}>
+                                                <label class="custom-control-label" for="validityPeriod">Validity Period</label>
                                             </div>
-                                            <div class="collapse show condition-body" id="timeConditions">
+                                        </div>
 
-                                                <!-- Validity Period -->
-                                            <div class="form-group">
-                                                    <div class="custom-control custom-checkbox">
-
-                                                        <input type="checkbox" class="custom-control-input" id="validityPeriod"
-                                                            name="validity_period[active]"
-                                                            {{ isset($validityPeriod['active']) ? 'checked' : '' }}>
-                                                        <label class="custom-control-label" for="validityPeriod">Validity Period</label>
-                                                    </div>
+                                        <div class="row validity-dates" >
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label>Start Date</label>
+                                               <input type="date" class="form-control" name="validity_period[start]"
+                                                    id="startDate"
+                                                    value="{{ $validityPeriod['start'] ?? '' }}">
                                                 </div>
-
-                                                <div class="row validity-dates" >
-                                                    <div class="col-md-6">
-                                                        <div class="form-group">
-                                                            <label>Start Date</label>
-                                                    <input type="date" class="form-control" name="validity_period[start]"
-                                                            id="startDate"
-                                                            value="{{ $validityPeriod['start'] ?? '' }}">
-                                                        </div>
-                                                    </div>
-                                                    <div class="col-md-6">
-                                                        <div class="form-group">
-                                                            <label>End Date</label>
-                                                        <input type="date" class="form-control" name="validity_period[end]"
-                                                            id="endDate"
-                                                            value="{{ $validityPeriod['end'] ?? '' }}">
-                                                        </div>
-                                                    </div>
-                                                </div>
-
-                                                <!-- Specific Days -->
-                                                <div class="form-group mt-3">
-                                                    <div class="custom-control custom-checkbox">
-                                                    <input type="checkbox" class="custom-control-input" id="specificDays"
-                                                            name="specific_days"
-                                                            {{ !empty($specificDays) ? 'checked' : '' }}>
-                                                        <label class="custom-control-label" for="specificDays">Specific Days of Week</label>
-                                                    </div>
-                                                </div>
-
-                                            <div class="day-time-table" id="dayTimeTable" >
-                                                    <table class="table table-bordered">
-                                                        <thead style="background: #f8f9fa;">
-                                                            <tr>
-                                                                <th style="width: 15%;">DAY</th>
-                                                                <th style="width: 35%;">START TIME</th>
-                                                                <th style="width: 35%;">END TIME</th>
-                                                                <th style="width: 15%;">ACTION</th>
-                                                            </tr>
-                                                        </thead>
-                                                        <tbody>
-                                                            <tr data-day="Monday">
-                                                                <td>Monday</td>
-                                                                <td>
-                                                                <input type="time" class="form-control start-time"
-                                                                        name="working_hours[monday][start]"
-                                                                        value="{{ $specificDays['monday']['start'] ?? '' }}">
-                                                                </td>
-                                                                <td>
-                                                                <input type="time" class="form-control end-time"
-                                                                        name="working_hours[monday][end]"
-                                                                        value="{{ $specificDays['monday']['end'] ?? '' }}">
-                                                                </td>
-                                                                <td>
-                                                                    <button type="button" class="btn btn-outline-danger btn-sm reset-day">Reset</button>
-                                                                </td>
-                                                            </tr>
-
-                                                            <tr data-day="Tuesday">
-                                                                <td>Tuesday</td>
-                                                                <td>
-                                                                    <input type="time" class="form-control start-time"
-                                                                        name="working_hours[tuesday][start]"
-                                                                        value="{{ $specificDays['tuesday']['start'] ?? '' }}">
-
-                                                                </td>
-                                                                <td>
-                                                                    <input type="time" class="form-control end-time"
-                                                                        name="working_hours[tuesday][end]"
-                                                                        value="{{ $specificDays['tuesday']['end'] ?? '' }}">
-
-                                                                </td>
-                                                                <td>
-                                                                    <button type="button" class="btn btn-outline-danger btn-sm reset-day">Reset</button>
-                                                                </td>
-                                                            </tr>
-
-                                                            <tr data-day="Wednesday">
-                                                                <td>Wednesday</td>
-                                                                <td>
-                                                                    <input type="time" class="form-control start-time"
-                                                                        name="working_hours[wednesday][start]"
-                                                                        value="{{ $specificDays['wednesday']['start'] ?? '' }}">
-
-                                                                </td>
-                                                                <td>
-                                                                    <input type="time" class="form-control end-time"
-                                                                        name="working_hours[wednesday][end]"
-                                                                        value="{{ $specificDays['wednesday']['end'] ?? '' }}">
-
-                                                                </td>
-                                                                <td>
-                                                                    <button type="button" class="btn btn-outline-danger btn-sm reset-day">Reset</button>
-                                                                </td>
-                                                            </tr>
-
-                                                            <tr data-day="Thursday">
-                                                                <td>Thursday</td>
-                                                                <td>
-                                                                    <input type="time" class="form-control start-time"
-                                                                        name="working_hours[thursday][start]"
-                                                                        value="{{ $specificDays['thursday']['start'] ?? '' }}">
-
-                                                                </td>
-                                                                <td>
-                                                                        <input type="time" class="form-control end-time"
-                                                                        name="working_hours[thursday][end]"
-                                                                        value="{{ $specificDays['thursday']['end'] ?? '' }}">
-
-                                                                </td>
-                                                                <td>
-                                                                    <button type="button" class="btn btn-outline-danger btn-sm reset-day">Reset</button>
-                                                                </td>
-                                                            </tr>
-
-                                                            <tr data-day="Friday">
-                                                                <td>Friday</td>
-                                                                <td>
-                                                                    <input type="time" class="form-control start-time"
-                                                                        name="working_hours[friday][start]"
-                                                                        value="{{ $specificDays['friday']['start'] ?? '' }}">
-
-                                                                </td>
-                                                                <td>
-                                                                        <input type="time" class="form-control end-time"
-                                                                        name="working_hours[friday][end]"
-                                                                        value="{{ $specificDays['friday']['end'] ?? '' }}">
-
-                                                                </td>
-                                                                <td>
-                                                                    <button type="button" class="btn btn-outline-danger btn-sm reset-day">Reset</button>
-                                                                </td>
-                                                            </tr>
-
-                                                            <tr data-day="Saturday">
-                                                                <td>Saturday</td>
-                                                                <td>
-                                                                        <input type="time" class="form-control start-time"
-                                                                        name="working_hours[saturday][start]"
-                                                                        value="{{ $specificDays['saturday']['start'] ?? '' }}">
-
-                                                                </td>
-                                                                <td>
-                                                                    <input type="time" class="form-control end-time"
-                                                                        name="working_hours[saturday][end]"
-                                                                        value="{{ $specificDays['saturday']['end'] ?? '' }}">
-                                                                </td>
-                                                                <td>
-                                                                    <button type="button" class="btn btn-outline-danger btn-sm reset-day">Reset</button>
-                                                                </td>
-                                                            </tr>
-
-                                                            <tr data-day="Sunday">
-                                                                <td>Sunday</td>
-                                                                <td>
-                                                                    <input type="time" class="form-control start-time"
-                                                                        name="working_hours[sunday][start]"
-                                                                        value="{{ $specificDays['sunday']['start'] ?? '' }}">
-
-                                                                </td>
-                                                                <td>
-                                                                    <input type="time" class="form-control end-time"
-                                                                        name="working_hours[sunday][end]"
-                                                                        value="{{ $specificDays['sunday']['end'] ?? '' }}">
-
-                                                                </td>
-                                                                <td>
-                                                                    <button type="button" class="btn btn-outline-danger btn-sm reset-day">Reset</button>
-                                                                </td>
-                                                            </tr>
-                                                        </tbody>
-
-                                                    </table>
-                                                </div>
-
-                                                <!-- Holidays & Occasions -->
-                                                <div class="form-group mt-4">
-                                                    <label style="font-weight: 600;">🎄 Holidays & Occasions</label>
-                                                    <p style="font-size: 13px; color: #666;">Holiday Restrictions</p>
-                                                    @foreach ($HolidayOccasion as $item)
-                                                    <div class="holiday-checkbox">
-                                                        <input type="checkbox" id="excludeNational_{{ $item->id}}"
-                                                            name="exclude_national[]"
-                                                            value="{{ $item->id}}"
-                                                            {{ in_array($item->id, $holidays ?? []) ? 'checked' : '' }}>
-                                                        <label for="excludeNational_{{ $item->id}}">{{ $item->name_en}}</label>
-                                                        </div>
-                                                    @endforeach
-                                                </div>
-
-                                                <!-- Custom Blackout Dates -->
-                                                <div class="form-group mt-4">
-                                                    <label style="font-weight: 600;">🎄 Custom Blackout Dates</label>
-                                                    <p style="font-size: 13px; color: #666;">Custom Blackout Dates</p>
-
-                                                    @foreach ($CustomBlackoutData as $item)
-                                                    <div class="holiday-checkbox">
-                                                        <input type="checkbox" id="custom_blackout_dates_{{ $item->id}}"
-                                                            name="custom_blackout_dates[]"
-                                                            value="{{ $item->id}}"
-                                                            {{ in_array($item->id, $custom_blackout_dates ?? []) ? 'checked' : '' }}>
-                                                        <label for="custom_blackout_dates_{{ $item->id}}">{{ $item->description}}</label>
-                                                    </div>
-                                                    @endforeach
-
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label>End Date</label>
+                                                  <input type="date" class="form-control" name="validity_period[end]"
+                                                    id="endDate"
+                                                    value="{{ $validityPeriod['end'] ?? '' }}">
                                                 </div>
                                             </div>
                                         </div>
 
-                                        <!-- GENERAL RESTRICTIONS -->
-                                        <div class="condition-card">
-                                            <div class="condition-header" data-bs-toggle="collapse" data-bs-target="#generalRestrictions">
-                                                <div class="condition-title">
-                                                    <i class="tio-shield-outlined" style="font-size: 20px;"></i>
-                                                    <span>General Restrictions</span>
-                                                    <span class="active-badge" id="restrictionActiveCount">0 Active</span>
+                                        <!-- Specific Days -->
+                                        <div class="form-group mt-3">
+                                            <div class="custom-control custom-checkbox">
+                                               <input type="checkbox" class="custom-control-input" id="specificDays"
+                                                    name="specific_days"
+                                                    {{ !empty($specificDays) ? 'checked' : '' }}>
+                                                <label class="custom-control-label" for="specificDays">Specific Days of Week</label>
+                                            </div>
+                                        </div>
+
+                                       <div class="day-time-table" id="dayTimeTable" >
+                                            <table class="table table-bordered">
+                                                <thead style="background: #f8f9fa;">
+                                                    <tr>
+                                                        <th style="width: 15%;">DAY</th>
+                                                        <th style="width: 35%;">START TIME</th>
+                                                        <th style="width: 35%;">END TIME</th>
+                                                        <th style="width: 15%;">ACTION</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <tr data-day="Monday">
+                                                        <td>Monday</td>
+                                                        <td>
+                                                          <input type="time" class="form-control start-time"
+                                                                name="working_hours[monday][start]"
+                                                                value="{{ $specificDays['monday']['start'] ?? '' }}">
+                                                        </td>
+                                                        <td>
+                                                          <input type="time" class="form-control end-time"
+                                                                name="working_hours[monday][end]"
+                                                                value="{{ $specificDays['monday']['end'] ?? '' }}">
+                                                        </td>
+                                                        <td>
+                                                            <button type="button" class="btn btn-outline-danger btn-sm reset-day">Reset</button>
+                                                        </td>
+                                                    </tr>
+
+                                                    <tr data-day="Tuesday">
+                                                        <td>Tuesday</td>
+                                                        <td>
+                                                             <input type="time" class="form-control start-time"
+                                                                name="working_hours[tuesday][start]"
+                                                                value="{{ $specificDays['tuesday']['start'] ?? '' }}">
+
+                                                        </td>
+                                                        <td>
+                                                             <input type="time" class="form-control end-time"
+                                                                name="working_hours[tuesday][end]"
+                                                                value="{{ $specificDays['tuesday']['end'] ?? '' }}">
+
+                                                        </td>
+                                                        <td>
+                                                            <button type="button" class="btn btn-outline-danger btn-sm reset-day">Reset</button>
+                                                        </td>
+                                                    </tr>
+
+                                                    <tr data-day="Wednesday">
+                                                        <td>Wednesday</td>
+                                                        <td>
+                                                             <input type="time" class="form-control start-time"
+                                                                name="working_hours[wednesday][start]"
+                                                                value="{{ $specificDays['wednesday']['start'] ?? '' }}">
+
+                                                        </td>
+                                                        <td>
+                                                               <input type="time" class="form-control end-time"
+                                                                name="working_hours[wednesday][end]"
+                                                                value="{{ $specificDays['wednesday']['end'] ?? '' }}">
+
+                                                        </td>
+                                                        <td>
+                                                            <button type="button" class="btn btn-outline-danger btn-sm reset-day">Reset</button>
+                                                        </td>
+                                                    </tr>
+
+                                                    <tr data-day="Thursday">
+                                                        <td>Thursday</td>
+                                                        <td>
+                                                              <input type="time" class="form-control start-time"
+                                                                name="working_hours[thursday][start]"
+                                                                value="{{ $specificDays['thursday']['start'] ?? '' }}">
+
+                                                        </td>
+                                                        <td>
+                                                                 <input type="time" class="form-control end-time"
+                                                                name="working_hours[thursday][end]"
+                                                                value="{{ $specificDays['thursday']['end'] ?? '' }}">
+
+                                                        </td>
+                                                        <td>
+                                                            <button type="button" class="btn btn-outline-danger btn-sm reset-day">Reset</button>
+                                                        </td>
+                                                    </tr>
+
+                                                    <tr data-day="Friday">
+                                                        <td>Friday</td>
+                                                        <td>
+                                                               <input type="time" class="form-control start-time"
+                                                                name="working_hours[friday][start]"
+                                                                value="{{ $specificDays['friday']['start'] ?? '' }}">
+
+                                                        </td>
+                                                        <td>
+                                                                 <input type="time" class="form-control end-time"
+                                                                name="working_hours[friday][end]"
+                                                                value="{{ $specificDays['friday']['end'] ?? '' }}">
+
+                                                        </td>
+                                                        <td>
+                                                            <button type="button" class="btn btn-outline-danger btn-sm reset-day">Reset</button>
+                                                        </td>
+                                                    </tr>
+
+                                                    <tr data-day="Saturday">
+                                                        <td>Saturday</td>
+                                                        <td>
+                                                                 <input type="time" class="form-control start-time"
+                                                                name="working_hours[saturday][start]"
+                                                                value="{{ $specificDays['saturday']['start'] ?? '' }}">
+
+                                                        </td>
+                                                        <td>
+                                                             <input type="time" class="form-control end-time"
+                                                                name="working_hours[saturday][end]"
+                                                                value="{{ $specificDays['saturday']['end'] ?? '' }}">
+                                                        </td>
+                                                        <td>
+                                                            <button type="button" class="btn btn-outline-danger btn-sm reset-day">Reset</button>
+                                                        </td>
+                                                    </tr>
+
+                                                    <tr data-day="Sunday">
+                                                        <td>Sunday</td>
+                                                        <td>
+                                                              <input type="time" class="form-control start-time"
+                                                                name="working_hours[sunday][start]"
+                                                                value="{{ $specificDays['sunday']['start'] ?? '' }}">
+
+                                                        </td>
+                                                        <td>
+                                                              <input type="time" class="form-control end-time"
+                                                                name="working_hours[sunday][end]"
+                                                                value="{{ $specificDays['sunday']['end'] ?? '' }}">
+
+                                                        </td>
+                                                        <td>
+                                                            <button type="button" class="btn btn-outline-danger btn-sm reset-day">Reset</button>
+                                                        </td>
+                                                    </tr>
+                                                </tbody>
+
+                                            </table>
+                                        </div>
+
+                                        <!-- Holidays & Occasions -->
+                                        <div class="form-group mt-4">
+                                            <label style="font-weight: 600;">🎄 Holidays & Occasions</label>
+                                            <p style="font-size: 13px; color: #666;">Holiday Restrictions</p>
+                                            @foreach ($HolidayOccasion as $item)
+                                             <div class="holiday-checkbox">
+                                                <input type="checkbox" id="excludeNational_{{ $item->id}}"
+                                                    name="exclude_national[]"
+                                                    value="{{ $item->id}}"
+                                                    {{ in_array($item->id, $holidays ?? []) ? 'checked' : '' }}>
+                                                <label for="excludeNational_{{ $item->id}}">{{ $item->name_en}}</label>
                                                 </div>
-                                                <i class="tio-chevron-down"></i>
-                                            </div>
-                                            <div class="collapse show condition-body" id="generalRestrictions">
-
-                                        <!-- Age Restriction -->
-                                        
-
-                                        <div class="form-group">
-                                                <label class="input-label" for="age_restriction">{{ translate('Age Restriction') }}</label>
-                                                <select name="age_restriction[]" id="ageRestriction_{{ $setting->id ?? '' }}"  
-                                                        class="form-control js-select2-custom" multiple>
-                                                    @foreach ($AgeRestrictin as $itemn)
-                                                        <option value="{{ $itemn->id }}" 
-                                                            {{ in_array($itemn->id, $ageRestrictions) ? 'selected' : '' }}>
-                                                            {{ $itemn->name_en }}
-                                                        </option>
-                                                    @endforeach
-                                                </select>
-                                            </div>
-
-                                    <div class="form-group">
-                                        <label class="input-label" for="group_size">{{ translate('Group Size Requirement') }}</label>
-                                        <select name="group_size[]" id="groupSize" class="form-control js-select2-custom" multiple>
-                                            @foreach ($GroupSizeRequirement as $group)
-                                                <option value="{{ $group->id }}"
-                                                    {{ in_array($group->id, $group_size_requirement)  ? 'selected' : '' }}>
-                                                    {{ $group->name_en }}
-                                                </option>
                                             @endforeach
-                                        </select>
+                                        </div>
+
+                                        <!-- Custom Blackout Dates -->
+                                        <div class="form-group mt-4">
+                                            <label style="font-weight: 600;">🎄 Custom Blackout Dates</label>
+                                            <p style="font-size: 13px; color: #666;">Custom Blackout Dates</p>
+
+                                               @foreach ($CustomBlackoutData as $item)
+                                             <div class="holiday-checkbox">
+                                                <input type="checkbox" id="custom_blackout_dates_{{ $item->id}}"
+                                                    name="custom_blackout_dates[]"
+                                                    value="{{ $item->id}}"
+                                                    {{ in_array($item->id, $custom_blackout_dates ?? []) ? 'checked' : '' }}>
+                                                <label for="custom_blackout_dates_{{ $item->id}}">{{ $item->description}}</label>
+                                            </div>
+                                            @endforeach
+
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- GENERAL RESTRICTIONS -->
+                                <div class="condition-card">
+                                    <div class="condition-header" data-bs-toggle="collapse" data-bs-target="#generalRestrictions">
+                                        <div class="condition-title">
+                                            <i class="tio-shield-outlined" style="font-size: 20px;"></i>
+                                            <span>General Restrictions</span>
+                                            <span class="active-badge" id="restrictionActiveCount">0 Active</span>
+                                        </div>
+                                        <i class="tio-chevron-down"></i>
+                                    </div>
+                                    <div class="collapse show condition-body" id="generalRestrictions">
+
+                                  <!-- Age Restriction -->
+                                    <div class="form-group">
+                                        <div class="form-group mb-0">
+                                            <label class="input-label"
+                                                for="age_restriction">{{ translate('Age Restriction') }}
+                                            </label>
+                                            <!-- Dropdown: Only Percent & Fixed -->
+                                            <select name="age_restriction[]" id="ageRestriction_{{ $setting->id ?? '' }}"  class="form-control js-select2-custom" multiple>
+                                                      @foreach ($AgeRestrictin as $age)
+                                                    <option value="{{ $age->id }}"
+                                                        {{ $VoucherSetting->age_restriction == $age->id ? 'selected' : '' }}>
+                                                        {{ $age->name_en }}
+                                                    </option>
+                                                      @endforeach
+                                            </select>
+                                        </div>
                                     </div>
 
+                                           <div class="form-group">
+                                        <div class="form-group mb-0">
+                                            <label class="input-label"
+                                                for="group_size">{{ translate('Group Size Requirement') }}
+                                            </label>
+                                            <!-- Dropdown: Only Percent & Fixed -->
+                                            <select name="group_size[]" id="groupSize"  class="form-control js-select2-custom" multiple>
+                                                       @foreach ($GroupSizeRequirement as $group)
+                                                     <option value="{{ $group->id }}"
+                                                            {{ $VoucherSetting->group_size_requirement == $group->id ? 'selected' : '' }} >
+                                                            {{ $group->name_en }}
+                                                        </option>
+                                                      @endforeach
+                                            </select>
+                                        </div>
+                                    </div>
+                          
 
-                                                <!-- Usage Limit per User -->
+                                    
+
+                                        <!-- Usage Limit per User -->
+                                        <div class="form-group">
+                                            <label>Usage Limit per User</label>
+                                            <div class="usage-row">
                                                 <div class="form-group">
-                                                    <label>Usage Limit per User</label>
-                                                    <div class="usage-row">
-                                                        <div class="form-group">
-                                                        <input type="number" class="form-control" name="user_limit[]"
-                                                            id="userLimit"
-                                                            value="{{ $userLimit[0] ?? '' }}"
-                                                            placeholder="Number of times" min="1">
-                                                        </div>
-                                                        <span class="times-label">times</span>
-                                                        <div class="form-group">
-                                                            <select class="form-control" name="user_limit[]" id="userPeriod">
-                                                                <option value="">Select period</option>
-
-                                                                @foreach ($UsagePeriod as $period)
-                                                                    <option value="{{ $period->id }}"
-                                                                        {{ $userLimit[1] == $period->id ? 'selected' : '' }}>
-                                                                        {{ $period->name_en }}
-                                                                    </option>
-                                                                @endforeach
-
-                                                            </select>
-                                                        </div>
-                                                    </div>
+                                                <input type="number" class="form-control" name="user_limit[]"
+                                                    id="userLimit"
+                                                    value="{{ $userLimit[0] ?? '' }}"
+                                                    placeholder="Number of times" min="1">
                                                 </div>
-
-                                                <!-- Usage Limit per Store -->
+                                                <span class="times-label">times</span>
                                                 <div class="form-group">
-                                                    <label>Usage Limit per Store</label>
-                                                    <div class="usage-row">
-                                                        <div class="form-group">
-                                                        <input type="number" class="form-control" name="store_limit[]" value="{{ $storeLimit[0] ?? '' }}">
-                                                        </div>
-                                                        <span class="times-label">times</span>
-                                                        <div class="form-group">
-                                                            <select class="form-control" name="store_limit[]">
-                                                            <option value="">Select period</option>
-                                                            @foreach ($UsagePeriod as $period)
-                                                                    <option value="{{ $period->id }}"
-                                                                        {{ $storeLimit[1] == $period->id ? 'selected' : '' }}>
-                                                                        {{ $period->name_en }}
-                                                                    </option>
-                                                                @endforeach
-                                                        </select>
-                                                        </div>
-                                                    </div>
-                                                </div>
+                                                    <select class="form-control" name="user_limit[]" id="userPeriod">
+                                                        <option value="">Select period</option>
 
-                                                <!-- Offer Validity -->
-                                                <div class="form-group">
-                                                    <label>Offer Validity After Purchase</label>
-                                                    <select class="form-control" name="validity_after" id="validityAfter">
-                                                        <option value="">No time limit</option>
-                                                        @foreach ($OfferValidatyPeroid as $offer)
-                                                                <option value="{{ $offer->id }}"
-                                                                    {{ $VoucherSetting->offer_validity_after_purchase == $offer->id ? 'selected' : '' }}>
-                                                                    {{ $offer->name_en }}
-                                                                </option>
-                                                            @endforeach
-                                                        <!-- Baki options -->
+                                                          @foreach ($UsagePeriod as $period)
+                                                            <option value="{{ $period->id }}"
+                                                                {{ $userLimit[1] == $period->id ? 'selected' : '' }}>
+                                                                {{ $period->name_en }}
+                                                            </option>
+                                                        @endforeach
+
                                                     </select>
                                                 </div>
-                                                <!-- General Restrictions Checkboxes -->
-                                                <div class="form-group">
-                                                    <label style="font-weight: 600;">General Restrictions</label>
-                                                    @foreach ($GeneralRestriction as $item)
-                                                    <div class="holiday-checkbox">
-                                                        <input type="checkbox" id="noOtherOffers_{{ $item->id}}"
-                                                            name="no_other_offers[]"
-                                                            value="{{ $item->id}}"
-                                                            {{ in_array($item->id, $generalRestrictions ?? []) ? 'checked' : '' }}>
-                                                        <label for="noOtherOffers_{{ $item->id}}">{{ $item->name_en}}</label>
-                                                        </div>
-                                                    @endforeach
+                                            </div>
+                                        </div>
 
+                                        <!-- Usage Limit per Store -->
+                                        <div class="form-group">
+                                            <label>Usage Limit per Store</label>
+                                            <div class="usage-row">
+                                                <div class="form-group">
+                                                  <input type="number" class="form-control" name="store_limit[]" value="{{ $storeLimit[0] ?? '' }}">
+                                                </div>
+                                                <span class="times-label">times</span>
+                                                <div class="form-group">
+                                                    <select class="form-control" name="store_limit[]">
+                                                    <option value="">Select period</option>
+                                                     @foreach ($UsagePeriod as $period)
+                                                            <option value="{{ $period->id }}"
+                                                                {{ $storeLimit[1] == $period->id ? 'selected' : '' }}>
+                                                                {{ $period->name_en }}
+                                                            </option>
+                                                        @endforeach
+                                                </select>
                                                 </div>
                                             </div>
                                         </div>
-                                    </div>
 
-                                    <!-- RIGHT SIDE - PREVIEW -->
-                                    <div class="col-lg-5">
-                                        <div class="preview-panel">
-                                            <div class="preview-header">Active Conditions Preview</div>
+                                        <!-- Offer Validity -->
+                                        <div class="form-group">
+                                            <label>Offer Validity After Purchase</label>
+                                            <select class="form-control" name="validity_after" id="validityAfter">
+                                                <option value="">No time limit</option>
+                                                  @foreach ($OfferValidatyPeroid as $offer)
+                                                        <option value="{{ $offer->id }}"
+                                                            {{ $VoucherSetting->offer_validity_after_purchase == $offer->id ? 'selected' : '' }}>
+                                                            {{ $offer->name_en }}
+                                                        </option>
+                                                    @endforeach
+                                                <!-- Baki options -->
+                                            </select>
+                                        </div>
+                                        <!-- General Restrictions Checkboxes -->
+                                        <div class="form-group">
+                                            <label style="font-weight: 600;">General Restrictions</label>
+                                            @foreach ($GeneralRestriction as $item)
+                                             <div class="holiday-checkbox">
+                                                <input type="checkbox" id="noOtherOffers_{{ $item->id}}"
+                                                    name="no_other_offers[]"
+                                                    value="{{ $item->id}}"
+                                                    {{ in_array($item->id, $generalRestrictions ?? []) ? 'checked' : '' }}>
+                                                <label for="noOtherOffers_{{ $item->id}}">{{ $item->name_en}}</label>
+                                                  </div>
+                                            @endforeach
 
-                                            <!-- Available On -->
-                                            <div class="preview-section" id="previewDays" style="display:none;">
-                                                <div class="preview-label">Available on:</div>
-                                                <div class="preview-value" id="previewDaysText">-</div>
-                                            </div>
-
-                                            <!-- Validity Period -->
-                                            <div class="preview-section" id="previewValidityPeriod" style="display:none;">
-                                                <div class="preview-label">Validity period:</div>
-                                                <div class="preview-value" id="previewValidityPeriodText">-</div>
-                                            </div>
-
-                                            <!-- Holiday Restrictions -->
-                                            <div class="preview-section" id="previewHolidays" style="display:none;">
-                                                <div class="preview-label">Holiday restrictions:</div>
-                                                <div class="preview-value" id="previewHolidaysText">-</div>
-                                            </div>
-
-                                            <!-- previewCustomBlackout -->
-                                            <div class="preview-section" id="previewCustomBlackout" style="display:none;">
-                                                <div class="preview-label">Holiday restrictions:</div>
-                                                <div class="preview-value" id="previewCustomBlackoutText">-</div>
-                                            </div>
-                                            <!-- Age Restriction -->
-                                            <div class="preview-section" id="previewAge" style="display:none;">
-                                                <div class="preview-label">Age restriction:</div>
-                                                <div class="preview-value" id="previewAgeText">-</div>
-                                            </div>
-
-                                            <!-- Group Size -->
-                                            <div class="preview-section" id="previewGroup" style="display:none;">
-                                                <div class="preview-label">Group size required:</div>
-                                                <div class="preview-value" id="previewGroupText">-</div>
-                                            </div>
-
-                                            <!-- Validity -->
-                                            <div class="preview-section" id="previewValidity" style="display:none;">
-                                                <div class="preview-label">Validity after purchase:</div>
-                                                <div class="preview-value" id="previewValidityText">-</div>
-                                            </div>
-
-                                            <!-- Limit per User -->
-                                            <div class="preview-section" id="previewUserLimit" style="display:none;">
-                                                <div class="preview-label">Limit per user:</div>
-                                                <div class="preview-value" id="previewUserLimitText">-</div>
-                                            </div>
-
-                                            <!-- Limit per Store -->
-                                            <div class="preview-section" id="previewStoreLimit" style="display:none;">
-                                                <div class="preview-label">Limit per store:</div>
-                                                <div class="preview-value" id="previewStoreLimitText">-</div>
-                                            </div>
-
-                                            <!-- General Restrictions -->
-                                            <div class="preview-section" id="previewRestrictions" style="display:none;">
-                                                <div class="preview-label">General restrictions:</div>
-                                                <div class="preview-value" id="previewRestrictionsText">-</div>
-                                            </div>
                                         </div>
                                     </div>
                                 </div>
-                                <div class="btn--container justify-content-end mt-5">
-                                    <button type="reset" class="btn btn--reset">{{translate('messages.reset')}}</button>
-                                    <button type="submit" class="btn btn--primary">{{translate('Update')}}</button>
+                            </div>
+
+                            <!-- RIGHT SIDE - PREVIEW -->
+                            <div class="col-lg-5">
+                                <div class="preview-panel">
+                                    <div class="preview-header">Active Conditions Preview</div>
+
+                                    <!-- Available On -->
+                                    <div class="preview-section" id="previewDays" style="display:none;">
+                                        <div class="preview-label">Available on:</div>
+                                        <div class="preview-value" id="previewDaysText">-</div>
+                                    </div>
+
+                                    <!-- Validity Period -->
+                                    <div class="preview-section" id="previewValidityPeriod" style="display:none;">
+                                        <div class="preview-label">Validity period:</div>
+                                        <div class="preview-value" id="previewValidityPeriodText">-</div>
+                                    </div>
+
+                                    <!-- Holiday Restrictions -->
+                                    <div class="preview-section" id="previewHolidays" style="display:none;">
+                                        <div class="preview-label">Holiday restrictions:</div>
+                                        <div class="preview-value" id="previewHolidaysText">-</div>
+                                    </div>
+
+                                       <!-- previewCustomBlackout -->
+                                    <div class="preview-section" id="previewCustomBlackout" style="display:none;">
+                                        <div class="preview-label">Holiday restrictions:</div>
+                                        <div class="preview-value" id="previewCustomBlackoutText">-</div>
+                                    </div>
+                                    <!-- Age Restriction -->
+                                    <div class="preview-section" id="previewAge" style="display:none;">
+                                        <div class="preview-label">Age restriction:</div>
+                                        <div class="preview-value" id="previewAgeText">-</div>
+                                    </div>
+
+                                    <!-- Group Size -->
+                                    <div class="preview-section" id="previewGroup" style="display:none;">
+                                        <div class="preview-label">Group size required:</div>
+                                        <div class="preview-value" id="previewGroupText">-</div>
+                                    </div>
+
+                                    <!-- Validity -->
+                                    <div class="preview-section" id="previewValidity" style="display:none;">
+                                        <div class="preview-label">Validity after purchase:</div>
+                                        <div class="preview-value" id="previewValidityText">-</div>
+                                    </div>
+
+                                    <!-- Limit per User -->
+                                    <div class="preview-section" id="previewUserLimit" style="display:none;">
+                                        <div class="preview-label">Limit per user:</div>
+                                        <div class="preview-value" id="previewUserLimitText">-</div>
+                                    </div>
+
+                                    <!-- Limit per Store -->
+                                    <div class="preview-section" id="previewStoreLimit" style="display:none;">
+                                        <div class="preview-label">Limit per store:</div>
+                                        <div class="preview-value" id="previewStoreLimitText">-</div>
+                                    </div>
+
+                                    <!-- General Restrictions -->
+                                    <div class="preview-section" id="previewRestrictions" style="display:none;">
+                                        <div class="preview-label">General restrictions:</div>
+                                        <div class="preview-value" id="previewRestrictionsText">-</div>
+                                    </div>
                                 </div>
-                            </form>
+                            </div>
                         </div>
-                </div>
-                    <?php } ?>
-                </div>
+                        <div class="btn--container justify-content-end mt-5">
+                            <button type="reset" class="btn btn--reset">{{translate('messages.reset')}}</button>
+                            <button type="submit" class="btn btn--primary">{{translate('Update')}}</button>
+                        </div>
+                    </form>
+                  </div>
+           </div>
+            <?php } ?>
+         </div>
 
 @endsection
 
