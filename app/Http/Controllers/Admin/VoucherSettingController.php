@@ -139,7 +139,7 @@ class VoucherSettingController extends Controller
             $UsagePeriod = UsagePeriod::get();
             $OfferValidatyPeroid = OfferValidatyPeroid::get();
 
-            // dd($VoucherSettings);
+            // dd($VoucherSetting);
 
             $VoucherSettings = VoucherSetting::query()
                 ->when($search, function ($q) use ($search) {
@@ -148,7 +148,7 @@ class VoucherSettingController extends Controller
                 ->orderBy('validity_period', 'asc')
                 ->paginate(config('default_pagination'));
 
-            // dd($VoucherSetting->group_size_requirement);
+            // dd($custom_blackout_dates);
 
 
                 return view('admin-views.voucher_setting.add', compact(
@@ -177,16 +177,16 @@ class VoucherSettingController extends Controller
 
     public function store(Request $request)
     {
+        // dd($request->all());
       
         $request->validate([
             'validity_period' => 'required',
         ]);
 
-
         // Voucher_id aaya hai?
         $item_id = $request->item_id ?? $request->voucher_id;
      
-        // If record exists → UPDATE
+        // If record exists → UPDATE 
         // If not exists → INSERT
         $VoucherSetting = VoucherSetting::updateOrCreate(
             ['item_id' => $item_id], // check condition
@@ -196,9 +196,9 @@ class VoucherSettingController extends Controller
                 'holidays_occasions' => json_encode($request->exclude_national ?? []),
                 'custom_blackout_dates' => json_encode($request->custom_blackout_dates ?? []),
                 // 'age_restriction' =>  json_encode($request->age_restriction ?? []), 
-                // 'group_size_requirement' =>  json_encode($request->group_size ?? []),  
+                // 'group_size_requirement' =>  json_encode($request->group_size ?? []), 
                 'age_restriction' =>  json_encode($request->age_restriction ?? []), 
-                'group_size_requirement' =>  json_encode($request->group_size ?? []),  
+                'group_size_requirement' =>  json_encode($request->group_size ?? []), 
                 // Store
 
                 'usage_limit_per_user' => json_encode($request->user_limit ?? []),
@@ -212,8 +212,6 @@ class VoucherSettingController extends Controller
         Toastr::success('Voucher Settings Saved Successfully');
         return back();
     }
-
-
 
 
       public function add_setting(Request $request)
