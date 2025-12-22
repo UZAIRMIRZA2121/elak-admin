@@ -569,43 +569,70 @@
                                     </div>
 
                                   
-
-                                        <!-- Usage Limit per User -->
-                                        <div class="form-group">
+                                       <div class="form-group">
                                             <label>Usage Limit per User</label>
                                             <div class="usage-row">
+
                                                 <div class="form-group">
-                                                    <input type="number" class="form-control" name="user_limit[]" id="userLimit" placeholder="Number of times" min="1">
+                                                    <input type="number"
+                                                        class="form-control"
+                                                        name="user_limit[value]"
+                                                        value="{{ $userLimit['value'] ?? '' }}"
+                                                        placeholder="Number of times"
+                                                        min="1">
                                                 </div>
+
                                                 <span class="times-label">times</span>
+
                                                 <div class="form-group">
-                                                    <select class="form-control" name="user_limit[]" id="userPeriod">
+                                                    <select class="form-control" name="user_limit[period]">
                                                         <option value="">Select period</option>
-                                                          @foreach ($UsagePeriod as $item)
-                                                        <option value="{{ $item->id}}"> {{ $item->name_en}}</option>
+
+                                                        @foreach ($UsagePeriod as $period)
+                                                            <option value="{{ $period->name_en }}"
+                                                                {{ ($userLimit['period'] ?? '') == $period->name_en ? 'selected' : '' }}>
+                                                                {{ $period->name_en }}
+                                                            </option>
                                                         @endforeach
+
                                                     </select>
                                                 </div>
+
                                             </div>
                                         </div>
-                                        <!-- Usage Limit per Store -->
+
                                         <div class="form-group">
                                             <label>Usage Limit per Store</label>
                                             <div class="usage-row">
+
                                                 <div class="form-group">
-                                                    <input type="number" class="form-control" name="store_limit[]" id="storeLimit" placeholder="Number of times" min="1">
+                                                    <input type="number"
+                                                        class="form-control"
+                                                        name="store_limit[value]"
+                                                        value="{{ $storeLimit['value'] ?? '' }}"
+                                                        placeholder="Number of times"
+                                                        min="1">
                                                 </div>
+
                                                 <span class="times-label">times</span>
+
                                                 <div class="form-group">
-                                                    <select class="form-control" name="store_limit[]" id="storePeriod">
+                                                    <select class="form-control" name="store_limit[period]">
                                                         <option value="">Select period</option>
-                                                        @foreach ($UsagePeriod as $item)
-                                                        <option value="{{ $item->id}}"> {{ $item->name_en}}</option>
+
+                                                        @foreach ($UsagePeriod as $period)
+                                                            <option value="{{ $period->name_en }}"
+                                                                {{ ($storeLimit['period'] ?? '') == $period->name_en ? 'selected' : '' }}>
+                                                                {{ $period->name_en }}
+                                                            </option>
                                                         @endforeach
+
                                                     </select>
                                                 </div>
+
                                             </div>
                                         </div>
+
 
                                         <!-- Offer Validity -->
                                         <div class="form-group">
@@ -709,11 +736,7 @@
         </div>
             <?php }else{ ?>  
                 <!-- update voucher setting -->
-                <?php 
-
-                    $ageRestrictions = json_decode($VoucherSetting->age_restriction, true) ?? [];
-                $group_size_requirement = json_decode($VoucherSetting->group_size_requirement, true) ?? [];
-                    ?>
+             
                 <div class="row g-3">
                     <div class="col-12">
                         <div class="card">
@@ -947,20 +970,23 @@
                                                     @endforeach
                                                 </div>
 
+                                              <?php   $custom_blackout_dates = $custom_blackout_dates?->pluck('id')->toArray() ?? []; ?>
+
+
                                                 <!-- Custom Blackout Dates -->
                                                 <div class="form-group mt-4">
                                                     <label style="font-weight: 600;">🎄 Custom Blackout Dates</label>
                                                     <p style="font-size: 13px; color: #666;">Custom Blackout Dates</p>
 
-                                                    @foreach ($CustomBlackoutData as $item)
-                                                    <div class="holiday-checkbox">
-                                                        <input type="checkbox" id="custom_blackout_dates_{{ $item->id}}"
-                                                            name="custom_blackout_dates[]"
-                                                            value="{{ $item->id}}"
-                                                            {{ in_array($item->id, $custom_blackout_dates ?? []) ? 'checked' : '' }}>
-                                                        <label for="custom_blackout_dates_{{ $item->id}}">{{ $item->description}}</label>
-                                                    </div>
-                                                    @endforeach
+                                               @foreach ($CustomBlackoutData as $item)
+                                             <div class="holiday-checkbox">
+                                                <input type="checkbox" id="custom_blackout_dates_{{ $item->id}}"
+                                                    name="custom_blackout_dates[]"
+                                                    value="{{ $item->id}}"
+                                                    {{ in_array($item->id, $custom_blackout_dates ?? []) ? 'checked' : '' }}>
+                                                <label for="custom_blackout_dates_{{ $item->id}}">{{ $item->description}}</label>
+                                            </div>
+                                            @endforeach
 
                                                 </div>
                                             </div>
@@ -978,7 +1004,12 @@
                                             </div>
                                             <div class="collapse show condition-body" id="generalRestrictions">
 
-                                        <!-- Age Restriction -->
+                                           <!-- Age Restriction -->
+                                            <?php 
+
+                                                $ageRestrictions = json_decode($VoucherSetting->age_restriction, true) ?? [];
+                                            $group_size_requirement = json_decode($VoucherSetting->group_size_requirement, true) ?? [];
+                                                ?>
                                         
 
                                         <div class="form-group">
@@ -994,175 +1025,190 @@
                                                 </select>
                                             </div>
 
-                                    <div class="form-group">
-                                        <label class="input-label" for="group_size">{{ translate('Group Size Requirement') }}</label>
-                                        <select name="group_size[]" id="groupSize" class="form-control js-select2-custom" multiple>
-                                            @foreach ($GroupSizeRequirement as $group)
-                                                <option value="{{ $group->id }}"
-                                                    {{ in_array($group->id, $group_size_requirement)  ? 'selected' : '' }}>
-                                                    {{ $group->name_en }}
-                                                </option>
-                                            @endforeach
-                                        </select>
-                                    </div>
+                                        <div class="form-group">
+                                            <label class="input-label" for="group_size">{{ translate('Group Size Requirement') }}</label>
+                                            <select name="group_size[]" id="groupSize" class="form-control js-select2-custom" multiple>
+                                                @foreach ($GroupSizeRequirement as $group)
+                                                    <option value="{{ $group->id }}"
+                                                        {{ in_array($group->id, $group_size_requirement)  ? 'selected' : '' }}>
+                                                        {{ $group->name_en }}
+                                                    </option>
+                                                @endforeach
+                                            </select>
+                                        </div>
 
+                                        <div class="form-group">
+                                            <label>Usage Limit per User</label>
+                                            <div class="usage-row">
 
-                                                <!-- Usage Limit per User -->
                                                 <div class="form-group">
-                                                    <label>Usage Limit per User</label>
-                                                    <div class="usage-row">
-                                                        <div class="form-group">
-                                                        <input type="number" class="form-control" name="user_limit[]"
-                                                            id="userLimit"
-                                                            value="{{ $userLimit[0] ?? '' }}"
-                                                            placeholder="Number of times" min="1">
-                                                        </div>
-                                                        <span class="times-label">times</span>
-                                                        <div class="form-group">
-                                                            <select class="form-control" name="user_limit[]" id="userPeriod">
-                                                                <option value="">Select period</option>
-
-                                                                @foreach ($UsagePeriod as $period)
-                                                                    <option value="{{ $period->id }}"
-                                                                        {{ $userLimit[1] == $period->id ? 'selected' : '' }}>
-                                                                        {{ $period->name_en }}
-                                                                    </option>
-                                                                @endforeach
-
-                                                            </select>
-                                                        </div>
-                                                    </div>
+                                                    <input type="number"
+                                                        class="form-control"
+                                                        name="user_limit[value]"
+                                                        value="{{ $userLimit['value'] ?? '' }}"
+                                                        placeholder="Number of times"
+                                                        min="1">
                                                 </div>
 
-                                                <!-- Usage Limit per Store -->
-                                                <div class="form-group">
-                                                    <label>Usage Limit per Store</label>
-                                                    <div class="usage-row">
-                                                        <div class="form-group">
-                                                        <input type="number" class="form-control" name="store_limit[]" value="{{ $storeLimit[0] ?? '' }}">
-                                                        </div>
-                                                        <span class="times-label">times</span>
-                                                        <div class="form-group">
-                                                            <select class="form-control" name="store_limit[]">
-                                                            <option value="">Select period</option>
-                                                            @foreach ($UsagePeriod as $period)
-                                                                    <option value="{{ $period->id }}"
-                                                                        {{ $storeLimit[1] == $period->id ? 'selected' : '' }}>
-                                                                        {{ $period->name_en }}
-                                                                    </option>
-                                                                @endforeach
-                                                        </select>
-                                                        </div>
-                                                    </div>
-                                                </div>
+                                                <span class="times-label">times</span>
 
-                                                <!-- Offer Validity -->
                                                 <div class="form-group">
-                                                    <label>Offer Validity After Purchase</label>
-                                                    <select class="form-control" name="validity_after" id="validityAfter">
-                                                        <option value="">No time limit</option>
-                                                        @foreach ($OfferValidatyPeroid as $offer)
-                                                                <option value="{{ $offer->id }}"
-                                                                    {{ $VoucherSetting->offer_validity_after_purchase == $offer->id ? 'selected' : '' }}>
-                                                                    {{ $offer->name_en }}
-                                                                </option>
-                                                            @endforeach
-                                                        <!-- Baki options -->
+                                                    <select class="form-control" name="user_limit[period]">
+                                                        <option value="">Select period</option>
+
+                                                        @foreach ($UsagePeriod as $period)
+                                                            <option value="{{ $period->name_en }}"
+                                                                {{ ($userLimit['period'] ?? '') == $period->name_en ? 'selected' : '' }}>
+                                                                {{ $period->name_en }}
+                                                            </option>
+                                                        @endforeach
+
                                                     </select>
                                                 </div>
-                                                <!-- General Restrictions Checkboxes -->
+
+                                            </div>
+                                        </div>
+
+                                        <div class="form-group">
+                                            <label>Usage Limit per Store</label>
+                                            <div class="usage-row">
+
                                                 <div class="form-group">
-                                                    <label style="font-weight: 600;">General Restrictions</label>
-                                                    @foreach ($GeneralRestriction as $item)
-                                                    <div class="holiday-checkbox">
-                                                        <input type="checkbox" id="noOtherOffers_{{ $item->id}}"
-                                                            name="no_other_offers[]"
-                                                            value="{{ $item->id}}"
-                                                            {{ in_array($item->id, $generalRestrictions ?? []) ? 'checked' : '' }}>
-                                                        <label for="noOtherOffers_{{ $item->id}}">{{ $item->name_en}}</label>
-                                                        </div>
-                                                    @endforeach
-
+                                                    <input type="number"
+                                                        class="form-control"
+                                                        name="store_limit[value]"
+                                                        value="{{ $storeLimit['value'] ?? '' }}"
+                                                        placeholder="Number of times"
+                                                        min="1">
                                                 </div>
+
+                                                <span class="times-label">times</span>
+
+                                                <div class="form-group">
+                                                    <select class="form-control" name="store_limit[period]">
+                                                        <option value="">Select period</option>
+
+                                                        @foreach ($UsagePeriod as $period)
+                                                            <option value="{{ $period->name_en }}"
+                                                                {{ ($storeLimit['period'] ?? '') == $period->name_en ? 'selected' : '' }}>
+                                                                {{ $period->name_en }}
+                                                            </option>
+                                                        @endforeach
+
+                                                    </select>
+                                                </div>
+
                                             </div>
                                         </div>
-                                    </div>
 
-                                    <!-- RIGHT SIDE - PREVIEW -->
-                                    <div class="col-lg-5">
-                                        <div class="preview-panel">
-                                            <div class="preview-header">Active Conditions Preview</div>
 
-                                            <!-- Available On -->
-                                            <div class="preview-section" id="previewDays" style="display:none;">
-                                                <div class="preview-label">Available on:</div>
-                                                <div class="preview-value" id="previewDaysText">-</div>
-                                            </div>
+                                        <!-- Offer Validity -->
+                                        <div class="form-group">
+                                            <label>Offer Validity After Purchase</label>
+                                            <select class="form-control" name="validity_after" id="validityAfter">
+                                                <option value="">No time limit</option>
+                                                @foreach ($OfferValidatyPeroid as $offer)
+                                                        <option value="{{ $offer->id }}"
+                                                            {{ $VoucherSetting->offer_validity_after_purchase == $offer->id ? 'selected' : '' }}>
+                                                            {{ $offer->name_en }}
+                                                        </option>
+                                                    @endforeach
+                                                <!-- Baki options -->
+                                            </select>
+                                        </div>
+                                        <!-- General Restrictions Checkboxes -->
+                                        <div class="form-group">
+                                            <label style="font-weight: 600;">General Restrictions</label>
+                                            @foreach ($GeneralRestriction as $item)
+                                            <div class="holiday-checkbox">
+                                                <input type="checkbox" id="noOtherOffers_{{ $item->id}}"
+                                                    name="no_other_offers[]"
+                                                    value="{{ $item->id}}"
+                                                    {{ in_array($item->id, $generalRestrictions ?? []) ? 'checked' : '' }}>
+                                                <label for="noOtherOffers_{{ $item->id}}">{{ $item->name_en}}</label>
+                                                </div>
+                                            @endforeach
 
-                                            <!-- Validity Period -->
-                                            <div class="preview-section" id="previewValidityPeriod" style="display:none;">
-                                                <div class="preview-label">Validity period:</div>
-                                                <div class="preview-value" id="previewValidityPeriodText">-</div>
-                                            </div>
-
-                                            <!-- Holiday Restrictions -->
-                                            <div class="preview-section" id="previewHolidays" style="display:none;">
-                                                <div class="preview-label">Holiday restrictions:</div>
-                                                <div class="preview-value" id="previewHolidaysText">-</div>
-                                            </div>
-
-                                            <!-- previewCustomBlackout -->
-                                            <div class="preview-section" id="previewCustomBlackout" style="display:none;">
-                                                <div class="preview-label">Holiday restrictions:</div>
-                                                <div class="preview-value" id="previewCustomBlackoutText">-</div>
-                                            </div>
-                                            <!-- Age Restriction -->
-                                            <div class="preview-section" id="previewAge" style="display:none;">
-                                                <div class="preview-label">Age restriction:</div>
-                                                <div class="preview-value" id="previewAgeText">-</div>
-                                            </div>
-
-                                            <!-- Group Size -->
-                                            <div class="preview-section" id="previewGroup" style="display:none;">
-                                                <div class="preview-label">Group size required:</div>
-                                                <div class="preview-value" id="previewGroupText">-</div>
-                                            </div>
-
-                                            <!-- Validity -->
-                                            <div class="preview-section" id="previewValidity" style="display:none;">
-                                                <div class="preview-label">Validity after purchase:</div>
-                                                <div class="preview-value" id="previewValidityText">-</div>
-                                            </div>
-
-                                            <!-- Limit per User -->
-                                            <div class="preview-section" id="previewUserLimit" style="display:none;">
-                                                <div class="preview-label">Limit per user:</div>
-                                                <div class="preview-value" id="previewUserLimitText">-</div>
-                                            </div>
-
-                                            <!-- Limit per Store -->
-                                            <div class="preview-section" id="previewStoreLimit" style="display:none;">
-                                                <div class="preview-label">Limit per store:</div>
-                                                <div class="preview-value" id="previewStoreLimitText">-</div>
-                                            </div>
-
-                                            <!-- General Restrictions -->
-                                            <div class="preview-section" id="previewRestrictions" style="display:none;">
-                                                <div class="preview-label">General restrictions:</div>
-                                                <div class="preview-value" id="previewRestrictionsText">-</div>
-                                            </div>
                                         </div>
                                     </div>
                                 </div>
-                                <div class="btn--container justify-content-end mt-5">
-                                    <button type="reset" class="btn btn--reset">{{translate('messages.reset')}}</button>
-                                    <button type="submit" class="btn btn--primary">{{translate('Update')}}</button>
+                            </div>
+
+                            <!-- RIGHT SIDE - PREVIEW -->
+                            <div class="col-lg-5">
+                                <div class="preview-panel">
+                                    <div class="preview-header">Active Conditions Preview</div>
+
+                                    <!-- Available On -->
+                                    <div class="preview-section" id="previewDays" style="display:none;">
+                                        <div class="preview-label">Available on:</div>
+                                        <div class="preview-value" id="previewDaysText">-</div>
+                                    </div>
+
+                                    <!-- Validity Period -->
+                                    <div class="preview-section" id="previewValidityPeriod" style="display:none;">
+                                        <div class="preview-label">Validity period:</div>
+                                        <div class="preview-value" id="previewValidityPeriodText">-</div>
+                                    </div>
+
+                                    <!-- Holiday Restrictions -->
+                                    <div class="preview-section" id="previewHolidays" style="display:none;">
+                                        <div class="preview-label">Holiday restrictions:</div>
+                                        <div class="preview-value" id="previewHolidaysText">-</div>
+                                    </div>
+
+                                    <!-- previewCustomBlackout -->
+                                    <div class="preview-section" id="previewCustomBlackout" style="display:none;">
+                                        <div class="preview-label">Holiday restrictions:</div>
+                                        <div class="preview-value" id="previewCustomBlackoutText">-</div>
+                                    </div>
+                                    <!-- Age Restriction -->
+                                    <div class="preview-section" id="previewAge" style="display:none;">
+                                        <div class="preview-label">Age restriction:</div>
+                                        <div class="preview-value" id="previewAgeText">-</div>
+                                    </div>
+
+                                    <!-- Group Size -->
+                                    <div class="preview-section" id="previewGroup" style="display:none;">
+                                        <div class="preview-label">Group size required:</div>
+                                        <div class="preview-value" id="previewGroupText">-</div>
+                                    </div>
+
+                                    <!-- Validity -->
+                                    <div class="preview-section" id="previewValidity" style="display:none;">
+                                        <div class="preview-label">Validity after purchase:</div>
+                                        <div class="preview-value" id="previewValidityText">-</div>
+                                    </div>
+
+                                    <!-- Limit per User -->
+                                    <div class="preview-section" id="previewUserLimit" style="display:none;">
+                                        <div class="preview-label">Limit per user:</div>
+                                        <div class="preview-value" id="previewUserLimitText">-</div>
+                                    </div>
+
+                                    <!-- Limit per Store -->
+                                    <div class="preview-section" id="previewStoreLimit" style="display:none;">
+                                        <div class="preview-label">Limit per store:</div>
+                                        <div class="preview-value" id="previewStoreLimitText">-</div>
+                                    </div>
+
+                                    <!-- General Restrictions -->
+                                    <div class="preview-section" id="previewRestrictions" style="display:none;">
+                                        <div class="preview-label">General restrictions:</div>
+                                        <div class="preview-value" id="previewRestrictionsText">-</div>
+                                    </div>
                                 </div>
-                            </form>
+                            </div>
                         </div>
+                        <div class="btn--container justify-content-end mt-5">
+                            <button type="reset" class="btn btn--reset">{{translate('messages.reset')}}</button>
+                            <button type="submit" class="btn btn--primary">{{translate('Update')}}</button>
+                        </div>
+                    </form>
                 </div>
-                    <?php } ?>
-                </div>
+        </div>
+            <?php } ?>
+        </div>
 
 @endsection
 
