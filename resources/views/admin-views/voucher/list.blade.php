@@ -1,6 +1,6 @@
 @extends('layouts.admin.app')
 
-@section('title', translate('Item List'))
+@section('title', translate('Voucher List'))
 
 @push('css_or_js')
     <meta name="csrf-token" content="{{ csrf_token() }}">
@@ -17,8 +17,7 @@
                             <img src="{{ asset('public/assets/admin/img/items.png') }}" class="w--22" alt="">
                         </span>
                         <span>
-                            {{ translate('messages.item_list') }} <span class="badge badge-soft-dark ml-2"
-                                id="foodCount">{{ $items->total() }}</span>
+                            {{ translate('Voucher List') }} <span class="badge badge-soft-dark ml-2" id="foodCount">{{ $items->total() }}</span>
                         </span>
                     </h1>
                 </div>
