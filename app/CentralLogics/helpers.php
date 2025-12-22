@@ -433,7 +433,8 @@ class Helpers
                 unset($data['end_date']);
             }
             $data['variations'] = $variations;
-            $data['food_variations'] = $data['food_variations']?json_decode($data['food_variations'], true):'';
+        $data['food_variations'] = self::safeJsonDecode($data['food_variations']);
+
             $data['store_name'] = $data->store->name;
             $data['is_campaign'] = $data->store?->campaigns_count>0?1:0;
             $data['module_type'] = $data->module->module_type;
@@ -495,6 +496,20 @@ class Helpers
 
         return $data;
     }
+
+    private static function safeJsonDecode($value, $assoc = true)
+{
+    if (is_array($value)) {
+        return $value;
+    }
+
+    if (is_string($value) && !empty($value)) {
+        return json_decode($value, $assoc);
+    }
+
+    return [];
+}
+
 
     public static function product_data_formatting_translate($data, $multi_data = false, $trans = false, $local = 'en')
     {

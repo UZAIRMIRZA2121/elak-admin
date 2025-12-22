@@ -222,18 +222,22 @@
                     <thead class="thead-light">
                         <tr>
                             <th class="border-0">{{ translate('sl') }}</th>
-                            <th class="border-0">{{ translate('messages.name') }}</th>
-                            <th class="border-0">{{ translate('QR-Code') }}</th>
+                            <th class="border-0">{{ translate('Voucher Type') }}</th>
                             <th class="border-0">{{ translate('messages.category') }}</th>
+                            <th class="border-0">{{ translate('messages.store') }}</th>
 
-                            <th class="border-0">{{ translate('Segment') }}</th>
+                            {{-- <th class="border-0">{{ translate('messages.name') }}</th>
+                            <th class="border-0">{{ translate('QR-Code') }}</th> --}}
+
+
+                            {{-- <th class="border-0">{{ translate('Segment') }}</th>
                             <th class="border-0">{{ translate('discount') }}</th>
                             <th class="border-0">{{ translate('Discount Type') }}</th>
-                            <th class="border-0">{{ translate('Bundle Type') }}</th>
+
                             <th class="border-0">{{ translate('Voucher Name') }}</th>
 
-                            <th class="border-0">{{ translate('messages.store') }}</th>
-                            <th class="border-0 text-center">{{ translate('messages.price') }}</th>
+
+                            <th class="border-0 text-center">{{ translate('messages.price') }}</th> --}}
 
                             <th class="border-0 text-center">{{ translate('messages.status') }}</th>
                             <th class="border-0 text-center">{{ translate('messages.action') }}</th>
@@ -245,26 +249,13 @@
                             <tr>
                                 <td>{{ $key + $items->firstItem() }}</td>
                                 <td>
-                                    <a class="media align-items-center"
-                                        href="{{ route('admin.Voucher.view', [$item['id']]) }}">
-                                        <img class="avatar avatar-lg mr-3 onerror-image"
-                                            src="{{ $item['image_full_url'] ?? asset('public/assets/admin/img/160x160/img2.jpg') }}"
-                                            data-onerror-image="{{ asset('public/assets/admin/img/160x160/img2.jpg') }}"
-                                            alt="{{ $item->name }} image">
-                                        <div title="{{ $item['name'] }}" class="media-body">
-                                            <h5 class="text-hover-primary mb-0">{{ Str::limit($item['name'], 20, '...') }}
-                                            </h5>
-                                        </div>
-                                    </a>
+                                    <a title="{{ $item?->store?->name }}"
+                                        href="{{ route('admin.Voucher.view_voucher', [$item['id']]) }}" class="table-rest-info"
+                                        alt="view store">
+                                        {{ Str::limit($item->voucher_ids, 20, '...') }}</a>
+                                  
+                                        {{ $item->bundle_type ? ' ('.$item->bundle_type.')' : '' }}
                                 </td>
-                                <td>
-                                    @if ($item->uuid)
-                                        {!! QrCode::size(80)->generate($item->uuid) !!}
-                                    @else
-                                      
-                                    @endif
-                                </td>
-
                                 <td>
                                     @php
                                         // Get first valid category ID
@@ -300,6 +291,39 @@
                                 </td>
 
                                 <td>
+                                    @if ($item->store)
+                                        <a title="{{ $item?->store?->name }}"
+                                            href="{{ route('admin.store.view', $item->store->id) }}"
+                                            class="table-rest-info" alt="view store">
+                                            {{ Str::limit($item->store->name, 20, '...') }}</a>
+                                    @else
+                                        {{ translate('messages.store deleted!') }}
+                                    @endif
+
+                                </td>
+                                {{-- <td>
+                                    <a class="media align-items-center"
+                                        href="{{ route('admin.Voucher.view', [$item['id']]) }}">
+                                        <img class="avatar avatar-lg mr-3 onerror-image"
+                                            src="{{ $item['image_full_url'] ?? asset('public/assets/admin/img/160x160/img2.jpg') }}"
+                                            data-onerror-image="{{ asset('public/assets/admin/img/160x160/img2.jpg') }}"
+                                            alt="{{ $item->name }} image">
+                                        <div title="{{ $item['name'] }}" class="media-body">
+                                            <h5 class="text-hover-primary mb-0">{{ Str::limit($item['name'], 20, '...') }}
+                                            </h5>
+                                        </div>
+                                    </a>
+                                </td>
+                                <td>
+                                    @if ($item->uuid)
+                                        {!! QrCode::size(80)->generate($item->uuid) !!}
+                                    @else
+                                    @endif
+                                </td> --}}
+
+
+
+                                {{-- <td>
                                     @php
                                         $segments = \App\Models\Segment::whereIn(
                                             'id',
@@ -315,30 +339,17 @@
                                         </h5>
                                     </div>
                                 </td>
-                                <td> {{ $item->discount_type }}</td>
-                                <td> {{ $item->bundle_type }}</td>
+                                <td> {{ $item->discount_type }}</td> --}}
+
 
                                 {{-- @php( $voucher = \App\Models\VoucherType::find($item->voucher_ids)) --}}
-                                <td>
-                                    {{ $item->voucher_ids }}
-                                </td>
 
-                                <td>
-                                    @if ($item->store)
-                                        <a title="{{ $item?->store?->name }}"
-                                            href="{{ route('admin.store.view', $item->store->id) }}"
-                                            class="table-rest-info" alt="view store">
-                                            {{ Str::limit($item->store->name, 20, '...') }}</a>
-                                    @else
-                                        {{ translate('messages.store deleted!') }}
-                                    @endif
 
-                                </td>
-                                <td>
+                                {{-- <td>
                                     <div class="text-right mw--85px">
                                         {{ \App\CentralLogics\Helpers::format_currency($item['price']) }}
                                     </div>
-                                </td>
+                                </td> --}}
 
                                 {{-- @if ($productWiseTax)
                                 <td>
