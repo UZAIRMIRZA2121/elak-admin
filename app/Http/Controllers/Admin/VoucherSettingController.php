@@ -31,6 +31,7 @@ class VoucherSettingController extends Controller
 
        public function list(Request $request)
         {
+            // dd("dsvbfhjdv");
             $search = $request->input('search');
              $HolidayOccasion = HolidayOccasion::get();
             $GeneralRestriction = GeneralRestriction::get();
