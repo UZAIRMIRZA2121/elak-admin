@@ -1,5 +1,4 @@
 @extends('layouts.admin.app')
-
 @section('title',"Holiday & Occasion  List")
 
 @section('content')
@@ -158,8 +157,6 @@
         font-size: 14px;
     }
 </style>
-
-
     <div class="content container-fluid">
         <!-- Page Header -->
         <div class="page-header">
@@ -184,9 +181,6 @@
                     <form action="{{route('admin.VoucherSetting.store')}}" method="post" id="conditionsForm">
                         @csrf
                          <input type="hidden" name="item_id" value="{{ request()->route('id') }}">
-                      
-                       
-              
 
                         <div class="row">
                             <!-- LEFT SIDE - FORM -->
@@ -553,7 +547,7 @@
                                         </div>
                                     </div>
 
-                                           <div class="form-group">
+                                    <div class="form-group">
                                         <div class="form-group mb-0">
                                             <label class="input-label"
                                                 for="group_size">{{ translate('Group Size Requirement') }}
@@ -567,7 +561,6 @@
                                             </select>
                                         </div>
                                     </div>
-
                                   
                                        <div class="form-group">
                                             <label>Usage Limit per User</label>
@@ -773,14 +766,12 @@
                                                 <!-- Validity Period -->
                                             <div class="form-group">
                                                     <div class="custom-control custom-checkbox">
-
                                                         <input type="checkbox" class="custom-control-input" id="validityPeriod"
                                                             name="validity_period[active]"
                                                             {{ isset($validityPeriod['active']) ? 'checked' : '' }}>
                                                         <label class="custom-control-label" for="validityPeriod">Validity Period</label>
                                                     </div>
                                                 </div>
-
                                                 <div class="row validity-dates" >
                                                     <div class="col-md-6">
                                                         <div class="form-group">

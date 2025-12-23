@@ -68,60 +68,11 @@
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
-// ==================== GLOBAL VARIABLES ====================
-let allClientsData = []; // Store all clients
-let selectedClientIds = new Set(); // Track selected client IDs
+// Global Variables
+let clientOptionsHtml = '';
 let clientRowIndex = 0;
 
-// ==================== INITIALIZE CLIENT DATA ====================
-function initializeClientData() {
-    allClientsData = [
-        @foreach (\App\Models\Client::all() as $item)
-        {
-            id: '{{ $item->id }}',
-            name: '{{ $item->name }}',
-            app_name: '{{ $item->app_name ?? "" }}'
-        },
-        @endforeach
-    ];
-}
-
-// ==================== GET AVAILABLE CLIENTS ====================
-function getAvailableClientsHtml(currentClientId = null) {
-    let optionsHtml = '<option value="">Select Client</option>';
-    
-    allClientsData.forEach(function(client) {
-        // Show if: not selected OR is the current row's selected client
-        if (!selectedClientIds.has(client.id) || client.id === currentClientId) {
-            optionsHtml += `<option value="${client.id}" data-app-name="${client.app_name}">${client.name}</option>`;
-        }
-    });
-    
-    return optionsHtml;
-}
-
-// ==================== UPDATE ALL DROPDOWNS ====================
-function updateAllClientDropdowns() {
-    $('.item-row').each(function() {
-        let row = $(this);
-        let clientSelect = row.find('.client-select');
-        let currentValue = clientSelect.val();
-        
-        // Store current value and update options
-        let newOptions = getAvailableClientsHtml(currentValue);
-        clientSelect.html(newOptions);
-        
-        // Restore selected value
-        if (currentValue) {
-            clientSelect.val(currentValue);
-        }
-        
-        // Re-trigger Select2
-        clientSelect.trigger('change.select2');
-    });
-}
-
-// ==================== INITIALIZE SELECT2 FOR CLIENT ====================
+// Initialize Select2 for client dropdown
 function initClientSelect2(element) {
     if (!element || element.length === 0) return;
     
@@ -135,57 +86,26 @@ function initClientSelect2(element) {
         width: '100%',
         language: {
             noResults: function() {
-                return "No client available (all selected)";
+                return "No client found";
             }
         }
     });
     
-    // Handle client selection
-    element.off('select2:select select2:clear change').on('select2:select', function(e) {
-        let newValue = $(this).val();
-        let oldValue = $(this).data('previous-value');
+    // Handle client selection to auto-add next row
+    element.off('select2:select select2:clear change').on('select2:select select2:clear change', function(e) {
+        let selectedValue = $(this).val();
         
-        // Remove old value from selected set
-        if (oldValue) {
-            selectedClientIds.delete(oldValue);
-        }
-        
-        // Add new value to selected set
-        if (newValue) {
-            selectedClientIds.add(newValue);
-            $(this).data('previous-value', newValue);
-        }
-        
-        // Update all dropdowns
-        updateAllClientDropdowns();
-        
-        // Load client data
+        // First handle the client data loading
         handleClientChange($(this));
         
-        // Check if we need to add a new row
-        checkAndAddNextRow($(this));
-        
-    }).on('select2:clear', function(e) {
-        let oldValue = $(this).data('previous-value');
-        
-        // Remove from selected set
-        if (oldValue) {
-            selectedClientIds.delete(oldValue);
-            $(this).removeData('previous-value');
+        // Then check if we need to add a new row
+        if (selectedValue && selectedValue !== '') {
+            checkAndAddNextRow($(this));
         }
-        
-        // Clear the row data
-        let currentRow = $(this).closest('.item-row');
-        currentRow.find('.app-name-input').val('');
-        currentRow.find('.app-name-id-input').val('');
-        currentRow.find('.segment-select').html('<option disabled>Select client first</option>').trigger('change');
-        
-        // Update all dropdowns
-        updateAllClientDropdowns();
     });
 }
 
-// ==================== INITIALIZE SELECT2 FOR SEGMENT ====================
+// Initialize Select2 for segment dropdown
 function initSegmentSelect2(element) {
     if (!element || element.length === 0) return;
     
@@ -200,21 +120,18 @@ function initSegmentSelect2(element) {
     });
 }
 
-// ==================== CHECK AND ADD NEXT ROW ====================
+// Check if next row should be added
 function checkAndAddNextRow(selectElement) {
     let currentRow = selectElement.closest('.item-row');
     let nextRow = currentRow.next('.item-row');
     
-    // Check if there are still available clients
-    let availableClients = allClientsData.filter(client => !selectedClientIds.has(client.id));
-    
-    // If no next row exists AND there are available clients, add one
-    if (nextRow.length === 0 && availableClients.length > 0) {
+    // If no next row exists, add one
+    if (nextRow.length === 0) {
         addClientRow();
     }
 }
 
-// ==================== AJAX HANDLER - CLIENT CHANGE ====================
+// MAIN AJAX HANDLER - Client Change
 function handleClientChange(selectElement) {
     let clientId = selectElement.val();
     let currentRow = selectElement.closest('.item-row');
@@ -290,21 +207,19 @@ function handleClientChange(selectElement) {
     });
 }
 
-// ==================== ADD SINGLE CLIENT ROW ====================
+// Add Single Client Row
 function addClientRow() {
     let repeater = $('#client_repeater');
     let currentIndex = clientRowIndex++;
-    
-    // Get available clients HTML
-    let clientOptions = getAvailableClientsHtml();
     
     let newRowHtml = `
         <div class="row item-row mb-3" data-row-index="${currentIndex}">
             <div class="col-md-4">
                 <div class="form-group">
                     <label class="input-label">Client Name ${currentIndex + 1}</label>
+                   
                     <select name="clients[${currentIndex}][client_id]" class="form-control client-select" data-row="${currentIndex}">
-                        ${clientOptions}
+                        ${clientOptionsHtml}
                     </select>
                 </div>
             </div>
@@ -346,7 +261,7 @@ function addClientRow() {
     return newRow;
 }
 
-// ==================== REMOVE CLIENT ROW ====================
+// Remove Client Row
 $(document).on('click', '.remove-client-row', function() {
     let row = $(this).closest('.item-row');
     let totalRows = $('.item-row').length;
@@ -361,21 +276,13 @@ $(document).on('click', '.remove-client-row', function() {
         return;
     }
     
-    // Get the client ID from this row and remove from selected set
-    let clientSelect = row.find('.client-select');
-    let clientId = clientSelect.val();
-    if (clientId) {
-        selectedClientIds.delete(clientId);
-    }
-    
     row.fadeOut(300, function() {
         $(this).remove();
         updateRowLabels();
-        updateAllClientDropdowns(); // Update all dropdowns after removal
     });
 });
 
-// ==================== UPDATE ROW LABELS ====================
+// Update Row Labels after deletion
 function updateRowLabels() {
     $('.item-row').each(function(index) {
         $(this).attr('data-row-index', index);
@@ -390,16 +297,21 @@ function updateRowLabels() {
     });
 }
 
-// ==================== DOCUMENT READY ====================
+// Document ready
 $(document).ready(function() {
-    // Initialize client data from backend
-    initializeClientData();
+    // Store client options HTML
+    clientOptionsHtml = `
+        <option value="">Select Client</option>
+        @foreach (\App\Models\Client::all() as $item)
+            <option value="{{ $item->id }}" data-app-name="{{ $item->app_name ?? '' }}">{{ $item->name }}</option>
+        @endforeach
+    `;
     
     // Add first row by default
     addClientRow();
 });
 
-// ==================== STORE CHANGE - LOAD CATEGORIES & BRANCHES ====================
+// Store Change - Load Categories & Branches
 $(document).on('change', '#store_id', function() {
     let storeId = $(this).val();
     
@@ -419,19 +331,19 @@ $(document).on('change', '#store_id', function() {
     multiples_category_by_store_id(storeId);
 });
 
-// ==================== CATEGORY CHANGE - LOAD SUBCATEGORIES ====================
+// Category Change - Load Subcategories
 $(document).on('change', '#categories', function() {
     multiples_category();
 });
 
-// ==================== SUBCATEGORY CHANGE ====================
+// Subcategory Change
 $(document).on('change', '#sub_categories_game', function() {
     if (typeof multples_sub_category === 'function') {
         multples_sub_category();
     }
 });
 
-// ==================== LOAD SUBCATEGORIES ====================
+// Load Subcategories based on selected categories
 function multiples_category() {
     var category_ids_all = $('#categories').val();
 
@@ -472,7 +384,7 @@ function multiples_category() {
     });
 }
 
-// ==================== LOAD CATEGORIES BY STORE ====================
+// Load Categories based on selected store
 function multiples_category_by_store_id(storeId) {
     if (!storeId) {
         $('#categories').html('').trigger('change');
@@ -524,9 +436,5 @@ function multiples_category_by_store_id(storeId) {
 
 .item-row:last-child {
     border-bottom: none;
-}
-
-.select2-container {
-    width: 100% !important;
 }
 </style>

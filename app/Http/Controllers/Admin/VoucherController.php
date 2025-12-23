@@ -327,7 +327,15 @@ class VoucherController extends Controller
             $item->term_and_condition_ids = json_encode(array_filter($request->term_and_condition ?? []));
             $item->product = json_encode(array_filter($data));
             $item->product_b = json_encode(array_filter($data_b));
-            $item->clients_section = json_encode(array_filter($request->clients ?? []));
+            $item->clients_section = json_encode(
+                array_filter($request->clients ?? [], function ($client) {
+                    return !empty($client['client_id']) 
+                        && !empty($client['app_name_id']) 
+                        && !empty($client['app_name']);
+                })
+            );
+
+
             $item->add_ons = $request->has('addon_ids') ? json_encode($request->addon_ids) : json_encode([]);
             $item->required_quantity = $request->required_quantity ?? 0.00;
             $item->client_id = json_encode($request->select_client ?? []);
@@ -436,10 +444,17 @@ class VoucherController extends Controller
             $item->term_and_condition_ids = json_encode(array_filter($request->term_and_condition ?? []));
             $item->product = json_encode(array_filter($data));
             $item->product_b = json_encode(array_filter($data_b));
-            $item->clients_section = json_encode(array_filter($request->clients ?? []));
+                $item->clients_section = json_encode(
+    array_filter($request->clients ?? [], function ($client) {
+        return !empty($client['client_id']) 
+            && !empty($client['app_name_id']) 
+            && !empty($client['app_name']);
+    })
+);
+
             $item->add_ons = $request->has('addon_ids') ? json_encode($request->addon_ids) : json_encode([]);
             $item->discount_configuration = json_encode(array_filter($request->bonus_tiers ?? []));
-            $item->clients_section = json_encode(array_filter($request->clients ?? []));
+            // $item->clients_section = json_encode(array_filter($request->clients ?? []));
             $item->required_quantity = $request->required_quantity ?? 0.00;
             $item->client_id = json_encode($request->select_client ?? []);
             $item->segment_ids = json_encode($request->segment_type ?? []);
@@ -517,11 +532,18 @@ class VoucherController extends Controller
             $item->term_and_condition_ids = json_encode(array_filter($request->term_and_condition ?? []));
             $item->product = json_encode(array_filter($data));
             $item->product_b = json_encode(array_filter($data_b));
-            $item->clients_section = json_encode(array_filter($request->clients ?? []));
+               $item->clients_section = json_encode(
+    array_filter($request->clients ?? [], function ($client) {
+        return !empty($client['client_id']) 
+            && !empty($client['app_name_id']) 
+            && !empty($client['app_name']);
+    })
+);
+
             $item->add_ons = $request->has('addon_ids') ? json_encode($request->addon_ids) : json_encode([]);
             $item->client_id = json_encode($request->select_client ?? []);
             $item->segment_ids = json_encode($request->segment_type ?? []);
-            $item->clients_section = json_encode(array_filter($request->clients ?? []));
+            // $item->clients_section = json_encode(array_filter($request->clients ?? []));
             $form_fields = $request->form_fields ?? [];
             $required_fields = $request->required_fields ?? [];
             $settings = ["form_fields" => $form_fields, "required_fields" => $required_fields];
