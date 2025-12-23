@@ -65,7 +65,7 @@
                                             @foreach ($ColorTheme as $item)
                                                 <option value="{{ $item->id }}"
                                                     {{ $item->id == $App->color_theme ? 'Selected' : '' }}>
-                                                    {{ $item->color_name }}</option>
+                                                    {{ $item->name }}</option>
                                             @endforeach
                                         </select>
                                     </div>

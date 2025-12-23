@@ -104,10 +104,9 @@ class AppController extends Controller
                 'apps.*',
                 'banners.title as banner_title',
                 'banners.image as banner_image',
-                'color_themes.color_name',
-                'color_themes.color_code',
-                'color_themes.color_gradient',
-                'color_themes.color_type'
+                'color_themes.name',
+                'color_themes.status',
+             
             )
             ->where('apps.id', $id)
             ->first();
