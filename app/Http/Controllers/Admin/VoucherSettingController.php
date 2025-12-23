@@ -115,6 +115,10 @@ class VoucherSettingController extends Controller
                                         ? json_decode($VoucherSetting->usage_limit_per_store, true) 
                                         : ($VoucherSetting->usage_limit_per_store ?? []);
 
+                        $offer_validity_after_purchase = is_string($VoucherSetting->offer_validity_after_purchase) 
+                                        ? json_decode($VoucherSetting->offer_validity_after_purchase, true) 
+                                        : ($VoucherSetting->offer_validity_after_purchase ?? []);
+
                         $generalRestrictions = is_string($VoucherSetting->general_restrictions) 
                                         ? json_decode($VoucherSetting->general_restrictions, true) 
                                         : ($VoucherSetting->general_restrictions ?? []);
@@ -128,8 +132,11 @@ class VoucherSettingController extends Controller
                         $custom_blackout_dates = [];
                         $userLimit = [];
                         $storeLimit = [];
+                        $offer_validity_after_purchase = [];
                         $generalRestrictions = [];
                     }
+
+
 
             $search = $request->input('search');
             $CustomBlackoutData = CustomBlackoutData::get();
@@ -140,7 +147,7 @@ class VoucherSettingController extends Controller
             $UsagePeriod = UsagePeriod::get();
             $OfferValidatyPeroid = OfferValidatyPeroid::get();
 
-            // dd($VoucherSetting);
+            // dd($VoucherSetting->offer_validity_after_purchase);
 
             $VoucherSettings = VoucherSetting::query()
                 ->when($search, function ($q) use ($search) {
@@ -168,6 +175,7 @@ class VoucherSettingController extends Controller
                     'specificDays',
                     'holidays',
                     'userLimit',
+                    'offer_validity_after_purchase',
                     'storeLimit',
                     'generalRestrictions',
                     'working_hours'
@@ -204,7 +212,7 @@ class VoucherSettingController extends Controller
 
                 'usage_limit_per_user' => json_encode($request->user_limit ?? []),
                 'usage_limit_per_store' => json_encode($request->store_limit ?? []),
-                'offer_validity_after_purchase' => $request->validity_after ?? null,
+                'offer_validity_after_purchase' => json_encode($request->validity_after ?? []),
                 'general_restrictions' => json_encode($request->no_other_offers ?? []),
                 'status' => "active",
             ]
