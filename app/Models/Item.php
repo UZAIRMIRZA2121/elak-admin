@@ -609,28 +609,16 @@ class Item extends Model
         return $formattedProducts->values();
     }
 
-    private static function safeJsonDecode($value, $assoc = true)
-{
-    if (is_array($value)) {
-        return $value;
-    }
-
-    if (is_string($value) && !empty($value)) {
-        return json_decode($value, $assoc);
-    }
-
-    return [];
-}
-
     /**
      * Get related products from `product_b` JSON column
      */
-
-    public function relatedProductsB(): Collection
+      public function relatedProductsB(): Collection
     {
-        $products = $this->product;
+        $products = $this->product_b;
 
-        // Decode JSON if stored as string
+        /**
+         * Step 1: Decode related products JSON
+         */
         if (is_string($products)) {
             $products = json_decode($products, true);
             if (!is_array($products)) {
@@ -638,22 +626,80 @@ class Item extends Model
             }
         }
 
-        // Get product IDs
+        /**
+         * Step 2: Extract product IDs
+         */
         $productIds = collect($products)
             ->pluck('product_id')
             ->filter()
             ->toArray();
 
-        // Fetch products with selected fields and relations
+        if (empty($productIds)) {
+            return collect([]);
+        }
+
+        /**
+         * Step 3: Map product_id => allowed variations
+         */
+        $selectedVariationsByProduct = collect($products)
+            ->mapWithKeys(function ($item) {
+                return [
+                    $item['product_id'] => $item['variations'] ?? []
+                ];
+            });
+
+        /**
+         * Step 4: Fetch products
+         */
         $productsCollection = self::whereIn('id', $productIds)->get();
 
-        // Map through each product to apply formatting
-        $formattedProducts = $productsCollection->map(function ($item) {
-            return Helpers::product_data_formatting($item, false, true, app()->getLocale());
+        /**
+         * Step 5: Filter food_variations per product
+         */
+        $formattedProducts = $productsCollection->map(function ($item) use ($selectedVariationsByProduct) {
+
+            $allowedVariations = $selectedVariationsByProduct[$item->id] ?? [];
+
+            // Decode food_variations
+            $foodVariations = is_string($item->food_variations)
+                ? json_decode($item->food_variations, true)
+                : $item->food_variations;
+
+            if (is_array($foodVariations)) {
+                foreach ($foodVariations as &$variationGroup) {
+                    if (!empty($variationGroup['values'])) {
+                        $variationGroup['values'] = collect($variationGroup['values'])
+                            ->filter(function ($value) use ($allowedVariations) {
+                                return in_array($value['label'], $allowedVariations);
+                            })
+                            ->values()
+                            ->toArray();
+                    }
+                }
+
+                // Remove empty variation groups
+                $foodVariations = array_values(array_filter($foodVariations, function ($group) {
+                    return !empty($group['values']);
+                }));
+            }
+
+            // Assign filtered variations back
+            $item->food_variations = $foodVariations;
+
+            /**
+             * Step 6: Apply existing formatter
+             */
+            return Helpers::product_data_formatting(
+                $item,
+                false,
+                true,
+                app()->getLocale()
+            );
         });
 
-        return $formattedProducts;
+        return $formattedProducts->values();
     }
+
 
     /**
      * All categories (ordered)

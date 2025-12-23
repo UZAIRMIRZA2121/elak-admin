@@ -994,14 +994,17 @@
                                                 <i class="tio-chevron-down"></i>
                                             </div>
                                             <div class="collapse show condition-body" id="generalRestrictions">
-
+                                      
                                            <!-- Age Restriction -->
-                                            <?php 
+                                      <?php
 
-                                                $ageRestrictions = json_decode($VoucherSetting->age_restriction, true) ?? [];
-                                            $group_size_requirement = json_decode($VoucherSetting->group_size_requirement, true) ?? [];
-                                                ?>
-                                        
+
+                                        // Extract IDs for comparison
+                                        $selectedAgeIds = array_column($VoucherSetting->age_restriction, 'id');        // e.g. [11, ...]
+                                        $selectedGroupIds = array_column($VoucherSetting->group_size_requirement, 'id'); // e.g. [10, ...]
+                                    ?>
+
+                                            
 
                                         <div class="form-group">
                                                 <label class="input-label" for="age_restriction">{{ translate('Age Restriction') }}</label>
@@ -1009,7 +1012,7 @@
                                                         class="form-control js-select2-custom" multiple>
                                                     @foreach ($AgeRestrictin as $itemn)
                                                         <option value="{{ $itemn->id }}" 
-                                                            {{ in_array($itemn->id, $ageRestrictions) ? 'selected' : '' }}>
+                                                            {{ in_array($itemn->id, $selectedAgeIds) ? 'selected' : '' }}>
                                                             {{ $itemn->name_en }}
                                                         </option>
                                                     @endforeach
@@ -1021,12 +1024,12 @@
                                             <select name="group_size[]" id="groupSize" class="form-control js-select2-custom" multiple>
                                                 @foreach ($GroupSizeRequirement as $group)
                                                     <option value="{{ $group->id }}"
-                                                        {{ in_array($group->id, $group_size_requirement)  ? 'selected' : '' }}>
+                                                        {{ in_array($group->id, $selectedGroupIds)  ? 'selected' : '' }}>
                                                         {{ $group->name_en }}
                                                     </option>
                                                 @endforeach
                                             </select>
-                                        </div>
+                                        </div> 
 
                                         <div class="form-group">
                                             <label>Usage Limit per User</label>

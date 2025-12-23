@@ -89,4 +89,16 @@ class VoucherSetting extends Model
     }
 
 
+    /** ✅ Accessor: return full GeneralRestriction records */
+    public function getGeneralRestrictionSettingsAttribute()
+    {
+        $ids = $this->general_restrictions ?? [];
+
+        if (is_string($ids)) {
+            $ids = json_decode($ids, true) ?? [];
+        }
+
+        return GeneralRestriction::whereIn('id', $ids)->get();
+    }
+
 }
