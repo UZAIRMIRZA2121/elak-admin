@@ -627,8 +627,41 @@
                                         </div>
 
 
+
+                                    <div class="form-group">
+                                        <label>Offer Validity After Purchase</label>
+                                        <div class="usage-row">
+
+                                            <div class="form-group">
+                                                <input type="number"
+                                                    class="form-control"
+                                                    name="validity_after[value]"
+                                                    value="{{ $validity_after['value'] ?? '' }}"
+                                                    placeholder="Number of times"
+                                                    min="1">
+                                            </div>
+
+                                            <span class="times-label">times</span>
+
+                                            <div class="form-group">
+                                                <select class="form-control" name="validity_after[period]">
+                                                    <option value="">Select period</option>
+
+                                                    @foreach ($OfferValidatyPeroid as $period)
+                                                        <option value="{{ $period->name_en }}"
+                                                            {{ ($validity_after['period'] ?? '') == $period->name_en ? 'selected' : '' }}>
+                                                            {{ $period->name_en }}
+                                                        </option>
+                                                    @endforeach
+
+                                                </select>
+                                            </div>
+
+                                        </div>
+                                    </div>
+                                    
                                         <!-- Offer Validity -->
-                                        <div class="form-group">
+                                        <!-- <div class="form-group">
                                             <label>Offer Validity After Purchase</label>
                                             <select class="form-control" name="validity_after" id="validityAfter">
                                                 <option value="">No time limit</option>
@@ -636,7 +669,7 @@
                                                 <option value="{{ $item->id}}"> {{ $item->name_en}}</option>
                                                 @endforeach
                                             </select>
-                                        </div>
+                                        </div> -->
 
                                         <!-- General Restrictions Checkboxes -->
                                         <div class="form-group">
@@ -1095,9 +1128,41 @@
                                             </div>
                                         </div>
 
+                                           <div class="form-group">
+                                            <label>Offer Validity After Purchase</label>
+                                            <div class="usage-row">
+
+                                                <div class="form-group">
+                                                    <input type="number"
+                                                        class="form-control"
+                                                        name="validity_after[value]"
+                                                        value="{{ $offer_validity_after_purchase['value'] ?? '' }}"
+                                                        placeholder="Number of times"
+                                                        min="1">
+                                                </div>
+
+                                                <span class="times-label">times</span>
+
+                                                <div class="form-group">
+                                                    <select class="form-control" name="validity_after[period]">
+                                                        <option value="">Select period</option>
+
+                                                        @foreach ($OfferValidatyPeroid as $period)
+                                                            <option value="{{ $period->name_en }}"
+                                                                {{ ($offer_validity_after_purchase['period'] ?? '') == $period->name_en ? 'selected' : '' }}>
+                                                                {{ $period->name_en }}
+                                                            </option>
+                                                        @endforeach
+
+                                                    </select>
+                                                </div>
+
+                                            </div>
+                                        </div>
+
 
                                         <!-- Offer Validity -->
-                                        <div class="form-group">
+                                        <!-- <div class="form-group">
                                             <label>Offer Validity After Purchase</label>
                                             <select class="form-control" name="validity_after" id="validityAfter">
                                                 <option value="">No time limit</option>
@@ -1107,9 +1172,8 @@
                                                             {{ $offer->name_en }}
                                                         </option>
                                                     @endforeach
-                                                <!-- Baki options -->
                                             </select>
-                                        </div>
+                                        </div> -->
                                         <!-- General Restrictions Checkboxes -->
                                         <div class="form-group">
                                             <label style="font-weight: 600;">General Restrictions</label>

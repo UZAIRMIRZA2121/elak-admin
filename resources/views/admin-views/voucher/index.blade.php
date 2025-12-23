@@ -438,7 +438,7 @@
 
 </script>
  
-<script>
+    <script>
         $(document).ready(function() {
             // Initialize Select2
             $('#select_pro, #select_pro1, #select_pro2').select2({
@@ -2090,6 +2090,7 @@
                         module_id:{{Config::get('module.current_module_id')}},
                     };
                 },
+                
                 processResults: function(data) {
                     return {
                         results: data
@@ -2133,33 +2134,33 @@
             }
         });
 
-        // $('#sub-categories').select2({
-        //     ajax: {
-        //         url: '{{ url('/') }}/admin/item/get-categories',
-        //         data: function(params) {
-        //             return {
-        //                 q: params.term, // search term
-        //                 page: params.page,
-        //                 module_id:{{Config::get('module.current_module_id')}},
-        //                 parent_id: parent_category_id,
-        //                 sub_category: true
-        //             };
-        //         },
-        //         processResults: function(data) {
-        //             return {
-        //                 results: data
-        //             };
-        //         },
-        //         __port: function(params, success, failure) {
-        //             let $request = $.ajax(params);
+        $('#sub-categories').select2({
+            ajax: {
+                url: '{{ url('/') }}/admin/item/get-categories',
+                data: function(params) {
+                    return {
+                        q: params.term, // search term
+                        page: params.page,
+                        module_id:{{Config::get('module.current_module_id')}},
+                        parent_id: parent_category_id,
+                        sub_category: true
+                    };
+                },
+                processResults: function(data) {
+                    return {
+                        results: data
+                    };
+                },
+                __port: function(params, success, failure) {
+                    let $request = $.ajax(params);
 
-        //             $request.then(success);
-        //             $request.fail(failure);
+                    $request.then(success);
+                    $request.fail(failure);
 
-        //             return $request;
-        //         }
-        //     }
-        // });
+                    return $request;
+                }
+            }
+        });
 
         $('#choice_attributes').on('change', function() {
             if (module_id == 0) {
