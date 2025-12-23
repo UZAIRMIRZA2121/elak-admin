@@ -130,13 +130,14 @@ class VoucherController extends Controller
     }
     public function index(Request $request)
     {
-
+// dd("dsvbfhjdv");
+      $stores = store::all();
         $categories = Category::where(['position' => 0])->get();
         $taxData = Helpers::getTaxSystemType();
         $productWiseTax = $taxData['productWiseTax'];
         $taxVats = $taxData['taxVats'];
 
-        return view('admin-views.voucher.index', compact('categories', 'productWiseTax', 'taxVats'));
+        return view('admin-views.voucher.index', compact('categories', 'productWiseTax', 'taxVats' ,'stores'));
 
     }
     public function discount(Request $request)
@@ -210,7 +211,7 @@ class VoucherController extends Controller
     public function store(Request $request)
     {
 
-        // dd($request->all());
+        // dd($request->all());xf
         $type_name = $request->hidden_name;
         $data = $request->products_data ?? $request->bogo_products_a ?? [];
         // Agar string hai (JSON), to array bana do
