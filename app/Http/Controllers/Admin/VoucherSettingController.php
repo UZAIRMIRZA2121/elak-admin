@@ -31,15 +31,10 @@ class VoucherSettingController extends Controller
 
     public function list(Request $request)
     {
+        // dd("dsvbfhjdv");
         $search = $request->input('search');
         $HolidayOccasion = HolidayOccasion::get();
         $GeneralRestriction = GeneralRestriction::get();
-       public function list(Request $request)
-        {
-            // dd("dsvbfhjdv");
-            $search = $request->input('search');
-             $HolidayOccasion = HolidayOccasion::get();
-            $GeneralRestriction = GeneralRestriction::get();
 
         $VoucherSetting = VoucherSetting::query()
             ->when($search, function ($q) use ($search) {
@@ -51,7 +46,6 @@ class VoucherSettingController extends Controller
         return view('admin-views.voucher_setting.index', compact('VoucherSetting', 'HolidayOccasion', 'GeneralRestriction'));
     }
 
-    //   voucher setting insert  or update
     public function index(Request $request, $id)
     {
         // dd($id);
@@ -120,16 +114,13 @@ class VoucherSettingController extends Controller
                 ? json_decode($VoucherSetting->usage_limit_per_store, true)
                 : ($VoucherSetting->usage_limit_per_store ?? []);
 
+            $offer_validity_after_purchase = is_string($VoucherSetting->offer_validity_after_purchase)
+                ? json_decode($VoucherSetting->offer_validity_after_purchase, true)
+                : ($VoucherSetting->offer_validity_after_purchase ?? []);
+
             $generalRestrictions = is_string($VoucherSetting->general_restrictions)
                 ? json_decode($VoucherSetting->general_restrictions, true)
                 : ($VoucherSetting->general_restrictions ?? []);
-                        $offer_validity_after_purchase = is_string($VoucherSetting->offer_validity_after_purchase) 
-                                        ? json_decode($VoucherSetting->offer_validity_after_purchase, true) 
-                                        : ($VoucherSetting->offer_validity_after_purchase ?? []);
-
-                        $generalRestrictions = is_string($VoucherSetting->general_restrictions) 
-                                        ? json_decode($VoucherSetting->general_restrictions, true) 
-                                        : ($VoucherSetting->general_restrictions ?? []);
 
         } else {
             $check_data = 0; // no data
@@ -140,17 +131,11 @@ class VoucherSettingController extends Controller
             $custom_blackout_dates = [];
             $userLimit = [];
             $storeLimit = [];
+            $offer_validity_after_purchase = [];
             $generalRestrictions = [];
         }
-                        $validityPeriod = [];
-                        $specificDays = [];
-                        $holidays = [];
-                        $custom_blackout_dates = [];
-                        $userLimit = [];
-                        $storeLimit = [];
-                        $offer_validity_after_purchase = [];
-                        $generalRestrictions = [];
-                    }
+
+
 
         $search = $request->input('search');
         $CustomBlackoutData = CustomBlackoutData::get();
@@ -161,18 +146,7 @@ class VoucherSettingController extends Controller
         $UsagePeriod = UsagePeriod::get();
         $OfferValidatyPeroid = OfferValidatyPeroid::get();
 
-
-            $search = $request->input('search');
-            $CustomBlackoutData = CustomBlackoutData::get();
-            $HolidayOccasion = HolidayOccasion::get();
-            $GeneralRestriction = GeneralRestriction::get();
-            $AgeRestrictin = AgeRestrictin::get();
-            $GroupSizeRequirement = GroupSizeRequirement::get();
-            $UsagePeriod = UsagePeriod::get();
-            $OfferValidatyPeroid = OfferValidatyPeroid::get();
-
-        // dd($VoucherSetting);
-            // dd($VoucherSetting->offer_validity_after_purchase);
+        // dd($VoucherSetting->offer_validity_after_purchase);
 
         $VoucherSettings = VoucherSetting::query()
             ->when($search, function ($q) use ($search) {
@@ -200,34 +174,12 @@ class VoucherSettingController extends Controller
             'specificDays',
             'holidays',
             'userLimit',
+            'offer_validity_after_purchase',
             'storeLimit',
             'generalRestrictions',
             'working_hours'
         ));
     }
-                return view('admin-views.voucher_setting.add', compact(
-                    'VoucherSetting',
-                    'CustomBlackoutData',
-                    'HolidayOccasion',
-                    'GeneralRestriction',
-                    'AgeRestrictin',
-                    'GroupSizeRequirement',
-                    'UsagePeriod',
-                    'OfferValidatyPeroid',
-                    'items',
-                    'check_data',
-                    'custom_blackout_dates',
-                    'validityPeriod',
-                    'specificDays',
-                    'holidays',
-                    'userLimit',
-                    'offer_validity_after_purchase',
-                    'storeLimit',
-                    'generalRestrictions',
-                    'working_hours'
-                ));
-        }
-
 
 
     public function store(Request $request)
@@ -236,10 +188,13 @@ class VoucherSettingController extends Controller
 
         $request->validate([
             'validity_period' => 'required',
+
         ]);
 
         // Voucher_id aaya hai?
         $item_id = $request->item_id ?? $request->voucher_id;
+
+
 
 
         $ageRestrictionIds = $request->age_restriction ?? [];
@@ -285,7 +240,7 @@ class VoucherSettingController extends Controller
         })->values()->toArray();
 
 
-        // If record exists → UPDATE 
+
         // If not exists → INSERT
         $VoucherSetting = VoucherSetting::updateOrCreate(
             ['item_id' => $item_id], // check condition
@@ -297,7 +252,7 @@ class VoucherSettingController extends Controller
                 // 'age_restriction' =>  json_encode($request->age_restriction ?? []), 
                 // 'group_size_requirement' =>  json_encode($request->group_size ?? []), 
                 'age_restriction' => $ageRestrictionData ?? [],
-                'group_size_requirement' => $groupSizeData ?? [] ,
+                'group_size_requirement' => $groupSizeData ?? [],
                 // Store
 
                 'usage_limit_per_user' => json_encode($request->user_limit ?? []),
