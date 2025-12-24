@@ -809,8 +809,8 @@
                     //         name_ar: nameAr,
                     //         name_en: nameEn,
                     //         type: 'group_size_requirement'
-                    //     };  الحد الأدنى 
-                                // الحد الأقصى
+                    //     };  
+                                //
 
 
                     //     saveCondition(groupSize, function(savedData) {
