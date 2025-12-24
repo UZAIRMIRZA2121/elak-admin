@@ -382,14 +382,23 @@
                                         </div>
                                         <div class="card-body">
                                             <div class="row">
-                                                <div class="col-md-6 mb-3">
+                                                  <!-- Dropdown for Min / Max -->
+                                                <div class="col-md-4 mb-3">
+                                                    <label class="form-label">Group Type</label>
+                                                    <select class="form-control" name="group_size_type" id="group_size_type">
+                                                        <option value="">Select Type</option>
+                                                        <option value="minimum">Minimum</option>
+                                                        <option value="maximum">Maximum</option>
+                                                    </select>
+                                                </div>
+                                               <div class="col-md-4 mb-3">
                                                     <label class="form-label">Arabic Name</label>
-                                                    <input type="text" class="form-control" name="group_size_name_ar"
+                                                    <input type="number" class="form-control" name="group_size_name_ar"
                                                         id="group_size_name_ar" placeholder="Example: Minimum 4 people">
                                                 </div>
-                                                <div class="col-md-6 mb-3">
+                                               <div class="col-md-4 mb-3">
                                                     <label class="form-label">English Name</label>
-                                                    <input type="text" class="form-control" name="group_size_name_en"
+                                                    <input type="number" class="form-control" name="group_size_name_en"
                                                         id="group_size_name_en" placeholder="Example: Minimum 4 people">
                                                 </div>
                                                 <div class="col-md-12 mb-3">
@@ -786,28 +795,67 @@
                     });
 
                     // ============= GROUP SIZE =============
-                    $('#addGroupSizeBtn').click(function() {
-                        const nameAr = $('#group_size_name_ar').val().trim();
-                        const nameEn = $('#group_size_name_en').val().trim();
+                    // $('#addGroupSizeBtn').click(function() {
+                    //     const nameAr = $('#group_size_name_ar').val().trim();
+                    //     const nameEn = $('#group_size_name_en').val().trim();
+                    //     const group_size_type = $('#group_size_type').val().trim();
 
-                        if (!nameAr || !nameEn) {
-                            toastr.error('Please fill Arabic and English names');
+                    //     if (!nameAr || !nameEn) {
+                    //         toastr.error('Please fill Arabic and English names');
+                    //         return;
+                    //     }
+
+                    //     const groupSize = {
+                    //         name_ar: nameAr,
+                    //         name_en: nameEn,
+                    //         type: 'group_size_requirement'
+                    //     };  
+                                //
+
+
+                    //     saveCondition(groupSize, function(savedData) {
+                    //         groupSize.id = savedData.id;
+                    //         conditionsData.groupSizeRequirements.push(groupSize);
+                    //         renderGroupSizes();
+                    //         $('#group_size_name_ar, #group_size_name_en').val('');
+                    //     });
+                    // });
+                    $('#addGroupSizeBtn').click(function () {
+                       let nameArInput = $('#group_size_name_ar').val().trim();
+                        const value = $('#group_size_name_en').val().trim(); // example: 4
+                        const groupSizeType = $('#group_size_type').val().trim(); // minimum / maximum
+
+                        if (!groupSizeType || !value) {
+                            toastr.error('Please select group type and enter value');
                             return;
                         }
+
+                        // Capitalize first letter
+                        const typeLabel = groupSizeType.charAt(0).toUpperCase() + groupSizeType.slice(1);
+
+                        const nameEn = `${typeLabel} ${value} people`;
+                        const nameAr = `${typeLabel} ${nameArInput} people`; // Arabic text laga sakte ho
 
                         const groupSize = {
                             name_ar: nameAr,
                             name_en: nameEn,
+                            group_size_type: groupSizeType,
                             type: 'group_size_requirement'
                         };
 
-                        saveCondition(groupSize, function(savedData) {
+                        saveCondition(groupSize, function (savedData) {
                             groupSize.id = savedData.id;
                             conditionsData.groupSizeRequirements.push(groupSize);
                             renderGroupSizes();
-                            $('#group_size_name_ar, #group_size_name_en').val('');
+
+                            // Reset fields
+                            $('#group_size_name_ar').val('');
+                            $('#group_size_name_en').val('');
+                            $('#group_size_type').val('');
                         });
+
                     });
+
 
                     function renderGroupSizes() {
                         const container = $('#groupSizeTags');
