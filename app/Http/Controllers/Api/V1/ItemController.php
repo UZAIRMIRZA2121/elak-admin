@@ -500,9 +500,13 @@ class ItemController extends Controller
 
 
             if ($item['type'] == 'voucher') {
-                $item['product'] = $item->relatedProducts() ?? [];
-                $item['product_b'] = $item->relatedProductsB() ?? [];
+                if ($item->product !== "[]") {
+                    $item['product'] = $this->normalizeArrayValue($item->relatedProducts());
+                }
+                if ($item->product_b !== "[]") {
+                    $item['product_b'] = $this->normalizeArrayValue($item->relatedProductsB());
 
+                }
                 // Send how_and_condition_ids as array
                 $item['how_it_works'] = $item->usageTerms() ?? [];
                 // Return full branch data
@@ -517,7 +521,7 @@ class ItemController extends Controller
                     'custom_blackout_dates' => json_decode($settings->custom_blackout_dates), // full CustomBlackoutData objects
                     'age_restriction' => $settings->age_restriction, // full CustomBlackoutData objects(int) $settings->age_restriction,
                     'group_size_requirement' => $settings->group_size_requirement, // full CustomBlackoutData objects(int) $settings->age_restriction,
-              
+
                     'usage_limit_per_user' => json_decode($settings->usage_limit_per_user),
                     'usage_limit_per_store' => json_decode($settings->usage_limit_per_store),
                     'offer_validity_after_purchase' => (int) $settings->offer_validity_after_purchase,
@@ -545,6 +549,19 @@ class ItemController extends Controller
         }
     }
 
+    function normalizeArrayValue($value): array
+    {
+        if (is_string($value)) {
+            $decoded = json_decode($value, true);
+            return is_array($decoded) ? $decoded : [];
+        }
+
+        if ($value instanceof \Illuminate\Support\Collection) {
+            return $value->values()->toArray();
+        }
+
+        return is_array($value) ? $value : [];
+    }
 
     public function get_related_products(Request $request, $id)
     {
