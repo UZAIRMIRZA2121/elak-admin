@@ -118,14 +118,14 @@ class VoucherController extends Controller
 
     public function index_git(Request $request)
     {
-
+      $stores = store::all();
         $categories = Category::where(['position' => 0])->get();
 
         $taxData = Helpers::getTaxSystemType();
         $productWiseTax = $taxData['productWiseTax'];
         $taxVats = $taxData['taxVats'];
 
-        return view('admin-views.voucher.index_gift', compact('categories', 'productWiseTax', 'taxVats'));
+        return view('admin-views.voucher.index_gift', compact('categories', 'productWiseTax', 'taxVats' ,'stores'));
 
     }
     public function index(Request $request)
@@ -142,14 +142,14 @@ class VoucherController extends Controller
     }
     public function discount(Request $request)
     {
-
+        $stores = store::all();
         $categories = Category::where(['position' => 0])->get();
 
         $taxData = Helpers::getTaxSystemType();
         $productWiseTax = $taxData['productWiseTax'];
         $taxVats = $taxData['taxVats'];
 
-        return view('admin-views.voucher.index_flat_discount', compact('categories', 'productWiseTax', 'taxVats'));
+        return view('admin-views.voucher.index_flat_discount', compact('categories', 'productWiseTax', 'taxVats' ,'stores'));
 
     }
 
