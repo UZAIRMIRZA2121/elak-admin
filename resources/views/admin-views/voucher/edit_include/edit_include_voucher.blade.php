@@ -9,17 +9,16 @@
     </div>
 </div>
 {{--  Terms & Conditions --}}
-<div class="section-card rounded p-4 mb-4  section3  " id="term_condition_main">
+{{-- <div class="section-card rounded p-4 mb-4  section3  " id="term_condition_main">
     <h3 class="h5 fw-semibold mb-2"> {{ translate('Terms & Conditions') }}</h3>
     <p class="text-muted">Set your business terms</p>
     <div class="card border shadow-sm mt-3">
         <div class="card-body">
-            {{-- <h5 class="text-center font-weight-bold mb-4">Usage Terms</h5> --}}
             <div id="usageTerms" class="row">
             </div>
         </div>
     </div>
-</div>
+</div> --}}
 
 {{--  Review & Submit --}}
 {{-- <div class="section-card rounded p-4 mb-4 section3 " id="review_submit_main">

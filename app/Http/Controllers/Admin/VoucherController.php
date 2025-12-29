@@ -683,7 +683,6 @@ class VoucherController extends Controller
 
     public function edit(Request $request, $id)
     {
-        // dd("edit page");
         $temp_product = false;
         if ($request->temp_product) {
             $product = TempProduct::withoutGlobalScope(StoreScope::class)->withoutGlobalScope('translate')->with('store', 'category', 'module')->findOrFail($id);
@@ -691,10 +690,12 @@ class VoucherController extends Controller
         } else {
             $product = Item::withoutGlobalScope(StoreScope::class)->withoutGlobalScope('translate')->with('store', 'category', 'module')->findOrFail($id);
         }
+        
         if (!$product) {
             Toastr::error(translate('messages.item_not_found'));
             return back();
         }
+        
         $temp = $product->category;
         if ($temp?->position) {
             $sub_category = $temp;
@@ -709,7 +710,21 @@ class VoucherController extends Controller
         $taxVats = $taxData['taxVats'];
         $taxVatIds = $productWiseTax ? $product->taxVats()->pluck('tax_id')->toArray() : [];
 
-        return view('admin-views.voucher.edit', compact('product', 'sub_category', 'category', 'temp_product', 'productWiseTax', 'taxVats', 'taxVatIds'));
+        // Get necessary data for all edit pages
+        $stores = Store::all();
+        $categories = Category::where(['position' => 0])->get();
+        
+        // Determine voucher type and route to appropriate edit view
+        $voucherType = $product->voucher_ids;
+        
+        if ($voucherType == 'Flat discount') {
+            return view('admin-views.voucher.edit_index_flat_discount', compact('product', 'sub_category', 'category', 'temp_product', 'productWiseTax', 'taxVats', 'taxVatIds', 'stores', 'categories'));
+        } elseif ($voucherType == 'Gift') {
+            return view('admin-views.voucher.edit_index_gift', compact('product', 'sub_category', 'category', 'temp_product', 'productWiseTax', 'taxVats', 'taxVatIds', 'stores', 'categories'));
+        } else {
+            // Default: Delivery/Pickup or In-Store
+            return view('admin-views.voucher.edit', compact('product', 'sub_category', 'category', 'temp_product', 'productWiseTax', 'taxVats', 'taxVatIds', 'stores', 'categories'));
+        }
     }
 
     public function status(Request $request)
@@ -723,380 +738,263 @@ class VoucherController extends Controller
 
     public function update(Request $request, $id)
     {
-        $validator = Validator::make($request->all(), [
-            'name' => 'array',
-            'name.0' => 'required',
-            'name.*' => 'max:191',
-            'category_id' => 'required',
-            'price' => 'required|numeric|between:.01,999999999999.99',
-            'store_id' => 'required',
-            'description' => 'array',
-            'description.*' => 'max:1000',
-            'discount' => 'required|numeric|min:0',
-            'name.0' => 'required',
-            'description.0' => 'required',
-        ], [
-            'description.*.max' => translate('messages.description_length_warning'),
-            'category_id.required' => translate('messages.category_required'),
-            'name.0.required' => translate('default_name_is_required'),
-            'description.0.required' => translate('default_description_is_required'),
-        ]);
-
-        if ($request['discount_type'] == 'percent') {
-            $dis = ($request['price'] / 100) * $request['discount'];
-        } else {
-            $dis = $request['discount'];
-        }
-
-        if ($request['price'] <= $dis) {
-            $validator->getMessageBag()->add('unit_price', translate("Discount amount can't be greater than 100%"));
-        }
-
-        if ($request['price'] <= $dis || $validator->fails()) {
-            return response()->json(['errors' => Helpers::error_processor($validator)]);
-        }
-
         $item = Item::withoutGlobalScope(StoreScope::class)->find($id);
-        $tag_ids = [];
-        if ($request->tags != null) {
-            $tags = explode(",", $request->tags);
-        }
-        if (isset($tags)) {
-            foreach ($tags as $key => $value) {
-                $tag = Tag::firstOrNew(
-                    ['tag' => $value]
-                );
-                $tag->save();
-                array_push($tag_ids, $tag->id);
-            }
-        }
-        $nutrition_ids = [];
-        if ($request->nutritions != null) {
-            $nutritions = $request->nutritions;
-        }
-        if (isset($nutritions)) {
-            foreach ($nutritions as $key => $value) {
-                $nutrition = Nutrition::firstOrNew(
-                    ['nutrition' => $value]
-                );
-                $nutrition->save();
-                array_push($nutrition_ids, $nutrition->id);
-            }
-        }
-        $allergy_ids = [];
-        if ($request->allergies != null) {
-            $allergies = $request->allergies;
-        }
-        if (isset($allergies)) {
-            foreach ($allergies as $key => $value) {
-                $allergy = Allergy::firstOrNew(
-                    ['allergy' => $value]
-                );
-                $allergy->save();
-                array_push($allergy_ids, $allergy->id);
-            }
+        
+        if (!$item) {
+            Toastr::error(translate('messages.item_not_found'));
+            return response()->json(['error' => 'Voucher not found'], 404);
         }
 
-        $generic_ids = [];
-        if ($request->generic_name != null) {
-            $generic_name = GenericName::firstOrNew(
-                ['generic_name' => $request->generic_name]
-            );
-            $generic_name->save();
-            array_push($generic_ids, $generic_name->id);
+        $type_name = $request->hidden_name ?? $item->voucher_ids;
+        $data = $request->products_data ?? $request->bogo_products_a ?? [];
+        
+        if (is_string($data)) {
+            $decoded = json_decode($data, true);
+            $data = is_array($decoded) ? $decoded : [];
         }
 
-        $item->name = $request->name[array_search('default', $request->lang)];
+        $data_b = $request->bogo_products_b ?? [];
+        if (is_string($data_b)) {
+            $data_b = json_decode($data_b, true) ?? [];
+        }
 
-        $category = [];
-        if ($request->category_id != null) {
-            array_push($category, [
-                'id' => $request->category_id,
-                'position' => 1,
+        if ($type_name == "Delivery/Pickup" || $type_name == "In-Store") {
+            $validator = Validator::make($request->all(), [
+                'segment_type' => 'max:1000',
+                'store_id' => 'required',
+                'categories' => 'required',
+                'sub_categories_game' => 'nullable',
+                'sub_branch_id' => 'required',
+                'voucher_title' => 'required',
+                'description' => 'required',
+                'bundle_offer_type' => 'required',
+                'price' => 'required',
+                'price_hidden' => 'required',
+                'required_qty' => 'required',
+                'offer_type' => 'required',
+                'discount_type' => 'required',
+                'discount' => 'required',
             ]);
-        }
-        if ($request->sub_category_id != null) {
-            array_push($category, [
-                'id' => $request->sub_category_id,
-                'position' => 2,
-            ]);
-        }
-        if ($request->sub_sub_category_id != null) {
-            array_push($category, [
-                'id' => $request->sub_sub_category_id,
-                'position' => 3,
-            ]);
-        }
 
-
-        $images = $item['images'];
-        if (!$request?->temp_product) {
-            foreach ($item->images as $key => $value) {
-                if (in_array(is_array($value) ? $value['img'] : $value, explode(",", $request->removedImageKeys))) {
-                    $value = is_array($value) ? $value : ['img' => $value, 'storage' => 'public'];
-                    Helpers::check_and_delete('product/', $value['img']);
-                    unset($images[$key]);
-                }
+            if ($validator->fails()) {
+                return response()->json(['errors' => Helpers::error_processor($validator)], 422);
             }
-            $images = array_values($images);
-            if ($request->has('item_images')) {
-                foreach ($request->item_images as $img) {
-                    $image = Helpers::upload('product/', 'png', $img);
-                    array_push($images, ['img' => $image, 'storage' => Helpers::getDisk()]);
-                }
+
+            // Handle thumbnail image update
+            if ($request->hasFile('image')) {
+                $item->image = Helpers::update('product/', $item->image, 'png', $request->file('image'));
             }
-        }
 
+            // Handle multiple images update
+            $images = json_decode($item->images, true) ?? [];
+            $disk = Helpers::getDisk();
 
-        $item->category_id = $request->sub_category_id ? $request->sub_category_id : $request->category_id;
-        $item->category_ids = json_encode($category);
-        $item->description = $request->description[array_search('default', $request->lang)];
-
-        $choice_options = [];
-        if ($request->has('choice')) {
-            foreach ($request->choice_no as $key => $no) {
-                $str = 'choice_options_' . $no;
-                if ($request[$str][0] == null) {
-                    $validator->getMessageBag()->add('name', translate('messages.attribute_choice_option_value_can_not_be_null'));
-                    return response()->json(['errors' => Helpers::error_processor($validator)]);
-                }
-                $temp['name'] = 'choice_' . $no;
-                $temp['title'] = $request->choice[$key];
-                $temp['options'] = explode(',', implode('|', preg_replace('/\s+/', ' ', $request[$str])));
-                array_push($choice_options, $temp);
-            }
-        }
-        $item->choice_options = $request->has('attribute_id') ? json_encode($choice_options) : json_encode([]);
-        $variations = [];
-        $options = [];
-        if ($request->has('choice_no')) {
-            foreach ($request->choice_no as $key => $no) {
-                $name = 'choice_options_' . $no;
-                $my_str = implode('|', $request[$name]);
-                array_push($options, explode(',', $my_str));
-            }
-        }
-        //Generates the combinations of customer choice options
-        $combinations = Helpers::combinations($options);
-        if (count($combinations[0]) > 0) {
-            foreach ($combinations as $key => $combination) {
-                $str = '';
-                foreach ($combination as $k => $temp) {
-                    if ($k > 0) {
-                        $str .= '-' . str_replace(' ', '', $temp);
-                    } else {
-                        $str .= str_replace(' ', '', $temp);
-                    }
-                }
-                $temp = [];
-                $temp['type'] = $str;
-                $temp['price'] = abs($request['price_' . str_replace('.', '_', $str)]);
-
-                if ($request->discount_type == 'amount' && $temp['price'] < $request->discount) {
-                    $validator->getMessageBag()->add('unit_price', translate("Variation price must be greater than discount amount"));
-                    return response()->json(['errors' => Helpers::error_processor($validator)]);
-                }
-                $temp['stock'] = abs($request['stock_' . str_replace('.', '_', $str)]);
-                array_push($variations, $temp);
-            }
-        }
-        //combinations end
-
-        $food_variations = [];
-        if (isset($request->options)) {
-            foreach (array_values($request->options) as $key => $option) {
-                $temp_variation['name'] = $option['name'];
-                $temp_variation['type'] = $option['type'];
-                $temp_variation['min'] = $option['min'] ?? 0;
-                $temp_variation['max'] = $option['max'] ?? 0;
-                if ($option['min'] > 0 && $option['min'] > $option['max']) {
-                    $validator->getMessageBag()->add('name', translate('messages.minimum_value_can_not_be_greater_then_maximum_value'));
-                    return response()->json(['errors' => Helpers::error_processor($validator)]);
-                }
-                if (!isset($option['values'])) {
-                    $validator->getMessageBag()->add('name', translate('messages.please_add_options_for') . $option['name']);
-                    return response()->json(['errors' => Helpers::error_processor($validator)]);
-                }
-                if ($option['max'] > count($option['values'])) {
-                    $validator->getMessageBag()->add('name', translate('messages.please_add_more_options_or_change_the_max_value_for') . $option['name']);
-                    return response()->json(['errors' => Helpers::error_processor($validator)]);
-                }
-                $temp_variation['required'] = $option['required'] ?? 'off';
-                $temp_value = [];
-                foreach (array_values($option['values']) as $value) {
-                    if (isset($value['label'])) {
-                        $temp_option['label'] = $value['label'];
-                    }
-                    $temp_option['optionPrice'] = $value['optionPrice'];
-                    array_push($temp_value, $temp_option);
-                }
-                $temp_variation['values'] = $temp_value;
-                array_push($food_variations, $temp_variation);
-            }
-        }
-        $slug = Str::slug($request->name[array_search('default', $request->lang)]);
-        $item->slug = $item->slug ? $item->slug : "{$slug}{$item->id}";
-        $item->food_variations = json_encode($food_variations);
-        $item->variations = $request->has('attribute_id') ? json_encode($variations) : json_encode([]);
-        $item->price = $request->price;
-        $item->image = $request->has('image') ? Helpers::update('product/', $item->image, 'png', $request->file('image')) : $item->image;
-        $item->available_time_starts = $request->available_time_starts ?? '00:00:00';
-        $item->available_time_ends = $request->available_time_ends ?? '23:59:59';
-
-        $item->discount = $request->discount;
-        $item->discount_type = $request->discount_type;
-        $item->unit_id = $request->unit;
-        $item->attributes = $request->has('attribute_id') ? json_encode($request->attribute_id) : json_encode([]);
-        $item->add_ons = $request->has('addon_ids') ? json_encode($request->addon_ids) : json_encode([]);
-        $item->store_id = $request->store_id;
-        $item->maximum_cart_quantity = $request->maximum_cart_quantity;
-        // $item->module_id= $request->module_id;
-        $item->stock = $request->current_stock ?? 0;
-        $item->is_halal = $request->is_halal ?? 0;
-        $item->organic = $request->organic ?? 0;
-        $item->veg = $request->veg;
-        $item->images = json_encode($images);
-        if (Helpers::get_mail_status('product_approval') && $request?->temp_product) {
-
-
-            $images = $item->temp_product?->images ?? [];
-
+            // Remove deleted images
             if ($request->removedImageKeys) {
                 foreach ($images as $key => $value) {
                     if (in_array(is_array($value) ? $value['img'] : $value, explode(",", $request->removedImageKeys))) {
+                        $value = is_array($value) ? $value : ['img' => $value, 'storage' => 'public'];
+                        Helpers::check_and_delete('product/', $value['img']);
                         unset($images[$key]);
                     }
                 }
                 $images = array_values($images);
             }
 
-            foreach ($images as $k => $value) {
-                $value = is_array($value) ? $value : ['img' => $value, 'storage' => 'public'];
-                $oldDisk = $value['storage'];
-                $oldPath = "product/{$value['img']}";
-                $newFileName = Carbon::now()->toDateString() . "-" . uniqid() . ".png";
-                $newPath = "product/{$newFileName}";
-                $dir = 'product/';
-                $newDisk = Helpers::getDisk();
-                try {
-                    if (Storage::disk($oldDisk)->exists($oldPath)) {
-                        if (!Storage::disk($newDisk)->exists($dir)) {
-                            Storage::disk($newDisk)->makeDirectory($dir);
-                        }
-                        $fileContents = Storage::disk($oldDisk)->get($oldPath);
-                        Storage::disk($newDisk)->put($newPath, $fileContents);
-                        unset($images[$k]);
-                    }
-                } catch (\Exception $e) {
-                }
-                $images[] = ['img' => $newFileName, 'storage' => Helpers::getDisk()];
-            }
-
-            $images = array_values($images);
-
-            if ($request->has('item_images')) {
-                foreach ($request->item_images as $img) {
-                    $image = Helpers::upload('product/', 'png', $img);
-                    array_push($images, ['img' => $image, 'storage' => Helpers::getDisk()]);
+            // Add new images
+            if ($request->hasFile('item_images')) {
+                foreach ($request->file('item_images') as $img) {
+                    $fileName = Carbon::now()->toDateString() . '-' . uniqid() . '.png';
+                    $img->storeAs('product', $fileName, $disk);
+                    $images[] = ['img' => $fileName, 'storage' => $disk];
                 }
             }
 
+            // Update item fields
+            $item->price = $request->product_real_price ?? 0;
+            $item->discount_type = $request->discount_type;
+            $item->discount = $request->discount;
+            $item->offer_type = $request->offer_type;
+            $item->store_id = $request->store_id;
+            $item->name = $request->voucher_title;
+            $item->description = $request->description;
+            
+            $category = [];
+            $position = 1;
 
+            if (!empty($request->categories) && is_array($request->categories)) {
+                foreach ($request->categories as $catId) {
+                    $category[] = ['id' => (string) $catId, 'position' => $position++];
+                }
+            }
+
+            if (!empty($request->sub_categories_game) && is_array($request->sub_categories_game)) {
+                foreach ($request->sub_categories_game as $subCatId) {
+                    $category[] = ['id' => (string) $subCatId, 'position' => $position++];
+                }
+            }
+
+            $item->category_ids = json_encode($category);
+            $item->category_id = $request->sub_categories_game ? (is_array($request->sub_categories_game) ? $request->sub_categories_game[0] : $request->sub_categories_game) : (is_array($request->categories) ? $request->categories[0] : $request->categories);
+            $item->branch_ids = json_encode(array_filter($request->sub_branch_id ?? []));
+            $item->product = json_encode(array_filter($data));
+            $item->product_b = json_encode(array_filter($data_b));
+            $item->clients_section = json_encode(
+                array_filter($request->clients ?? [], function ($client) {
+                    return !empty($client['client_id']) && !empty($client['app_name_id']) && !empty($client['app_name']);
+                })
+            );
+            $item->required_quantity = $request->required_quantity ?? 0.00;
+            $item->bundle_type = $request->bundle_offer_type ?? null;
+            $item->tags_ids = $request->tags ?? null;
             $item->images = json_encode($images);
+            $item->save();
 
-            $item->temp_product?->translations()->delete();
-            $item?->pharmacy_item_details()?->delete();
-            if ($item->module->module_type == 'pharmacy') {
-                DB::table('pharmacy_item_details')->where('temp_product_id', $item->temp_product?->id)->update([
-                    'item_id' => $item->id,
-                    'temp_product_id' => null
-                ]);
+            return response()->json(['success' => translate('messages.voucher_updated_successfully')], 200);
+
+        } elseif ($type_name == "Flat discount") {
+            $validator = Validator::make($request->all(), [
+                'segment_type' => 'max:1000',
+                'store_id' => 'required',
+                'voucher_title' => 'required',
+                'clients' => 'array',
+                'description' => 'required',
+                'tags' => 'nullable',
+                'discount_type' => 'required',
+                'bonus_tiers' => 'required',
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json(['errors' => Helpers::error_processor($validator)], 422);
             }
-            $item?->temp_product?->taxVats()->delete();
-            $item->temp_product?->delete();
-            $item->is_approved = 1;
-            try {
 
-                if (Helpers::getNotificationStatusData('store', 'store_product_approve', 'push_notification_status', $item?->store->id) && $item?->store?->vendor?->firebase_token) {
-                    $data = [
-                        'title' => translate('product_approved'),
-                        'description' => translate('Product_Request_Has_Been_Approved_By_Admin'),
-                        'order_id' => '',
-                        'image' => '',
-                        'type' => 'product_approve',
-                        'order_status' => '',
-                    ];
-                    Helpers::send_push_notif_to_device($item?->store?->vendor?->firebase_token, $data);
-                    DB::table('user_notifications')->insert([
-                        'data' => json_encode($data),
-                        'vendor_id' => $item?->store?->vendor_id,
-                        'created_at' => now(),
-                        'updated_at' => now()
-                    ]);
-                }
-
-                if (config('mail.status') && Helpers::get_mail_status('product_approve_mail_status_store') == '1' && Helpers::getNotificationStatusData('store', 'store_product_approve', 'mail_status', $item?->store?->id)) {
-                    Mail::to($item?->store?->vendor?->email)->send(new \App\Mail\VendorProductMail($item?->store?->name, 'approved'));
-                }
-            } catch (\Exception $e) {
-                info($e->getMessage());
+            // Handle thumbnail image update
+            if ($request->hasFile('image')) {
+                $item->image = Helpers::update('product/', $item->image, 'png', $request->file('image'));
             }
-        }
-        $item->save();
-        $item->tags()->sync($tag_ids);
-        $item->nutritions()->sync($nutrition_ids);
-        $item->allergies()->sync($allergy_ids);
-        if ($item->module->module_type == 'pharmacy') {
-            $item->generic()->sync($generic_ids);
-            DB::table('pharmacy_item_details')
-                ->updateOrInsert(
-                    ['item_id' => $item->id],
-                    [
-                        'common_condition_id' => $request->condition_id,
-                        'is_basic' => $request->basic ?? 0,
-                        'is_prescription_required' => $request->is_prescription_required ?? 0,
-                    ]
-                );
-        }
-        if ($item->module->module_type == 'ecommerce') {
-            DB::table('ecommerce_item_details')
-                ->updateOrInsert(
-                    ['item_id' => $item->id],
-                    [
-                        'brand_id' => $request->brand_id,
-                    ]
-                );
-        }
 
+            // Handle multiple images update
+            $images = json_decode($item->images, true) ?? [];
+            $disk = Helpers::getDisk();
 
-        if (addon_published_status('TaxModule')) {
-            $taxVatIds = $item->taxVats()->pluck('tax_id')->toArray() ?? [];
-            $newTaxVatIds = array_map('intval', $request['tax_ids'] ?? []);
-            sort($newTaxVatIds);
-            sort($taxVatIds);
-            if ($newTaxVatIds != $taxVatIds) {
-                $item->taxVats()->delete();
-                $SystemTaxVat = \Modules\TaxModule\Entities\SystemTaxSetup::where('is_active', 1)->where('is_default', 1)->first();
-                if ($SystemTaxVat?->tax_type == 'product_wise') {
-                    foreach ($request['tax_ids'] ?? [] as $tax_id) {
-                        \Modules\TaxModule\Entities\Taxable::create(
-                            [
-                                'taxable_type' => Item::class,
-                                'taxable_id' => $item->id,
-                                'system_tax_setup_id' => $SystemTaxVat->id,
-                                'tax_id' => $tax_id
-                            ],
-                        );
+            // Remove deleted images
+            if ($request->removedImageKeys) {
+                foreach ($images as $key => $value) {
+                    if (in_array(is_array($value) ? $value['img'] : $value, explode(",", $request->removedImageKeys))) {
+                        $value = is_array($value) ? $value : ['img' => $value, 'storage' => 'public'];
+                        Helpers::check_and_delete('product/', $value['img']);
+                        unset($images[$key]);
                     }
                 }
+                $images = array_values($images);
             }
+
+            // Add new images
+            if ($request->hasFile('item_images')) {
+                foreach ($request->file('item_images') as $img) {
+                    $fileName = Carbon::now()->toDateString() . '-' . uniqid() . '.png';
+                    $img->storeAs('product', $fileName, $disk);
+                    $images[] = ['img' => $fileName, 'storage' => $disk];
+                }
+            }
+
+            // Update item fields
+            $item->store_id = $request->store_id;
+            $item->name = $request->voucher_title;
+            $item->description = $request->description;
+            
+            $category = [];
+            $position = 1;
+
+            if (!empty($request->categories) && is_array($request->categories)) {
+                foreach ($request->categories as $catId) {
+                    $category[] = ['id' => (string) $catId, 'position' => $position++];
+                }
+            }
+
+            if (!empty($request->sub_categories_game) && is_array($request->sub_categories_game)) {
+                foreach ($request->sub_categories_game as $subCatId) {
+                    $category[] = ['id' => (string) $subCatId, 'position' => $position++];
+                }
+            }
+
+            $item->category_ids = json_encode($category);
+            $item->category_id = $request->sub_categories_game ? (is_array($request->sub_categories_game) ? $request->sub_categories_game[0] : $request->sub_categories_game) : (is_array($request->categories) ? $request->categories[0] : $request->categories);
+            $item->branch_ids = json_encode(array_filter($request->sub_branch_id ?? []));
+            $item->clients_section = json_encode(
+                array_filter($request->clients ?? [], function ($client) {
+                    return !empty($client['client_id']) && !empty($client['app_name_id']) && !empty($client['app_name']);
+                })
+            );
+            $item->discount_configuration = json_encode(array_filter($request->bonus_tiers ?? []));
+            $item->tags_ids = $request->tags ?? null;
+            $item->images = json_encode($images);
+            $item->discount_type = $request->discount_type ?? 0;
+            $item->save();
+
+            return response()->json(['success' => translate('messages.voucher_updated_successfully')], 200);
+
+        } elseif ($type_name == "Gift") {
+            $validator = Validator::make($request->all(), [
+                'segment_type' => 'max:1000',
+                'store_id' => 'required',
+                'occasions_id' => 'required',
+                'message_template_style' => 'required',
+                'delivery_options' => 'required',
+                'type' => 'required',
+                'min_max_amount' => 'required',
+                'clients' => 'array',
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json(['errors' => Helpers::error_processor($validator)], 422);
+            }
+
+            // Update item fields
+            $item->store_id = $request->store_id;
+            
+            $category = [];
+            $position = 1;
+
+            if (!empty($request->categories) && is_array($request->categories)) {
+                foreach ($request->categories as $catId) {
+                    $category[] = ['id' => (string) $catId, 'position' => $position++];
+                }
+            }
+
+            if (!empty($request->sub_categories_game) && is_array($request->sub_categories_game)) {
+                foreach ($request->sub_categories_game as $subCatId) {
+                    $category[] = ['id' => (string) $subCatId, 'position' => $position++];
+                }
+            }
+
+            $item->category_ids = json_encode($category);
+            $item->category_id = $request->sub_categories_game ? (is_array($request->sub_categories_game) ? $request->sub_categories_game[0] : $request->sub_categories_game) : (is_array($request->categories) ? $request->categories[0] : $request->categories);
+            $item->branch_ids = json_encode(array_filter($request->sub_branch_id ?? []));
+            $item->clients_section = json_encode(
+                array_filter($request->clients ?? [], function ($client) {
+                    return !empty($client['client_id']) && !empty($client['app_name_id']) && !empty($client['app_name']);
+                })
+            );
+
+            $form_fields = $request->form_fields ?? [];
+            $required_fields = $request->required_fields ?? [];
+            $settings = ["form_fields" => $form_fields, "required_fields" => $required_fields];
+            $item->recipient_info_form_fields = json_encode($settings);
+            $item->occasions_id = json_encode($request->occasions_id ?? []);
+            $item->message_template_style = json_encode($request->message_template_style ?? []);
+            $item->delivery_options = json_encode($request->delivery_options ?? []);
+            $item->amount_type = $request->type ?? null;
+            $item->enable_custom_amount = $request->enable_custom_amount ?? null;
+            $item->fixed_amount_options = json_encode($request->fixed_amounts ?? []);
+            $item->min_max_amount = json_encode($request->min_max_amount ?? []);
+            $item->bonus_configuration = json_encode($request->bonus_tiers ?? []);
+            $item->save();
+
+            return response()->json(['success' => translate('messages.voucher_updated_successfully')], 200);
         }
 
-
-        Helpers::add_or_update_translations(request: $request, key_data: 'name', name_field: 'name', model_name: 'Item', data_id: $item->id, data_value: $item->name);
-        Helpers::add_or_update_translations(request: $request, key_data: 'description', name_field: 'description', model_name: 'Item', data_id: $item->id, data_value: $item->description);
-
-        return response()->json(['success' => translate('messages.product_updated_successfully')], 200);
+        return response()->json(['error' => 'Invalid voucher type'], 400);
     }
 
     public function delete(Request $request)
