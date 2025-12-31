@@ -130,14 +130,14 @@ class VoucherController extends Controller
     }
     public function index(Request $request)
     {
-// dd("dsvbfhjdv");
-      $stores = store::all();
+        // dd("dsvbfhjdv");
+        $stores = store::all();
         $categories = Category::where(['position' => 0])->get();
         $taxData = Helpers::getTaxSystemType();
         $productWiseTax = $taxData['productWiseTax'];
         $taxVats = $taxData['taxVats'];
 
-        return view('admin-views.voucher.index', compact('categories', 'productWiseTax', 'taxVats' ,'stores'));
+        return view('admin-views.voucher.index', compact('categories', 'productWiseTax', 'taxVats', 'stores'));
 
     }
     public function discount(Request $request)
