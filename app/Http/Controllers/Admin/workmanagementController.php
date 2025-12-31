@@ -106,26 +106,17 @@ class workmanagementController extends Controller
 
     public function edit($id)
     {
-           $vouchers = VoucherType::get();
+        $vouchers = VoucherType::get();
         $ManagementType = WorkManagement::where('id', $id)->first();
-        // dd($ManagementType);
-      $sections = [];
-
-    if (!empty($ManagementType->sections)) {
-        $json = $ManagementType->sections; // already array
-
-        foreach ($json as $title => $steps) {
-            $sections[] = [
-                'title' => $title,
-                'steps' => $steps
-            ];
-        }
-    }
-
-
-
+        
+        // Sections are already stored as array with 'title' and 'steps' keys
+        // No need to transform, just pass directly
+        $sections = $ManagementType->sections ?? [];
+        
+        // Debug: Uncomment to check sections structure
         // dd($sections);
-        return view('admin-views.work_management.edit', compact('ManagementType','vouchers','sections'));
+        
+        return view('admin-views.work_management.edit', compact('ManagementType', 'vouchers', 'sections'));
     }
 
     public function update(Request $request, $id)

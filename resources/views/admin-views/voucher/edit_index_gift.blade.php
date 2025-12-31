@@ -72,9 +72,6 @@
   box-shadow: 0 0 5px rgba(13,110,253,0.3);
 }
 
-
-</style>
-<style>
 /* Normal button look */
 .type-option {
     border: 2px solid #007bff;
@@ -101,29 +98,69 @@
   <link rel="stylesheet" href="{{asset('assets/admin/css/voucher.css')}}">
      <!-- Page Header -->
      <div class="container-fluid px-4 py-3">
-          @include("admin-views.voucher.store_include.include_heading")
+          @include("admin-views.voucher.edit_include.edit_include_heading")
         <div class="bg-white shadow rounded-lg p-4">
 
 
             {{-- Step 1: Select Voucher Type and Step 2: Select Management Type  --}}
-             @include("admin-views.voucher.store_include.include_client_voucher_management")
+             @include("admin-views.voucher.edit_include.edit_include_client_voucher_management")
 
             <form action="javascript:" method="post" id="item_form" enctype="multipart/form-data">
                  <input type="hidden" name="hidden_value" id="hidden_value" value="1"/>
             <input type="hidden" name="hidden_bundel" id="hidden_bundel" value="simple"/>
             <input type="hidden" name="hidden_name" id="hidden_name" value="Gift"/>
                 @csrf
-                @php($language = \App\Models\BusinessSetting::where('key', 'language')->first())
-                @php($language = $language->value ?? null)
-                @php($defaultLang = str_replace('_', '-', app()->getLocale()))
-                {{-- Client Information and Partner Information --}}
-                 @include("admin-views.voucher.store_include.include_client_partner_information")
+                @php
+                    $language = \App\Models\BusinessSetting::where('key', 'language')->first();
+                    $language = $language->value ?? null;
+                    $defaultLang = str_replace('_', '-', app()->getLocale());
+                    
+                    // Initialize variables for Gift Voucher
+                    $selected_occasions = json_decode($product->occasions_id ?? '[]', true);
+                    $howAndConditionIds = json_decode($product->how_and_condition_ids ?? '[]', true);
+                    $savedHowToWorkId = $howAndConditionIds[0] ?? '';
 
-                    <div class="section-card rounded p-4 mb-4">
+                    // Recipient Info
+                    $recipientSettings = json_decode($product->recipient_info_form_fields ?? '[]', true);
+                    $savedFormFields = $recipientSettings['form_fields'] ?? [];
+                    $savedRequiredFields = $recipientSettings['required_fields'] ?? [];
+
+                    // Message Template
+                    $savedMessageTemplate = json_decode($product->message_template_style ?? 'null', true);
+                    
+                    // Delivery Options
+
+                    $raw = $product->getRawOriginal('delivery_options');
+
+                    // double decode
+                    $savedDeliveryOptions = json_decode(json_decode($raw, true), true);
+
+                    if (!is_array($savedDeliveryOptions)) {
+                        $savedDeliveryOptions = [];
+                    }
+
+                    // Amount Config
+                    $savedAmountType = $product->amount_type ?? 'fixed';
+                    $savedEnableCustom = $product->enable_custom_amount ?? 0;
+                    $savedFixedAmounts = json_decode($product->fixed_amount_options ?? '[]', true);
+                    $savedMinMax = json_decode($product->min_max_amount ?? '[]', true); // [0]=>min, [1]=>max
+
+                    // Bonus Config
+                    $savedBonusTiers = json_decode($product->bonus_configuration ?? '[]', true);
+                    if (empty($savedBonusTiers)) {
+                        $savedBonusTiers = [["min_amount" => "0", "max_amount" => "", "bonus_percentage" => ""]];
+                    }
+                @endphp
+                 {{-- Client Information and Partner Information --}}
+                  @include("admin-views.voucher.edit_include.edit_include_client_partner_information")
+                     <div class="section-card rounded p-4 mb-4">
                         <div class="col-12 mt-3">
                             <p class="text-muted mb-3">Select occasions for this gift card</p>
                             <div class="form-group mb-0">
                                 <label class="input-label">{{ translate('Occasions') }}</label>
+                                @php
+                                    // $selected_occasions initialized at top
+                                @endphp
                                 <div class="d-flex flex-wrap">
                                     @foreach (\App\Models\GiftOccasions::all() as $item)
                                         <div class="form-check me-3 mb-2">
@@ -132,7 +169,7 @@
                                                 type="checkbox"
                                                 name="occasions_id[]"
                                                 value="{{ $item->id }}"
-                                                checked
+                                                {{ in_array($item->id, $selected_occasions) ? 'checked' : '' }}
                                                 id="occasion_{{ $item->id }}">
                                             <label class="form-check-label" for="occasion_{{ $item->id }}">
                                                 {{ $item->title }}
@@ -143,7 +180,6 @@
                             </div>
                         </div>
                     </div>
-
                     <!-- Recipient Info Form Fields-->
                     <div class="section-card rounded p-4 mb-4">
                         <h3 class="h5 fw-semibold mb-4">Recipient Info Form Fields</h3>
@@ -161,141 +197,58 @@
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            <tr>
-                                                <td>
-                                                    <strong>Sender Name</strong>
-                                                    <small class="d-block text-muted">Who is sending the gift card</small>
-                                                </td>
-                                                <td class="text-center">
-                                                    <div class="form-check form-switch d-inline-block">
-                                                        <input class="form-check-input field-toggle" type="checkbox" id="field_sender_name" name="form_fields[]" value="sender_name" data-target="req_sender_name">
-                                                    </div>
-                                                </td>
-                                                <td class="text-center">
-                                                    <div class="form-check form-switch d-inline-block">
-                                                        <input class="form-check-input" type="checkbox" id="req_sender_name" name="required_fields[]" value="sender_name" disabled>
-                                                    </div>
-                                                </td>
-                                            </tr>
+                                            @php
+                                                $fields = [
+                                                    'sender_name' => ['label' => 'Sender Name', 'desc' => 'Who is sending the gift card', 'default' => false],
+                                                    'sender_email' => ['label' => 'Sender Email', 'desc' => "Sender's email address", 'default' => false],
+                                                    'recipient_name' => ['label' => 'Recipient Name', 'desc' => 'Who will receive the gift card', 'default' => true],
+                                                    'recipient_email' => ['label' => 'Recipient Email', 'desc' => 'Where to send the gift card', 'default' => true],
+                                                    'recipient_phone' => ['label' => 'Recipient Phone', 'desc' => 'Phone number for WhatsApp delivery', 'default' => false],
+                                                    'message' => ['label' => 'Personal Message', 'desc' => 'Custom message from sender', 'default' => false],
+                                                    'delivery_date' => ['label' => 'Scheduled Delivery Date', 'desc' => 'When to send the gift card', 'default' => false],
+                                                    'recipient_address' => ['label' => 'Recipient Address', 'desc' => 'Physical address (for physical cards)', 'default' => false],
+                                                ];
+                                            @endphp
 
+                                            @foreach($fields as $key => $field)
+                                            @php
+                                                $isShowChecked = in_array($key, $savedFormFields);
+                                                // If initializing new record or no saved data, logic might fallback to default, but here we assume edit page edits existing.
+                                                // If savedFormFields is empty, maybe we should use defaults? 
+                                                // But usually empty means user unchecked all. So strict check is better.
+                                                // However, for pre-existing records that didn't have this column, this might be issue. 
+                                                // Assuming $product exists, distinct logic applies.
+                                                
+                                                $isRequiredChecked = in_array($key, $savedRequiredFields);
+                                                $isDisabled = !$isShowChecked ? 'disabled' : '';
+                                            @endphp
                                             <tr>
                                                 <td>
-                                                    <strong>Sender Email</strong>
-                                                    <small class="d-block text-muted">Sender's email address</small>
+                                                    <strong>{{ $field['label'] }}</strong>
+                                                    <small class="d-block text-muted">{{ $field['desc'] }}</small>
                                                 </td>
                                                 <td class="text-center">
                                                     <div class="form-check form-switch d-inline-block">
-                                                        <input class="form-check-input field-toggle" type="checkbox" id="field_sender_email" name="form_fields[]" value="sender_email" data-target="req_sender_email">
+                                                        <input class="form-check-input field-toggle" type="checkbox" 
+                                                            id="field_{{ $key }}" 
+                                                            name="form_fields[]" 
+                                                            value="{{ $key }}" 
+                                                            data-target="req_{{ $key }}"
+                                                            {{ $isShowChecked ? 'checked' : '' }}>
                                                     </div>
                                                 </td>
                                                 <td class="text-center">
                                                     <div class="form-check form-switch d-inline-block">
-                                                        <input class="form-check-input" type="checkbox" id="req_sender_email" name="required_fields[]" value="sender_email" disabled>
+                                                        <input class="form-check-input" type="checkbox" 
+                                                            id="req_{{ $key }}" 
+                                                            name="required_fields[]" 
+                                                            value="{{ $key }}" 
+                                                            {{ $isDisabled }}
+                                                            {{ $isRequiredChecked ? 'checked' : '' }}>
                                                     </div>
                                                 </td>
                                             </tr>
-
-                                            <tr>
-                                                <td>
-                                                    <strong>Recipient Name</strong>
-                                                    <small class="d-block text-muted">Who will receive the gift card</small>
-                                                </td>
-                                                <td class="text-center">
-                                                    <div class="form-check form-switch d-inline-block">
-                                                        <input class="form-check-input field-toggle" type="checkbox" id="field_recipient_name" name="form_fields[]" value="recipient_name" checked data-target="req_recipient_name">
-                                                    </div>
-                                                </td>
-                                                <td class="text-center">
-                                                    <div class="form-check form-switch d-inline-block">
-                                                        <input class="form-check-input" type="checkbox" id="req_recipient_name" name="required_fields[]" value="recipient_name" checked>
-                                                    </div>
-                                                </td>
-                                            </tr>
-
-                                            <tr>
-                                                <td>
-                                                    <strong>Recipient Email</strong>
-                                                    <small class="d-block text-muted">Where to send the gift card</small>
-                                                </td>
-                                                <td class="text-center">
-                                                    <div class="form-check form-switch d-inline-block">
-                                                        <input class="form-check-input field-toggle" type="checkbox" id="field_recipient_email" name="form_fields[]" value="recipient_email" checked data-target="req_recipient_email">
-                                                    </div>
-                                                </td>
-                                                <td class="text-center">
-                                                    <div class="form-check form-switch d-inline-block">
-                                                        <input class="form-check-input" type="checkbox" id="req_recipient_email" name="required_fields[]" value="recipient_email" checked>
-                                                    </div>
-                                                </td>
-                                            </tr>
-
-                                            <tr>
-                                                <td>
-                                                    <strong>Recipient Phone</strong>
-                                                    <small class="d-block text-muted">Phone number for WhatsApp delivery</small>
-                                                </td>
-                                                <td class="text-center">
-                                                    <div class="form-check form-switch d-inline-block">
-                                                        <input class="form-check-input field-toggle" type="checkbox" id="field_recipient_phone" name="form_fields[]" value="recipient_phone" data-target="req_recipient_phone">
-                                                    </div>
-                                                </td>
-                                                <td class="text-center">
-                                                    <div class="form-check form-switch d-inline-block">
-                                                        <input class="form-check-input" type="checkbox" id="req_recipient_phone" name="required_fields[]" value="recipient_phone" disabled>
-                                                    </div>
-                                                </td>
-                                            </tr>
-
-                                            <tr>
-                                                <td>
-                                                    <strong>Personal Message</strong>
-                                                    <small class="d-block text-muted">Custom message from sender</small>
-                                                </td>
-                                                <td class="text-center">
-                                                    <div class="form-check form-switch d-inline-block">
-                                                        <input class="form-check-input field-toggle" type="checkbox" id="field_message" name="form_fields[]" value="message" data-target="req_message">
-                                                    </div>
-                                                </td>
-                                                <td class="text-center">
-                                                    <div class="form-check form-switch d-inline-block">
-                                                        <input class="form-check-input" type="checkbox" id="req_message" name="required_fields[]" value="message" disabled>
-                                                    </div>
-                                                </td>
-                                            </tr>
-
-                                            <tr>
-                                                <td>
-                                                    <strong>Scheduled Delivery Date</strong>
-                                                    <small class="d-block text-muted">When to send the gift card</small>
-                                                </td>
-                                                <td class="text-center">
-                                                    <div class="form-check form-switch d-inline-block">
-                                                        <input class="form-check-input field-toggle" type="checkbox" id="field_delivery_date" name="form_fields[]" value="delivery_date" data-target="req_delivery_date">
-                                                    </div>
-                                                </td>
-                                                <td class="text-center">
-                                                    <div class="form-check form-switch d-inline-block">
-                                                        <input class="form-check-input" type="checkbox" id="req_delivery_date" name="required_fields[]" value="delivery_date" disabled>
-                                                    </div>
-                                                </td>
-                                            </tr>
-
-                                            <tr>
-                                                <td>
-                                                    <strong>Recipient Address</strong>
-                                                    <small class="d-block text-muted">Physical address (for physical cards)</small>
-                                                </td>
-                                                <td class="text-center">
-                                                    <div class="form-check form-switch d-inline-block">
-                                                        <input class="form-check-input field-toggle" type="checkbox" id="field_recipient_address" name="form_fields[]" value="recipient_address" data-target="req_recipient_address">
-                                                    </div>
-                                                </td>
-                                                <td class="text-center">
-                                                    <div class="form-check form-switch d-inline-block">
-                                                        <input class="form-check-input" type="checkbox" id="req_recipient_address" name="required_fields[]" value="recipient_address" disabled>
-                                                    </div>
-                                                </td>
-                                            </tr>
+                                            @endforeach
                                         </tbody>
                                     </table>
                                 </div>
@@ -319,8 +272,13 @@
                                         $id = 'template_' . $item->id
                                         )
                                         <div class="col-md-6">
-                                        <input type="radio" class="btn-check template-radio" name="message_template_style" id="{{ $id }}" value="{{ $item->id }}">
-                                        <label class="template-card border rounded p-3 w-100 d-block" for="{{ $id }}">
+                                        <input type="radio" 
+                                            class="btn-check template-radio" 
+                                            name="message_template_style" 
+                                            id="{{ $id }}" 
+                                            value="{{ $item->id }}"
+                                            {{ $savedMessageTemplate == $item->id ? 'checked' : '' }}>
+                                        <label class="template-card border rounded p-3 w-100 d-block {{ $savedMessageTemplate == $item->id ? 'selected' : '' }}" for="{{ $id }}">
                                             <img src="{{ asset($item->icon) }}" alt="" style="width: 25px; height: 25px;">
                                             <strong class="ms-2">{{ $item->title }}</strong>
                                             <small class="d-block text-muted mt-1">{{ $item->sub_title }}</small>
@@ -354,8 +312,8 @@
                                                         type="checkbox"
                                                         id="{{ $id }}"
                                                         name="delivery_options[]"
-                                                        value="{{ $item->slug ?? $item->id }}"
-                                                        {{ $loop->first ? 'checked' : '' }}
+                                                        value="{{ $item->id }}"
+                                                        {{ in_array($item->id , $savedDeliveryOptions) ? 'checked' : '' }}
                                                     >
                                                     <label class="form-check-label" for="{{ $id }}">
                                                         <h6 class="mb-1">
@@ -389,14 +347,14 @@
                                     <label class="form-label">Amount Type <span class="text-danger">*</span></label>
                                 <div class="row g-2" id="amountTypeGroup">
                                         <div class="col-md-4">
-                                            <input type="radio" class="btn-check" name="type" id="type_fixed" value="fixed" {{ old('type', 'fixed') == 'fixed' ? 'checked' : '' }}>
+                                            <input type="radio" class="btn-check" name="type" id="type_fixed" value="fixed" {{ $savedAmountType == 'fixed' ? 'checked' : '' }}>
                                             <label class="btn border type-option " for="type_fixed">
                                                 <i class="fas fa-list"></i> Fixed Amounts
                                             </label>
                                         </div>
 
                                         <div class="col-md-4">
-                                            <input type="radio" class="btn-check" name="type" id="type_range" value="range" {{ old('type') == 'range' ? 'checked' : '' }}>
+                                            <input type="radio" class="btn-check" name="type" id="type_range" value="range" {{ $savedAmountType == 'range' ? 'checked' : '' }}>
                                             <label class="btn border type-option " for="type_range">
                                                 <i class="fas fa-arrows-alt-h"></i> Range
                                             </label>
@@ -406,7 +364,7 @@
 
                                 <div class="mb-3">
                                     <div class="form-check form-switch form-switch-lg">
-                                        <input class="form-check-input" type="checkbox" id="enable_custom_amount" name="enable_custom_amount" value="1" {{ old('enable_custom_amount') ? 'checked' : '' }}>
+                                        <input class="form-check-input" type="checkbox" id="enable_custom_amount" name="enable_custom_amount" value="1" {{ $savedEnableCustom ? 'checked' : '' }}>
                                         <label class="form-check-label" for="enable_custom_amount">
                                             <strong>Enable Custom Amount</strong>
                                             <small class="d-block text-muted">Allow customers to enter their own amount</small>
@@ -418,13 +376,25 @@
                                 <div id="fixedAmountsSection" style="display: none;">
                                     <label class="form-label">Fixed Amount Options <span class="text-danger">*</span></label>
                                     <div id="fixedAmountsContainer">
-                                        <div class="input-group mb-2">
-                                            <span class="input-group-text">$</span>
-                                            <input type="number" class="form-control" name="fixed_amounts[]" step="0.01" min="0" placeholder="25.00">
-                                            <button type="button" class="btn btn-danger remove-amount" style="display: none;">
-                                                <i class="fas fa-times"></i>
-                                            </button>
-                                        </div>
+                                        @if(!empty($savedFixedAmounts) && count($savedFixedAmounts) > 0)
+                                            @foreach($savedFixedAmounts as $index => $amount)
+                                                <div class="input-group mb-2">
+                                                    <span class="input-group-text">$</span>
+                                                    <input type="number" class="form-control" name="fixed_amounts[]" step="0.01" min="0" placeholder="25.00" value="{{ $amount }}">
+                                                    <button type="button" class="btn btn-danger remove-amount" {{ count($savedFixedAmounts) == 1 ? 'style="display: none;"' : '' }}>
+                                                        <i class="fas fa-times"></i>
+                                                    </button>
+                                                </div>
+                                            @endforeach
+                                        @else
+                                            <div class="input-group mb-2">
+                                                <span class="input-group-text">$</span>
+                                                <input type="number" class="form-control" name="fixed_amounts[]" step="0.01" min="0" placeholder="25.00">
+                                                <button type="button" class="btn btn-danger remove-amount" style="display: none;">
+                                                    <i class="fas fa-times"></i>
+                                                </button>
+                                            </div>
+                                        @endif
                                     </div>
                                     <button type="button" class="btn btn-sm btn-outline-secondary border" id="addAmountBtn">
                                         <i class="fas fa-plus"></i> Add Another Amount
@@ -439,7 +409,7 @@
                                             <div class="input-group">
                                                 <span class="input-group-text">$</span>
                                                 <input type="number" class="form-control @error('min_amount') is-invalid @enderror"
-                                                    id="min_amount" name="min_max_amount[]" step="0.01" min="0" value="{{ old('min_amount') }}" placeholder="10.00">
+                                                    id="min_amount" name="min_max_amount[]" step="0.01" min="0" value="{{ $savedMinMax[0] ?? '' }}" placeholder="10.00">
                                             </div>
                                             @error('min_amount')
                                                 <div class="invalid-feedback">{{ $message }}</div>
@@ -450,7 +420,7 @@
                                             <div class="input-group">
                                                 <span class="input-group-text">$</span>
                                                 <input type="number" class="form-control @error('max_amount') is-invalid @enderror"
-                                                    id="max_amount" name="min_max_amount[]" step="0.01" min="0" value="{{ old('max_amount') }}" placeholder="1000.00">
+                                                    id="max_amount" name="min_max_amount[]" step="0.01" min="0" value="{{ $savedMinMax[1] ?? '' }}" placeholder="1000.00">
                                             </div>
                                             @error('max_amount')
                                                 <div class="invalid-feedback">{{ $message }}</div>
@@ -472,27 +442,29 @@
                                 <p class="text-muted mb-3">Set bonus percentage based on top-up amount ranges</p>
 
                                 <div id="bonusTiersContainer">
-                                    <div class="bonus-tier-item border rounded p-3 mb-3">
-                                        <div class="row g-2">
-                                            <div class="col-md-4">
-                                                <label class="form-label">Min Amount ($)</label>
-                                                <input type="number" class="form-control" name="bonus_tiers[0][min_amount]" step="0.01" min="0" placeholder="0" value="0">
-                                            </div>
-                                            <div class="col-md-4">
-                                                <label class="form-label">Max Amount ($)</label>
-                                                <input type="number" class="form-control" name="bonus_tiers[0][max_amount]" step="0.01" min="0" placeholder="100">
-                                            </div>
-                                            <div class="col-md-3">
-                                                <label class="form-label">Bonus (%)</label>
-                                                <input type="number" class="form-control" name="bonus_tiers[0][bonus_percentage]" step="0.01" min="0" placeholder="5">
-                                            </div>
-                                            <div class="col-md-1 d-flex align-items-end">
-                                                <button type="button" class="btn btn-danger remove-bonus-tier" style="display: none;">
-                                                    <i class="fas fa-times"></i>
-                                                </button>
+                                    @foreach($savedBonusTiers as $index => $tier)
+                                        <div class="bonus-tier-item border rounded p-3 mb-3">
+                                            <div class="row g-2">
+                                                <div class="col-md-4">
+                                                    <label class="form-label">Min Amount ($)</label>
+                                                    <input type="number" class="form-control" name="bonus_tiers[{{ $index }}][min_amount]" step="0.01" min="0" placeholder="0" value="{{ $tier['min_amount'] ?? '' }}">
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <label class="form-label">Max Amount ($)</label>
+                                                    <input type="number" class="form-control" name="bonus_tiers[{{ $index }}][max_amount]" step="0.01" min="0" placeholder="100" value="{{ $tier['max_amount'] ?? '' }}">
+                                                </div>
+                                                <div class="col-md-3">
+                                                    <label class="form-label">Bonus (%)</label>
+                                                    <input type="number" class="form-control" name="bonus_tiers[{{ $index }}][bonus_percentage]" step="0.01" min="0" placeholder="5" value="{{ $tier['bonus_percentage'] ?? '' }}">
+                                                </div>
+                                                <div class="col-md-1 d-flex align-items-end">
+                                                    <button type="button" class="btn btn-danger remove-bonus-tier" {{ count($savedBonusTiers) == 1 ? 'style="display: none;"' : '' }}>
+                                                        <i class="fas fa-times"></i>
+                                                    </button>
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
+                                    @endforeach
                                 </div>
 
                                 <button type="button" class="btn btn-sm btn-outline-secondary" id="addBonusTierBtn">
@@ -506,143 +478,13 @@
                             </div>
                         </div>
                     </div>
+                     @include("admin-views.voucher.edit_include.edit_include_voucher")
 
-
-                          {{-- 'occasions_id' => 'required',//add
-                        'recipient_info_form_fields' => 'required',//add
-                        'message_template_style' => 'required',//add
-                        'delivery_options' => 'required',//add//add
-                        'amount_configuration' => 'required',
-                        'amount_type' => 'required',//add
-                        'enable_custom_amount' => 'required',//add
-                        'fixed_amount_options' => 'required', //add
-                        'min_max_amount' => 'required', //add
-                        'bonus_configuration' => 'required', //add
-
-                        'redemption_process' => 'required',
-
-                        'validity_period' => 'required',
-                        'usage_restrictions' => 'required',
-                        'blackout_dates' => 'required',
-
-                         --}}
-                     @include("admin-views.voucher.store_include.include_voucher")
-                    {{-- Terms & Conditions --}}
-                    {{-- <div class="section-card rounded p-4 mb-4">
-                        <h3 class="h5 fw-semibold mb-4"> Terms & Conditions</h3>
-                        <div class="card border shadow-sm mt-3">
-                            <div class="card-body">
-                                <div id="usageTerms" class="row">
-                                </div>
-                            </div>
-                        </div>
-                        <div class="card shadow-sm mb-4">
-                            <div class="card-body">
-                                <p class="text-muted mb-4">Define usage terms and restrictions</p>
-
-                                <div class="mb-3">
-                                    <label for="validity_days" class="form-label">Validity Period (Days) <span class="text-danger">*</span></label>
-                                    <input type="number" class="form-control @error('validity_days') is-invalid @enderror"
-                                        id="validity_days" name="validity_days" value="{{ old('validity_days', 365) }}" required min="1" placeholder="365">
-                                    <small class="text-muted">Number of days the gift card will be valid from purchase date</small>
-                                    @error('validity_days')
-                                        <div class="invalid-feedback">{{ $message }}</div>
-                                    @enderror
-                                </div>
-
-                                <div class="mb-3">
-                                    <label for="usage_restrictions" class="form-label">Usage Restrictions</label>
-                                    <textarea class="form-control" id="usage_restrictions" name="usage_restrictions" rows="3"
-                                            placeholder="e.g., Valid only on weekdays, Not valid with other offers...">{{ old('usage_restrictions') }}</textarea>
-                                </div>
-
-                                <div class="mb-3">
-                                    <label for="blackout_dates_search" class="form-label">Blackout Dates</label>
-                                    <div class="input-group mb-2">
-                                        <input type="text" class="form-control form-control-lg" id="blackout_dates_search"
-                                            placeholder="Search and add blackout dates..." autocomplete="off">
-                                        <button type="button" class="btn btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown">
-                                            <i class="fas fa-chevron-down"></i>
-                                        </button>
-                                        <ul class="dropdown-menu dropdown-menu-end w-100" id="blackoutDatesDropdown">
-                                            <li><a class="dropdown-item" href="#" data-value="Dec 25" data-display="December 25 (Christmas)">
-                                                <i class="fas fa-tree text-success me-2"></i> December 25 (Christmas)
-                                            </a></li>
-                                            <li><a class="dropdown-item" href="#" data-value="Jan 1" data-display="January 1 (New Year)">
-                                                <i class="fas fa-champagne-glasses text-warning me-2"></i> January 1 (New Year)
-                                            </a></li>
-                                            <li><a class="dropdown-item" href="#" data-value="Dec 31" data-display="December 31 (New Year's Eve)">
-                                                <i class="fas fa-glass-cheers text-info me-2"></i> December 31 (New Year's Eve)
-                                            </a></li>
-                                            <li><a class="dropdown-item" href="#" data-value="Feb 14" data-display="February 14 (Valentine's Day)">
-                                                <i class="fas fa-heart text-danger me-2"></i> February 14 (Valentine's Day)
-                                            </a></li>
-                                            <li><a class="dropdown-item" href="#" data-value="Jul 4" data-display="July 4 (Independence Day)">
-                                                <i class="fas fa-flag-usa text-primary me-2"></i> July 4 (Independence Day)
-                                            </a></li>
-                                            <li><a class="dropdown-item" href="#" data-value="Oct 31" data-display="October 31 (Halloween)">
-                                                <i class="fas fa-ghost text-warning me-2"></i> October 31 (Halloween)
-                                            </a></li>
-                                            <li><a class="dropdown-item" href="#" data-value="Nov 25" data-display="November 25 (Thanksgiving)">
-                                                <i class="fas fa-turkey text-warning me-2"></i> November 25 (Thanksgiving)
-                                            </a></li>
-                                            <li><a class="dropdown-item" href="#" data-value="Dec 24" data-display="December 24 (Christmas Eve)">
-                                                <i class="fas fa-gifts text-danger me-2"></i> December 24 (Christmas Eve)
-                                            </a></li>
-                                        </ul>
-                                    </div>
-                                    <div id="blackoutDatesTags" class="d-flex flex-wrap gap-2 mb-2"></div>
-                                    <small class="text-muted">Select premade dates or events when gift cards cannot be redeemed</small>
-                                </div>
-                            </div>
-                        </div>
-                    </div> --}}
-                      <!-- How It Works-->
-                    {{-- <div class="section-card rounded p-4 mb-4">ss
-                        <h3 class="h5 fw-semibold mb-4">How It Works</h3>
-                        <div class="card ">
-                            <div class="card-body" id="workList">
-                            </div>
-                        </div>
-                        <div class="card shadow-sm mb-4">
-                            <div class="card-body">
-                                <p class="text-muted mb-4">Explain redemption process</p>
-                                <div class="mb-3">
-                                    <label for="redemption_process" class="form-label">Redemption Process</label>
-                                    <textarea class="form-control" id="redemption_process" name="redemption_process" rows="6"
-                                            placeholder="Step by step instructions on how to redeem this voucher...">{{ old('redemption_process') }}</textarea>
-                                </div>
-                            </div>
-                        </div>
-                    </div> --}}
-                     {{-- Review & Summary --}}
-                    {{-- <div class="section-card rounded p-4 mb-4">
-                        <h3 class="h5 fw-semibold mb-4"> Review & Summary</h3>
-                        <div class="card shadow-sm mb-4">
-                            <div class="card-body">
-                                <p class="text-muted mb-4">Review all information before saving</p>
-                                <div class="p-2 " style="background:#005555;color:white">
-                                    <h6  style="color:white"><i class="fas fa-info-circle"></i> Partner Summary</h6>
-                                    <div id="reviewSummary">
-                                        <p class="mb-1"><strong>Partner:</strong> <span id="reviewPartnerName">Not specified</span></p>
-                                        <p class="mb-1"><strong>Branches:</strong> <span id="reviewBranches">Not specified</span></p>
-                                    </div>
-                                </div>
-
-                                <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" id="confirm_review" name="confirm_review" value="1">
-                                    <label class="form-check-label" for="confirm_review">
-                                        <strong>I confirm all information is correct</strong>
-                                    </label>
-                                </div>
-                            </div>
-                        </div>
-                    </div> --}}
             </form>
         </div>
       </div>
 
-      @include("admin-views.voucher.store_include.include_model")
+                    @include("admin-views.voucher.edit_include.edit_include_model")
 
 @endsection
 
@@ -808,697 +650,6 @@
         });
     </script>
 
-
-  {{-- <script>
-
-    $(document).ready(function() {
-        // Initialize Select2 for all dropdowns
-        $('#select_pro, #select_pro1, #select_pro2').select2({
-            width: '100%',
-            placeholder: 'Select a Product'
-        });
-
-        // Store selected products
-        let selectedProductsArray = [];
-        let productCounter = 0;
-
-        // BOGO specific storage - Arrays for multiple products
-        let bogoProductsA = [];
-        let bogoProductsB = [];
-        let bogoCounterA = 0;
-        let bogoCounterB = 0;
-
-        // On page load, check bundle type
-        let bundleType = $('#bundle_offer_type').val();
-        updateFieldsVisibility(bundleType);
-
-        // When "Add Product to Bundle" button is clicked
-        $('#addProductBtn').on('click', function() {
-            const bundleOfferType = $('#bundle_offer_type').val();
-            const availableProducts = $('#availableProducts');
-            const availableProductsGetXBuyY = $('#availableProducts_get_x_buy_y');
-
-            // Check if bundle offer type is selected
-            if (!bundleOfferType || bundleOfferType === "") {
-                alert("Please select a bundle offer type first!");
-                return;
-            }
-
-            if (bundleOfferType === "bogo_free") {
-                // Hide normal products section first
-                if (availableProducts.is(':visible')) {
-                    availableProducts.slideUp();
-                }
-                // Then show/hide BOGO section
-                availableProductsGetXBuyY.slideToggle();
-            } else {
-                // Hide BOGO section first
-                if (availableProductsGetXBuyY.is(':visible')) {
-                    availableProductsGetXBuyY.slideUp();
-                }
-                // Then show/hide normal products section
-                availableProducts.slideToggle();
-            }
-        });
-
-        // ==================== REGULAR BUNDLE LOGIC ====================
-        $('#select_pro').on('change', function() {
-            let selected = $(this).find('option:selected');
-            let productId = selected.val();
-            let productName = selected.data('name');
-            let basePrice = parseFloat(selected.data('price')) || 0;
-            let variations = selected.data('variations') || [];
-            let addons = selected.data('addons') || [];
-
-            if (!productId) return;
-
-            let bundleOfferType = $('#bundle_offer_type').val();
-
-            // Handle different bundle types
-            if (bundleOfferType === 'simple') {
-                $('#productDetails .card').remove();
-                selectedProductsArray = [];
-                productCounter = 0;
-                $('#priceCalculator').hide();
-                $('#price').val('0.00');
-                $('#price_hidden').val('0.00');
-            } else if (bundleOfferType === 'bundle' || bundleOfferType === 'mix_match') {
-                if (selectedProductsArray.includes(productId)) {
-                    alert(`"${productName}" is already added to the bundle!`);
-                    $('#select_pro').val('').trigger('change');
-                    return;
-                }
-            }
-
-            selectedProductsArray.push(productId);
-            let html = createProductCard(productId, productName, basePrice, variations, addons, productCounter);
-            $('#productDetails').append(html);
-            productCounter++;
-            $('#select_pro').val('').trigger('change');
-            $('#selectedProducts p').hide();
-            updateBundleTotal();
-        });
-
-        // ==================== BOGO PRODUCT A LOGIC (MULTIPLE) ====================
-        $('#select_pro1').on('change', function() {
-            let selected = $(this).find('option:selected');
-            let productId = selected.val();
-            let productName = selected.data('name');
-            let basePrice = parseFloat(selected.data('price')) || 0;
-            let variations = selected.data('variations') || [];
-            let addons = selected.data('addons') || [];
-
-            if (!productId) return;
-
-            // Check if product is already in Section A
-            if (bogoProductsA.includes(productId)) {
-                alert(`"${productName}" is already added to Product A section!`);
-                $('#select_pro1').val('').trigger('change');
-                return;
-            }
-
-            // Add to Product A array
-            bogoProductsA.push(productId);
-
-            // Create product card for Product A with unique counter
-            let html = createBogoProductCard(productId, productName, basePrice, variations, addons, 'A', bogoCounterA);
-            $('#productDetails_section_a').append(html);
-
-            bogoCounterA++;
-            $('#select_pro1').val('').trigger('change');
-            updateBogoTotal();
-        });
-
-        // ==================== BOGO PRODUCT B LOGIC (MULTIPLE) ====================
-        $('#select_pro2').on('change', function() {
-            let selected = $(this).find('option:selected');
-            let productId = selected.val();
-            let productName = selected.data('name');
-            let basePrice = parseFloat(selected.data('price')) || 0;
-            let variations = selected.data('variations') || [];
-            let addons = selected.data('addons') || [];
-
-            if (!productId) return;
-
-            // Check if product is already in Section B
-            if (bogoProductsB.includes(productId)) {
-                alert(`"${productName}" is already added to Product B section!`);
-                $('#select_pro2').val('').trigger('change');
-                return;
-            }
-
-            // Add to Product B array
-            bogoProductsB.push(productId);
-
-            // Create product card for Product B with unique counter
-            let html = createBogoProductCard(productId, productName, basePrice, variations, addons, 'B', bogoCounterB);
-            $('#productDetails_section_b').append(html);
-
-            bogoCounterB++;
-            $('#select_pro2').val('').trigger('change');
-            updateBogoTotal();
-        });
-
-        // ==================== CREATE PRODUCT CARD (REGULAR) ====================
-        function createProductCard(productId, productName, basePrice, variations, addons, counter) {
-            let html = `
-            <div class="card p-3 shadow-sm mb-3 col-12 col-md-6" data-product-temp-id="${counter}" data-product-id="${productId}">
-
-
-                <div class="d-flex align-items-center justify-content-between flex-wrap gap-3 border rounded p-2">
-
-                    <!-- Product Name -->
-                    <div class="">
-                    <h5 class="mb-0">${productName}</h5>
-                    <!-- Variations -->
-                    ${variations && variations.length > 0 ? `
-                        <div class="variations">
-                            <strong>Variations:</strong>
-                            ${variations.map(v => `
-                                <label class="ms-2 small">
-                                    <input
-                                        type="checkbox"
-                                        name="variation_${counter}"
-                                        class="variation-checkbox"
-                                        value="${v.type || ''}"
-                                        data-price="${v.price || 0}"
-                                        data-type="${v.type || 'Option'}"
-                                    >
-                                    ${v.type || 'Option'} - $${v.price || 0}
-                                    ${v.stock ? ` (Stock: ${v.stock})` : ''}
-                                </label>
-                            `).join('')}
-                        </div>
-                    ` : ''}
-                </div>
-                    <!-- Product Total -->
-                    <div class="p-2 text-nowrap">
-                        <span class="product-total text-success fw-bold" style="font-size: 1.2em;">
-                            $${basePrice.toFixed(2)}
-                        </span>
-                    </div>
-
-                    <!-- Delete Button -->
-                    <button
-                        type="button"
-                        class="btn btn-danger btn-sm remove-product-btn"
-                        data-temp-id="${counter}"
-                        data-product-id="${productId}"
-                    >
-                        <i class="fa fa-trash"></i>
-                    </button>
-                </div>
-
-                <input type="hidden" class="product-id" value="${productId}">
-                <input type="hidden" class="product-name" value="${productName}">
-                <input type="hidden" class="product-base-price" value="${basePrice}">
-            `;
-
-            return html;
-        }
-
-        // ==================== CREATE BOGO PRODUCT CARD (MULTIPLE) ====================
-        function createBogoProductCard(productId, productName, basePrice, variations, addons, section, counter) {
-            const variationsHtml = (variations && variations.length)
-                ? `<div class="mt-2">
-                        <strong>Variations:</strong>
-                        ${variations.map((v, index) => `~
-                            <label class="d-block small mt-1">
-                                <input
-                                    type="checkbox"
-                                    name="bogo_variation_${section}_${counter}_${index}"
-                                    class="bogo-variation-checkbox"
-                                    value="${v.type || ''}"
-                                    data-price="${v.price || 0}"
-                                    data-type="${v.type || 'Option'}"
-                                >
-                                ${v.type || 'Option'} - $${(v.price || 0).toFixed(2)}
-                                ${v.stock ? ` (Stock: ${v.stock})` : ''}
-                            </label>
-                        `).join('')}
-                </div>`
-                : '';
-
-            const html = `
-            <div class="card p-3 shadow-sm mb-3 col-12" data-bogo-section="${section}" data-bogo-counter="${counter}" data-product-id="${productId}">
-                <div class="d-flex align-items-center justify-content-between flex-wrap gap-3 border rounded p-2">
-
-                    <!-- Product Name + Info -->
-                    <div class="me-3 flex-grow-1">
-                        <h5 class="mb-1">Product ${section}: ${productName}</h5>
-                        ${variationsHtml}
-                    </div>
-
-                    <!-- Product Total -->
-                    <div class="p-2 text-nowrap">
-                        <span class="product-total text-success fw-bold" style="font-size: 1.2em;">
-                            $${basePrice.toFixed(2)}
-                        </span>
-                    </div>
-
-                    <!-- Delete Button -->
-                    <button type="button" class="btn btn-danger btn-sm remove-bogo-product-btn"
-                        data-section="${section}" data-counter="${counter}" data-product-id="${productId}">
-                        <i class="fa fa-trash"></i>
-                    </button>
-                </div>
-
-                <input type="hidden" class="bogo-product-id" value="${productId}">
-                <input type="hidden" class="bogo-product-name" value="${productName}">
-                <input type="hidden" class="bogo-product-base-price" value="${basePrice}">
-            </div>
-            `;
-
-            return html;
-        }
-
-
-        // ==================== REMOVE BOGO PRODUCT ====================
-        $(document).on('click', '.remove-bogo-product-btn', function() {
-            let section = $(this).data('section');
-            let counter = $(this).data('counter');
-            let productId = $(this).data('product-id');
-
-            // Remove from respective array
-            if (section === 'A') {
-                bogoProductsA = bogoProductsA.filter(id => id !== productId);
-            } else if (section === 'B') {
-                bogoProductsB = bogoProductsB.filter(id => id !== productId);
-            }
-
-            // Remove card with animation
-            $(`[data-bogo-section="${section}"][data-bogo-counter="${counter}"]`).fadeOut(300, function() {
-                $(this).remove();
-                updateBogoTotal();
-            });
-        });
-
-        // ==================== UPDATE BOGO TOTAL (MULTIPLE PRODUCTS) ====================
-        function updateBogoTotal() {
-            let totalProductsA = 0;
-            let totalProductsB = 0;
-            let breakdownHTML = '<h5>BOGO Bundle Breakdown:</h5><ul class="list-group">';
-
-            let allProductPrices = [];
-
-            // Calculate all Product A totals
-            $('#productDetails_section_a .card').each(function() {
-                let basePrice = parseFloat($(this).find('.bogo-product-base-price').val()) || 0;
-                let productName = $(this).find('.bogo-product-name').val();
-                let quantity = parseInt($(this).find('.bogo-product-quantity').val()) || 1;
-                let productTotal = basePrice;
-
-                // Add variation price
-                let selectedVariation = $(this).find('.bogo-variation-checkbox:checked');
-                let variationText = '';
-                if (selectedVariation.length) {
-                    let varPrice = parseFloat(selectedVariation.data('price')) || 0;
-                    let varType = selectedVariation.data('type');
-                    productTotal += varPrice;
-                    variationText = `<div class="small text-muted ml-3">└ ${varType} (+$${varPrice.toFixed(2)})</div>`;
-                }
-
-                // Add addon prices
-                let addonsText = '';
-                $(this).find('.bogo-addon-checkbox:checked').each(function() {
-                    let addonPrice = parseFloat($(this).data('price')) || 0;
-                    let addonName = $(this).data('name');
-                    productTotal += addonPrice;
-                    addonsText += `<div class="small text-muted ml-3">└ ${addonName} (+$${addonPrice.toFixed(2)})</div>`;
-                });
-
-                // Multiply by quantity
-                productTotal = productTotal * quantity;
-                totalProductsA += productTotal;
-
-                // Store individual price for BOGO calculation
-                allProductPrices.push(productTotal);
-
-                // Update display
-                $(this).find('.bogo-product-total').text('$' + productTotal.toFixed(2));
-
-                breakdownHTML += `
-                    <li class="list-group-item">
-                        <div class="d-flex justify-content-between align-items-start">
-                            <div class="flex-grow-1">
-                                <strong>Product A: ${productName}</strong> (x${quantity})
-                                <div class="small text-muted">Base: $${basePrice.toFixed(2)}</div>
-                                ${variationText}
-                                ${addonsText}
-                            </div>
-                            <strong class="text-success ml-3">$${productTotal.toFixed(2)}</strong>
-                        </div>
-                    </li>`;
-            });
-
-            // Calculate all Product B totals
-            $('#productDetails_section_b .card').each(function() {
-                let basePrice = parseFloat($(this).find('.bogo-product-base-price').val()) || 0;
-                let productName = $(this).find('.bogo-product-name').val();
-                let quantity = parseInt($(this).find('.bogo-product-quantity').val()) || 1;
-                let productTotal = basePrice;
-
-                // Add variation price
-                let selectedVariation = $(this).find('.bogo-variation-checkbox:checked');
-                let variationText = '';
-                if (selectedVariation.length) {
-                    let varPrice = parseFloat(selectedVariation.data('price')) || 0;
-                    let varType = selectedVariation.data('type');
-                    productTotal += varPrice;
-                    variationText = `<div class="small text-muted ml-3">└ ${varType} (+$${varPrice.toFixed(2)})</div>`;
-                }
-
-                // Add addon prices
-                let addonsText = '';
-                $(this).find('.bogo-addon-checkbox:checked').each(function() {
-                    let addonPrice = parseFloat($(this).data('price')) || 0;
-                    let addonName = $(this).data('name');
-                    productTotal += addonPrice;
-                    addonsText += `<div class="small text-muted ml-3">└ ${addonName} (+$${addonPrice.toFixed(2)})</div>`;
-                });
-
-                // Multiply by quantity
-                productTotal = productTotal * quantity;
-                totalProductsB += productTotal;
-
-                // Store individual price for BOGO calculation
-                allProductPrices.push(productTotal);
-
-                // Update display
-                $(this).find('.bogo-product-total').text('$' + productTotal.toFixed(2));
-
-                breakdownHTML += `
-                    <li class="list-group-item">
-                        <div class="d-flex justify-content-between align-items-start">
-                            <div class="flex-grow-1">
-                                <strong>Product B: ${productName}</strong> (x${quantity})
-                                <div class="small text-muted">Base: $${basePrice.toFixed(2)}</div>
-                                ${variationText}
-                                ${addonsText}
-                            </div>
-                            <strong class="text-success ml-3">$${productTotal.toFixed(2)}</strong>
-                        </div>
-                    </li>`;
-            });
-
-            // Calculate BOGO discount
-            let subtotal = totalProductsA + totalProductsB;
-            let finalTotal = subtotal;
-            let discount = 0;
-
-            // BOGO Logic: Buy X Get Y Free (pay for higher priced items)
-            if (allProductPrices.length >= 2) {
-                // Sort prices descending
-                allProductPrices.sort((a, b) => b - a);
-
-                // Calculate discount (every 2nd item is free, starting from cheapest)
-                for (let i = 1; i < allProductPrices.length; i += 2) {
-                    discount += allProductPrices[i];
-                }
-
-                finalTotal = subtotal - discount;
-            }
-
-            breakdownHTML += `
-                <li class="list-group-item">
-                    <strong>Subtotal: </strong><span class="text-primary">$${subtotal.toFixed(2)}</span>
-                </li>`;
-
-            // if (discount > 0) {
-            //     breakdownHTML += `
-            //         <li class="list-group-item text-success">
-            //             <strong>BOGO Discount (Buy 1 Get 1 Free): </strong>
-            //             <span>-$${discount.toFixed(2)}</span>
-            //         </li>`;
-            // }
-
-            // breakdownHTML += `
-            //     <li class="list-group-item bg-success text-white">
-            //         <strong>Final Bundle Total: </strong>
-            //         <strong style="font-size: 1.3em;">$${finalTotal.toFixed(2)}</strong>
-            //     </li>
-            // </ul>`;
-
-            // Show price calculator if at least one product is selected
-            let hasProducts = $('#productDetails_section_a .card').length > 0 || $('#productDetails_section_b .card').length > 0;
-
-            if (hasProducts) {
-                $('#priceCalculator').show();
-                $('#priceBreakdown').html(breakdownHTML);
-                $('#price').val(finalTotal.toFixed(2));
-                $('#price_hidden').val(finalTotal.toFixed(2));
-            } else {
-                $('#priceCalculator').hide();
-                $('#price').val('0.00');
-                $('#price_hidden').val('0.00');
-            }
-        }
-
-        // ==================== BOGO EVENT LISTENERS ====================
-        $(document).on('change', '.bogo-variation-checkbox, .bogo-addon-checkbox, .bogo-product-quantity', function() {
-            updateBogoTotal();
-        });
-
-        // ==================== REGULAR BUNDLE EVENT LISTENERS ====================
-        $(document).on('change', '.variation-checkbox, .addon-checkbox, .product-quantity', function() {
-            let productCard = $(this).closest('.card');
-            let basePrice = parseFloat(productCard.find('.product-base-price').val()) || 0;
-            let quantity = parseInt(productCard.find('.product-quantity').val()) || 1;
-            let total = basePrice;
-
-            let selectedVariation = productCard.find('.variation-checkbox:checked');
-            if (selectedVariation.length) {
-                total += parseFloat(selectedVariation.data('price')) || 0;
-            }
-
-            productCard.find('.addon-checkbox:checked').each(function() {
-                total += parseFloat($(this).data('price')) || 0;
-            });
-
-            total = total * quantity;
-            productCard.find('.product-total').fadeOut(200, function() {
-                $(this).text('$' + total.toFixed(2)).fadeIn(200);
-            });
-
-            updateBundleTotal();
-        });
-
-        $(document).on('click', '.remove-product-btn', function() {
-            let tempId = $(this).data('temp-id');
-            let productId = $(this).data('product-id');
-
-            selectedProductsArray = selectedProductsArray.filter(id => id !== productId);
-
-            $(`[data-product-temp-id="${tempId}"]`).fadeOut(300, function() {
-                $(this).remove();
-                updateBundleTotal();
-
-                if ($('#productDetails .card').length === 0) {
-                    $('#selectedProducts p').show();
-                }
-            });
-        });
-
-        // ==================== UPDATE BUNDLE TOTAL (REGULAR) ====================
-        function updateBundleTotal() {
-            let bundleTotal = 0;
-            let productCount = 0;
-            let breakdownHTML = '<h5>Bundle Price Breakdown:</h5><ul class="list-group">';
-
-            $('#productDetails .card').each(function() {
-                let productName = $(this).find('.product-name').val();
-                let basePrice = parseFloat($(this).find('.product-base-price').val()) || 0;
-                let productTotal = parseFloat($(this).find('.product-total').text().replace('$', '')) || 0;
-                let quantity = parseInt($(this).find('.product-quantity').val()) || 1;
-
-                bundleTotal += productTotal;
-                productCount++;
-
-                let selectedVariation = $(this).find('.variation-checkbox:checked');
-                let variationText = '';
-                if (selectedVariation.length) {
-                    let varType = selectedVariation.data('type');
-                    let variationPrice = parseFloat(selectedVariation.data('price')) || 0;
-                    variationText = `<div class="small text-muted ml-3">└ ${varType} (+$${variationPrice.toFixed(2)})</div>`;
-                }
-
-                let addonsText = '';
-                $(this).find('.addon-checkbox:checked').each(function() {
-                    let addonName = $(this).data('name');
-                    let addonPrice = parseFloat($(this).data('price')) || 0;
-                    addonsText += `<div class="small text-muted ml-3">└ ${addonName} (+$${addonPrice.toFixed(2)})</div>`;
-                });
-
-                let perItemPrice = productTotal / quantity;
-
-                breakdownHTML += `
-                    <li class="list-group-item">
-                        <div class="d-flex justify-content-between align-items-start">
-                            <div class="flex-grow-1">
-                                <strong>${productName}</strong> (x${quantity})
-                                <div class="small text-muted">Base: $${basePrice.toFixed(2)}</div>
-                                ${variationText}
-                                ${addonsText}
-                                ${quantity > 1 ? `<div class="small text-info mt-1">Per item: $${perItemPrice.toFixed(2)}</div>` : ''}
-                            </div>
-                            <strong class="text-success ml-3">$${productTotal.toFixed(2)}</strong>
-                        </div>
-                    </li>`;
-            });
-
-            let discount = parseFloat($('#discount').val()) || 0;
-            let discountType = $('#discount_type').val();
-            let discountAmount = 0;
-
-            if (discountType === 'percent') {
-                discountAmount = (bundleTotal * discount) / 100;
-            } else {
-                discountAmount = discount;
-            }
-
-            let finalTotal = Math.max(bundleTotal - discountAmount, 0);
-
-            breakdownHTML += `
-                <li class="list-group-item">
-                    <strong>Subtotal: </strong><span class="text-primary">$${bundleTotal.toFixed(2)}</span>
-                </li>`;
-
-            if (discountAmount > 0) {
-                breakdownHTML += `
-                    <li class="list-group-item text-danger">
-                        <strong>Discount (${discountType === 'percent' ? discount + '%' : '$' + discount}): </strong>
-                        -$${discountAmount.toFixed(2)}
-                    </li>`;
-            }
-
-            breakdownHTML += `
-                <li class="list-group-item bg-success text-white">
-                    <strong>Final Bundle Total: </strong>
-                    <strong style="font-size: 1.3em;">$${finalTotal.toFixed(2)}</strong>
-                </li>
-            </ul>`;
-
-            if (productCount > 0) {
-                $('#priceCalculator').show();
-                $('#priceBreakdown').html(breakdownHTML);
-                $('#selectedProducts p').hide();
-            } else {
-                $('#priceCalculator').hide();
-                $('#selectedProducts p').show();
-            }
-
-            let bundleType = $('#bundle_offer_type').val();
-            if (bundleType === 'bogo_free' || bundleType === 'mix_match') {
-                $('#price').val(finalTotal.toFixed(2));
-                $('#price_hidden').val(finalTotal.toFixed(2));
-            } else {
-                $('#price').val(finalTotal.toFixed(2));
-                $('#price_hidden').val(bundleTotal.toFixed(2));
-            }
-        }
-
-        $('#discount, #discount_type').on('change input', function() {
-            let discount = parseFloat($('#discount').val()) || 0;
-            let discountType = $('#discount_type').val();
-            let bundleTotal = parseFloat($('#price_hidden').val()) || 0;
-
-            if (discountType === 'percent' && discount > 100) {
-                alert('Discount percentage cannot exceed 100%');
-                $('#discount').val(0);
-                return;
-            }
-
-            if (discountType !== 'percent' && discount > bundleTotal) {
-                alert(`Discount amount ($${discount}) cannot exceed bundle total ($${bundleTotal})`);
-                $('#discount').val(0);
-                return;
-            }
-
-            updateBundleTotal();
-        });
-
-        function updateFieldsVisibility(bundleType) {
-            if (bundleType === 'mix_match') {
-                $('#price_input_hide').addClass('d-none');
-                $('#discount_input_hide').removeClass('d-none');
-                $('#required_qty').removeClass('d-none');
-                $('#discount_value_input_hide').removeClass('d-none');
-            } else if (bundleType === 'bogo_free') {
-                $('#price_input_hide').addClass('d-none');
-                $('#discount_input_hide').addClass('d-none');
-                $('#required_qty').addClass('d-none');
-                $('#discount_value_input_hide').addClass('d-none');
-            } else if (bundleType === 'simple' || bundleType === 'bundle') {
-                $('#price_input_hide').removeClass('d-none');
-                $('#required_qty').addClass('d-none');
-                $('#discount_input_hide').removeClass('d-none');
-                $('#discount_value_input_hide').removeClass('d-none');
-            } else {
-                $('#price_input_hide').removeClass('d-none');
-                $('#required_qty').addClass('d-none');
-                $('#discount_input_hide').removeClass('d-none');
-                $('#discount_value_input_hide').removeClass('d-none');
-            }
-        }
-
-        $('#bundle_offer_type').on('change', function() {
-            let bundleType = $(this).val();
-            updateFieldsVisibility(bundleType);
-
-            $('#availableProducts').hide();
-            $('#availableProducts_get_x_buy_y').hide();
-
-            // Clear regular products
-            $('#productDetails .card').fadeOut(300, function() {
-                $(this).remove();
-                $('#selectedProducts p').show();
-            });
-            selectedProductsArray = [];
-            productCounter = 0;
-
-            // Clear BOGO products
-            $('#productDetails_section_a').empty();
-            $('#productDetails_section_b').empty();
-            bogoProductsA = [];
-            bogoProductsB = [];
-            bogoCounterA = 0;
-            bogoCounterB = 0;
-
-            $('#priceCalculator').hide();
-            $('#price').val('0.00');
-            $('#price_hidden').val('0.00');
-            $('#discount').val('0');
-        });
-
-        $('#price_type, input[name="price_type"]').on('change', function() {
-            let priceType = $(this).val() || $('input[name="price_type"]:checked').val();
-
-            if (priceType === 'fixed') {
-                $('#productDetails .card').fadeOut(300, function() {
-                    $(this).remove();
-                    $('#selectedProducts p').show();
-                });
-                selectedProductsArray = [];
-                productCounter = 0;
-
-                $('#productDetails_section_a').empty();
-                $('#productDetails_section_b').empty();
-                bogoProductsA = [];
-                bogoProductsB = [];
-                bogoCounterA = 0;
-                bogoCounterB = 0;
-
-                $('#priceCalculator').hide();
-                $('#price').val('0.00');
-                $('#price_hidden').val('0.00');
-
-                alert('Fixed price selected. All product selections have been reset.');
-            }
-        });
-    });
-
-   </script> --}}
-
     <script>
         document.addEventListener("DOMContentLoaded", function () {
             const managementSelection = document.querySelectorAll('#management_selection');
@@ -1642,61 +793,122 @@
     </script>
 
     <script>
-        getDataFromServer(4)
+        getDataFromServer(8)
 
-        function getDataFromServer(storeId) {
+    
+  function getDataFromServer(voucher_id) {
+            // alert(storeId)
+            
+            // Get saved howto_work value for pre-selection
+              <?php
+                $rawHowtoWork = $product->how_and_condition_ids ?? '[]';
+                $decoded = json_decode($rawHowtoWork, true);
+                if (is_array($decoded) && !empty($decoded)) {
+                    $savedId = $decoded[0];
+                } elseif (is_scalar($decoded)) {
+                    $savedId = $decoded;
+                } else {
+                    $savedId = '';
+                }
+            ?>
+            let savedHowtoWork = '{{ $savedId }}';
+            console.log('Saved How To Work ID:', savedHowtoWork);
+            
             $.ajax({
                 url: "{{ route('admin.Voucher.get_document') }}",
                 type: "GET",
-                data: { store_id: storeId },
+                data: { voucher_id: voucher_id },
                 dataType: "json",
                 success: function(response) {
-                console.log(response);
-
-                // 🟢 WorkManagement (list items)
-                // let workHtml = "";
-                // $.each(response.work_management, function(index, item) {
-                //     workHtml += "<li>" + item.guid_title + "</li>";
-                // });
-                // $("#workList").html(workHtml);
-
-                // 🟢 WorkManagement (show all details)
-                // resources/views/admin-views/voucher/index.blade.php
-
                     let workHtml = "";
 
-                        $.each(response.work_management, function(index, item) {
-                            workHtml += `
-                                <div class="work-item mb-4 rounded-lg border p-4 flex items-center gap-3">
-                                    <input type="checkbox" class="record-checkbox"
-                                        id="record_${item.id}"
-                                        data-item-id="${item.id}"
-                                        name="howto_work[]">
-                                    <label for="record_${item.id}" class="font-bold text-lg cursor-pointer">
-                                        ${item.guid_title}
-                                    </label>
-                                </div>
+                   $.each(response.work_management, function(index, item) {
+
+                    // sections already array — no JSON.parse needed
+                    let sections = Array.isArray(item.sections) ? item.sections : [];
+
+                    let sectionsHtml = '';
+                    $.each(sections, function(sIndex, section) {
+                        let stepsHtml = '';
+                        $.each(section.steps, function(stepIndex, step) {
+                            stepsHtml += `
+                                <li class="mb-2">
+                                    <i class="fas fa-circle text-muted" style="font-size: 6px; vertical-align: middle;"></i>
+                                    <span class="ms-2 text-muted">${step}</span>
+                                </li>
                             `;
                         });
 
-                        $("#workList").html(workHtml);
+                        sectionsHtml += `
+                            <div class="mb-3">
+                                <h6 class="fw-semibold text-dark mb-2">${section.title}</h6>
+                                <ul class="list-unstyled ms-3">
+                                    ${stepsHtml}
+                                </ul>
+                            </div>
+                        `;
+                    });
 
+                    // Check if this radio button should be pre-selected
+                    // Check if this radio button should be pre-selected
+                    console.log('Comparing saved:', savedHowtoWork, 'with item:', item.id);
+                    let isChecked = (savedHowtoWork == item.id) ? 'checked' : '';
+                    
+                    workHtml += `
+                        <div class="card mb-3 work-item shadow-sm">
+                            <div class="card-header bg-white d-flex align-items-center justify-content-between py-3 cursor-pointer"
+                                onclick="toggleAccordion(${item.id})">
+                                
+                                <div class="d-flex align-items-center flex-grow-1">
+                                    <input type="radio" name="howto_work[]" value="${item.id}"
+                                        class="form-check-input record-checkbox me-3"
+                                        id="record_${item.id}"
+                                        data-item-id="${item.id}"
+                                        ${isChecked}>
+                                    
+                                    <label for="record_${item.id}" class="fw-semibold mb-0 flex-grow-1">
+                                        ${item.guide_title}
+                                    </label>
+                                </div>
 
-                // 🟢 UsageTermManagement (checkboxes)
-                let usageHtml = "";
-                $.each(response.usage_term_management, function(index, term) {
-                    usageHtml += `
-                    <div class="col-md-4 mb-3">
-                        <div class="border rounded p-5 d-flex align-items-center">
-                        <input class="form-check-input mr-2" type="checkbox" name="term_and_condition[]"  id="term${term.id}">
-                        <label class="form-check-label mb-0" for="term${term.id}">
-                            ${term.baseinfor_condition_title}
-                        </label>
+                                <i class="fas fa-chevron-down text-muted accordion-icon"
+                                    id="icon_${item.id}" style="transition: transform 0.3s ease;">
+                                </i>
+                            </div>
+
+                            <div id="content_${item.id}" class="accordion-content collapse">
+                                <div class="card-body bg-light border-top">
+                                    ${sectionsHtml || '<p class="text-muted fst-italic mb-0">No sections available</p>'}
+                                </div>
+                            </div>
                         </div>
-                    </div>
                     `;
                 });
+
+
+                    $("#workList").html(workHtml);
+
+                $.each(response.usage_term_management, function (index, term) {
+                    usageHtml += `
+                        <div class="usage-item border rounded-lg mb-4 p-4 col-6">
+                            <div class="flex items-center gap-2 mb-2">
+                                <input
+                                    class="form-check-input step-checkbox"
+                                    name="term_and_condition[]"
+                                    type="checkbox"
+                                    value="${term.id}"
+                                    id="term${term.id}">
+
+                                <label for="term${term.id}" class="font-bold text-lg cursor-pointer m-0">
+                                    ${term.baseinfor_condition_title}
+                                </label>
+                            </div>
+                        </div>
+                    `;
+                });
+
                 $("#usageTerms").html(usageHtml);
+
 
                 },
                 error: function(xhr, status, error) {
@@ -1705,6 +917,7 @@
                 }
             });
         }
+
 
         function bundle(type) {
             // 1. Set the hidden input value
@@ -2284,57 +1497,81 @@
             });
         }
 
-        $('#item_form').on('submit', function(e) {
-            $('#submitButton').attr('disabled', true);
-            e.preventDefault();
-            let formData = new FormData(this);
-            $.ajaxSetup({
-                headers: {
-                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                }
-            });
-            $.post({
-                url: '{{ route('admin.Voucher.store') }}',
-                data: $('#item_form').serialize(),
-                data: formData,
-                cache: false,
-                contentType: false,
-                processData: false,
-                beforeSend: function() {
-                    $('#loading').show();
-                },
-                success: function(data) {
-                    $('#loading').hide();
+        $(document).ready(function() {
+            $('#item_form').on('submit', function(e) {
+                $('#submitButton').attr('disabled', true);
+                e.preventDefault();
+                let formData = new FormData(this);
+                $.ajaxSetup({
+                    headers: {
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    }
+                });
+                $.ajax({
+                    url: '{{ route('admin.Voucher.update', [$product['id']]) }}',
+                    type: 'POST',
+                    data: formData,
+                    cache: false,
+                    contentType: false,
+                    processData: false,
+                    headers: {
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    },
+                    beforeSend: function() {
+                        $('#loading').show();
+                    },
+                    success: function(data) {
+                        $('#loading').hide();
+                        $('#submitButton').attr('disabled', false);
 
-                      // ✅ If backend returns errors
                         if (data.errors && Array.isArray(data.errors)) {
                             data.errors.forEach(function(err) {
-                                toastr.error(err.message, '', {
-                                    closeButton: true,
-                                    progressBar: true
+                                toastr.error(err.message, {
+                                    CloseButton: true,
+                                    ProgressBar: true
                                 });
                             });
                             return;
                         }
 
-                    if (data.errors) {
-                        for (let i = 0; i < data.errors.length; i++) {
-                            toastr.error(data.errors[i].message, {
-                                CloseButton: true,
-                                ProgressBar: true
-                            });
-                        }
-                    } else {
-                        toastr.success("{{ translate('messages.product_added_successfully') }}", {
+                        toastr.success("{{ translate('messages.voucher_updated_successfully') }}", {
                             CloseButton: true,
                             ProgressBar: true
                         });
                         setTimeout(function() {
-                            location.href =
-                                "{{ route('admin.Voucher.list') }}";
+                            location.href = "{{ route('admin.Voucher.list') }}";
                         }, 1000);
+                    },
+                    error: function(xhr) {
+                        $('#loading').hide();
+                        $('#submitButton').attr('disabled', false);
+                        
+                        if (xhr.responseJSON && xhr.responseJSON.errors) {
+                            let errors = xhr.responseJSON.errors;
+                            // Check if errors is an array, otherwise iterate object
+                            if (Array.isArray(errors)) {
+                                errors.forEach(function(err) {
+                                    toastr.error(err.message, {
+                                        CloseButton: true,
+                                        ProgressBar: true
+                                    });
+                                });
+                            } else {
+                                $.each(errors, function(key, err) {
+                                    toastr.error(err.message || err, {
+                                        CloseButton: true,
+                                        ProgressBar: true
+                                    });
+                                });
+                            }
+                        } else {
+                            toastr.error("{{ translate('messages.failed_to_update_voucher') }}", {
+                                CloseButton: true,
+                                ProgressBar: true
+                            });
+                        }
                     }
-                }
+                });
             });
         });
 
@@ -2446,8 +1683,8 @@
 
                     // 🟩 CATEGORIES
                     $('#categories').empty().append('<option value="">{{ translate("messages.select_category") }}</option>');
-                    if (response.categories && response.categories.categories) {
-                        $.each(response.categories.categories, function(key, category) {
+                    if (response.categories && response.categories) {
+                        $.each(response.categories, function(key, category) {
                             $('#categories').append('<option value="'+ category.id +'">' + category.name + '</option>');
                         });
                     } else {
@@ -2463,57 +1700,22 @@
         }
     </script>
 
- <script>
-        function multiples_category() {
-            var category_ids_all = $('#category_id').val();
+@endpush
 
-            console.log("Selected category IDs:", category_ids_all);
+@push('script_2')
+    <script src="{{ asset('public/assets/admin/js/spartan-multi-image-picker.js') }}"></script>
+    <script>
+        let removedImageKeys = [];
+        $(document).on('click', '.function_remove_img', function() {
+            let key = $(this).data('key');
+            let photo = $(this).data('photo');
+            function_remove_img(key, photo);
+        });
 
-            if (!category_ids_all || category_ids_all.length === 0) {
-                alert("Please select at least one category!");
-                return;
-            }
-
-            $.ajax({
-                url: "{{ route('admin.Voucher.getSubcategories') }}",
-                type: "GET",
-                data: { category_ids_all: category_ids_all },
-                traditional: false, // ✅ array bhejne ke liye sahi setting
-                dataType: "json",
-                success: function(response) {
-                    console.log("Subcategories Response:", response);
-
-                    if (!Array.isArray(response) || response.length === 0) {
-                        $('#sub-categories_game').html('<option disabled>No subcategories found</option>');
-                        return;
-                    }
-
-                    // Build option list dynamically
-                    let options = '';
-                    response.forEach(function(item) {
-                        options += `<option value="${item.id}">
-                                        ${item.name}
-                                    </option>`;
-                    });
-
-                    // Put options in the select box
-                    $('#sub-categories_game').html(options);
-
-                    // Agar Select2 use ho raha hai to refresh karna zaroori hai
-                    $('#sub-categories_game').trigger('change');
-                },
-                error: function(xhr, status, error) {
-                    console.error("AJAX Error:", error);
-                }
-            });
+        function function_remove_img(key, photo) {
+            $('#product_images_' + key).addClass('d-none');
+            removedImageKeys.push(photo);
+            $('#removedImageKeysInput').val(removedImageKeys.join(','));
         }
-
-        function multples_sub_category(){
-
-            // alert("multples_sub_category");
-        }
-
-        </script>
-
-
+    </script>
 @endpush

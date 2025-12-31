@@ -804,12 +804,21 @@ class Item extends Model
     }
 
 
-    public function getDeliveryOptionsAttribute()
+    // public function getDeliveryOptionsAttribute()
+    // {
+    //     return empty($this->delivery_options)
+    //         ? collect()
+    //         : DeliveryOption::whereIn('id', $this->delivery_options)->get();
+    // }
+        public function getDeliveryOptionsAttribute($value)
     {
-        return empty($this->delivery_options)
-            ? collect()
-            : DeliveryOption::whereIn('id', $this->delivery_options)->get();
+        if (empty($value)) {
+            return collect();
+        }
+
+        return DeliveryOption::whereIn('id', $value)->get();
     }
+
 
     public function usageTerms(): Collection
     {

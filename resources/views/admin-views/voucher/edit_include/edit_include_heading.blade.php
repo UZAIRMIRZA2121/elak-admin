@@ -4,7 +4,7 @@
                 <img src="{{ asset('public/assets/admin/img/items.png') }}" class="w--22" alt="">
             </span>
             <span>
-                {{ translate('messages.add_new_item') }}
+                {{ translate('messages.edit_item') }}
             </span>
         </h1>
         <div class=" d-flex flex-sm-nowrap flex-wrap  align-items-end">
