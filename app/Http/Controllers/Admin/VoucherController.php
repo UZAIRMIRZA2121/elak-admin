@@ -1050,8 +1050,8 @@ class VoucherController extends Controller
         }
         // dd($product->getRawOriginal('delivery_options'));
 
-        //    dd($product->how_and_condition_ids);
-        
+        //    dd($product);
+        // 
         if (!$product) {
             Toastr::error(translate('messages.item_not_found'));
             return back();

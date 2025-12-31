@@ -144,11 +144,48 @@
                             
                             @if(!empty($existingProducts) && is_array($existingProducts))
                                 {{-- Render existing products --}}
-                                    {{-- Server-side rendering removed to rely on JS --}}
-                                    {{-- Hidden input for all products --}}
-                                    <input type="hidden" class="hidden-product-input" name="products_data" value='{{ json_encode($existingProducts) }}'>
+                                @foreach($existingProducts as $index => $productData)
+                                    @php($productId = $productData['product_id'] ?? '')
+                                    @php($productName = $productData['product_name'] ?? 'Unknown Product')
+                                    @php($basePrice = $productData['base_price'] ?? 0)
+                                    @php($variations = $productData['variations'] ?? [])
+                                    
+                                    <div class="card p-3 shadow-sm mb-3 col-12 col-md-6" data-product-temp-id="{{ $index }}" data-product-id="{{ $productId }}">
+                                        <div class="d-flex align-items-center justify-content-between flex-wrap gap-3 border rounded p-2">
+                                            <div class="">
+                                                <h5 class="mb-0">{{ $productName }}</h5>
+                                                
+                                                @if(!empty($variations))
+                                                    <div class="variations mt-2">
+                                                        <strong>Variations:</strong>
+                                                        @foreach($variations as $variation)
+                                                            <div class="ms-2 small">
+                                                                <span class="badge bg-info">
+                                                                    {{ $variation['type'] ?? 'Option' }} - ${{ $variation['price'] ?? 0 }}
+                                                                </span>
+                                                            </div>
+                                                        @endforeach
+                                                    </div>
+                                                @endif
+                                            </div>
+                                            
+                                            <div class="p-2 text-nowrap">
+                                                <span class="product-total text-success fw-bold" style="font-size: 1.2em;">
+                                                    ${{ number_format($basePrice, 2) }}
+                                                </span>
+                                            </div>
+                                            
+                                            <button type="button" class="btn btn-danger btn-sm remove-product-btn"
+                                                    data-temp-id="{{ $index }}" data-product-id="{{ $productId }}">
+                                                <i class="fa fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    
+                                @endforeach
                                 
-
+                                {{-- Hidden input for all products --}}
+                                <input type="hidden" class="hidden-product-input" name="products_data" value='{{ json_encode($existingProducts) }}'>
                             @else
                                 <p style="text-align: center; color: #666; padding: 20px;">No products added yet. Click "Add Product to Bundle" to start.</p>
                             @endif
@@ -320,8 +357,6 @@
                                 </div>
                             </div>
                         </div>
-
-                        
                         <div class="container mt-5 p-1">
                             <div class="form-container">
                                 <!-- Price Calculator -->
@@ -406,7 +441,123 @@
       @include("admin-views.voucher.edit_include.edit_include_model")
 
 
+    <script>
+        // ... existing code ...
 
+        $(document).ready(function() {
+            initializeSavedProducts();
+        });
+
+        function initializeSavedProducts() {
+            let savedProducts = @json(json_decode($product->product ?? '[]', true));
+            let savedProductsB = @json(json_decode($product->product_b ?? '[]', true));
+            let bundleType = $('#bundle_offer_type').val();
+
+            // Trigger visibility update
+            updateFieldsVisibility(bundleType);
+
+            if (bundleType === 'simple' || bundleType === 'bundle' || bundleType === 'mix_match') {
+                if (savedProducts && savedProducts.length > 0) {
+                    savedProducts.forEach(function(item) {
+                        productCounter++;
+                        // Normalized variations handling
+                        let variations = item.variations || []; 
+                        
+                        // Recreate card
+                        const cardHtml = createProductCard(item.product_id, item.product_name, parseFloat(item.price), variations, productCounter);
+                        $('#productDetails').append(cardHtml);
+                        
+                        // Update global array
+                        addToSelectedProducts(item.product_id, item.product_name, parseFloat(item.price), variations, bundleType, null, productCounter);
+                        
+                        // Check saved variations
+                        if (item.selected_variations) {
+                            item.selected_variations.forEach(function(sv) {
+                                // Find checkbox by value and temp-id
+                                let checkbox = $(`input.variation-checkbox[data-temp-id="${productCounter}"][value="${sv.type}"]`);
+                                if (checkbox.length) {
+                                    checkbox.prop('checked', true);
+                                    updateProductTotal(checkbox.closest('.card'));
+                                }
+                            });
+                        }
+                    });
+                     if (bundleType === 'mix_match') {
+                        updateMixMatchTotal();
+                    } else {
+                        updateBundleTotal();
+                    }
+                }
+            } else if (bundleType === 'bogo_free') {
+                // Section A
+                 if (savedProducts && savedProducts.length > 0) {
+                    savedProducts.forEach(function(item) {
+                        bogoCounterA++;
+                        let variations = item.variations || [];
+                        const cardHtml = createBogoProductCard(item.product_id, item.product_name, parseFloat(item.price), variations, 'a', bogoCounterA);
+                        $('#productDetails_section_a').append(cardHtml);
+
+                         // Add to bogo array
+                        bogoSelectedProductsA.push({
+                            product_id: item.product_id,
+                            name: item.product_name,
+                            price: parseFloat(item.price),
+                            variations: variations,
+                            selected_variations: [],
+                            temp_id: bogoCounterA
+                        });
+
+                         // Check saved variations
+                        if (item.selected_variations) {
+                            item.selected_variations.forEach(function(sv) {
+                                let checkbox = $(`input.bogo-variation-checkbox[data-temp-id="${bogoCounterA}"][data-section="a"][value="${sv.type}"]`);
+                                if (checkbox.length) {
+                                    checkbox.prop('checked', true);
+                                     updateBogoProductTotal(checkbox.closest('.card'));
+                                }
+                            });
+                        }
+                    });
+                }
+
+                // Section B
+                 if (savedProductsB && savedProductsB.length > 0) {
+                    savedProductsB.forEach(function(item) {
+                        bogoCounterB++;
+                        let variations = item.variations || [];
+                        const cardHtml = createBogoProductCard(item.product_id, item.product_name, parseFloat(item.price), variations, 'b', bogoCounterB);
+                        $('#productDetails_section_b').append(cardHtml);
+
+                         // Add to bogo array
+                        bogoSelectedProductsB.push({
+                            product_id: item.product_id,
+                            name: item.product_name,
+                            price: parseFloat(item.price),
+                            variations: variations,
+                            selected_variations: [],
+                            temp_id: bogoCounterB
+                        });
+
+                         // Check saved variations
+                        if (item.selected_variations) {
+                            item.selected_variations.forEach(function(sv) {
+                                let checkbox = $(`input.bogo-variation-checkbox[data-temp-id="${bogoCounterB}"][data-section="b"][value="${sv.type}"]`);
+                                if (checkbox.length) {
+                                    checkbox.prop('checked', true);
+                                     updateBogoProductTotal(checkbox.closest('.card'));
+                                }
+                            });
+                        }
+                    });
+                }
+                updateBogoTotal();
+            }
+             // Hide placeholder if products exist
+            if ($('#productDetails .card').length > 0 || $('#productDetails_section_a .card').length > 0 || $('#productDetails_section_b .card').length > 0) {
+                $('#selectedProducts p').hide();
+            }
+        }
+    </script>
 @endsection
 
 
@@ -483,195 +634,6 @@
             // On page load
             let bundleType = $('#bundle_offer_type').val();
             updateFieldsVisibility(bundleType);
-
-            // Flag to prevent listener loops during initialization
-            let isInitializingSavedProducts = false;
-
-             function initializeSavedProducts() {
-                isInitializingSavedProducts = true; // Start initialization
-                
-                try {
-                
-                let savedProducts = @json(json_decode($product->product ?? '[]', true));
-                let savedProductsB = @json(json_decode($product->product_b ?? '[]', true));
-                let bundleType = $('#bundle_offer_type').val();
-
-                // Trigger visibility update
-                updateFieldsVisibility(bundleType);
-
-                if (bundleType === 'simple' || bundleType === 'bundle' || bundleType === 'mix_match') {
-                    if (savedProducts && savedProducts.length > 0) {
-                        $('#availableProducts').show(); // Force show interactive section
-                        $('#selectedProducts p').hide(); // Hide "No products" text
-                        
-                        savedProducts.forEach(function(item) {
-                            productCounter++;
-                            
-                            // 1. Find the Option element to get FULL variations data
-                            let $option = $(`#select_pro option[value="${item.product_id}"]`);
-                            let fullVariations = [];
-                            
-                            if ($option.length) {
-                                 fullVariations = $option.data('variations'); 
-                            } else {
-                                // Fallback if product not found in dropdown (e.g. deleted)
-                                fullVariations = item.variations || [];
-                            }
-
-                            // 2. Create card with FULL variations
-                            const cardHtml = createProductCard(item.product_id, item.product_name, parseFloat(item.price), fullVariations, productCounter);
-                            $('#productDetails').append(cardHtml);
-                            
-                            // 3. Update global array
-                            addToSelectedProducts(item.product_id, item.product_name, parseFloat(item.price), fullVariations, bundleType, null, productCounter);
-                            
-                            // 4. Check saved variations (The saved data contains the *selected* ones)
-                            // item.variations usually contains the selected ones in the DB structure we saw earlier
-                             let variationsToCheck = item.variations || [];
-                             // Also check item.selected_variations if it exists (legacy support)
-                             if (item.selected_variations) {
-                                 variationsToCheck = item.selected_variations;
-                             }
-
-                            if (variationsToCheck && variationsToCheck.length > 0) {
-                                variationsToCheck.forEach(function(v) {
-                                    // Handle both string and object formats
-                                    let typeToCheck = (typeof v === 'object') ? (v.type || v.label) : v;
-                                    
-                                    // Find checkbox by value
-                                    let checkbox = $(`input.variation-checkbox[data-temp-id="${productCounter}"][value="${typeToCheck}"]`);
-                                    if (checkbox.length) {
-                                        checkbox.prop('checked', true);
-                                    }
-                                });
-                                 // Update total after checking all boxes
-                                updateProductTotal($(`.card[data-product-temp-id="${productCounter}"]`));
-                            }
-                            
-                            // If Simple bundle, Select the product in the dropdown
-                            if (bundleType === 'simple') {
-                                $('#select_pro').val(item.product_id).trigger('change.select2');
-                            }
-                        });
-                         if (bundleType === 'mix_match') {
-                            updateMixMatchTotal();
-                        } else {
-                            updateBundleTotal();
-                        }
-                    }
-                } else if (bundleType === 'bogo_free') {
-                   // ... (BOGO logic) ...
-                    $('#availableProducts_get_x_buy_y').show(); // Force show BOGO section
-                    $('#selectedProducts p').hide();
-    
-                    // Section A
-                     if (savedProducts && savedProducts.length > 0) {
-                        savedProducts.forEach(function(item) {
-                            bogoCounterA++;
-                            
-                             // 1. Find the Option element
-                            let $option = $(`#select_pro1 option[value="${item.product_id}"]`);
-                            let fullVariations = [];
-                            if ($option.length) {
-                                 fullVariations = $option.data('variations'); 
-                            } else {
-                                fullVariations = item.variations || [];
-                            }
-    
-                            const cardHtml = createBogoProductCard(item.product_id, item.product_name, parseFloat(item.price), fullVariations, 'a', bogoCounterA);
-                            $('#productDetails_section_a').append(cardHtml);
-    
-                             // Add to bogo array
-                            bogoSelectedProductsA.push({
-                                product_id: item.product_id,
-                                name: item.product_name,
-                                price: parseFloat(item.price),
-                                variations: fullVariations,
-                                selected_variations: [],
-                                temp_id: bogoCounterA
-                            });
-    
-                             // Check saved variations
-                            let variationsToCheck = item.variations || [];
-                             if (item.selected_variations) {
-                                 variationsToCheck = item.selected_variations;
-                             }
-    
-                            if (variationsToCheck && variationsToCheck.length > 0) {
-                                variationsToCheck.forEach(function(v) {
-                                    let typeToCheck = (typeof v === 'object') ? (v.type || v.label) : v;
-                                    let checkbox = $(`input.bogo-variation-checkbox[data-temp-id="${bogoCounterA}"][data-section="a"][value="${typeToCheck}"]`);
-                                    if (checkbox.length) {
-                                        checkbox.prop('checked', true);
-                                    }
-                                });
-                                 updateBogoProductTotal($(`.card[data-bogo-counter="${bogoCounterA}"][data-bogo-section="a"]`));
-                            }
-                        });
-                    }
-    
-                    // Section B
-                     if (savedProductsB && savedProductsB.length > 0) {
-                        savedProductsB.forEach(function(item) {
-                            bogoCounterB++;
-                            
-                             // 1. Find the Option element
-                            let $option = $(`#select_pro2 option[value="${item.product_id}"]`);
-                            let fullVariations = [];
-                            if ($option.length) {
-                                 fullVariations = $option.data('variations'); 
-                            } else {
-                                fullVariations = item.variations || [];
-                            }
-                            
-                            const cardHtml = createBogoProductCard(item.product_id, item.product_name, parseFloat(item.price), fullVariations, 'b', bogoCounterB);
-                            $('#productDetails_section_b').append(cardHtml);
-    
-                             // Add to bogo array
-                            bogoSelectedProductsB.push({
-                                product_id: item.product_id,
-                                name: item.product_name,
-                                price: parseFloat(item.price),
-                                variations: fullVariations,
-                                selected_variations: [],
-                                temp_id: bogoCounterB
-                            });
-    
-                             // Check saved variations
-                            let variationsToCheck = item.variations || [];
-                             if (item.selected_variations) {
-                                 variationsToCheck = item.selected_variations;
-                             }
-    
-                            if (variationsToCheck && variationsToCheck.length > 0) {
-                                variationsToCheck.forEach(function(v) {
-                                    let typeToCheck = (typeof v === 'object') ? (v.type || v.label) : v;
-                                    let checkbox = $(`input.bogo-variation-checkbox[data-temp-id="${bogoCounterB}"][data-section="b"][value="${typeToCheck}"]`);
-                                    if (checkbox.length) {
-                                        checkbox.prop('checked', true);
-                                    }
-                                });
-                                updateBogoProductTotal($(`.card[data-bogo-counter="${bogoCounterB}"][data-bogo-section="b"]`));
-                            }
-                        });
-                    }
-                    updateBogoTotal();
-                }
-
-                 // Hide placeholder if products exist
-                if ($('#productDetails .card').length > 0 || $('#productDetails_section_a .card').length > 0 || $('#productDetails_section_b .card').length > 0) {
-                    $('#selectedProducts p').hide();
-                }
-
-                } catch (e) {
-                     console.error("Error initializing saved products:", e);
-                } finally {
-                     isInitializingSavedProducts = false; // End initialization
-                }
-            }
-            
-            // Call it!
-            initializeSavedProducts();
 
             // Discount field change event
             $('#discount, #discount_type, #discount_value, #required_qty').on('change input', function() {
@@ -824,8 +786,6 @@
 
             // Regular product selection
             $('#select_pro').on('change', function() {
-                if (typeof isInitializingSavedProducts !== 'undefined' && isInitializingSavedProducts) return;
-
                 const selectedOption = $(this).find('option:selected');
                 const productId = selectedOption.val();
                 const productName = selectedOption.data('name');
@@ -836,23 +796,18 @@
                 
                 let bundleType = $('#bundle_offer_type').val();
                 
-                // For simple bundle, replace if exists
+                // Check if product already exists
+                if (productExists(productId, bundleType)) {
+                    alert('This product is already added!');
+                    $(this).val('');
+                    return;
+                }
+                
+                // For simple bundle, check if any product already exists
                 if (bundleType === 'simple' && selectedProductsArray.length > 0) {
-                     if (productExists(productId, bundleType)) {
-                        alert('This product is already selected!');
-                        return;
-                    }
-                    // Remove existing
-                    $('#productDetails').empty();
-                    selectedProductsArray = [];
-                    createHiddenInputs();
-                } else {
-                     // Check if product already exists (for other types)
-                    if (productExists(productId, bundleType)) {
-                        alert('This product is already added!');
-                        $(this).val('');
-                        return;
-                    }
+                    alert('Simple bundle can only have 1 product.');
+                    $(this).val('');
+                    return;
                 }
                 
                 productCounter++;
@@ -872,10 +827,7 @@
                     updateBundleTotal();
                 }
                 
-                // Only clear dropdown if NOT simple bundle (user wants to see selection)
-                if (bundleType !== 'simple') {
-                     $(this).val('').trigger('change.select2'); 
-                }
+                $(this).val('');
                 $('#selectedProducts p').hide();
             });
 
@@ -1121,16 +1073,7 @@
                     let flat = [];
                     
                     variations.forEach(group => {
-                        // Handle simple string variations (like in saved data: ["Small", "Large"])
-                        if (typeof group === 'string') {
-                            flat.push({
-                                type: group,
-                                price: 0,
-                                groupName: 'Options'
-                            });
-                        }
-                        // Handle standard object format
-                        else if (group && group.values && Array.isArray(group.values)) {
+                        if (group && group.values && Array.isArray(group.values)) {
                             group.values.forEach(v => {
                                 if (v && typeof v === 'object') {
                                     flat.push({
