@@ -70,7 +70,7 @@ class Item extends Model
         'term_and_condition_ids' => 'array',
         'product' => 'array',
         'product_b' => 'array',
-        'required_quantity' => 'string',
+        'required_quantity' => 'integer',
         'name' => 'string',
 
 

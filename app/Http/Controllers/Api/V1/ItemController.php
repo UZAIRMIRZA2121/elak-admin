@@ -501,11 +501,10 @@ class ItemController extends Controller
 
             if ($item['type'] == 'voucher') {
                 if ($item->product !== "[]") {
-                    $item['product'] = $this->normalizeArrayValue($item->relatedProducts());
+                    $item['product'] = $item->relatedProducts() ?? [];
                 }
                 if ($item->product_b !== "[]") {
-                    $item['product_b'] = $this->normalizeArrayValue($item->relatedProductsB());
-
+                    $item['product_b'] = $item->relatedProductsB() ?? [];
                 }
                 // Send how_and_condition_ids as array
                 $item['how_it_works'] = $item->usageTerms() ?? [];
@@ -549,19 +548,6 @@ class ItemController extends Controller
         }
     }
 
-    function normalizeArrayValue($value): array
-    {
-        if (is_string($value)) {
-            $decoded = json_decode($value, true);
-            return is_array($decoded) ? $decoded : [];
-        }
-
-        if ($value instanceof \Illuminate\Support\Collection) {
-            return $value->values()->toArray();
-        }
-
-        return is_array($value) ? $value : [];
-    }
 
     public function get_related_products(Request $request, $id)
     {
