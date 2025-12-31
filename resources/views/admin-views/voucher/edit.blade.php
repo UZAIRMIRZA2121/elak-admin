@@ -25,6 +25,19 @@
 </style>
 
 @section('content')
+@php
+    // Prepare existing images data for JavaScript (used in multiple includes)
+    $existingImages = json_decode($product->images ?? '[]', true);
+    $imageUrls = [];
+    if (!empty($existingImages) && is_array($existingImages)) {
+        foreach ($existingImages as $image) {
+            $imgPath = is_array($image) ? ($image['img'] ?? '') : $image;
+            if ($imgPath) {
+                $imageUrls[] = asset('storage/product/' . $imgPath);
+            }
+        }
+    }
+@endphp
   <link rel="stylesheet" href="{{asset('public/assets/admin/css/voucher.css')}}">
   <link rel="stylesheet" href="{{asset('assets/admin/css/voucher.css')}}">
      <!-- Page Header -->
@@ -363,22 +376,22 @@
                             <div class="col-12 d-none" id="actual_price_input_hide">
                                 <div class="form-group mb-0">
                                     <label class="input-label"  for="exampleFormControlInput1">{{ translate('Actual Price') }} <span class="form-label-secondary text-danger"  data-toggle="tooltip" data-placement="right" data-original-title="{{ translate('messages.Required.')}}"> *  </span> </label>
-                                    <input type="number" min="0" id="actual_price" max="999999999999.99" step="0.01" value="1" name="actual_price_input_hide" class="form-control"placeholder="{{ translate('messages.Ex:') }} 100" required>
+                                    <input type="number" min="0" id="actual_price" max="999999999999.99" step="0.01" value="{{ $product->price }}" name="actual_price_input_hide" class="form-control"placeholder="{{ translate('messages.Ex:') }} 100" required>
                                     <input type="hidden"  id="actual_price_input_hide"name="actual_price_input_hide" >
-                                    <input type="hidden"  id="product_real_price"name="product_real_price" value="" >
+                                    <input type="hidden"  id="product_real_price"name="product_real_price" value="{{ $product->price }}" >
                                 </div>
                             </div>
                             <div class="col-6 col-md-3" id="price_input_hide">
                                 <div class="form-group mb-0">
                                     <label class="input-label"  for="exampleFormControlInput1">{{ translate('messages.price') }} <span class="form-label-secondary text-danger"  data-toggle="tooltip" data-placement="right" data-original-title="{{ translate('messages.Required.')}}"> *  </span> </label>
-                                    <input type="number" min="0" id="price" max="999999999999.99" step="0.01" value="1" name="price" class="form-control"placeholder="{{ translate('messages.Ex:') }} 100" required>
-                                    <input type="hidden"  id="price_hidden"name="price_hidden" >
+                                    <input type="number" min="0" id="price" max="999999999999.99" step="0.01" value="{{ $product->price }}" name="price" class="form-control"placeholder="{{ translate('messages.Ex:') }} 100" required>
+                                    <input type="hidden"  id="price_hidden"name="price_hidden" value="{{ $product->price }}">
                                 </div>
                             </div>
                             <div class="col-6 col-md-3 d-none" id="required_qty">
                                 <div class="form-group mb-0">
                                     <label class="input-label"  for="exampleFormControlInput1">{{ translate('Required Quantity') }} <span class="form-label-secondary text-danger"  data-toggle="tooltip" data-placement="right" data-original-title="{{ translate('messages.Required.')}}"> *  </span> </label>
-                                    <input type="number" min="0" id="required_qty" max="999999999999.99" step="0.01" value="1" name="required_qty" class="form-control"placeholder="{{ translate('messages.Ex:') }} 100" required>
+                                    <input type="number" min="0" id="required_qty" max="999999999999.99" step="0.01" value="{{ $product->required_quantity }}" name="required_qty" class="form-control"placeholder="{{ translate('messages.Ex:') }} 100" required>
                                 </div>
                             </div>
 
@@ -389,8 +402,8 @@
                                     </label>
                                     <!-- Dropdown: Only Percent & Fixed -->
                                     <select name="offer_type" id="offer_type" class="form-control js-select2-custom">
-                                        <option value="direct discount">{{ translate('Direct Discount') }} </option>
-                                        <option value="cash back">{{ translate('Cash back') }}</option>
+                                        <option value="direct discount" {{ $product->offer_type == 'direct discount' ? 'selected' : '' }}>{{ translate('Direct Discount') }} </option>
+                                        <option value="cash back" {{ $product->offer_type == 'cash back' ? 'selected' : '' }}>{{ translate('Cash back') }}</option>
                                     </select>
                                 </div>
                             </div>
@@ -401,8 +414,8 @@
                                     <!-- Dropdown: Only Percent & Fixed -->
                                     <select name="discount_type" id="discount_type"
                                         class="form-control js-select2-custom">
-                                        <option value="percent">{{ translate('messages.percent') }} (%)</option>
-                                        <option value="fixed">{{ translate('Fixed') }} ({{ \App\CentralLogics\Helpers::currency_symbol() }})</option>
+                                        <option value="percent" {{ $product->discount_type == 'percent' ? 'selected' : '' }}>{{ translate('messages.percent') }} (%)</option>
+                                        <option value="fixed" {{ $product->discount_type == 'fixed' ? 'selected' : '' }}>{{ translate('Fixed') }} ({{ \App\CentralLogics\Helpers::currency_symbol() }})</option>
                                     </select>
                                 </div>
                             </div>
@@ -410,7 +423,7 @@
                                     <div class="form-group mb-0">
                                         <label class="input-label" for="exampleFormControlInput1">{{ translate('Discount Value') }}
                                         </label>
-                                        <input type="number" min="0" max="9999999999999999999999" value="0"
+                                        <input type="number" min="0" max="9999999999999999999999" value="{{ $product->discount }}"
                                             name="discount" id="discount" class="form-control"
                                             placeholder="{{ translate('messages.Ex:') }} 100">
                                 </div>
@@ -427,6 +440,124 @@
 
       @include("admin-views.voucher.edit_include.edit_include_model")
 
+
+    <script>
+        // ... existing code ...
+
+        $(document).ready(function() {
+            initializeSavedProducts();
+        });
+
+        function initializeSavedProducts() {
+            let savedProducts = @json(json_decode($product->product ?? '[]', true));
+            let savedProductsB = @json(json_decode($product->product_b ?? '[]', true));
+            let bundleType = $('#bundle_offer_type').val();
+
+            // Trigger visibility update
+            updateFieldsVisibility(bundleType);
+
+            if (bundleType === 'simple' || bundleType === 'bundle' || bundleType === 'mix_match') {
+                if (savedProducts && savedProducts.length > 0) {
+                    savedProducts.forEach(function(item) {
+                        productCounter++;
+                        // Normalized variations handling
+                        let variations = item.variations || []; 
+                        
+                        // Recreate card
+                        const cardHtml = createProductCard(item.product_id, item.product_name, parseFloat(item.price), variations, productCounter);
+                        $('#productDetails').append(cardHtml);
+                        
+                        // Update global array
+                        addToSelectedProducts(item.product_id, item.product_name, parseFloat(item.price), variations, bundleType, null, productCounter);
+                        
+                        // Check saved variations
+                        if (item.selected_variations) {
+                            item.selected_variations.forEach(function(sv) {
+                                // Find checkbox by value and temp-id
+                                let checkbox = $(`input.variation-checkbox[data-temp-id="${productCounter}"][value="${sv.type}"]`);
+                                if (checkbox.length) {
+                                    checkbox.prop('checked', true);
+                                    updateProductTotal(checkbox.closest('.card'));
+                                }
+                            });
+                        }
+                    });
+                     if (bundleType === 'mix_match') {
+                        updateMixMatchTotal();
+                    } else {
+                        updateBundleTotal();
+                    }
+                }
+            } else if (bundleType === 'bogo_free') {
+                // Section A
+                 if (savedProducts && savedProducts.length > 0) {
+                    savedProducts.forEach(function(item) {
+                        bogoCounterA++;
+                        let variations = item.variations || [];
+                        const cardHtml = createBogoProductCard(item.product_id, item.product_name, parseFloat(item.price), variations, 'a', bogoCounterA);
+                        $('#productDetails_section_a').append(cardHtml);
+
+                         // Add to bogo array
+                        bogoSelectedProductsA.push({
+                            product_id: item.product_id,
+                            name: item.product_name,
+                            price: parseFloat(item.price),
+                            variations: variations,
+                            selected_variations: [],
+                            temp_id: bogoCounterA
+                        });
+
+                         // Check saved variations
+                        if (item.selected_variations) {
+                            item.selected_variations.forEach(function(sv) {
+                                let checkbox = $(`input.bogo-variation-checkbox[data-temp-id="${bogoCounterA}"][data-section="a"][value="${sv.type}"]`);
+                                if (checkbox.length) {
+                                    checkbox.prop('checked', true);
+                                     updateBogoProductTotal(checkbox.closest('.card'));
+                                }
+                            });
+                        }
+                    });
+                }
+
+                // Section B
+                 if (savedProductsB && savedProductsB.length > 0) {
+                    savedProductsB.forEach(function(item) {
+                        bogoCounterB++;
+                        let variations = item.variations || [];
+                        const cardHtml = createBogoProductCard(item.product_id, item.product_name, parseFloat(item.price), variations, 'b', bogoCounterB);
+                        $('#productDetails_section_b').append(cardHtml);
+
+                         // Add to bogo array
+                        bogoSelectedProductsB.push({
+                            product_id: item.product_id,
+                            name: item.product_name,
+                            price: parseFloat(item.price),
+                            variations: variations,
+                            selected_variations: [],
+                            temp_id: bogoCounterB
+                        });
+
+                         // Check saved variations
+                        if (item.selected_variations) {
+                            item.selected_variations.forEach(function(sv) {
+                                let checkbox = $(`input.bogo-variation-checkbox[data-temp-id="${bogoCounterB}"][data-section="b"][value="${sv.type}"]`);
+                                if (checkbox.length) {
+                                    checkbox.prop('checked', true);
+                                     updateBogoProductTotal(checkbox.closest('.card'));
+                                }
+                            });
+                        }
+                    });
+                }
+                updateBogoTotal();
+            }
+             // Hide placeholder if products exist
+            if ($('#productDetails .card').length > 0 || $('#productDetails_section_a .card').length > 0 || $('#productDetails_section_b .card').length > 0) {
+                $('#selectedProducts p').hide();
+            }
+        }
+    </script>
 @endsection
 
 
@@ -1550,6 +1681,22 @@
 
         function getDataFromServer(voucher_id) {
             // alert(storeId)
+            
+            // Get saved howto_work value for pre-selection
+             <?php
+                $rawHowtoWork = $product->how_and_condition_ids ?? '[]';
+                $decoded = json_decode($rawHowtoWork, true);
+                if (is_array($decoded) && !empty($decoded)) {
+                    $savedId = $decoded[0];
+                } elseif (is_scalar($decoded)) {
+                    $savedId = $decoded;
+                } else {
+                    $savedId = '';
+                }
+            ?>
+            let savedHowtoWork = '{{ $savedId }}';
+            console.log('Saved How To Work ID:', savedHowtoWork);
+            
             $.ajax({
                 url: "{{ route('admin.Voucher.get_document') }}",
                 type: "GET",
@@ -1585,16 +1732,20 @@
                         `;
                     });
 
+                    // Check if this radio button should be pre-selected
+                    let isChecked = savedHowtoWork && savedHowtoWork == item.id ? 'checked' : '';
+                    
                     workHtml += `
                         <div class="card mb-3 work-item shadow-sm">
                             <div class="card-header bg-white d-flex align-items-center justify-content-between py-3 cursor-pointer"
                                 onclick="toggleAccordion(${item.id})">
                                 
                                 <div class="d-flex align-items-center flex-grow-1">
-                                    <input type="checkbox" name="howto_work[]" value="${item.id}"
+                                    <input type="radio" name="howto_work[]" value="${item.id}"
                                         class="form-check-input record-checkbox me-3"
                                         id="record_${item.id}"
-                                        data-item-id="${item.id}">
+                                        data-item-id="${item.id}"
+                                        ${isChecked}>
                                     
                                     <label for="record_${item.id}" class="fw-semibold mb-0 flex-grow-1">
                                         ${item.guide_title}
@@ -2265,62 +2416,64 @@
         }
 
 
-          $('#item_form').on('submit', function(e) {
-            $('#submitButton').attr('disabled', true);
-            e.preventDefault();
+        $(document).ready(function() {
+            $('#item_form').on('submit', function(e) {
+                $('#submitButton').attr('disabled', true);
+                e.preventDefault();
 
-            let formData = new FormData(this);
-            $.ajax({
-                url: '{{ route('admin.Voucher.store') }}',
-                type: 'POST',
-                data: formData,
-                cache: false,
-                contentType: false,
-                processData: false,
-                headers: {
-                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                },
-                beforeSend: function() {
-                    $('#loading').show();
-                },
-                success: function(data) {
-                    $('#loading').hide();
-                    $('#submitButton').attr('disabled', false);
+                let formData = new FormData(this);
+                $.ajax({
+                    url: '{{ route('admin.Voucher.update', [$product['id']]) }}',
+                    type: 'POST',
+                    data: formData,
+                    cache: false,
+                    contentType: false,
+                    processData: false,
+                    headers: {
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    },
+                    beforeSend: function() {
+                        $('#loading').show();
+                    },
+                    success: function(data) {
+                        $('#loading').hide();
+                        $('#submitButton').attr('disabled', false);
 
-                    if (data.errors && Array.isArray(data.errors)) {
-                        data.errors.forEach(function(err) {
-                            toastr.error(err.message, { CloseButton: true, ProgressBar: true });
+                        if (data.errors && Array.isArray(data.errors)) {
+                            data.errors.forEach(function(err) {
+                                toastr.error(err.message, { CloseButton: true, ProgressBar: true });
+                            });
+                            return;
+                        }
+
+                        toastr.success("{{ translate('messages.voucher_updated_successfully') }}", {
+                            CloseButton: true,
+                            ProgressBar: true
                         });
-                        return;
-                    }
+                        setTimeout(() => location.href = "{{ route('admin.Voucher.list') }}", 1000);
+                    },
+                    error: function(xhr) {
+                        $('#loading').hide();
+                        $('#submitButton').attr('disabled', false);
 
-                    toastr.success("{{ translate('messages.product_added_successfully') }}", {
-                        CloseButton: true,
-                        ProgressBar: true
-                    });
-                    setTimeout(() => location.href = "{{ route('admin.Voucher.list') }}", 1000);
-                },
-                error: function(xhr) {
-                    $('#loading').hide();
-                    $('#submitButton').attr('disabled', false);
-
-                    if (xhr.responseJSON && xhr.responseJSON.errors) {
-                        let errors = xhr.responseJSON.errors;
-                        $.each(errors, function(key, err) {
-                            toastr.error(err.message);
-                        });
-                    } else {
-                        toastr.error("Something went wrong");
+                        if (xhr.responseJSON && xhr.responseJSON.errors) {
+                            let errors = xhr.responseJSON.errors;
+                            $.each(errors, function(key, err) {
+                                toastr.error(err.message);
+                            });
+                        } else {
+                            toastr.error("Something went wrong");
+                        }
                     }
-                }
+                });
             });
-
-           
         });
 
 
-     
-        $(function() {
+<script>
+    let existingImageUrls = @json($imageUrls);
+    
+    $(function() {
             $("#coba").spartanMultiImagePicker({
                 fieldName: 'item_images[]',
                 maxCount: 5,
@@ -2355,7 +2508,41 @@
                     });
                 }
             });
+            
+            // Load existing images after picker is initialized
+            if (existingImageUrls && existingImageUrls.length > 0) {
+                existingImageUrls.forEach(function(imageUrl, index) {
+                    let imgHtml = `
+                        <div class="spartan_item_wrapper min-w-176px max-w-176px existing-img-item" data-index="${index}">
+                            <div class="spartan_remove_row"><i class="tio-delete"></i></div>
+                            <img src="${imageUrl}" style="width: 176px; height: 176px; object-fit: cover; border-radius: 8px;">
+                            <input type="hidden" name="existing_item_images[]" value="${imageUrl.split('/').pop()}">
+                        </div>
+                    `;
+                    $('#coba').append(imgHtml);
+                });
+                
+                // Add click handler for removing existing images
+                $(document).on('click', '.existing-img-item .spartan_remove_row', function(e) {
+                    e.preventDefault();
+                    let imageName = $(this).siblings('input[name="existing_item_images[]"]').val();
+                    
+                    // Track removed image
+                    let currentRemoved = $('#removedItemImageKeys').val();
+                    $('#removedItemImageKeys').val(currentRemoved ? currentRemoved + ',' + imageName : imageName);
+                    
+                    // Remove the preview
+                    $(this).closest('.existing-img-item').fadeOut(300, function() {
+                        $(this).remove();
+                    });
+                });
+            }
         });
+        
+        // Add hidden input for tracking removed existing images (if not exists)
+        if ($('#removedItemImageKeys').length === 0) {
+            $('form').append('<input type="hidden" name="removedItemImageKeys" id="removedItemImageKeys" value="">');
+        }
 
         $('#reset_btn').click(function() {
             $('#module_id').val(null).trigger('change');
@@ -2450,3 +2637,18 @@
     </script>
 
 @endpush
+
+<script>
+    let removedImageKeys = [];
+    $(document).on('click', '.function_remove_img', function() {
+        let key = $(this).data('key');
+        let photo = $(this).data('photo');
+        function_remove_img(key, photo);
+    });
+
+    function function_remove_img(key, photo) {
+        $('#product_images_' + key).addClass('d-none');
+        removedImageKeys.push(photo);
+        $('#removedImageKeysInput').val(removedImageKeys.join(','));
+    }
+</script>

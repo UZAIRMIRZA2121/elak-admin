@@ -88,7 +88,18 @@
                     </label>
                     @php
                         $categoryIds = json_decode($product->category_ids ?? '[]', true);
-                        $selectedCategoryIds = collect($categoryIds)->pluck('id')->toArray();
+                        
+                        // Extract only IDs from objects like {"id":"2","position":1}
+                        $allCategoryIds = collect($categoryIds)->pluck('id')->map(function($id) {
+                            return is_numeric($id) ? (int)$id : $id;
+                        })->toArray();
+                        
+                        // Filter to only include parent categories (parent_id = 0)
+                        // This excludes subcategories that might be stored in category_ids
+                        $selectedCategoryIds = App\Models\Category::whereIn('id', $allCategoryIds)
+                            ->where('parent_id', 0)
+                            ->pluck('id')
+                            ->toArray();
                     @endphp
                     <select name="categories[]" id="categories" class="form-control" multiple>
                         @foreach($categories ?? [] as $category)
@@ -127,6 +138,7 @@
 let allClientsData = [];
 let selectedClientIds = new Set();
 let clientRowIndex = 0;
+let isInitializing = true; // Flag to prevent clearing subcategories during page load
 
 // ==================== INITIALIZE CLIENT DATA ====================
 function initializeClientData() {
@@ -253,7 +265,7 @@ function checkAndAddNextRow(selectElement) {
 }
 
 // ==================== AJAX HANDLER - CLIENT CHANGE ====================
-function handleClientChange(selectElement) {
+function handleClientChange(selectElement, savedSegments = null) {
     let clientId = selectElement.val();
     let currentRow = selectElement.closest('.item-row');
     let appNameInput = currentRow.find('.app-name-input');
@@ -299,7 +311,14 @@ function handleClientChange(selectElement) {
                 $.each(response.segments, function(key, item) {
                     options += '<option value="' + item.id + '">' + item.name + '</option>';
                 });
-                segmentSelect.html(options).trigger('change');
+                segmentSelect.html(options);
+                
+                // Pre-select saved segments if editing
+                if (savedSegments && Array.isArray(savedSegments) && savedSegments.length > 0) {
+                    segmentSelect.val(savedSegments);
+                }
+                
+                segmentSelect.trigger('change');
                 segmentError.hide();
                 
                 if (typeof toastr !== 'undefined') {
@@ -541,15 +560,88 @@ $(document).ready(function() {
     clientRowIndex = {{ $clientCount }};
     console.log('Client rows already rendered in HTML. ClientRowIndex set to:', clientRowIndex);
     
+    // Store existing client data for pre-selection
+    let existingClientsData = @json($existingClientsJS);
+    console.log('Existing clients data:', existingClientsData);
+    
+    // Initialize Select2 for all existing client rows
+    $('.item-row').each(function() {
+        initClientSelect2($(this).find('.client-select'));
+        initSegmentSelect2($(this).find('.segment-select'));
+    });
+    
     // Trigger client select change for existing rows to load segments
     setTimeout(function() {
-        $('.client-select').each(function() {
-            if ($(this).val()) {
-                console.log('Triggering change for client:', $(this).val());
-                $(this).trigger('change');
+        $('.client-select').each(function(index) {
+            let clientId = $(this).val();
+            if (clientId) {
+                console.log('Loading segments for client:', clientId);
+                let savedSegments = existingClientsData[index]?.segment || [];
+                console.log('Saved segments for row', index, ':', savedSegments);
+                
+                // Track this client as selected
+                selectedClientIds.add(clientId);
+                $(this).data('previous-value', clientId);
+                
+                // Load segments with pre-selection
+                handleClientChange($(this), savedSegments);
             }
         });
-    }, 1000);
+    }, 500);
+    
+    // Load saved subcategories and branches when editing
+    @php
+        $categoryIds = json_decode($product->category_ids ?? '[]', true);
+        $selectedCategoryIds = collect($categoryIds)->pluck('id')->toArray();
+        
+        // Get saved sub category IDs from the dedicated field
+        $subCategoryIds = json_decode($product->sub_category_ids ?? '[]', true);
+        if (!is_array($subCategoryIds)) {
+            $subCategoryIds = [];
+        }
+        
+        // ALSO check if any subcategories were stored in category_ids (parent_id > 0)
+        $subCategoriesFromCategoryIds = App\Models\Category::whereIn('id', $selectedCategoryIds)
+            ->where('parent_id', '>', 0)
+            ->pluck('id')
+            ->toArray();
+        
+        // Merge both sources of subcategory IDs
+        $subCategoryIds = array_merge($subCategoryIds, $subCategoriesFromCategoryIds);
+        $subCategoryIds = array_unique($subCategoryIds);
+        
+        // Get saved branch IDs
+        $branchIds = json_decode($product->branch_ids ?? '[]', true);
+        if (!is_array($branchIds)) {
+            $branchIds = [];
+        }
+    @endphp
+    
+    let savedSubCategories = @json($subCategoryIds);
+    let savedBranches = @json($branchIds);
+    let savedStoreId = '{{ $product->store_id ?? '' }}';
+    
+    console.log('Saved subcategories:', savedSubCategories);
+    console.log('Saved branches:', savedBranches);
+    console.log('Saved store ID:', savedStoreId);
+    
+    // Load subcategories and branches after a delay to ensure categories are loaded
+    setTimeout(function() {
+        // Subcategories will be loaded AFTER branches are loaded (see loadBranchesWithSelection)
+        // This prevents timing conflicts and ensures correct pre-selection
+        
+        // Load branches if store exists
+        if (savedStoreId) {
+            console.log('Loading branches for store:', savedStoreId);
+            loadBranchesWithSelection(savedStoreId, savedBranches);
+        }
+        
+        // Set flag to false after all initialization is complete
+        setTimeout(function() {
+            isInitializing = false;
+            console.log('✅ Initialization complete - subcategories can now be reloaded on category change');
+        }, 1200);
+    }, 800);
     
     // ✅ Small delay to ensure DOM is fully loaded
     setTimeout(function() {
@@ -564,7 +656,10 @@ $(document).ready(function() {
                 allowClear: true,
                 width: '100%'
             });
-            console.log("✅ Store Select2 initialized");
+            
+            // Trigger change to update Select2 display with pre-selected value
+            $('#store_id').trigger('change.select2');
+            console.log("✅ Store Select2 initialized with value:", $('#store_id').val());
         }
         
         // ✅ Initialize Select2 for CATEGORIES
@@ -577,7 +672,10 @@ $(document).ready(function() {
                 allowClear: true,
                 width: '100%'
             });
-            console.log("✅ Categories Select2 initialized");
+            
+            // Trigger change to update Select2 display with pre-selected values
+            $('#categories').trigger('change.select2');
+            console.log("✅ Categories Select2 initialized with values:", $('#categories').val());
         }
         
         // ✅ Initialize Select2 for SUBCATEGORIES
@@ -630,8 +728,169 @@ $(document).ready(function() {
     // ✅ CATEGORY CHANGE EVENT
     $(document).on('change', '#categories', function(e) {
         console.log("📁 Category changed:", $(this).val());
-        multiples_category();
+        
+        // Don't reload subcategories during initialization to preserve pre-selected values
+        if (!isInitializing) {
+            multiples_category();
+        } else {
+            console.log('⏸ Skipping subcategory reload during initialization');
+        }
     });
+    
+    // ==================== LOAD SUBCATEGORIES WITH PRE-SELECTION ====================
+    function loadSubCategoriesWithSelection(categoryIds, selectedSubCats) {
+        if (!categoryIds || categoryIds.length === 0) {
+            $('#sub_categories_game').html('<option disabled>Select category first</option>').trigger('change');
+            return;
+        }
+        
+        $.ajax({
+            url: "{{ route('admin.Voucher.getSubcategories') }}",
+            type: "GET",
+            data: { category_ids_all: categoryIds },
+            dataType: "json",
+            beforeSend: function() {
+                $('#sub_categories_game').html('<option disabled>Loading...</option>').trigger('change');
+            },
+            success: function(response) {
+                console.log("✅ Subcategories loaded:", response);
+                
+                if (!Array.isArray(response) || response.length === 0) {
+                    $('#sub_categories_game').html('<option disabled>No subcategories found</option>').trigger('change');
+                    return;
+                }
+
+                let options = '';
+                response.forEach(function(item) {
+                    options += `<option value="${item.id}">${item.name}</option>`;
+                });
+
+                $('#sub_categories_game').html(options);
+                
+                // Pre-select saved subcategories
+                if (selectedSubCats && selectedSubCats.length > 0) {
+                    $('#sub_categories_game').val(selectedSubCats);
+                    console.log('Pre-selected subcategories:', selectedSubCats);
+                }
+                
+                $('#sub_categories_game').trigger('change');
+                
+                if (typeof toastr !== 'undefined') {
+                    toastr.success('Subcategories loaded successfully!');
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error("❌ Subcategories AJAX Error:", error);
+                $('#sub_categories_game').html('<option disabled>Error loading subcategories</option>').trigger('change');
+            }
+        });
+    }
+    
+    // ==================== LOAD BRANCHES WITH PRE-SELECTION ====================
+    function loadBranchesWithSelection(storeId, selectedBranches) {
+        if (!storeId) {
+            $('#sub-branch').html('').trigger('change');
+            return;
+        }
+        
+        // Make direct AJAX call instead of using findBranch to avoid clearing categories
+        $.ajax({
+            url: "{{ route('admin.Voucher.get_branches') }}",
+            type: "GET",
+            data: { store_id: storeId },
+            beforeSend: function() {
+                $('#sub-branch').html('<option disabled>Loading branches...</option>').trigger('change');
+            },
+            success: function(response) {
+                console.log('✅ Branches AJAX response:', response);
+                
+                // Load branches
+                let branchOptions = '';
+                if (response.branches && response.branches.length > 0) {
+                    $.each(response.branches, function(key, branch) {
+                        branchOptions += '<option value="' + branch.id + '">' + branch.name + ' (' + branch.type + ')</option>';
+                    });
+                    $('#sub-branch').html(branchOptions);
+                    
+                    // Pre-select saved branches
+                    if (selectedBranches && selectedBranches.length > 0) {
+                        $('#sub-branch').val(selectedBranches);
+                        console.log('✅ Pre-selected branches:', selectedBranches);
+                    }
+                    
+                    $('#sub-branch').trigger('change');
+                } else {
+                    $('#sub-branch').html('<option disabled>No branches available</option>').trigger('change');
+                }
+                
+                // Also load categories from this response
+                if (response.categories && response.categories.length > 0) {
+                    let categoryOptions = '';
+                    $.each(response.categories, function(key, category) {
+                        categoryOptions += '<option value="' + category.id + '">' + category.name + '</option>';
+                    });
+                    $('#categories').html(categoryOptions);
+                    
+                    // Pre-select saved categories
+                    @php
+                        $categoryIds = json_decode($product->category_ids ?? '[]', true);
+                        $allCategoryIds = collect($categoryIds)->pluck('id')->toArray();
+                        $selectedCategoryIds = App\Models\Category::whereIn('id', $allCategoryIds)
+                            ->where('parent_id', 0)
+                            ->pluck('id')
+                            ->toArray();
+                    @endphp
+                    let savedCategoryIds = @json($selectedCategoryIds);
+                    if (savedCategoryIds && savedCategoryIds.length > 0) {
+                        $('#categories').val(savedCategoryIds);
+                        console.log('✅ Pre-selected categories from branch AJAX:', savedCategoryIds);
+                    }
+                    
+                    // DON'T trigger change here - it will clear subcategories!
+                    // Just refresh the Select2 display
+                    $('#categories').trigger('change.select2');
+                    
+                    // Now load subcategories AFTER categories are set
+                    setTimeout(function() {
+                        let selectedCategories = $('#categories').val();
+                        if (selectedCategories && selectedCategories.length > 0) {
+                            console.log('📁 Loading subcategories after branches loaded...');
+                            
+                            @php
+                                $subCategoryIds = json_decode($product->sub_category_ids ?? '[]', true);
+                                if (!is_array($subCategoryIds)) {
+                                    $subCategoryIds = [];
+                                }
+                                $categoryIds = json_decode($product->category_ids ?? '[]', true);
+                                $selectedCategoryIds = collect($categoryIds)->pluck('id')->toArray();
+                                $subCategoriesFromCategoryIds = App\Models\Category::whereIn('id', $selectedCategoryIds)
+                                    ->where('parent_id', '>', 0)
+                                    ->pluck('id')
+                                    ->toArray();
+                                $subCategoryIds = array_merge($subCategoryIds, $subCategoriesFromCategoryIds);
+                                $subCategoryIds = array_unique($subCategoryIds);
+                            @endphp
+                            
+                            let finalSubCats = @json($subCategoryIds);
+                            loadSubCategoriesWithSelection(selectedCategories, finalSubCats);
+                        }
+                    }, 200);
+                }
+                
+                if (typeof toastr !== 'undefined') {
+                    toastr.success('Branches and categories loaded successfully!');
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error('❌ Branch loading error:', error);
+                $('#sub-branch').html('<option disabled>Error loading branches</option>').trigger('change');
+                
+                if (typeof toastr !== 'undefined') {
+                    toastr.error('Failed to load branches!');
+                }
+            }
+        });
+    }
     
     // ✅ SUBCATEGORY CHANGE EVENT
     $(document).on('change', '#sub_categories_game', function(e) {
