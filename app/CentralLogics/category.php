@@ -33,13 +33,13 @@ class CategoryLogic
         whereHas('module.zones', function($query)use($zone_id){
             $query->whereIn('zones.id', json_decode($zone_id, true));
         })
-            // ->whereHas('store', function($query)use($zone_id){
-            //     $query->whereIn('zone_id', json_decode($zone_id, true))->whereHas('zone.modules',function($query){
-            //         $query->when(config('module.current_module_data'), function($query){
-            //             $query->where('modules.id', config('module.current_module_data')['id']);
-            //         });
-            //     });
-            // })
+            ->whereHas('store', function($query)use($zone_id){
+                $query->whereIn('zone_id', json_decode($zone_id, true))->whereHas('zone.modules',function($query){
+                    $query->when(config('module.current_module_data'), function($query){
+                        $query->where('modules.id', config('module.current_module_data')['id']);
+                    });
+                });
+            })
             ->whereHas('category',function($q)use($category_id){
                 return $q->when(is_numeric($category_id),function ($qurey) use($category_id){
                     return $qurey->whereId($category_id)->orWhere('parent_id', $category_id);
