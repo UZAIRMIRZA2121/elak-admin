@@ -13,6 +13,7 @@ class CategoryController extends Controller
 {
     public function get_categories(Request $request)
     {
+        dd(1234);
         $vendor = $request['vendor'];
         try {
             $categories = Category::where(['position' => 0, 'status' => 1])

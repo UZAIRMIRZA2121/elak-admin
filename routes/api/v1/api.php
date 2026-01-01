@@ -33,18 +33,9 @@ Route::group(['namespace' => 'Api\V1', 'middleware' => 'localization'], function
     Route::group(['prefix' => 'voucher', 'namespace' => 'voucher'], function () {
 
 
-    Route::get('/gift-occasions', [VoucherController::class, 'get_gift_occasions']);
-    Route::get('/msg-template', [VoucherController::class, 'get_msg_template']);
+        Route::get('/gift-occasions', [VoucherController::class, 'get_gift_occasions']);
+        Route::get('/msg-template', [VoucherController::class, 'get_msg_template']);
     });
-
-
-
-
-
-
-
-
-
 
     Route::get('/client/{id}', [ClientSideController::class, 'client_data']);
 
@@ -303,6 +294,8 @@ Route::group(['namespace' => 'Api\V1', 'middleware' => 'localization'], function
             Route::get('/', 'CategoryController@get_categories');
             Route::get('childes/{category_id}', 'CategoryController@get_childes');
             Route::get('category-wise-products/{id}', 'CategoryController@getCategoryWiseProducts');
+
+            Route::get('/{id}/stores', 'CategoryController@get_stores');
         });
 
         Route::group(['prefix' => 'delivery-man'], function () {
