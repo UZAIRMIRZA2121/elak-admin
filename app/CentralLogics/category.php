@@ -344,70 +344,120 @@ class CategoryLogic
     }
 
 
-    public static function stores($category_id, $zone_id, int $limit,int $offset, $type,$longitude=0,$latitude=0)
-    {
-        $paginator = Store::
-        withOpen($longitude??0,$latitude??0)
-            ->withCount(['items','campaigns'])
-            ->whereHas('items.category',function($q)use($category_id){
-                return $q->when(is_numeric($category_id),function ($qurey) use($category_id){
-                    return $qurey->whereId($category_id)->orWhere('parent_id', $category_id);
-                })
-                    ->when(!is_numeric($category_id),function ($qurey) use($category_id){
-                        $qurey->where('slug', $category_id);
-                    });
-            })
-            ->when(config('module.current_module_data'), function($query)use($zone_id){
-                $query->whereHas('zone.modules', function($query){
-                    $query->where('modules.id', config('module.current_module_data')['id']);
-                })->module(config('module.current_module_data')['id']);
-                if(!config('module.current_module_data')['all_zone_service']) {
-                    $query->whereIn('zone_id', json_decode($zone_id, true));
-                }
-            })
-            ->active()->type($type)
-            ->latest()->paginate($limit, ['*'], 'page', $offset);
-
-
-        $paginator->each(function ($store) {
-            $category_ids = DB::table('items')
-                ->join('categories', 'items.category_id', '=', 'categories.id')
-                ->selectRaw('
-                CAST(categories.id AS UNSIGNED) as id,
-                categories.parent_id
-            ')
-                ->where('items.store_id', $store->id)
-                ->where('categories.status', 1)
-                ->groupBy('id', 'categories.parent_id')
-                ->get();
-
-            $data = json_decode($category_ids, true);
-
-            $mergedIds = [];
-
-            foreach ($data as $item) {
-                if ($item['id'] != 0) {
-                    $mergedIds[] = $item['id'];
-                }
-                if ($item['parent_id'] != 0) {
-                    $mergedIds[] = $item['parent_id'];
-                }
-            }
-
-            $category_ids = array_values(array_unique($mergedIds));
-
-            $store->category_ids = $category_ids;
-            $store->discount_status = !empty($store->items->where('discount', '>', 0));
-            unset($store['items']);
-        });
-
-        return [
-            'total_size' => $paginator->total(),
-            'limit' => $limit,
-            'offset' => $offset,
-            'stores' => $paginator->items()
-        ];
+public static function stores(
+    $category_id,
+    $zone_id,
+    int $limit,
+    int $offset,
+    $type,
+    $longitude = 0,
+    $latitude = 0
+) {
+    // ✅ Normalize zone_id
+    if (is_string($zone_id)) {
+        $zone_id = json_decode($zone_id, true);
     }
+    $zone_id = is_array($zone_id) ? $zone_id : [$zone_id];
+
+    $paginator = Store::withOpen($longitude ?? 0, $latitude ?? 0)
+
+        // ✅ Load FULL voucher data
+        ->with([
+            'vouchers' => function ($q) {
+                $q->select(
+                    'id',
+                    'store_id',
+                    'category_id',
+                    'name',
+                    'price',
+                    'discount',
+                    'type',
+                    'created_at'
+                );
+            }
+        ])
+
+        // Optional counts
+        ->withCount(['items', 'campaigns'])
+
+        // ✅ Category filter (items OR vouchers)
+        ->where(function ($query) use ($category_id) {
+
+            // Items
+            $query->whereHas('items.category', function ($q) use ($category_id) {
+                $q->when(is_numeric($category_id), function ($q) use ($category_id) {
+                    $q->where('id', $category_id)
+                      ->orWhere('parent_id', $category_id);
+                })->when(!is_numeric($category_id), function ($q) use ($category_id) {
+                    $q->where('slug', $category_id);
+                });
+            })
+
+            // Vouchers
+            ->orWhereHas('vouchers.category', function ($q) use ($category_id) {
+                $q->when(is_numeric($category_id), function ($q) use ($category_id) {
+                    $q->where('id', $category_id)
+                      ->orWhere('parent_id', $category_id);
+                })->when(!is_numeric($category_id), function ($q) use ($category_id) {
+                    $q->where('slug', $category_id);
+                });
+            });
+        })
+
+        // ✅ Module + zone filter
+        ->when(config('module.current_module_data'), function ($query) use ($zone_id) {
+            $query->whereHas('zone.modules', function ($q) {
+                $q->where('modules.id', config('module.current_module_data')['id']);
+            })->module(config('module.current_module_data')['id']);
+
+            if (!config('module.current_module_data')['all_zone_service']) {
+                $query->whereIn('zone_id', $zone_id);
+            }
+        })
+
+        ->active()
+        ->type($type)
+        ->latest()
+        ->paginate($limit, ['*'], 'page', $offset);
+
+    // ✅ Post processing
+    $paginator->each(function ($store) {
+
+        // Category IDs
+        $category_ids = DB::table('items')
+            ->join('categories', 'items.category_id', '=', 'categories.id')
+            ->where('items.store_id', $store->id)
+            ->where('categories.status', 1)
+            ->selectRaw('CAST(categories.id AS UNSIGNED) as id, categories.parent_id')
+            ->groupBy('id', 'categories.parent_id')
+            ->get();
+
+        $mergedIds = [];
+        foreach ($category_ids as $item) {
+            if ($item->id) {
+                $mergedIds[] = $item->id;
+            }
+            if ($item->parent_id) {
+                $mergedIds[] = $item->parent_id;
+            }
+        }
+
+        $store->category_ids = array_values(array_unique($mergedIds));
+
+        // ✅ Discount check (items OR vouchers)
+        $store->discount_status =
+            $store->items()->where('discount', '>', 0)->exists()
+            || $store->vouchers->where('discount', '>', 0)->isNotEmpty();
+    });
+
+    return [
+        'total_size' => $paginator->total(),
+        'limit'      => $limit,
+        'offset'     => $offset,
+        'stores'     => $paginator->items(),
+    ];
+}
+
 
 
     public static function all_products($id, $zone_id)
