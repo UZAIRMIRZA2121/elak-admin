@@ -542,8 +542,6 @@ input:checked + .toggle-slider:before {
                                                     </a>
 
 
-
-
                                             </div>
                                         </div>
                                     </div>
