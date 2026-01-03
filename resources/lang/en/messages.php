@@ -8418,4 +8418,6 @@ Smartly or Earn. ',
   'voucher_updated_successfully' => 'Voucher updated successfully',
   'The delivery options field is required.' => 'The delivery options field is required.',
   'failed_to_update_voucher' => 'Failed to update voucher',
+  'The item id field is required.' => 'The item id field is required.',
+  'The price field is required.' => 'The price field is required.',
 );

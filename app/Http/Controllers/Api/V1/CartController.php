@@ -47,6 +47,7 @@ class CartController extends Controller
         $validator = Validator::make($request->all(), [
             'guest_id' => $request->user ? 'nullable' : 'required',
             'item_id' => 'required|integer',
+            'cart_group' => 'required|string',
             'model' => 'required|string|in:Item,ItemCampaign',
             'price' => 'required|numeric',
             'quantity' => 'required|integer|min:1',
