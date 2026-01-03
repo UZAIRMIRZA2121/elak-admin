@@ -292,11 +292,13 @@ trait PlaceNewOrder
                             $data->variation = json_decode($data->variation, true);
                             return $data;
                         });
-
+                   
                     if (isset($request->is_buy_now) && $request->is_buy_now == 1) {
-                        $carts = json_decode($request['cart'], true);
+                          
+                        // $carts = json_decode($request['cart'], true);
                     }
 
+             
                     if (count($carts) == 0 && !$is_prescription) {
                         DB::rollBack();
                         return response()->json([
