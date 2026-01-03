@@ -81,9 +81,9 @@ class CartController extends Controller
             ], 403);
         }
 
-        $cartGroup = Str::random(8);
+      
         $cart = new Cart();
-        $cart->cart_group = $cartGroup; // ✅ new column
+        $cart->cart_group = $request->cart_group; // ✅ new column
         $cart->user_id = $user_id;
         $cart->module_id = $request->header('moduleId');
         $cart->item_id = $request->item_id;
