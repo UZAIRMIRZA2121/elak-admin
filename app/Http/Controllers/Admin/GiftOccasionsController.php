@@ -61,7 +61,7 @@ class GiftOccasionsController extends Controller
 
                 $file->move($destination, $imageName);
 
-                $icons[] = 'uploads/gift_occasions/' . $imageName;
+                $icons[] = 'public/uploads/gift_occasions/' . $imageName;
             }
         }
 
@@ -91,7 +91,9 @@ class GiftOccasionsController extends Controller
 
         // Full URLs banayein
         $images = collect($imagePaths)->map(function ($path) {
-            return ['url' => asset($path)];
+            // Remove 'public/' from start for URL
+            $urlPath = str_replace('public/', '', $path);
+            return ['url' => asset($urlPath)];
         })->toArray();
 
         return response()->json(['images' => $images]);
@@ -107,8 +109,10 @@ class GiftOccasionsController extends Controller
         if (($key = array_search($imgToDelete, $icons)) !== false) {
 
             // Delete the file from public folder if exists
-            if (file_exists(public_path($imgToDelete))) {
-                unlink(public_path($imgToDelete));
+            // Remove 'public/' prefix for public_path()
+            $filePath = str_replace('public/', '', $imgToDelete);
+            if (file_exists(public_path($filePath))) {
+                unlink(public_path($filePath));
             }
 
             // Remove from array
@@ -164,7 +168,7 @@ class GiftOccasionsController extends Controller
 
                 $file->move($destination, $imageName);
 
-                $newIcons[] = 'uploads/gift_occasions/' . $imageName;
+                $newIcons[] = 'public/uploads/gift_occasions/' . $imageName;
             }
 
             // Save updated icon list
@@ -191,7 +195,9 @@ class GiftOccasionsController extends Controller
 
             if (is_array($icons)) {
                 foreach ($icons as $img) {
-                    $path = public_path($img);
+                    // Remove 'public/' prefix for public_path()
+                    $filePath = str_replace('public/', '', $img);
+                    $path = public_path($filePath);
                     if (file_exists($path)) {
                         unlink($path);
                     }
