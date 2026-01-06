@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\ClientSideController;
 use App\Http\Controllers\Admin\VoucherController;
+use App\Http\Controllers\Api\V1\Vendor\VendorController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 
@@ -21,6 +22,9 @@ use BeyondCode\LaravelWebSockets\Facades\WebSocketsRouter;
 
 
 Route::post('/check-ref-id', [AuthController::class, 'checkRefId']);
+Route::post('/check-ref-id', [AuthController::class, 'checkRefId']);
+
+Route::post('/vendor/order/scan-update', [VendorController::class, 'orderScanUpdate']);
 
 
 
@@ -515,7 +519,7 @@ Route::group(['namespace' => 'Api\V1', 'middleware' => 'localization'], function
             Route::get('featured/items', 'CategoryController@get_featured_category_products');
             Route::get('popular', 'CategoryController@get_popular_category_list');
 
-  
+
         });
 
         Route::group(['prefix' => 'common-condition'], function () {

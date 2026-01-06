@@ -8420,4 +8420,8 @@ Smartly or Earn. ',
   'failed_to_update_voucher' => 'Failed to update voucher',
   'The item id field is required.' => 'The item id field is required.',
   'The price field is required.' => 'The price field is required.',
+  'order_confirmation_warning' => 'Order confirmation warning',
+  'The selected payment method is invalid.' => 'The selected payment method is invalid.',
+  'The selected order type is invalid.' => 'The selected order type is invalid.',
+  'out_of_coverage_area' => 'Out of coverage area',
 );
