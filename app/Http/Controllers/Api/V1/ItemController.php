@@ -740,6 +740,62 @@ class ItemController extends Controller
         return response()->json(['message' => translate('messages.review_submited_successfully')], 200);
     }
 
+    public function get_items_by_store(Request $request, $store_id)
+    {
+        
+        // dd($request->hasHeader('zoneId'));
+        if (!$request->hasHeader('zoneId')) {
+            $errors = [];
+            array_push($errors, ['code' => 'zoneId', 'message' => translate('messages.zone_id_required')]);
+            return response()->json([
+                'errors' => $errors
+            ], 403);
+        }
+
+        $zone_id = $request->header('zoneId');
+        
+        $type = $request->query('type', 'all');
+        $limit = $request['limit'] ?? 25;
+        $offset = $request['offset'] ?? 1;
+        
+        $items = Item::with(['store', 'category', 'module', 'unit']) // Eager load relationships "refer id" likely implies
+            ->where('store_id', $store_id)
+            ->where('voucher_ids', 'like', '%Gift%')
+            ->type($type)
+            // Ensure store is in the correct zone and module
+            ->whereHas('store', function ($query) use ($zone_id) {
+                 $query->when(config('module.current_module_data'), function ($query) {
+                    $query->where('module_id', config('module.current_module_data')['id'])->whereHas('zone.modules', function ($query) {
+                        $query->where('modules.id', config('module.current_module_data')['id']);
+                    });
+                })->whereIn('zone_id', json_decode($zone_id, true));
+            })
+            ->paginate($limit, ['*'], 'page', $offset);
+        
+        $products = Helpers::product_data_formatting($items->items(), true, false, app()->getLocale());
+        
+        $original_items = collect($items->items())->keyBy('id');
+            // dd($original_items);
+           
+        foreach ($products as &$product) {
+            if (isset($product['id']) && $original = $original_items->get($product['id'])) {
+                $product['gift_occasions'] = $original->gift_occasions;
+                $product['message_templates'] = $original->message_templates;
+                $product['delivery_options'] = $original->delivery_options;
+            }
+        }
+        unset($product);
+
+        $data = [
+            'total_size' => $items->total(),
+            'limit' => $limit,
+            'offset' => $offset,
+            'products' => $products
+        ];
+
+        return response()->json($data, 200);
+    }
+
     public function item_or_store_search(Request $request)
     {
 
