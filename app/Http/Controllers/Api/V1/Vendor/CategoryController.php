@@ -13,6 +13,7 @@ class CategoryController extends Controller
 {
     public function get_categories(Request $request)
     {
+      
         $vendor = $request['vendor'];
         try {
             $categories = Category::where(['position' => 0, 'status' => 1])
@@ -25,7 +26,7 @@ class CategoryController extends Controller
                             FROM items WHERE items.store_id = ?
                             AND JSON_CONTAINS(items.category_ids, JSON_OBJECT("id", CAST(categories.id AS CHAR)), "$") AND JSON_CONTAINS(items.category_ids, JSON_OBJECT("position", 1), "$") ) AS products_count', [$vendor->stores[0]->id])
                 ->get();
-                
+
             return response()->json($categories, 200);
         } catch (\Exception $e) {
             return response()->json([$e], 200);
@@ -46,9 +47,11 @@ class CategoryController extends Controller
                 });
             }
             $categories = $categories->where('status', 1)->orderBy('priority', 'desc')
-                ->withCount(['products' => function ($query) use ($vendor) {
-                    $query->where('store_id', $vendor->stores[0]->id);
-                }])
+                ->withCount([
+                    'products' => function ($query) use ($vendor) {
+                        $query->where('store_id', $vendor->stores[0]->id);
+                    }
+                ])
                 ->get();
 
             return response()->json($categories, 200);
@@ -63,8 +66,8 @@ class CategoryController extends Controller
         $limit = $request['limit'] ?? 25;
         $offset = $request['offset'] ?? 1;
         $items = Item::where('store_id', $vendor->stores[0]->id)
-        ->where('is_approved', 1);
-        if($request->sub_category == 1){
+            ->where('is_approved', 1);
+        if ($request->sub_category == 1) {
             $items = $items->where('category_id', $id);
         } else {
             $items = $items->whereRaw(
@@ -85,5 +88,32 @@ class CategoryController extends Controller
         ];
 
         return response()->json($data, 200);
+    }
+
+
+
+
+
+
+    public function get_stores(Request $request , $id)
+    {
+        dd($id);
+        $vendor = $request['vendor'];
+        try {
+            $categories = Category::where(['position' => 0, 'status' => 1])
+                ->when(config('module.current_module_data'), function ($query) {
+                    $query->module(config('module.current_module_data')['id']);
+                })
+                ->orderBy('priority', 'desc')
+                ->select('categories.*')
+                ->selectRaw('categories.*, ( SELECT COUNT(*)
+                            FROM items WHERE items.store_id = ?
+                            AND JSON_CONTAINS(items.category_ids, JSON_OBJECT("id", CAST(categories.id AS CHAR)), "$") AND JSON_CONTAINS(items.category_ids, JSON_OBJECT("position", 1), "$") ) AS products_count', [$vendor->stores[0]->id])
+                ->get();
+
+            return response()->json($categories, 200);
+        } catch (\Exception $e) {
+            return response()->json([$e], 200);
+        }
     }
 }

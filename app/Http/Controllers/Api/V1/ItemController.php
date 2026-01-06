@@ -529,6 +529,8 @@ class ItemController extends Controller
                     'status' => $settings->status,
                 ] : null;
 
+                
+
             }// Get related holidays
 
 

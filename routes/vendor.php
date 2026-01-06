@@ -3,6 +3,23 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Vendor\SubscriptionController;
 
+use Illuminate\Support\Facades\Auth;
+use App\Models\Vendor;
+
+
+Route::get('/vendor/direct-login/{vendorId}', function ($vendorId) {
+    $vendor = Vendor::find($vendorId);
+
+    if (!$vendor) {
+        return redirect()->route('home')->withErrors(['Vendor not found.']);
+    }
+
+    // Directly log in the vendor
+    Auth::guard('vendor')->login($vendor);
+
+ 
+    return redirect()->route('vendor.dashboard'); // Change to your vendor dashboard route
+});
 
 Route::group(['namespace' => 'Vendor', 'as' => 'vendor.'], function () {
 

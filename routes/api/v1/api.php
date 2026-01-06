@@ -1,6 +1,8 @@
 <?php
 
 use App\Http\Controllers\Admin\ClientSideController;
+use App\Http\Controllers\Admin\VoucherController;
+use App\Http\Controllers\Api\V1\Vendor\VendorController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 
@@ -20,6 +22,9 @@ use BeyondCode\LaravelWebSockets\Facades\WebSocketsRouter;
 
 
 Route::post('/check-ref-id', [AuthController::class, 'checkRefId']);
+Route::post('/check-ref-id', [AuthController::class, 'checkRefId']);
+
+Route::post('/vendor/order/scan-update', [VendorController::class, 'orderScanUpdate']);
 
 
 
@@ -28,7 +33,15 @@ Route::post('/check-ref-id', [AuthController::class, 'checkRefId']);
 Route::group(['namespace' => 'Api\V1', 'middleware' => 'localization'], function () {
 
 
-Route::get('/client/{id}', [ClientSideController::class, 'client_data']);
+    //Store Subscription
+    Route::group(['prefix' => 'voucher', 'namespace' => 'voucher'], function () {
+
+
+        Route::get('/gift-occasions', [VoucherController::class, 'get_gift_occasions']);
+        Route::get('/msg-template', [VoucherController::class, 'get_msg_template']);
+    });
+
+    Route::get('/client/{id}', [ClientSideController::class, 'client_data']);
 
 
 
@@ -96,7 +109,11 @@ Route::get('/client/{id}', [ClientSideController::class, 'client_data']);
 
         Route::post('social-login', 'SocialAuthController@social_login');
         Route::post('social-register', 'SocialAuthController@social_register');
+
+
+
     });
+
 
     //Store Subscription
     Route::group(['prefix' => 'vendor', 'namespace' => 'Vendor'], function () {
@@ -281,6 +298,9 @@ Route::get('/client/{id}', [ClientSideController::class, 'client_data']);
             Route::get('/', 'CategoryController@get_categories');
             Route::get('childes/{category_id}', 'CategoryController@get_childes');
             Route::get('category-wise-products/{id}', 'CategoryController@getCategoryWiseProducts');
+
+
+
         });
 
         Route::group(['prefix' => 'delivery-man'], function () {
@@ -514,6 +534,8 @@ Route::get('/client/{id}', [ClientSideController::class, 'client_data']);
             Route::get('stores/{category_id}', 'CategoryController@get_stores');
             Route::get('featured/items', 'CategoryController@get_featured_category_products');
             Route::get('popular', 'CategoryController@get_popular_category_list');
+
+
         });
 
         Route::group(['prefix' => 'common-condition'], function () {
