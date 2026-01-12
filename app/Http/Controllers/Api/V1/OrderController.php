@@ -650,4 +650,31 @@ class OrderController extends Controller
 
         return $this->getSurgePrice($request->zone_id, $request->module_id, $request->date_time);
     }
+
+
+
+
+
+    public function orderScanUpdate(Request $request)
+    {
+
+        $request->validate([
+            'order_id' => 'required|exists:orders,id'
+        ]);
+
+
+        $store_data = auth('vendor')->user();
+        dd($store_data);
+        $order = Order::find($request->order_id);
+
+        $order->update([
+            'order_status' => 'in_progress',
+            'store_id' => 66
+        ]);
+
+        return response()->json([
+            'success' => true
+        ]);
+    }
+
 }

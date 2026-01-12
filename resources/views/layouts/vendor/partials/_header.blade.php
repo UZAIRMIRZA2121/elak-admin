@@ -1,4 +1,6 @@
 <div id="headerMain" class="d-none">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+
     <header id="header"
         class="navbar navbar-expand-lg navbar-fixed navbar-height navbar-flush navbar-container navbar-bordered">
         <div class="navbar-nav-wrap">
@@ -88,27 +90,57 @@
                         <!-- End Notification -->
                     </li>
                     <li class="nav-item d-none d-sm-inline-block mr-4">
-                        <div class="hs-unfold">
+                        <div class="hs-unfold d-flex gap-2">
+                            <!-- Scan QR -->
                             <button class="btn btn-icon btn-soft-success rounded-circle" onclick="openScanner()"
                                 title="Scan Order">
                                 <i class="tio-qr-code"></i>
                             </button>
+
+                            <!-- Enter Code -->
+                            <button class="btn btn-icon btn-soft-primary rounded-circle" onclick="openCodeInput()"
+                                title="Enter Order Code">
+                                <i class="tio-keyboard"></i>
+                            </button>
                         </div>
                     </li>
-                    <!-- Scan Order Modal -->
-                    <div class="modal fade" id="scanOrderModal" tabindex="-1">
-                        <div class="modal-dialog modal-dialog-centered">
-                            <div class="modal-content">
-                                <div class="modal-header">
-                                    <h5 class="modal-title">Scan Order QR</h5>
-                                    <button type="button" class="close" data-dismiss="modal">×</button>
-                                </div>
-                                <div class="modal-body text-center">
-                                    <div id="qr-reader" style="width:100%"></div>
-                                </div>
-                            </div>
-                        </div>
+
+           <div class="modal fade" id="scanOrderModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <h5 class="modal-title">Scan / Enter Order</h5>
+                <button type="button" class="btn-close" onclick="closeScanner()">X</button>
+            </div>
+
+            <div class="modal-body text-center">
+
+                <!-- QR Scanner -->
+                <div id="qr-reader" style="width:100%"></div>
+
+                <!-- Manual Code Input -->
+                <div id="manual-code" class="mt-3 d-none">
+                    <p class="fw-bold mb-2">Enter 12-Character Order Code</p>
+
+                    <div class="d-flex justify-content-center gap-1 flex-wrap">
+                        <input class="code-input form-control text-center" maxlength="1"  style="width:60px;height:42px;font-size:18px;">
+                        <input class="code-input form-control text-center" maxlength="1"  style="width:60px;height:42px;font-size:18px;">
+                        <input class="code-input form-control text-center" maxlength="1"  style="width:60px;height:42px;font-size:18px;">
+                        <input class="code-input form-control text-center" maxlength="1"  style="width:60px;height:42px;font-size:18px;">
+                        <input class="code-input form-control text-center" maxlength="1"  style="width:60px;height:42px;font-size:18px;">
+                        <input class="code-input form-control text-center" maxlength="1"  style="width:60px;height:42px;font-size:18px;">
+                   
+                    
                     </div>
+
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
 
 
 
@@ -588,54 +620,4 @@ $subscription_deadline_warning_message = \App\Models\BusinessSetting::where('key
 
 
     });
-</script>
-<script src="https://unpkg.com/html5-qrcode"></script>
-
-<script>
-    let qrScanner;
-
-    function openScanner() {
-        $('#scanOrderModal').modal('show');
-
-        qrScanner = new Html5Qrcode("qr-reader");
-
-        qrScanner.start({
-                facingMode: "environment"
-            }, {
-                fps: 10,
-                qrbox: 250
-            },
-            (orderId) => {
-                qrScanner.stop();
-                $('#scanOrderModal').modal('hide');
-                updateOrderStatus(orderId);
-            }
-        );
-    }
-
-    function updateOrderStatus(orderId) {
-        const baseUrl = window.location.origin;
-        alert(baseUrl)
-        $.ajax({
-            url: baseUrl + '/api/v1/vendor/order/scan-update',
-            type: 'POST',
-            data: {
-                order_id: orderId
-            },
-            success: function(res) {
-                if (res.success) {
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Order Updated',
-                        text: 'Order moved to In Progress'
-                    });
-                } else {
-                    Swal.fire('Error', res.message, 'error');
-                }
-            },
-            error: function() {
-                Swal.fire('Error', 'Something went wrong', 'error');
-            }
-        });
-    }
 </script>

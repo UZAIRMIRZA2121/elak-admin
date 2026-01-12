@@ -24,6 +24,7 @@ use App\Mail\OrderVerificationMail;
 use App\CentralLogics\CustomerLogic;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rules\Password;
 use MatanYadaev\EloquentSpatial\Objects\Point;
 use App\Mail\CustomerRegistration;
@@ -57,6 +58,7 @@ trait PlaceNewOrder
             'password' => $request->create_new_user ? ['required', Password::min(8)] : 'nullable',
             'order_attachment' => $is_prescription ? ['required'] : 'nullable',
         ]);
+        $qr_code = Str::random(6);
 
         if ($validator->fails()) {
             return response()->json(['errors' => Helpers::error_processor($validator)], 403);
@@ -172,7 +174,7 @@ trait PlaceNewOrder
             $lastId = Order::max('id') ?? 99999;
             $order = new Order();
             $order->id = $lastId + 1;
-
+            $order->qr_code = $qr_code;
 
             $order_status = 'pending';
             if (($request->partial_payment && $request->payment_method != 'offline_payment') || $request->payment_method == 'wallet') {
@@ -311,7 +313,7 @@ trait PlaceNewOrder
 
                     $order_details = $this->makeOrderDetails($carts, $request, $order, $store);
                     $order_status = $order_details['status'] ?? $order_status;
-                
+
                     if (data_get($order_details, 'status_code') === 403) {
                         DB::rollBack();
                         return response()->json([
@@ -488,15 +490,16 @@ trait PlaceNewOrder
             }
 
 
-            
-            if($order_status == 'hold'){
+
+            if ($order_status == 'hold') {
                 $order->store_id = null;
+                $order->checked = 0;
             }
 
             $order->order_amount = $request['order_amount'] ?? 0;
             $order->order_status = $order_status;
             $order->save();
-
+            // dd($order);
             if ($request->order_type !== 'parcel') {
                 $taxMapCollection = collect($taxMap);
                 foreach ($order_details as $key => $item) {
@@ -1025,7 +1028,7 @@ trait PlaceNewOrder
                 $product = Item::with('module')->active()->find($c['item_id']);
             }
             if ($product) {
-                if($product->type == 'voucher' || $product->voucher_ids == 'In-Store' ){
+                if ($product->type == 'voucher' || $product->voucher_ids == 'In-Store') {
                     $status = 'hold';
 
                 }

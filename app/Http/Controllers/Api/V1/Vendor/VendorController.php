@@ -28,6 +28,7 @@ use App\Mail\WithdrawRequestMail;
 use App\Models\StoreSubscription;
 use App\CentralLogics\CouponLogic;
 use App\Models\AccountTransaction;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Mail;
@@ -1457,25 +1458,6 @@ class VendorController extends Controller
 
         return response()->json($data, 200);
     }
-    public function orderScanUpdate(Request $request)
-{
-  
-    $request->validate([
-        'order_id' => 'required|exists:orders,id'
-    ]);
 
-    $vendor = auth()->user();
-
-    $order = Order::find($request->order_id);
-    dd($order);
-    $order->update([
-        'order_status' => 'in_progress',
-        'store_id' => $vendor->store_id
-    ]);
-
-    return response()->json([
-        'success' => true
-    ]);
-}
 
 }

@@ -82,9 +82,10 @@ class CartController extends Controller
             ], 403);
         }
 
-      
+   
         $cart = new Cart();
         $cart->cart_group = $request->cart_group; // ✅ new column
+        $cart->store_id =  ($item->voucher_ids === 'Flat discount') ? $item->store_id : null;
         $cart->user_id = $user_id;
         $cart->module_id = $request->header('moduleId');
         $cart->item_id = $request->item_id;
@@ -95,6 +96,8 @@ class CartController extends Controller
         $cart->price = $request->price;
         $cart->quantity = $request->quantity;
         $cart->variation = isset($request->variation) ? json_encode($request->variation) : json_encode([]);
+        $cart->status = ($item->voucher_ids === 'Flat discount') ? 'pending' : null;
+        $cart->type = $item->voucher_ids ?? null;
         $cart->save();
 
         $item->carts()->save($cart);
@@ -114,7 +117,29 @@ class CartController extends Controller
                 );
                 return $data;
             });
-        return response()->json($carts, 200);
+
+
+        // Wait loop: max 2 minutes
+        $maxWait = 120; // seconds
+        $interval = 5; // check every 5 seconds
+        $elapsed = 0;
+
+        while ($cart->status === 'pending' && $elapsed < $maxWait) {
+            sleep($interval);
+            $elapsed += $interval;
+
+            // reload cart from database
+            $cart->refresh();
+        }
+
+        // After waiting
+        return response()->json([
+            'cart_id' => $cart->id,
+            'status' => $cart->status,
+            'message' => $cart->status === 'pending'
+                ? 'Vendor did not respond in time'
+                : 'Vendor responded'
+        ]);
     }
 
     public function update_cart(Request $request)

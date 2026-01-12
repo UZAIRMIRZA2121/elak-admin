@@ -8424,4 +8424,8 @@ Smartly or Earn. ',
   'The selected payment method is invalid.' => 'The selected payment method is invalid.',
   'The selected order type is invalid.' => 'The selected order type is invalid.',
   'out_of_coverage_area' => 'Out of coverage area',
+  'The cart group field is required.' => 'The cart group field is required.',
+  'The cart group must be a string.' => 'The cart group must be a string.',
+  'cart_id' => 'Cart id',
+  'Flat Request' => 'Flat Request',
 );

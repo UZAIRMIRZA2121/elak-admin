@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Vendor;
 
+use App\Models\Cart;
 use App\Models\Order;
 use App\Models\OrderCancelReason;
 use App\Models\Store;
@@ -12,6 +13,7 @@ use App\CentralLogics\Helpers;
 use App\Models\BusinessSetting;
 use App\CentralLogics\OrderLogic;
 use App\CentralLogics\CouponLogic;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 use App\Models\OrderPayment;
@@ -26,9 +28,11 @@ class OrderController extends Controller
     public function list($status)
     {
 
+
+        $store_id = \App\CentralLogics\Helpers::get_store_id();
         $key = explode(' ', request()?->search);
         Order::where(['checked' => 0])->where('store_id', Helpers::get_store_id())->update(['checked' => 1]);
-    
+
         $orders = Order::with(['customer'])
             ->when($status == 'searching_for_deliverymen', function ($query) {
                 return $query->SearchingForDeliveryman();
@@ -74,8 +78,9 @@ class OrderController extends Controller
                 });
             })
 
-            ->StoreOrder()->NotDigitalOrder()
-            ->where('store_id', \App\CentralLogics\Helpers::get_store_id())
+            ->StoreOrder()
+            // ->NotDigitalOrder()
+            ->where('store_id', $store_id)
             ->orderBy('schedule_at', 'desc')
             ->paginate(config('default_pagination'));
 
@@ -710,4 +715,136 @@ class OrderController extends Controller
         Toastr::success(translate('order_proof_image_removed_successfully'));
         return back();
     }
+
+    public function orderScanUpdate(Request $request)
+    {
+
+        $request->validate([
+            'order_id' => 'required'
+        ]);
+        $qr_code = $request->order_id;
+
+        $vendor = auth('vendor')->user();
+
+        $store = $vendor->store;
+
+        if (!$store) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Store not found for this vendor.'
+            ]);
+        }
+
+        $order = Order::where('qr_code', $qr_code)->first();
+
+        // 1️⃣ Check if order is pending
+        if ($order->order_status != 'hold') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Order already used or processed.'
+            ]);
+        }
+
+        // 2️⃣ Check store schedule
+        $now = Carbon::now();
+        $todayDay = $now->dayOfWeek;
+
+        $todaySchedule = $store->schedules()->where('day', $todayDay)->first();
+
+        if (!$todaySchedule) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Store is closed today.'
+            ]);
+        }
+
+        $currentTime = $now->format('H:i:s');
+
+        if ($currentTime < $todaySchedule->opening_time || $currentTime > $todaySchedule->closing_time) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Store is currently closed. Cannot redeem order now.'
+            ]);
+        }
+        Order::where(['checked' => 0])->where('store_id', Helpers::get_store_id())->update(['checked' => 1]);
+        // 3️⃣ Update order safely without fillable
+        $order->order_status = 'pending';
+        $order->store_id = $store->id;
+        $order->qr_code = null;
+        $order->save();
+
+        return response()->json([
+            'success' => true,
+            'redirect_url' => route('vendor.order.details', ['id' => $order->id])
+        ]);
+    }
+    public function flat_list($status)
+    {
+        // 1️⃣ Get the current store ID
+        $store_id = \App\CentralLogics\Helpers::get_store_id();
+
+        // 2️⃣ Fetch all carts with type 'flat' and item belonging to this store
+        $orders = Cart::where('type', 'Flat discount')
+            ->whereHas('item', function ($query) use ($store_id) {
+                $query->where('store_id', $store_id);
+            })
+            ->with('item') // eager load item for performance
+            ->get();
+        // dd( $orders , $store_id);
+        // 3️⃣ Pass to view
+        return view('vendor-views.flat-order.list', compact('orders', 'status'));
+    }
+    public function updateStatus($id, $status)
+    {
+        $allowedStatus = ['approved', 'rejected'];
+
+        if (!in_array($status, $allowedStatus)) {
+            return redirect()->back()->with('error', 'Invalid status');
+        }
+
+        $cart = Cart::findOrFail($id);
+
+        $cart->status = $status;
+        $cart->save();
+
+        return redirect()->back()->with('success', 'Cart status updated successfully');
+    }
+    // Check for new cart
+    public function checkNewCart()
+    {
+             // 1️⃣ Get the current store ID
+        $store_id = \App\CentralLogics\Helpers::get_store_id();
+
+        // Fetch latest pending cart
+        $cart = Cart::where('status', 'pending')->where('store_id' , $store_id)->latest()->first();
+
+        if (!$cart) {
+            return response()->json(['success' => false]);
+        }
+
+        // Prepare user object
+        $user = $cart->is_guest
+            ? [
+            'name' => json_decode($cart->delivery_address, true)['contact_person_name'] ?? 'Guest',
+            'phone' => json_decode($cart->delivery_address, true)['contact_person_number'] ?? '-'
+        ]
+            : [
+            'name' => $cart->user->f_name . ' ' . $cart->user->l_name,
+            'phone' => $cart->user->phone
+        ];
+
+        return response()->json([
+            'success' => true,
+            'cart' => [
+                'id' => $cart->id,
+                'item' => ucwords($cart->item->name),
+                'quantity' => $cart->quantity,
+                'total' => $cart->price * $cart->quantity,
+                'status' => $cart->status
+            ],
+            'user' => $user
+        ]);
+    }
+
+
 }
