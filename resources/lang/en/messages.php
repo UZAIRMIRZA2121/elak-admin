@@ -8428,4 +8428,5 @@ Smartly or Earn. ',
   'The cart group must be a string.' => 'The cart group must be a string.',
   'cart_id' => 'Cart id',
   'Flat Request' => 'Flat Request',
+  'The model field is required.' => 'The model field is required.',
 );

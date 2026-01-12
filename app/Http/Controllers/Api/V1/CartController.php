@@ -85,7 +85,7 @@ class CartController extends Controller
    
         $cart = new Cart();
         $cart->cart_group = $request->cart_group; // ✅ new column
-        $cart->store_id =  ($item->voucher_ids === 'Flat discount') ? $item->store_id : null;
+        $cart->store_id =  ($item->voucher_ids === 'Flat discount') ? $request->store_id : null;
         $cart->user_id = $user_id;
         $cart->module_id = $request->header('moduleId');
         $cart->item_id = $request->item_id;

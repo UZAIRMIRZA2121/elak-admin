@@ -226,7 +226,7 @@ $moduleType = $store?->module?->module_type;
         </div>
 
 
-        @if (isset($cart))
+ 
             <div class="modal fade" id="newCartModal">
                 <div class="modal-dialog modal-dialog-centered" role="document">
                     <div class="modal-content">
@@ -250,16 +250,18 @@ $moduleType = $store?->module?->module_type;
                         </div>
 
                         <div class="modal-footer justify-content-center">
-                            <a href="{{ route('vendor.flate.order.update-status', ['id' => $cart->id, 'status' => 'approved']) }}"
-                                class="btn btn-success" id="nc-approve">Approve</a>
-                            <a href="{{ route('vendor.flate.order.update-status', ['id' => $cart->id, 'status' => 'rejected']) }}"
-                                class="btn btn-danger" id="nc-reject">Reject</a>
+                            <a href="javascript:void(0)" class="btn btn-success" id="nc-approve">
+                                Approve
+                            </a>
+                            <a href="javascript:void(0)" class="btn btn-danger" id="nc-reject">
+                                Reject
+                            </a>
                         </div>
 
                     </div>
                 </div>
             </div>
-        @endif
+
 
 
     </main>
@@ -287,10 +289,11 @@ $moduleType = $store?->module?->module_type;
     <script>
         function checkNewCart() {
             $.ajax({
-                url: "{{ route('vendor.flate.order.check-new') }}", // new route to check new cart
+                url: "{{ route('vendor.flate.order.check-new') }}",
                 method: "GET",
                 success: function(response) {
                     if (response.success && response.cart) {
+
                         const cart = response.cart;
                         const user = response.user;
 
@@ -301,19 +304,29 @@ $moduleType = $store?->module?->module_type;
                         $('#nc-qty').text(cart.quantity);
                         $('#nc-total').text(cart.total);
 
-                        // Store cart id in buttons
-                        $('#nc-approve').data('id', cart.id);
-                        $('#nc-reject').data('id', cart.id);
+                        // Generate URLs dynamically
+                        let approveUrl =
+                            "{{ route('vendor.flate.order.update-status', ['id' => ':id', 'status' => 'approved']) }}";
+                        let rejectUrl =
+                            "{{ route('vendor.flate.order.update-status', ['id' => ':id', 'status' => 'rejected']) }}";
+
+                        approveUrl = approveUrl.replace(':id', cart.id);
+                        rejectUrl = rejectUrl.replace(':id', cart.id);
+
+                        // Set URLs on buttons
+                        $('#nc-approve').attr('href', approveUrl);
+                        $('#nc-reject').attr('href', rejectUrl);
 
                         // Show modal
                         $('#newCartModal').modal('show');
                     }
                 }
             });
+
         }
 
         // Auto-check every 5-10 seconds
-        setInterval(checkNewCart, 10000); // 10 seconds
+        setInterval(checkNewCart, 300); // 10 seconds
         checkNewCart(); // initial call
     </script>
 
