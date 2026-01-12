@@ -82,10 +82,10 @@ class CartController extends Controller
             ], 403);
         }
 
-   
+
         $cart = new Cart();
         $cart->cart_group = $request->cart_group; // ✅ new column
-        $cart->store_id =  ($item->voucher_ids === 'Flat discount') ? $request->store_id : null;
+        $cart->store_id = ($item->voucher_ids === 'Flat discount') ? $request->store_id : null;
         $cart->user_id = $user_id;
         $cart->module_id = $request->header('moduleId');
         $cart->item_id = $request->item_id;
@@ -118,28 +118,31 @@ class CartController extends Controller
                 return $data;
             });
 
+        if ($cart->status === 'pending') {
+            // Wait loop: max 2 minutes
+            $maxWait = 120; // seconds
+            $interval = 5; // check every 5 seconds
+            $elapsed = 0;
 
-        // Wait loop: max 2 minutes
-        $maxWait = 120; // seconds
-        $interval = 5; // check every 5 seconds
-        $elapsed = 0;
+            while ($cart->status === 'pending' && $elapsed < $maxWait) {
+                sleep($interval);
+                $elapsed += $interval;
 
-        while ($cart->status === 'pending' && $elapsed < $maxWait) {
-            sleep($interval);
-            $elapsed += $interval;
+                // reload cart from database
+                $cart->refresh();
+            }
 
-            // reload cart from database
-            $cart->refresh();
+            // After waiting
+            return response()->json([
+                'cart_id' => $cart->id,
+                'status' => $cart->status,
+                'message' => $cart->status === 'pending'
+                    ? 'Vendor did not respond in time'
+                    : 'Vendor responded'
+            ]);
         }
+             return response()->json($carts, 200);
 
-        // After waiting
-        return response()->json([
-            'cart_id' => $cart->id,
-            'status' => $cart->status,
-            'message' => $cart->status === 'pending'
-                ? 'Vendor did not respond in time'
-                : 'Vendor responded'
-        ]);
     }
 
     public function update_cart(Request $request)
