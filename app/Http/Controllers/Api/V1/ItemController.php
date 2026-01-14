@@ -755,7 +755,6 @@ class ItemController extends Controller
         }
 
         $zone_id = $request->header('zoneId');
-        
         $type = $request->query('type', 'all');
         $limit = $request['limit'] ?? 25;
         $offset = $request['offset'] ?? 1;
@@ -773,20 +772,86 @@ class ItemController extends Controller
                 })->whereIn('zone_id', json_decode($zone_id, true));
             })
             ->paginate($limit, ['*'], 'page', $offset);
+
+        // dd($items);
         
         $products = Helpers::product_data_formatting($items->items(), true, false, app()->getLocale());
         
+        // Force conversion to array to avoid Model serialization issues
+        $products = collect($products)->map(function ($item) {
+            return $item instanceof \Illuminate\Database\Eloquent\Model ? $item->toArray() : (array) $item;
+        })->toArray();
+
         $original_items = collect($items->items())->keyBy('id');
             // dd($original_items);
            
+        // Fetch fresh items to avoid any side-effects from product_data_formatting
+        $product_ids = array_column($products, 'id');
+        $fresh_items = \App\Models\Item::whereIn('id', $product_ids)->get()->keyBy('id');
+
         foreach ($products as &$product) {
-            if (isset($product['id']) && $original = $original_items->get($product['id'])) {
-                $product['gift_occasions'] = $original->gift_occasions;
-                $product['message_templates'] = $original->message_templates;
-                $product['delivery_options'] = $original->delivery_options;
+            if (isset($product['id']) && $original = $fresh_items->get($product['id'])) {
+                // Safely handle relations/attributes that might be Arrays, Collections, or Strings
+                $fields_to_handle = ['gift_occasions', 'message_templates', 'delivery_options'];
+                
+                foreach ($fields_to_handle as $field) {
+                    $value = $original->{$field};
+                    
+                    if ($value instanceof \Illuminate\Support\Collection) {
+                        $product[$field] = $value->toArray();
+                    } elseif (is_array($value)) {
+                        $product[$field] = $value;
+                    } elseif (is_string($value)) {
+                         // Function to recursively decode JSON if double-encoded
+                         $decoded = json_decode($value, true);
+                         while (is_string($decoded)) {
+                             $inner = json_decode($decoded, true);
+                             if (json_last_error() !== JSON_ERROR_NONE) break;
+                             $decoded = $inner;
+                         }
+                         $product[$field] = is_null($decoded) ? $value : $decoded;
+                    } else {
+                        $product[$field] = $value ?? [];
+                    }
+                }
+
+                // Decode fields that are JSON strings within the already formatted product
+                $fields_to_decode = [
+                    'clients_section', 'client_id', 'segment_ids', 'branch_ids', 
+                    'how_and_condition_ids', 'term_and_condition_ids', 'product', 
+                    'product_b', 'recipient_info_form_fields', 'occasions_id', 
+                    'message_template_style', 'min_max_amount', 'fixed_amount_options', 
+                    'bonus_configuration', 'redemption_process', 'validity_period', 
+                    'usage_restrictions', 'blackout_dates', 'images'
+                ];
+
+                foreach ($fields_to_decode as $field) {
+                    if (isset($product[$field]) && is_string($product[$field])) {
+                        $decoded = json_decode($product[$field]);
+                        if ($decoded !== null || strtolower($product[$field]) === 'null') {
+                             $product[$field] = $decoded;
+                        }
+                    }
+                }
+                
+                // Special handling for gift_occasions icons
+                 if (!empty($product['gift_occasions']) && is_array($product['gift_occasions'])) {
+                    foreach ($product['gift_occasions'] as &$occasion) {
+                        if (is_array($occasion)) {
+                             if (isset($occasion['icon']) && is_string($occasion['icon'])) {
+                                $occasion['icon'] = json_decode($occasion['icon']);
+                            }
+                        } elseif (is_object($occasion)) {
+                             if (isset($occasion->icon) && is_string($occasion->icon)) {
+                                $occasion->icon = json_decode($occasion->icon);
+                            }
+                        }
+                    }
+                }
             }
         }
         unset($product);
+        
 
         $data = [
             'total_size' => $items->total(),

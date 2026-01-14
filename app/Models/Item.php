@@ -799,11 +799,22 @@ class Item extends Model
     public function getMessageTemplatesAttribute()
     {
         $id = $this->message_template_style;
+        
+        // Decode if it's a JSON string (handle potential double encoding/array string)
+        if (is_string($id)) {
+            $decoded = json_decode($id, true);
+            if (json_last_error() === JSON_ERROR_NONE) {
+                $id = $decoded;
+            }
+        }
+
         if (empty($id)) {
             return collect();
         }
+        
         // If it's a single ID (string/int), wrap in array for whereIn
         $ids = is_array($id) ? $id : [$id];
+        
         return MessageTemplate::whereIn('id', $ids)->get();
     }
 
@@ -847,13 +858,22 @@ class Item extends Model
             return collect();
         }
 
-        // Decode JSON if needed
+        // Decode JSON recursively if needed (handle double encoding)
         if (is_string($value)) {
             $decoded = json_decode($value, true);
-            if (json_last_error() === JSON_ERROR_NONE) {
+            while (is_string($decoded)) {
+                $inner = json_decode($decoded, true);
+                if (json_last_error() !== JSON_ERROR_NONE) break;
+                // If it decoded to a string/array/null, use it. 
+                // If it decoded to same string (not changed), break to avoid loop (though json_decode usually changes or fails)
+                if ($decoded === $inner) break; 
+                $decoded = $inner;
+            }
+            
+            if (json_last_error() === JSON_ERROR_NONE && (is_array($decoded) || is_numeric($decoded))) {
                 $value = $decoded;
-            } else {
-                // Fallback: comma-separated string
+            } elseif (is_string($value) && strpos($value, ',') !== false) {
+                // Fallback: comma-separated string if simple decode failed or wasn't applicable
                 $value = explode(',', $value);
             }
         }

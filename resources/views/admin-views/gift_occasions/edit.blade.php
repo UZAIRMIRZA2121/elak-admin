@@ -150,7 +150,7 @@
                                                         </a>
 
                                                         <!-- IMG -->
-                                                        <img src="{{ asset('public/' . $img) }}" class="img-thumbnail"
+                                                        <img src="{{ asset($img) }}" alt="{{ $img }}" class="img-thumbnail"
                                                             style="width: 120px; height:auto;">
 
 

@@ -13,6 +13,59 @@ use Illuminate\Support\Str;
 
 class CartController extends Controller
 {
+
+      public function status_cart(Request $request, $id)
+    {
+        dd("b hfs");
+            $validator = Validator::make(
+            $request->all(),
+            [
+                'id'     => 'required',
+                'status' => 'required|in:pending,approved,rejected,status_cart',
+            ],
+            [
+                'status.in' => 'Status value invalid hai.',
+            ]
+        );
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => Helpers::error_processor($validator)], 403);
+        }
+        $cart = Cart::find($id);
+        $cart->status = $request->status;
+        $cart->save();
+        return response()->json($cart, 200);
+    }
+
+    // public function get_carts(Request $request)
+    // {
+    //     $validator = Validator::make($request->all(), [
+    //         'guest_id' => $request->user ? 'nullable' : 'required',
+    //     ]);
+
+    //     if ($validator->fails()) {
+    //         return response()->json(['errors' => Helpers::error_processor($validator)], 403);
+    //     }
+    //     $user_id = $request->user ? $request->user->id : $request['guest_id'];
+    //     $is_guest = $request->user ? 0 : 1;
+    //     $carts = Cart::where('user_id', $user_id)->where('is_guest', $is_guest)->where('module_id', $request->header('moduleId'))->get()
+    //         ->map(function ($data) {
+    //             $data->add_on_ids = json_decode($data->add_on_ids, true);
+    //             $data->add_on_qtys = json_decode($data->add_on_qtys, true);
+    //             $data->variation = json_decode($data->variation, true);
+    //             $data->item = Helpers::cart_product_data_formatting(
+    //                 $data->item,
+    //                 $data->variation,
+    //                 $data->add_on_ids,
+    //                 $data->add_on_qtys,
+    //                 false,
+    //                 app()->getLocale()
+    //             );
+    //             return $data;
+    //         });
+    //     return response()->json($carts, 200);
+    // }
+
     public function get_carts(Request $request)
     {
         $validator = Validator::make($request->all(), [

@@ -455,6 +455,7 @@ Route::group(['namespace' => 'Api\V1', 'middleware' => 'localization'], function
                 Route::post('update', 'CartController@update_cart');
                 Route::delete('remove-item', 'CartController@remove_cart_item');
                 Route::delete('remove', 'CartController@remove_cart');
+                Route::post('status/{id}', 'CartController@status_cart');
             });
 
         });
@@ -531,6 +532,7 @@ Route::group(['namespace' => 'Api\V1', 'middleware' => 'localization'], function
             Route::get('stores/list', 'CategoryController@get_category_stores');
             Route::get('items/{category_id}', 'CategoryController@get_products');
             Route::get('items/{category_id}/all', 'CategoryController@get_all_products');
+            Route::get('stores/gift-all/{category_id?}', 'CategoryController@get_gift_stores');
             Route::get('stores/{category_id}', 'CategoryController@get_stores');
             Route::get('featured/items', 'CategoryController@get_featured_category_products');
             Route::get('popular', 'CategoryController@get_popular_category_list');
