@@ -286,50 +286,7 @@ $moduleType = $store?->module?->module_type;
     {!! Toastr::message() !!}
     <script src="{{ asset('public/assets/admin/intltelinput/js/intlTelInput.min.js') }}"></script>
 
-    <script>
-        function checkNewCart() {
-            $.ajax({
-                url: "{{ route('vendor.flate.order.check-new') }}",
-                method: "GET",
-                success: function(response) {
-                    if (response.success && response.cart) {
-
-                        const cart = response.cart;
-                        const user = response.user;
-
-                        // Fill modal content
-                        $('#nc-customer').text(user.name);
-                        $('#nc-phone').text(user.phone);
-                        $('#nc-item').text(cart.item);
-                        $('#nc-qty').text(cart.quantity);
-                        $('#nc-total').text(cart.total);
-
-                        // Generate URLs dynamically
-                        let approveUrl =
-                            "{{ route('vendor.flate.order.update-status', ['id' => ':id', 'status' => 'approved']) }}";
-                        let rejectUrl =
-                            "{{ route('vendor.flate.order.update-status', ['id' => ':id', 'status' => 'rejected']) }}";
-
-                        approveUrl = approveUrl.replace(':id', cart.id);
-                        rejectUrl = rejectUrl.replace(':id', cart.id);
-
-                        // Set URLs on buttons
-                        $('#nc-approve').attr('href', approveUrl);
-                        $('#nc-reject').attr('href', rejectUrl);
-
-                        // Show modal
-                        $('#newCartModal').modal('show');
-                    }
-                }
-            });
-
-        }
-
-        // Auto-check every 5-10 seconds
-        setInterval(checkNewCart, 300); // 10 seconds
-        checkNewCart(); // initial call
-    </script>
-
+ 
 
     @if ($errors->any())
         <script>
@@ -982,6 +939,53 @@ $moduleType = $store?->module?->module_type;
             $('body').removeClass('modal-open').css('padding-right', '');
         }
     </script>
+
+
+
+   <script>
+        function checkNewCart() {
+            $.ajax({
+                url: "{{ route('vendor.flate.order.check-new') }}",
+                method: "GET",
+                success: function(response) {
+                    if (response.success && response.cart) {
+
+                        const cart = response.cart;
+                        const user = response.user;
+
+                        // Fill modal content
+                        $('#nc-customer').text(user.name);
+                        $('#nc-phone').text(user.phone);
+                        $('#nc-item').text(cart.item);
+                        $('#nc-qty').text(cart.quantity);
+                        $('#nc-total').text(cart.total);
+
+                        // Generate URLs dynamically
+                        let approveUrl =
+                            "{{ route('vendor.flate.order.update-status', ['id' => ':id', 'status' => 'approved']) }}";
+                        let rejectUrl =
+                            "{{ route('vendor.flate.order.update-status', ['id' => ':id', 'status' => 'rejected']) }}";
+
+                        approveUrl = approveUrl.replace(':id', cart.id);
+                        rejectUrl = rejectUrl.replace(':id', cart.id);
+
+                        // Set URLs on buttons
+                        $('#nc-approve').attr('href', approveUrl);
+                        $('#nc-reject').attr('href', rejectUrl);
+
+                        // Show modal
+                        $('#newCartModal').modal('show');
+                    }
+                }
+            });
+
+        }
+
+        // Auto-check every 5-10 seconds
+        setInterval(checkNewCart, 1000); // 10 seconds
+
+    </script>
+
 
 </body>
 

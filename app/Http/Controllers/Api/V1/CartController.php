@@ -120,29 +120,39 @@ class CartController extends Controller
             });
 
         if ($cart->status === 'pending') {
-            // Wait loop: max 2 minutes
-            $maxWait = 120; // seconds
-            $interval = 5; // check every 5 seconds
+
+            $maxWait = 120; // seconds (2 minutes)
+            $interval = 5;  // check every 5 seconds
             $elapsed = 0;
 
-            while ($cart->status === 'pending' && $elapsed < $maxWait) {
+            while ($elapsed < $maxWait) {
                 sleep($interval);
                 $elapsed += $interval;
 
-                // reload cart from database
+                // Reload cart status
                 $cart->refresh();
+
+                // Vendor responded (approved / rejected)
+                if ($cart->status !== 'pending') {
+                    return response()->json([
+                        'cart_id' => $cart->id,
+                        'status' => $cart->status,
+                        'message' => 'Vendor responded'
+                    ], 200);
+                }
             }
 
-            // After waiting
+            // ⛔ Vendor did NOT respond in time → update status
+            $cart->status = 'not_responded';
+            $cart->save();
+
             return response()->json([
                 'cart_id' => $cart->id,
-                'status' => $cart->status,
-                'message' => $cart->status === 'pending'
-                    ? 'Vendor did not respond in time'
-                    : 'Vendor responded'
-            ]);
+                'status' => 'not_responded',
+                'message' => 'Vendor did not respond in time'
+            ], 408); // 408 = Request Timeout
         }
-             return response()->json($carts, 200);
+        return response()->json($carts, 200);
 
     }
 
