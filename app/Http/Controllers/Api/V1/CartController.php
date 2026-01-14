@@ -98,6 +98,7 @@ class CartController extends Controller
         $cart->variation = isset($request->variation) ? json_encode($request->variation) : json_encode([]);
         $cart->status = ($item->voucher_ids === 'Flat discount') ? 'pending' : null;
         $cart->type = $item->voucher_ids ?? null;
+        $cart->gift_details = $request->gift_details ?? null;
         $cart->save();
 
         $item->carts()->save($cart);

@@ -35,6 +35,7 @@ class Cart extends Model
         'variation',
         'status',
         'type',
+        'gift_details',
     ];
 
     public function item()
