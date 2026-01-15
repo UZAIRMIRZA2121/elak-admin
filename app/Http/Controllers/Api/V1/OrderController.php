@@ -21,6 +21,7 @@ use Illuminate\Support\Facades\DB;
 use App\CentralLogics\ProductLogic;
 use App\Http\Controllers\Controller;
 use App\Models\OfflinePaymentMethod;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use App\Models\ParcelDeliveryInstruction;
 use App\Traits\PlaceNewOrder;
@@ -60,9 +61,9 @@ class OrderController extends Controller
             $order['delivery_man'] = $order['delivery_man'] ? Helpers::deliverymen_data_formatting([$order['delivery_man']]) : $order['delivery_man'];
             $order['refund_cancellation_note'] = $order['refund'] ? $order['refund']['admin_note'] : null;
             $order['refund_customer_note'] = $order['refund'] ? $order['refund']['customer_note'] : null;
-            $order['min_delivery_time'] =  $order->store ? (int) explode('-', $order->store?->delivery_time)[0] ?? 0 : 0;
-            $order['max_delivery_time'] =  $order->store ? (int) explode('-', $order->store?->delivery_time)[1] ?? 0 : 0;
-            $order['offline_payment'] =  isset($order->offline_payments) ? Helpers::offline_payment_formater($order->offline_payments) : null;
+            $order['min_delivery_time'] = $order->store ? (int) explode('-', $order->store?->delivery_time)[0] ?? 0 : 0;
+            $order['max_delivery_time'] = $order->store ? (int) explode('-', $order->store?->delivery_time)[1] ?? 0 : 0;
+            $order['offline_payment'] = isset($order->offline_payments) ? Helpers::offline_payment_formater($order->offline_payments) : null;
 
             unset($order['offline_payments']);
             unset($order['details']);
@@ -168,7 +169,7 @@ class OrderController extends Controller
         $details = isset($order->details) ? $order->details : null;
         if ($details != null && $details->count() > 0) {
             $details = Helpers::order_details_data_formatting($details);
-            $details[0]['is_guest'] = (int)$order->is_guest;
+            $details[0]['is_guest'] = (int) $order->is_guest;
             return response()->json($details, 200);
         } else if ($order->order_type == 'parcel' || $order->prescription_order == 1) {
             $order->delivery_address = json_decode($order->delivery_address, true);
@@ -224,7 +225,7 @@ class OrderController extends Controller
             $order->cancellation_reason = $request->reason;
             $order->canceled_by = 'customer';
             $order->save();
-            $order?->store ?   Helpers::increment_order_count($order?->store) : '';
+            $order?->store ? Helpers::increment_order_count($order?->store) : '';
 
             Helpers::send_order_notification($order);
             return response()->json(['message' => translate('messages.order_canceled_successfully')], 200);
@@ -512,7 +513,7 @@ class OrderController extends Controller
         $order = Order::where('id', $request->order_id)->firstOrfail();
 
         $info = OfflinePayments::where('order_id', $request->order_id)->firstOrfail();
-        $old_data =   json_decode($info->payment_info, true);
+        $old_data = json_decode($info->payment_info, true);
         $method_id = data_get($old_data, 'method_id', null);
         $offline_payment_info = [];
         $method = OfflinePaymentMethod::where('id', $method_id)->first();
@@ -579,7 +580,7 @@ class OrderController extends Controller
 
     private function createCashBackHistory($order_amount, $user_id, $order_id)
     {
-        $cashBack =  Helpers::getCalculatedCashBackAmount(amount: $order_amount, customer_id: $user_id);
+        $cashBack = Helpers::getCalculatedCashBackAmount(amount: $order_amount, customer_id: $user_id);
         if (data_get($cashBack, 'calculated_amount') > 0) {
             $CashBackHistory = new CashBackHistory();
             $CashBackHistory->user_id = $user_id;
@@ -620,6 +621,9 @@ class OrderController extends Controller
 
     public function place_order(Request $request)
     {
+        Log::info('New Place Order Request', [
+            'body' => $request->all(),
+        ]);
         return $this->new_place_order($request);
     }
     public function prescription_place_order(Request $request)
@@ -646,4 +650,31 @@ class OrderController extends Controller
 
         return $this->getSurgePrice($request->zone_id, $request->module_id, $request->date_time);
     }
+
+
+
+
+
+    public function orderScanUpdate(Request $request)
+    {
+
+        $request->validate([
+            'order_id' => 'required|exists:orders,id'
+        ]);
+
+
+        $store_data = auth('vendor')->user();
+        dd($store_data);
+        $order = Order::find($request->order_id);
+
+        $order->update([
+            'order_status' => 'in_progress',
+            'store_id' => 66
+        ]);
+
+        return response()->json([
+            'success' => true
+        ]);
+    }
+
 }

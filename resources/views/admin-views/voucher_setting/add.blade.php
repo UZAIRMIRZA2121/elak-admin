@@ -238,150 +238,6 @@
                                             </div>
                                         </div>
 
-                                          {{-- <div class="day-time-table" id="dayTimeTable" >
-                                            <table class="table table-bordered">
-                                                <thead style="background: #f8f9fa;">
-                                                    <tr>
-                                                        <th style="width: 15%;">DAY</th>
-                                                        <th style="width: 35%;">START TIME</th>
-                                                        <th style="width: 35%;">END TIME</th>
-                                                        <th style="width: 15%;">ACTION</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    <tr data-day="Monday">
-                                                        <td>Monday</td>
-                                                        <td>
-                                                          <input type="time" class="form-control start-time"
-                                                                name="working_hours[monday][start]"
-                                                                value="{{ $specificDays['monday']['start'] ?? '' }}">
-                                                        </td>
-                                                        <td>
-                                                          <input type="time" class="form-control end-time"
-                                                                name="working_hours[monday][end]"
-                                                                value="{{ $specificDays['monday']['end'] ?? '' }}">
-                                                        </td>
-                                                        <td>
-                                                            <button type="button" class="btn btn-outline-danger btn-sm reset-day">Reset</button>
-                                                        </td>
-                                                    </tr>
-
-                                                    <tr data-day="Tuesday">
-                                                        <td>Tuesday</td>
-                                                        <td>
-                                                             <input type="time" class="form-control start-time"
-                                                                name="working_hours[tuesday][start]"
-                                                                value="{{ $specificDays['tuesday']['start'] ?? '' }}">
-
-                                                        </td>
-                                                        <td>
-                                                             <input type="time" class="form-control end-time"
-                                                                name="working_hours[tuesday][end]"
-                                                                value="{{ $specificDays['tuesday']['end'] ?? '' }}">
-
-                                                        </td>
-                                                        <td>
-                                                            <button type="button" class="btn btn-outline-danger btn-sm reset-day">Reset</button>
-                                                        </td>
-                                                    </tr>
-
-                                                    <tr data-day="Wednesday">
-                                                        <td>Wednesday</td>
-                                                        <td>
-                                                             <input type="time" class="form-control start-time"
-                                                                name="working_hours[wednesday][start]"
-                                                                value="{{ $specificDays['wednesday']['start'] ?? '' }}">
-
-                                                        </td>
-                                                        <td>
-                                                               <input type="time" class="form-control end-time"
-                                                                name="working_hours[wednesday][end]"
-                                                                value="{{ $specificDays['wednesday']['end'] ?? '' }}">
-
-                                                        </td>
-                                                        <td>
-                                                            <button type="button" class="btn btn-outline-danger btn-sm reset-day">Reset</button>
-                                                        </td>
-                                                    </tr>
-
-                                                    <tr data-day="Thursday">
-                                                        <td>Thursday</td>
-                                                        <td>
-                                                              <input type="time" class="form-control start-time"
-                                                                name="working_hours[thursday][start]"
-                                                                value="{{ $specificDays['thursday']['start'] ?? '' }}">
-
-                                                        </td>
-                                                        <td>
-                                                                 <input type="time" class="form-control end-time"
-                                                                name="working_hours[thursday][end]"
-                                                                value="{{ $specificDays['thursday']['end'] ?? '' }}">
-
-                                                        </td>
-                                                        <td>
-                                                            <button type="button" class="btn btn-outline-danger btn-sm reset-day">Reset</button>
-                                                        </td>
-                                                    </tr>
-
-                                                    <tr data-day="Friday">
-                                                        <td>Friday</td>
-                                                        <td>
-                                                               <input type="time" class="form-control start-time"
-                                                                name="working_hours[friday][start]"
-                                                                value="{{ $specificDays['friday']['start'] ?? '' }}">
-
-                                                        </td>
-                                                        <td>
-                                                                 <input type="time" class="form-control end-time"
-                                                                name="working_hours[friday][end]"
-                                                                value="{{ $specificDays['friday']['end'] ?? '' }}">
-
-                                                        </td>
-                                                        <td>
-                                                            <button type="button" class="btn btn-outline-danger btn-sm reset-day">Reset</button>
-                                                        </td>
-                                                    </tr>
-
-                                                    <tr data-day="Saturday">
-                                                        <td>Saturday</td>
-                                                        <td>
-                                                                 <input type="time" class="form-control start-time"
-                                                                name="working_hours[saturday][start]"
-                                                                value="{{ $specificDays['saturday']['start'] ?? '' }}">
-
-                                                        </td>
-                                                        <td>
-                                                             <input type="time" class="form-control end-time"
-                                                                name="working_hours[saturday][end]"
-                                                                value="{{ $specificDays['saturday']['end'] ?? '' }}">
-                                                        </td>
-                                                        <td>
-                                                            <button type="button" class="btn btn-outline-danger btn-sm reset-day">Reset</button>
-                                                        </td>
-                                                    </tr>
-
-                                                    <tr data-day="Sunday">
-                                                        <td>Sunday</td>
-                                                        <td>
-                                                              <input type="time" class="form-control start-time"
-                                                                name="working_hours[sunday][start]"
-                                                                value="{{ $specificDays['sunday']['start'] ?? '' }}">
-
-                                                        </td>
-                                                        <td>
-                                                              <input type="time" class="form-control end-time"
-                                                                name="working_hours[sunday][end]"
-                                                                value="{{ $specificDays['sunday']['end'] ?? '' }}">
-
-                                                        </td>
-                                                        <td>
-                                                            <button type="button" class="btn btn-outline-danger btn-sm reset-day">Reset</button>
-                                                        </td>
-                                                    </tr>
-                                                </tbody>
-
-                                            </table>
-                                        </div> --}}
 
                                         <div class="day-time-table" id="dayTimeTable" >
                                             <table class="table table-bordered">
@@ -641,13 +497,13 @@
                                                     min="1">
                                             </div>
 
-                                            <span class="times-label">times</span>
+                                            <span class="times-label">--</span>
 
                                             <div class="form-group">
                                                 <select class="form-control" name="validity_after[period]">
                                                     <option value="">Select period</option>
 
-                                                    @foreach ($OfferValidatyPeroid as $period)
+                                                    @foreach ($UsagePeriod as $period)
                                                         <option value="{{ $period->name_en }}"
                                                             {{ ($validity_after['period'] ?? '') == $period->name_en ? 'selected' : '' }}>
                                                             {{ $period->name_en }}
@@ -660,17 +516,7 @@
                                         </div>
                                     </div>
                                     
-                                        <!-- Offer Validity -->
-                                        <!-- <div class="form-group">
-                                            <label>Offer Validity After Purchase</label>
-                                            <select class="form-control" name="validity_after" id="validityAfter">
-                                                <option value="">No time limit</option>
-                                                 @foreach ($OfferValidatyPeroid as $item)
-                                                <option value="{{ $item->id}}"> {{ $item->name_en}}</option>
-                                                @endforeach
-                                            </select>
-                                        </div> -->
-
+                              
                                         <!-- General Restrictions Checkboxes -->
                                         <div class="form-group">
                                             <label style="font-weight: 600;">General Restrictions</label>
@@ -773,7 +619,7 @@
                                     <input type="hidden" name="item_id" value="{{ $items->id }}">
                                 <div class="condition-header" >
                                 <div class="condition-title">
-                                    <span>Voucher Name:</span> {{ $items->name}} ,
+                                    <span>Voucher Name:</span> {{ $items->name ?? ''}} ,
                                     <span>Voucher Type:</span> {{ $items->voucher_ids}}
                                 </div>
                                 <div class="condition-title">
@@ -1141,18 +987,19 @@
                                                         min="1">
                                                 </div>
 
-                                                <span class="times-label">times</span>
+                                                <span class="times-label">--</span>
 
                                                 <div class="form-group">
                                                     <select class="form-control" name="validity_after[period]">
                                                         <option value="">Select period</option>
 
-                                                        @foreach ($OfferValidatyPeroid as $period)
+                                                        @foreach ($UsagePeriod as $period)
                                                             <option value="{{ $period->name_en }}"
                                                                 {{ ($offer_validity_after_purchase['period'] ?? '') == $period->name_en ? 'selected' : '' }}>
                                                                 {{ $period->name_en }}
                                                             </option>
                                                         @endforeach
+                                                        
 
                                                     </select>
                                                 </div>

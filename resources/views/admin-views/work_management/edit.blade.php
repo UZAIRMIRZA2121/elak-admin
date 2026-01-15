@@ -360,7 +360,7 @@
                             <option value="">-- Select Voucher Type --</option>
                             @foreach ($vouchers as $item)
                                 <option value="{{ $item->id }}"
-                                    {{ isset($ManagementType) && $ManagementType->voucher_type == $item->id ? 'selected' : '' }}>
+                                    {{ isset($ManagementType) && $ManagementType->voucher_id == $item->id ? 'selected' : '' }}>
                                     {{ $item->name }}
                                 </option>
                             @endforeach
@@ -370,7 +370,7 @@
                     <div class="form-group">
                         <label for="guide_title">Guide Title *</label>
                         <input type="text" id="guide_title" name="guide_title"
-                               value="{{ isset($ManagementType) ? $ManagementType->guid_title : '' }}"
+                               value="{{ isset($ManagementType) ? $ManagementType->guide_title : '' }}"
                                required placeholder="Enter guide title">
                         <div class="error-message" id="guide_title_error"></div>
                     </div>
@@ -401,7 +401,7 @@
 @endsection
 
 @push('script_2')
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<!-- <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script> -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
 <script src="{{ asset('public/assets/admin') }}/js/tags-input.min.js"></script>
 <script src="{{ asset('public/assets/admin/js/spartan-multi-image-picker.js') }}"></script>

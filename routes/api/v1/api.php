@@ -1,6 +1,8 @@
 <?php
 
 use App\Http\Controllers\Admin\ClientSideController;
+use App\Http\Controllers\Admin\VoucherController;
+use App\Http\Controllers\Api\V1\Vendor\VendorController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 
@@ -20,6 +22,9 @@ use App\Http\Controllers\Api\V1\CartController;
 
 
 Route::post('/check-ref-id', [AuthController::class, 'checkRefId']);
+Route::post('/check-ref-id', [AuthController::class, 'checkRefId']);
+
+Route::post('/vendor/order/scan-update', [VendorController::class, 'orderScanUpdate']);
 
 
 
@@ -38,7 +43,15 @@ Route::post('/check-ref-id', [AuthController::class, 'checkRefId']);
 Route::group(['namespace' => 'Api\V1', 'middleware' => 'localization'], function () {
 
 
-Route::get('/client/{id}', [ClientSideController::class, 'client_data']);
+    //Store Subscription
+    Route::group(['prefix' => 'voucher', 'namespace' => 'voucher'], function () {
+
+
+        Route::get('/gift-occasions', [VoucherController::class, 'get_gift_occasions']);
+        Route::get('/msg-template', [VoucherController::class, 'get_msg_template']);
+    });
+
+    Route::get('/client/{id}', [ClientSideController::class, 'client_data']);
 
 
 
@@ -106,7 +119,11 @@ Route::get('/client/{id}', [ClientSideController::class, 'client_data']);
 
         Route::post('social-login', 'SocialAuthController@social_login');
         Route::post('social-register', 'SocialAuthController@social_register');
+
+
+
     });
+
 
     //Store Subscription
     Route::group(['prefix' => 'vendor', 'namespace' => 'Vendor'], function () {
@@ -291,6 +308,9 @@ Route::get('/client/{id}', [ClientSideController::class, 'client_data']);
             Route::get('/', 'CategoryController@get_categories');
             Route::get('childes/{category_id}', 'CategoryController@get_childes');
             Route::get('category-wise-products/{id}', 'CategoryController@getCategoryWiseProducts');
+
+
+
         });
 
         Route::group(['prefix' => 'delivery-man'], function () {
@@ -471,6 +491,22 @@ Route::get('/client/{id}', [ClientSideController::class, 'client_data']);
             Route::post('reviews/submit', 'ItemController@submit_product_review')->middleware('auth:api');
             Route::get('common-conditions', 'ItemController@get_store_condition_products');
             Route::get('get-products', 'ItemController@get_products');
+        Route::get('store/{store_id}', 'ItemController@get_items_by_store');
+        Route::get('debug/store/{id}', function ($id) {
+            $store = \App\Models\Store::find($id);
+            if (!$store) return ['status' => 'Store not found'];
+            return [
+                'store_id' => $store->id,
+                'zone_id' => $store->zone_id,
+                'module_id' => $store->module_id,
+                'status' => $store->status,
+                'active' => $store->active,
+                'item_count' => \App\Models\Item::where('store_id', $id)->count(),
+                'active_item_count' => \App\Models\Item::where('store_id', $id)->active()->count(),
+                'module_check' => request()->header('moduleId') ? (request()->header('moduleId') == $store->module_id ? 'Match' : 'Mismatch') : 'N/A',
+                'zone_check' => request()->header('zoneId') ? (in_array($store->zone_id, json_decode(request()->header('zoneId'), true) ?? []) ? 'Match' : 'Mismatch') : 'N/A',
+            ];
+        });
         });
 
         Route::group(['prefix' => 'stores'], function () {
@@ -509,6 +545,8 @@ Route::get('/client/{id}', [ClientSideController::class, 'client_data']);
             Route::get('stores/{category_id}', 'CategoryController@get_stores');
             Route::get('featured/items', 'CategoryController@get_featured_category_products');
             Route::get('popular', 'CategoryController@get_popular_category_list');
+
+
         });
 
         Route::group(['prefix' => 'common-condition'], function () {

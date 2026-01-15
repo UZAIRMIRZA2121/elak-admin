@@ -11,7 +11,7 @@ class WorkManagement extends Model
        protected $table = 'work_managements';
         protected $fillable = [
             'voucher_id',
-            'guid_title',
+            'guide_title',
             'sections',
             'status',
         ];

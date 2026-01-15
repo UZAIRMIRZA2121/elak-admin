@@ -76,7 +76,7 @@
 
                         <!-- Order -->
                         <li
-                            class="navbar-vertical-aside-has-menu {{ Request::is('vendor-panel/order*') ? 'active' : '' }}">
+                            class="navbar-vertical-aside-has-menu {{ Request::is('vendor-panel/order*') ? 'active' : '' }} {{ Request::is('vendor-panel/flateorder*') ? 'active' : '' }}">
                             <a class="js-navbar-vertical-aside-menu-link nav-link nav-link-toggle" href="javascript:"
                                 title="{{ translate('messages.orders') }}">
                                 <i class="tio-shopping-cart nav-icon"></i>
@@ -85,7 +85,7 @@
                                 </span>
                             </a>
                             <ul class="js-navbar-vertical-aside-submenu nav nav-sub"
-                                style="display: {{ Request::is('vendor-panel/order*') ? 'block' : 'none' }}">
+                                style="display: {{ Request::is('vendor-panel/order*') ? 'block' : 'none' }} {{ Request::is('vendor-panel/flateorder*') ? 'block' : 'none' }}">
                                 <li class="nav-item {{ Request::is('vendor-panel/order/list/all') ? 'active' : '' }}">
                                     <a class="nav-link" href="{{ route('vendor.order.list', ['all']) }}"
                                         title="{{ translate('messages.all_orders') }}">
@@ -217,6 +217,32 @@
                                         <span class="tio-circle nav-indicator-icon"></span>
                                         <span class="text-truncate sidebar--badge-container">
                                             {{ translate('messages.scheduled') }}
+                                            <span class="badge badge-soft-info badge-pill ml-1">
+                                                {{ \App\Models\Order::where('store_id', \App\CentralLogics\Helpers::get_store_id())->StoreOrder()->Scheduled()->where(function ($q) {
+                                                        if (
+                                                            config('order_confirmation_model') == 'store' ||
+                                                            \App\CentralLogics\Helpers::get_store_data()->sub_self_delivery
+                                                        ) {
+                                                            $q->whereNotIn('order_status', ['failed', 'canceled', 'refund_requested', 'refunded']);
+                                                        } else {
+                                                            $q->whereNotIn('order_status', ['pending', 'failed', 'canceled', 'refund_requested', 'refunded'])->orWhere(
+                                                                function ($query) {
+                                                                    $query->where('order_status', 'pending')->where('order_type', 'take_away');
+                                                                },
+                                                            );
+                                                        }
+                                                    })->count() }}
+                                            </span>
+                                        </span>
+                                    </a>
+                                </li>
+                                 <li
+                                    class="nav-item {{ Request::is('vendor-panel/flateorder/list/all') ? 'active' : '' }}">
+                                    <a class="nav-link" href="{{ route('vendor.flate.order.list', ['all']) }}"
+                                        title="{{ translate('Flat Request') }}">
+                                        <span class="tio-circle nav-indicator-icon"></span>
+                                        <span class="text-truncate sidebar--badge-container">
+                                          {{ translate('Flat Request') }}
                                             <span class="badge badge-soft-info badge-pill ml-1">
                                                 {{ \App\Models\Order::where('store_id', \App\CentralLogics\Helpers::get_store_id())->StoreOrder()->Scheduled()->where(function ($q) {
                                                         if (

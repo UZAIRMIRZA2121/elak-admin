@@ -70,7 +70,7 @@ class Item extends Model
         'term_and_condition_ids' => 'array',
         'product' => 'array',
         'product_b' => 'array',
-        'required_quantity' => 'string',
+        'required_quantity' => 'integer',
         'name' => 'string',
 
 
@@ -798,18 +798,88 @@ class Item extends Model
 
     public function getMessageTemplatesAttribute()
     {
-        return empty($this->message_template_style)
-            ? collect()
-            : MessageTemplate::whereIn('id', $this->message_template_style)->get();
+        $id = $this->message_template_style;
+        if (empty($id)) {
+            return collect();
+        }
+        // If it's a single ID (string/int), wrap in array for whereIn
+        $ids = is_array($id) ? $id : [$id];
+        return MessageTemplate::whereIn('id', $ids)->get();
     }
 
 
-    public function getDeliveryOptionsAttribute()
+    // public function getDeliveryOptionsAttribute()
+    // {
+    //     return empty($this->delivery_options)
+    //         ? collect()
+    //         : DeliveryOption::whereIn('id', $this->delivery_options)->get();
+    // }
+    // public function getDeliveryOptionsAttribute($value)
+    // {
+    //     if (empty($value)) {
+    //         return collect();
+    //     }
+
+    //     // If it's a JSON string, decode it
+    //     if (is_string($value)) {
+    //         $decoded = json_decode($value, true);
+    //         if (json_last_error() === JSON_ERROR_NONE) {
+    //             $value = $decoded;
+    //         }
+    //     }
+
+    //     // If it's a comma-separated string (unlikely but possible), explode it
+    //     if (is_string($value)) {
+    //          $value = explode(',', $value);
+    //     }
+
+    //     // Ensure it's an array
+    //     if (!is_array($value)) {
+    //          $value = [$value];
+    //     }
+
+    //     return DeliveryOption::whereIn('id', $value)->get();
+    // }
+
+    public function getDeliveryOptionsAttribute($value)
     {
-        return empty($this->delivery_options)
-            ? collect()
-            : DeliveryOption::whereIn('id', $this->delivery_options)->get();
+        if (empty($value)) {
+            return collect();
+        }
+
+        // Decode JSON if needed
+        if (is_string($value)) {
+            $decoded = json_decode($value, true);
+            if (json_last_error() === JSON_ERROR_NONE) {
+                $value = $decoded;
+            } else {
+                // Fallback: comma-separated string
+                $value = explode(',', $value);
+            }
+        }
+
+        // Ensure array
+        if (!is_array($value)) {
+            $value = [$value];
+        }
+
+        // Normalize IDs
+        $ids = collect($value)
+            ->map(fn ($id) => trim($id))
+            ->filter(fn ($id) => is_numeric($id))
+            ->map(fn ($id) => (int) $id)
+            ->values()
+            ->toArray();
+
+        if (empty($ids)) {
+            return collect();
+        }
+
+        return DeliveryOption::whereIn('id', $ids)->get();
     }
+   
+
+
 
     public function usageTerms(): Collection
     {
@@ -830,7 +900,7 @@ class Item extends Model
         // Fetch related usage terms
         return \App\Models\WorkManagement::whereIn('id', $usageTermIds)->get();
     }
-    /** 🔗 Relation: Item → VoucherSetting */
+    /**  Relation: Item → VoucherSetting */
     public function voucherSetting()
     {
         return $this->hasOne(VoucherSetting::class, 'item_id', 'id');
