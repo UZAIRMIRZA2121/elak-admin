@@ -8,7 +8,7 @@ use App\Http\Controllers\AuthController;
 
 use App\WebSockets\Handler\DMLocationSocketHandler;
 use BeyondCode\LaravelWebSockets\Facades\WebSocketsRouter;
-
+use App\Http\Controllers\Api\V1\CartController;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -26,6 +26,16 @@ Route::post('/check-ref-id', [AuthController::class, 'checkRefId']);
 
 Route::post('/vendor/order/scan-update', [VendorController::class, 'orderScanUpdate']);
 
+
+
+// Route::group(['prefix' => 'cart'], function () {
+//     Route::get('list', [CartController::class, 'get_carts']);
+//     Route::post('add', [CartController::class, 'add_to_cart']);
+//     Route::post('update', [CartController::class, 'update_cart']);
+//     Route::delete('remove-item', [CartController::class, 'remove_cart_item']);
+//     Route::delete('remove', [CartController::class, 'remove_cart']);
+//     Route::post('status', [CartController::class, 'status_cart']);
+// });
 
 
 
@@ -455,6 +465,7 @@ Route::group(['namespace' => 'Api\V1', 'middleware' => 'localization'], function
                 Route::post('update', 'CartController@update_cart');
                 Route::delete('remove-item', 'CartController@remove_cart_item');
                 Route::delete('remove', 'CartController@remove_cart');
+                Route::post('status', [CartController::class, 'status_cart']);
             });
 
         });

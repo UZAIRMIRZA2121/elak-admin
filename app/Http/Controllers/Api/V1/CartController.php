@@ -13,6 +13,29 @@ use Illuminate\Support\Str;
 
 class CartController extends Controller
 {
+
+    public function status_cart(Request $request)
+    {
+            $validator = Validator::make(
+            $request->all(),
+            [
+                'cart_id'     => 'required',
+                'status' => 'required|in:pending,approved,rejected,status_cart',
+            ],
+            [
+                'status.in' => 'Status value invalid hai.',
+            ]
+        );
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => Helpers::error_processor($validator)], 403);
+        }
+        $cart = Cart::find($request->cart_id);
+        $cart->status = $request->status;
+        $cart->save();
+        return response()->json($cart, 200);
+    }
+
     public function get_carts(Request $request)
     {
         $validator = Validator::make($request->all(), [
