@@ -8415,4 +8415,5 @@ Smartly or Earn. ',
   'You_can_not_place_empty_orders' => 'You can not place empty orders',
   'The message template style field is required.' => 'The message template style field is required.',
   'Add More Client' => 'Add More Client',
+  'Status value invalid hai.' => 'Status value invalid hai.',
 );
