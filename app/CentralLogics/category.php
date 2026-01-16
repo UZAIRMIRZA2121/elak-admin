@@ -414,7 +414,7 @@ class CategoryLogic
     {
         $query = Store::
             withOpen($longitude??0,$latitude??0)
-            ->withCount(['items','campaigns']);
+            ->withCount(['items','campaigns']); 
 
         // If category_id is not 'all', filter by category
         if ($category_id !== 'all') {
