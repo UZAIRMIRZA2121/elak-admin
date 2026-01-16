@@ -506,6 +506,7 @@ Route::get('/client/{id}', [ClientSideController::class, 'client_data']);
             Route::get('stores/list', 'CategoryController@get_category_stores');
             Route::get('items/{category_id}', 'CategoryController@get_products');
             Route::get('items/{category_id}/all', 'CategoryController@get_all_products');
+            Route::get('stores/gift-all/{category_id?}', 'CategoryController@get_gift_stores');
             Route::get('stores/{category_id}', 'CategoryController@get_stores');
             Route::get('featured/items', 'CategoryController@get_featured_category_products');
             Route::get('popular', 'CategoryController@get_popular_category_list');

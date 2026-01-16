@@ -13,6 +13,36 @@ use Illuminate\Support\Facades\Validator;
 class CategoryController extends Controller
 {
 
+      public function get_gift_stores(Request $request, $id = 'all')
+    {
+
+
+        if (!$request->hasHeader('zoneId')) {
+            $errors = [];
+            array_push($errors, ['code' => 'zoneId', 'message' => translate('messages.zone_id_required')]);
+            return response()->json([
+                'errors' => $errors
+            ], 403);
+        }
+        $validator = Validator::make($request->all(), [
+            'limit' => 'required',
+            'offset' => 'required',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => Helpers::error_processor($validator)], 403);
+        }
+
+        $zone_id= $request->header('zoneId');
+        $longitude= $request->header('longitude');
+        $latitude= $request->header('latitude');
+        $type = $request->query('type', 'all');
+        // dd($zone_id);
+        $data = CategoryLogic::stores_all_gift($id, $zone_id, $request['limit'], $request['offset'], $type,$longitude,$latitude);
+        $data['stores'] = Helpers::store_data_formatting($data['stores'] , true);
+        return response()->json($data, 200);
+    }
+
     public function get_categories(Request $request,$search=null)
     {
         try {
