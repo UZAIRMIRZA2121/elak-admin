@@ -2,6 +2,13 @@
 
 namespace App\Http\Controllers\Vendor;
 
+use App\Models\CustomBlackoutData;
+use App\Models\GeneralRestriction;
+use App\Models\HolidayOccasion;
+use App\Models\Store;
+use App\Models\UsageTermManagement;
+use App\Models\VoucherSetting;
+use App\Models\WorkManagement;
 use Carbon\Carbon;
 use App\Models\Tag;
 use App\Models\Item;
@@ -940,11 +947,12 @@ class ItemController extends Controller
 
     public function list(Request $request)
     {
+  
         $category_id = $request->query('category_id', 'all');
         $type = $request->query('type', 'all');
         $sub_category_id = $request->query('sub_category_id', 'all');
         $key = explode(' ', $request['search']);
-        $items = Item::when(is_numeric($category_id), function ($query) use ($category_id) {
+        $items = Item::where('type', 'voucher')->when(is_numeric($category_id), function ($query) use ($category_id) {
                 return $query->whereHas('category', function ($q) use ($category_id) {
                     return $q->whereId($category_id)->orWhere('parent_id', $category_id);
                 });
@@ -960,7 +968,6 @@ class ItemController extends Controller
                     }
                 });
             })
-
             ->type($type)->latest()->paginate(config('default_pagination'));
         $sub_categories = $category_id != 'all' ? Category::where('parent_id', $category_id)->get(['id', 'name']) : [];
 
@@ -969,6 +976,9 @@ class ItemController extends Controller
 
 
         $category = $category_id != 'all' ? Category::findOrFail($category_id) : null;
+
+  
+
         return view('vendor-views.product.list', compact('items', 'category', 'type', 'sub_categories','productWiseTax'));
     }
 
@@ -1905,5 +1915,115 @@ class ItemController extends Controller
             ->paginate(config('default_pagination'));
 
         return view('vendor-views.product.flash_sale.list', compact('items'));
+    }
+
+
+
+
+
+
+
+
+    public function view_voucher($id)
+    {
+        $taxData = Helpers::getTaxSystemType();
+        $productWiseTax = $taxData['productWiseTax'];
+        $product = Item::findOrFail($id);
+
+        if (!empty($product->tags_ids)) {
+            $tagNames = Tag::whereIn('id', explode(',', $product->tags_ids))
+                ->pluck('tag')
+                ->toArray();
+
+            $product->tags_display = implode(', ', $tagNames);
+        }
+        $category_ids = json_decode($product->category_ids, true);
+        $ids = collect($category_ids)
+            ->pluck('id')
+            ->flatten()
+            ->toArray();
+        $product->categories = Category::whereIn('id', $ids)->get();
+        if (!empty($product->sub_category_ids)) {
+            $sub_ids = json_decode($product->sub_category_ids, true);
+
+            $product->sub_categories = Category::whereIn('parent_id', $sub_ids)->get();
+        }
+
+        if (!empty($product->how_and_condition_ids)) {
+            $how_ids = json_decode($product->how_and_condition_ids, true);
+            $product->how_conditions = WorkManagement::whereIn('id', $how_ids)->get();
+        }
+
+        if (!empty($product->term_and_condition_ids)) {
+            $term_ids = json_decode($product->term_and_condition_ids, true);
+            $product->terms_conditions = UsageTermManagement::whereIn('id', $term_ids)->get();
+        }
+        if (!empty($product->product)) {
+            $productArray = json_decode($product->product, true);
+            $productIds = collect($productArray)->pluck('product_id')->toArray();
+            $product->product_details = item::whereIn('id', $productIds)->get();
+        }
+        if (!empty($product->product_b)) {
+            $productArray = json_decode($product->product_b, true);
+            $productIds1 = collect($productArray)->pluck('product_id')->toArray();
+            $product->product_details_b = item::whereIn('id', $productIds)->get();
+        }
+        // dd($product->id);
+        if (!empty($product->store_id)) {
+            $product->store = Store::where('id', $product->store_id)->first();
+        }
+
+        $branchIds = json_decode($product->branch_ids, true);
+        $product->branches = Store::whereIn('parent_id', $branchIds)
+            ->orWhereIn('id', $branchIds)
+            ->where('status', 1)
+            ->orderBy('created_at')
+            ->select('id', 'name', 'type')
+            ->get();
+
+        if (!empty($product->id)) {
+            $product->VoucherSetting = VoucherSetting::where('item_id', $product->id)->first();
+
+            if (!empty($product->VoucherSetting)) {
+                // Decode JSON fields if needed
+                $holidays = $product->VoucherSetting->holidays_occasions;
+                if (is_string($holidays)) {
+                    $holidays = json_decode($holidays, true);
+                }
+
+                $blackoutDates = $product->VoucherSetting->custom_blackout_dates;
+                if (is_string($blackoutDates)) {
+                    $blackoutDates = json_decode($blackoutDates, true);
+                }
+
+                $generalRestrictions = $product->VoucherSetting->general_restrictions;
+                if (is_string($generalRestrictions)) {
+                    $generalRestrictions = json_decode($generalRestrictions, true);
+                }
+
+                // Query related models.  
+                $product->HolidayOccasion = !empty($holidays)
+                    ? HolidayOccasion::whereIn('id', $holidays)->get()
+                    : collect();
+
+                $product->CustomBlackoutDates = !empty($blackoutDates)
+                    ? CustomBlackoutData::whereIn('id', $blackoutDates)->get()
+                    : collect();
+
+                $product->GeneralRestrictions = !empty($generalRestrictions)
+                    ? GeneralRestriction::whereIn('id', $generalRestrictions)->get()
+                    : collect();
+            } else {
+                // VoucherSetting null hai, empty collections assign karo
+                $product->HolidayOccasion = collect();
+                $product->CustomBlackoutDates = collect();
+                $product->GeneralRestrictions = collect();
+            }
+        }
+
+
+        $reviews = Review::where(['item_id' => $id])->latest()->paginate(config('default_pagination'));
+
+        return view('vendor-views.product.view_voucher', compact('product', 'reviews', 'productWiseTax'));
     }
 }

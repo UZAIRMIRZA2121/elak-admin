@@ -141,6 +141,8 @@ Route::group(['namespace' => 'Vendor', 'as' => 'vendor.'], function () {
             Route::post('variant-combination', 'ItemController@variant_combination')->name('variant-combination');
             Route::post('store', 'ItemController@store')->name('store');
             Route::get('edit/{id}', 'ItemController@edit')->name('edit');
+              Route::get('view-voucher/{id}', 'ItemController@view_voucher')->name('view_voucher');
+   
             Route::post('update/{id}', 'ItemController@update')->name('update');
             Route::get('list', 'ItemController@list')->name('list');
             Route::delete('delete/{id}', 'ItemController@delete')->name('delete');

@@ -97,13 +97,20 @@ class OrderController extends Controller
 
             ->Notpos()->latest()->paginate($request['limit'], ['*'], 'page', $request['offset']);
         $orders = array_map(function ($data) {
+
             $data['delivery_address'] = $data['delivery_address'] ? json_decode($data['delivery_address']) : $data['delivery_address'];
             $data['store'] = $data['store'] ? Helpers::store_data_formatting($data['store']) : $data['store'];
             $data['delivery_man'] = $data['delivery_man'] ? Helpers::deliverymen_data_formatting([$data['delivery_man']]) : $data['delivery_man'];
             $data['refund_cancellation_note'] = $data['refund'] ? $data['refund']['admin_note'] : null;
             $data['refund_customer_note'] = $data['refund'] ? $data['refund']['customer_note'] : null;
+
+            /* ================= VOUCHER ITEMS ================= */
+            $data['voucher_items'] = Helpers::order_voucher_details_formatting_from_formatted(
+                $data['details'] ?? []
+            );
             return $data;
         }, $paginator->items());
+
         $data = [
             'total_size' => $paginator->total(),
             'limit' => $request['limit'],

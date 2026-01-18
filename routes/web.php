@@ -157,7 +157,6 @@ if (!$is_published) {
         });
 
         //BKASH
-
         Route::group(['prefix' => 'bkash', 'as' => 'bkash.'], function () {
             // Payment Routes for bKash
             Route::get('make-payment', [BkashPaymentController::class, 'make_tokenize_payment'])->name('make-payment');
