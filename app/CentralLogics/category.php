@@ -460,6 +460,77 @@ public static function stores(
 
 
 
+    public static function stores_all_gift($category_id, $zone_id, int $limit,int $offset, $type,$longitude=0,$latitude=0)
+    {
+        $query = Store::
+            withOpen($longitude??0,$latitude??0)
+            ->withCount(['items','campaigns']); 
+
+        // If category_id is not 'all', filter by category
+        if ($category_id !== 'all') {
+            $query->whereHas('items.category',function($q)use($category_id){
+                return $q->when(is_numeric($category_id),function ($qurey) use($category_id){
+                    return $qurey->whereId($category_id)->orWhere('parent_id', $category_id);
+                })
+                    ->when(!is_numeric($category_id),function ($qurey) use($category_id){
+                        $qurey->where('slug', $category_id);
+                    });
+            });
+        }
+
+        $paginator = $query
+            ->when(config('module.current_module_data'), function($query)use($zone_id){
+                $query->whereHas('zone.modules', function($query){
+                    $query->where('modules.id', config('module.current_module_data')['id']);
+                })->module(config('module.current_module_data')['id']);
+                if(!config('module.current_module_data')['all_zone_service']) {
+                    $query->whereIn('zone_id', json_decode($zone_id, true));
+                }
+            })
+            ->active()->type($type)
+            ->latest()->paginate($limit, ['*'], 'page', $offset);
+
+
+        $paginator->each(function ($store) {
+            $category_ids = DB::table('items')
+                ->join('categories', 'items.category_id', '=', 'categories.id')
+                ->selectRaw('
+                CAST(categories.id AS UNSIGNED) as id,
+                categories.parent_id
+            ')
+                ->where('items.store_id', $store->id)
+                ->where('categories.status', 1)
+                ->groupBy('id', 'categories.parent_id')
+                ->get();
+
+            $data = json_decode($category_ids, true);
+
+            $mergedIds = [];
+
+            foreach ($data as $item) {
+                if ($item['id'] != 0) {
+                    $mergedIds[] = $item['id'];
+                }
+                if ($item['parent_id'] != 0) {
+                    $mergedIds[] = $item['parent_id'];
+                }
+            }
+
+            $category_ids = array_values(array_unique($mergedIds));
+
+            $store->category_ids = $category_ids;
+            $store->discount_status = !empty($store->items->where('discount', '>', 0));
+            unset($store['items']);
+        });
+
+        return [
+            'total_size' => $paginator->total(),
+            'limit' => $limit,
+            'offset' => $offset,
+            'stores' => $paginator->items()
+        ];
+    }
+
     public static function all_products($id, $zone_id)
     {
         $cate_ids=[];
