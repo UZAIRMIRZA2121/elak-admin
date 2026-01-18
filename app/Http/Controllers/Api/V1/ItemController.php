@@ -500,6 +500,7 @@ class ItemController extends Controller
 
 
             if ($item['type'] == 'voucher') {
+                
                 if ($item->product !== "[]") {
                     $item['product'] = $item->relatedProducts() ?? [];
                 }

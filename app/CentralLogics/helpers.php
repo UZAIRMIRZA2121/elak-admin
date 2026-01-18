@@ -1057,28 +1057,67 @@ class Helpers
         return $data;
     }
 
-    public static function order_details_data_formatting($data)
-    {
-        $storage = [];
-        foreach ($data as $item) {
-            $item['add_ons'] = json_decode($item['add_ons']);
-            $item['variation'] = json_decode($item['variation'], true);
-            $item['item_details'] = json_decode($item['item_details'], true);
-            if ($item['item_id']) {
-                $product = \App\Models\Item::where(['id' => $item['item_details']['id']])->first();
-                $item['image_full_url'] = $product?->image_full_url;
-                $item['images_full_url'] = $product->images_full_url;
-            } else {
-                $product = \App\Models\ItemCampaign::where(['id' => $item['item_details']['id']])->first();
-                $item['image_full_url'] = $product?->image_full_url;
-                $item['images_full_url'] = [];
-            }
-            array_push($storage, $item);
-        }
-        $data = $storage;
+public static function order_details_data_formatting($data)
+{
+    $storage = [];
 
-        return $data;
+    foreach ($data as $item) {
+
+        // Decode JSON fields
+        $item['add_ons'] = json_decode($item['add_ons'], true);
+        $item['variation'] = json_decode($item['variation'], true);
+        $item['item_details'] = json_decode($item['item_details'], true);
+
+        // ================= PRODUCT / CAMPAIGN =================
+        if (!empty($item['item_id'])) {
+
+            $product = \App\Models\Item::find($item['item_details']['id']);
+
+            $item['image_full_url']  = $product?->image_full_url;
+            $item['images_full_url'] = $product?->images_full_url ?? [];
+                 $product = $item->item;
+            // ================= VOUCHER EXTRA DATA =================
+            if ($product['type']  === 'voucher' ) {
+            
+          
+
+              // Send how_and_condition_ids as array
+                $item['how_it_works'] = $product->usageTerms() ?? [];
+                // Return full branch data
+                $item['branches'] = $product->branches(); // calls the method and returns collection
+
+                $settings = $product->voucherSetting;
+
+                $item['settings'] = $settings ? [
+                    'validity_period' => json_decode($settings->validity_period, true),
+                    'specific_days_of_week' => json_decode($settings->specific_days_of_week, true),
+                    'holidays_occasions' => json_decode($settings->holiday_occasions, true),
+                    'custom_blackout_dates' => json_decode($settings->custom_blackout_dates, true),
+                    'age_restriction' => (int) $settings->age_restriction,
+                    'group_size_requirement' => (int) $settings->group_size_requirement,
+                    'usage_limit_per_user' => json_decode($settings->usage_limit_per_user, true),
+                    'usage_limit_per_store' => json_decode($settings->usage_limit_per_store, true),
+                    'offer_validity_after_purchase' => (int) $settings->offer_validity_after_purchase,
+                    'general_restrictions' => $settings->general_restriction_settings,
+                    'status' => $settings->status,
+                ] : null;
+            }
+
+        } else {
+            // ================= CAMPAIGN =================
+            $campaign = \App\Models\ItemCampaign::find($item['item_details']['id']);
+
+            $item['image_full_url']  = $campaign?->image_full_url;
+            $item['images_full_url'] = [];
+        }
+
+        $storage[] = $item;
     }
+
+    return $storage;
+}
+
+
     public static function order_voucher_details_formatting_from_formatted($data)
     {
         $vouchers = [];

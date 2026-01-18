@@ -163,6 +163,7 @@ class OrderController extends Controller
         if ($validator->fails()) {
             return response()->json(['errors' => Helpers::error_processor($validator)], 403);
         }
+        
         $user_id = $request?->user?->id;
 
         $order = Order::with('details', 'offline_payments', 'parcel_category')
