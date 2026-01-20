@@ -883,7 +883,6 @@ class Item extends Model
 
     public function usageTerms(): Collection
     {
-        
         $usageTermIds = $this->how_and_condition_ids; // JSON column in items table
 
         // Decode JSON safely

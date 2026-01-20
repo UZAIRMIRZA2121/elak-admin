@@ -173,10 +173,13 @@ class OrderController extends Controller
             ->when($request->user, function ($query) use ($user_id) {
                 return $query->where('user_id', $user_id);
             })->findOrFail($request->order_id);
-
+       
         $details = isset($order->details) ? $order->details : null;
         if ($details != null && $details->count() > 0) {
+   
+           
             $details = Helpers::order_details_data_formatting($details);
+            $details['qr_code'] = $order->qr_code;
             $details[0]['is_guest'] = (int) $order->is_guest;
             return response()->json($details, 200);
         } else if ($order->order_type == 'parcel' || $order->prescription_order == 1) {

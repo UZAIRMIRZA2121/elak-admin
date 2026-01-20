@@ -1078,9 +1078,6 @@ public static function order_details_data_formatting($data)
                  $product = $item->item;
             // ================= VOUCHER EXTRA DATA =================
             if ($product['type']  === 'voucher' ) {
-            
-          
-
               // Send how_and_condition_ids as array
                 $item['how_it_works'] = $product->usageTerms() ?? [];
                 // Return full branch data

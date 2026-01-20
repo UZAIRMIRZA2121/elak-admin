@@ -8,6 +8,7 @@ use App\Models\OrderCancelReason;
 use App\Models\Store;
 use App\Models\Coupon;
 use App\Exports\OrderExport;
+use App\Models\VoucherType;
 use Illuminate\Http\Request;
 use App\CentralLogics\Helpers;
 use App\Models\BusinessSetting;
@@ -25,15 +26,17 @@ use Maatwebsite\Excel\Facades\Excel;
 class OrderController extends Controller
 {
     use PlaceNewOrder;
-    public function list($status)
+    public function list(Request $request, $status)
     {
-
-
+        $type = $request->type; //
         $store_id = \App\CentralLogics\Helpers::get_store_id();
         $key = explode(' ', request()?->search);
         Order::where(['checked' => 0])->where('store_id', Helpers::get_store_id())->update(['checked' => 1]);
 
         $orders = Order::with(['customer'])
+            ->when($type, function ($query, $type) {
+                return $query->where('voucher_type', $type);
+            })
             ->when($status == 'searching_for_deliverymen', function ($query) {
                 return $query->SearchingForDeliveryman();
             })
@@ -84,9 +87,9 @@ class OrderController extends Controller
             ->orderBy('schedule_at', 'desc')
             ->paginate(config('default_pagination'));
 
+        $voucher_types = VoucherType::where('status', 'active')->get();
 
-
-        return view('vendor-views.order.list', compact('orders', 'status'));
+        return view('vendor-views.order.list', compact('orders', 'status', 'voucher_types'));
     }
 
 
@@ -812,11 +815,11 @@ class OrderController extends Controller
     // Check for new cart
     public function checkNewCart()
     {
-             // 1️⃣ Get the current store ID
+        // 1️⃣ Get the current store ID
         $store_id = \App\CentralLogics\Helpers::get_store_id();
 
         // Fetch latest pending cart
-        $cart = Cart::where('status', 'pending')->where('store_id' , $store_id)->latest()->first();
+        $cart = Cart::where('status', 'pending')->where('store_id', $store_id)->latest()->first();
 
         if (!$cart) {
             return response()->json(['success' => false]);
@@ -825,13 +828,13 @@ class OrderController extends Controller
         // Prepare user object
         $user = $cart->is_guest
             ? [
-            'name' => json_decode($cart->delivery_address, true)['contact_person_name'] ?? 'Guest',
-            'phone' => json_decode($cart->delivery_address, true)['contact_person_number'] ?? '-'
-        ]
+                'name' => json_decode($cart->delivery_address, true)['contact_person_name'] ?? 'Guest',
+                'phone' => json_decode($cart->delivery_address, true)['contact_person_number'] ?? '-'
+            ]
             : [
-            'name' => $cart->user->f_name . ' ' . $cart->user->l_name,
-            'phone' => $cart->user->phone
-        ];
+                'name' => $cart->user->f_name . ' ' . $cart->user->l_name,
+                'phone' => $cart->user->phone
+            ];
 
         return response()->json([
             'success' => true,

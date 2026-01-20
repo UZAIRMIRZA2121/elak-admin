@@ -495,15 +495,21 @@ trait PlaceNewOrder
                 $order->store_id = null;
                 $order->checked = 0;
             }
-
+            
+              
+           
             $order->order_amount = $request['order_amount'] ?? 0;
             $order->order_status = $order_status;
+            $order->voucher_type = $carts[0]['type'] ?? null;
+
             $order->save();
             // dd($order);
             if ($request->order_type !== 'parcel') {
                 $taxMapCollection = collect($taxMap);
                 foreach ($order_details as $key => $item) {
                     $order_details[$key]['order_id'] = $order->id;
+
+                    $order_details[$key]['gift_details'] = $carts[0]['gift_details'] ?? null;
 
                     if ($item['item_id']) {
                         $item_id = $item['item_id'];
@@ -518,6 +524,7 @@ trait PlaceNewOrder
                         $order_details[$key]['tax_status'] = $matchedTax['include'] == 1 ? 'included' : 'excluded';
                         $order_details[$key]['tax_amount'] = $matchedTax['totalTaxamount'];
                     }
+        
                 }
 
                 OrderDetail::insert($order_details);
