@@ -57,7 +57,9 @@ trait PlaceNewOrder
             'contact_person_email' => $request->user ? 'nullable' : 'required',
             'password' => $request->create_new_user ? ['required', Password::min(8)] : 'nullable',
             'order_attachment' => $is_prescription ? ['required'] : 'nullable',
+            'gift_details' => 'nullable',
         ]);
+
         $qr_code = Str::random(6);
 
         if ($validator->fails()) {
@@ -495,21 +497,36 @@ trait PlaceNewOrder
                 $order->store_id = null;
                 $order->checked = 0;
             }
-            
-              
-           
+
+
+
             $order->order_amount = $request['order_amount'] ?? 0;
             $order->order_status = $order_status;
             $order->voucher_type = $carts[0]['type'] ?? null;
 
             $order->save();
             // dd($order);
+
+            $gift_details = null;
+
+            // Check if gift_details exists in request
+            if ($request->has('gift_details') && !empty($request->gift_details)) {
+                $gift_details = is_string($request->gift_details)
+                    ? json_decode($request->gift_details, true) // decode if JSON string
+                    : $request->gift_details;                  // use array if already array
+            } elseif (!empty($carts) && isset($carts[0]['gift_details'])) {
+                $gift_details = is_string($carts[0]['gift_details'])
+                    ? json_decode($carts[0]['gift_details'], true)
+                    : $carts[0]['gift_details'];
+            }
+
+   
             if ($request->order_type !== 'parcel') {
                 $taxMapCollection = collect($taxMap);
                 foreach ($order_details as $key => $item) {
                     $order_details[$key]['order_id'] = $order->id;
 
-                    $order_details[$key]['gift_details'] = $carts[0]['gift_details'] ?? null;
+                     $order_details[$key]['gift_details'] =json_encode($gift_details); // store as array
 
                     if ($item['item_id']) {
                         $item_id = $item['item_id'];
@@ -524,7 +541,7 @@ trait PlaceNewOrder
                         $order_details[$key]['tax_status'] = $matchedTax['include'] == 1 ? 'included' : 'excluded';
                         $order_details[$key]['tax_amount'] = $matchedTax['totalTaxamount'];
                     }
-        
+
                 }
 
                 OrderDetail::insert($order_details);

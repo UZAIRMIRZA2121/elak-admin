@@ -612,7 +612,7 @@ class Item extends Model
     /**
      * Get related products from `product_b` JSON column
      */
-      public function relatedProductsB(): Collection
+    public function relatedProductsB(): Collection
     {
         $products = $this->product_b;
 
@@ -865,9 +865,9 @@ class Item extends Model
 
         // Normalize IDs
         $ids = collect($value)
-            ->map(fn ($id) => trim($id))
-            ->filter(fn ($id) => is_numeric($id))
-            ->map(fn ($id) => (int) $id)
+            ->map(fn($id) => trim($id))
+            ->filter(fn($id) => is_numeric($id))
+            ->map(fn($id) => (int) $id)
             ->values()
             ->toArray();
 
@@ -877,7 +877,7 @@ class Item extends Model
 
         return DeliveryOption::whereIn('id', $ids)->get();
     }
-   
+
 
 
 
@@ -919,5 +919,25 @@ class Item extends Model
     }
 
 
+
+
+
+
+
+    public function getBranchesAttribute()
+    {
+        $branchIds = $this->branch_ids ?? [];
+
+        if (is_string($branchIds)) {
+            $branchIds = json_decode($branchIds, true);
+        }
+
+        if (!is_array($branchIds)) {
+            $branchIds = [];
+        }
+        $stores = Store::whereIn('id', $branchIds)->get();
+     
+        return $stores;
+    }
 
 }

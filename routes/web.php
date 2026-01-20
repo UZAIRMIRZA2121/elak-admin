@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\VoucherController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\PaytmController;
 use App\Http\Controllers\LiqPayController;
@@ -29,6 +30,7 @@ use Illuminate\Support\Facades\Http;
 |
 */
 
+Route::get('/share-voucher/{qr_code}', [\App\Http\Controllers\VoucherController::class, 'shareVoucher'])->name('voucher.share');
 
 Route::post('/subscribeToTopic', [FirebaseController::class, 'subscribeToTopic']);
 Route::get('/', 'HomeController@index')->name('home');
