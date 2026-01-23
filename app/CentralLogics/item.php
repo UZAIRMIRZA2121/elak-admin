@@ -44,7 +44,7 @@ class ProductLogic
         if ($min == false) {
             $min = 0.00000001;
         }
-        dd($category_id, $store_id, $min, $max);
+      
         $query = Item::
             when(!is_null($category_id), function ($q) use ($category_id) {
                 $q->whereHas('category', function ($q) use ($category_id) {
