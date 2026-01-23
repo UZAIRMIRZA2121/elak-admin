@@ -878,7 +878,25 @@ class Item extends Model
         return DeliveryOption::whereIn('id', $ids)->get();
     }
 
+  public function usageTerms(): Collection
+    {
+        $usageTermIds = $this->how_and_condition_ids; // JSON column in items table
 
+        // Decode JSON safely
+        if (is_string($usageTermIds)) {
+            $usageTermIds = json_decode($usageTermIds, true);
+            if (is_string($usageTermIds)) {
+                $usageTermIds = json_decode($usageTermIds, true);
+            }
+        }
+
+        if (!is_array($usageTermIds)) {
+            $usageTermIds = [];
+        }
+
+        // Fetch related usage terms
+        return \App\Models\WorkManagement::whereIn('id', $usageTermIds)->get();
+    }
 
 
   public function getUsageTerms(): Collection
