@@ -881,30 +881,30 @@ class Item extends Model
 
 
 
-    public function usageTerms(): Collection
-    {
-        $usageTermIds = $this->how_and_condition_ids; // JSON column in items table
+  public function getUsageTerms(): Collection
+{
+    $usageTermIds = $this->how_and_condition_ids; // JSON column
 
-        // Decode JSON safely
+    if (is_string($usageTermIds)) {
+        $usageTermIds = json_decode($usageTermIds, true);
         if (is_string($usageTermIds)) {
             $usageTermIds = json_decode($usageTermIds, true);
-            if (is_string($usageTermIds)) {
-                $usageTermIds = json_decode($usageTermIds, true);
-            }
         }
-
-        if (!is_array($usageTermIds)) {
-            $usageTermIds = [];
-        }
-
-        // Fetch related usage terms
-        return \App\Models\WorkManagement::whereIn('id', $usageTermIds)->get();
     }
+
+    if (!is_array($usageTermIds)) {
+        $usageTermIds = [];
+    }
+
+    return \App\Models\WorkManagement::whereIn('id', $usageTermIds)->get();
+}
+
     /**  Relation: Item → VoucherSetting */
     public function voucherSetting()
     {
         return $this->hasOne(VoucherSetting::class, 'item_id', 'id');
     }
+
 
     /** Get full HolidayOccasion objects */
     public function holidays()

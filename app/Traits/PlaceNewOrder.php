@@ -526,7 +526,7 @@ trait PlaceNewOrder
                 foreach ($order_details as $key => $item) {
                     $order_details[$key]['order_id'] = $order->id;
 
-                     $order_details[$key]['gift_details'] =json_encode($gift_details); // store as array
+                     $order_details[$key]['gift_details'] = json_encode($gift_details); // store as array
 
                     if ($item['item_id']) {
                         $item_id = $item['item_id'];

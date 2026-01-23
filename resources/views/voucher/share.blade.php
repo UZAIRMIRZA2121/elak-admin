@@ -1,16 +1,22 @@
 @php
     $voucher = json_decode($order->voucherDetail->item_details);
 
+    $items_details = $order->details;
+
+
+
     $item_details = $order->firstDetail->item;
     $gift_details = $order->firstDetail->gift_details ?? null;
     $branches = $order->firstDetail->item->branches;
 
-    $main_branch = $branches->firstWhere('type', 'main');
+    $main_branch = $item_details->store;
+    $voucherSetting = App\Models\VoucherSetting::where('item_id', $item_details->id)->first();
 
-    // dd($branches);
+    $termIds = json_decode($item_details->term_and_condition_ids, true); // decode to array
+
+    $usage_terms = App\Models\UsageTermManagement::whereIn('id', $termIds)->get();
 
 @endphp
-
 
 <!DOCTYPE html>
 <html lang="en">
@@ -385,7 +391,7 @@
         @media (min-width: 577px) {
             .voucher-container {
                 padding: 20px;
-                max-width: 420px;
+                max-width: 590px;
             }
 
             .voucher-card {
@@ -394,18 +400,27 @@
             }
         }
     </style>
-    </style>
+
 </head>
 
 <body>
-    <div class="voucher-container">
+    <button class="action-button" onclick="downloadVoucherPDF()">
+        <i class="bi bi-download"></i>
+    </button>
+
+    <div class="voucher-container" id="voucherArea">
         <div class="voucher-card">
             <!-- Image with In-Store Badge -->
             <div class="voucher-image-wrapper">
                 <div class="in-store-badge">{{ $order->voucher_type }}</div>
-                <img src=" {{ $item_details->image }}" alt="{{ $order->voucher_type }}">
-            </div>
+            
 
+
+                        <img class="img-fluid rounded onerror-image"
+                                                                src="{{ $item_details->image_full_url ?? asset('public/assets/admin/img/160x160/img2.jpg') }}"
+                                                                data-onerror-image="{{ asset('public/assets/admin/img/160x160/img2.jpg') }}"
+                                                                alt="Image Description">
+            </div>
             <!-- Dashed Border -->
             <hr class="dashed-divider">
 
@@ -442,8 +457,6 @@
                         <div class="restaurant-name">{{ $main_branch->name }}</div>
                     </div>
                 </div>
-
-
                 <!-- QR Code and Expiry -->
                 <div class="qr-expiry-section">
                     <div class="expiry-block">
@@ -462,16 +475,17 @@
                         <div class="voucher-code-number">{{ $order->qr_code }}</div>
                     </div>
                 </div>
-
                 <!-- Share and Download Buttons -->
                 <div class="share-download-section">
                     <button class="action-button">
                         <i class="bi bi-share"></i>
-                        <span>Share</span>
+
                     </button>
                     <button class="action-button">
-                        <i class="bi bi-download"></i>
-                        <span>Download</span>
+                        <a href="{{ route('voucher.download', $order->qr_code) }}" class="action-button">
+                            <i class="bi bi-download"></i>
+                            {{-- <span>Download</span> --}}
+                        </a>
                     </button>
                 </div>
                 @if (isset($gift_details))
@@ -485,35 +499,124 @@
                 <!-- Info Items -->
                 <!-- Info Items -->
                 <div class="info-items">
-                    <div class="info-row" onclick="toggleInfo(this)">
-                        <span class="info-title">Vouchers Info</span>
-                        <a href="#" class="view-button" onclick="event.preventDefault()">View <i
-                                class="bi bi-chevron-down"></i></a>
-                    </div>
-                    <div class="info-content">
-                        <p>This voucher can be used for purchasing burgers and related items at Burger Bar. Present the
-                            QR code or voucher number at checkout.</p>
-                    </div>
+
+                    @if (!empty($item_details->description))
+                        <div class="info-row" onclick="toggleInfo(this)">
+                            <span class="info-title">Vouchers Info</span>
+                            <a href="#" class="view-button" onclick="event.preventDefault()">
+                                View <i class="bi bi-chevron-down"></i>
+                            </a>
+                        </div>
+
+                        <div class="info-content">
+
+                            @foreach ($items_details as $detail)
+                                 
+                                          <div class="media media--sm">
+                                                      
+                                                        <div class="media-body">
+                                                            <div>
+                                                                <strong
+                                                                    class="line--limit-1">{{ Str::limit($detail->item['name'], 25, '...') }}</strong>
+                                                         
+                                                                <h6>
+                                                                    {{ $detail['quantity'] }}
+                                                           
+                                                                        x
+                                                                        {{ \App\CentralLogics\Helpers::format_currency($detail['price']) }}
+                                                                
+
+                                                                </h6>
+                                                                @if ($order->store && $order->store->module->module_type == 'food')
+                                                                    @if (isset($detail['variation']) ? json_decode($detail['variation'], true) : [])
+                                                                        @foreach (json_decode($detail['variation'], true) as $variation)
+                                                                            @if (isset($variation['name']) && isset($variation['values']))
+                                                                                <span class="d-block text-capitalize">
+                                                                                    <strong>
+                                                                                        {{ $variation['name'] }} -
+                                                                                    </strong>
+                                                                                </span>
+                                                                                @foreach ($variation['values'] as $value)
+                                                                                    <span class="d-block text-capitalize">
+                                                                                        &nbsp; &nbsp;
+                                                                                        {{ $value['label'] }} :
+                                                                                        <strong>{{ \App\CentralLogics\Helpers::format_currency($value['optionPrice']) }}</strong>
+                                                                                    </span>
+                                                                                @endforeach
+                                                                            @else
+                                                                                @if (isset(json_decode($detail['variation'], true)[0]))
+                                                                                    <strong><u>
+                                                                                            {{ translate('messages.Variation') }}
+                                                                                            : </u></strong>
+                                                                                    @foreach (json_decode($detail['variation'], true)[0] as $key1 => $variation)
+                                                                                        @if ($key1 == 'name' || $key1 == 'values ')
+                                                                                            <div
+                                                                                                class="font-size-sm text-body">
+                                                                                                <span>{{ $key1 }}
+                                                                                                    : </span>
+                                                                                                <span
+                                                                                                    class="font-weight-bold">{{ $variation }}</span>
+                                                                                            </div>
+                                                                                        @endif
+                                                                                    @endforeach
+                                                                                @endif
+                                                                                {{-- @break --}}
+                                                                            @endif
+                                                                        @endforeach
+                                                                    @endif
+                                                                @else
+                                                                    <?php
+                                                                    $variations = json_decode($detail['variation'], true);
+                                                                    ?>
+
+                                                                    @if (!empty($variations))
+                                                                        <strong><u>{{ translate('messages.variation') }}
+                                                                                :</u></strong>
+
+                                                                        @foreach ($variations as $variation)
+                                                                            <div class="font-size-sm text-body">
+                                                                                <span>{{ ucfirst($variation['name']) }} :
+                                                                                </span>
+                                                                                <span class="font-weight-bold">
+                                                                                    {{ $variation['values'][0]['label'] ?? '' }}
+                                                                                </span>
+                                                                            </div>
+                                                                        @endforeach
+                                                                    @endif
+                                                                @endif
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                  
+                            @endforeach
+          
+                        </div>
+                    @endif
 
                     <div class="info-row" onclick="toggleInfo(this)">
                         <span class="info-title">Redeemable at 4 outlets</span>
                         <a href="#" class="view-button" onclick="event.preventDefault()">View <i
                                 class="bi bi-chevron-down"></i></a>
                     </div>
-                
+
                     @isset($branches)
                         <div class="info-content">
                             @foreach ($branches as $branch)
                                 <div class="d-flex align-items-center mb-3">
                                     {{-- Branch Logo --}}
                                     @php
-                                        $logoUrl = $branch['logo_full_url'] ?? ($branch['logo'] ? asset('storage/store/' . $branch['logo']) : null);
+                                        $logoUrl =
+                                            $branch['logo_full_url'] ??
+                                            ($branch['logo'] ? asset('storage/store/' . $branch['logo']) : null);
                                     @endphp
                                     <div class="me-3" style="width: 50px; height: 50px; flex-shrink:0;">
-                                        @if($logoUrl)
-                                            <img src="{{ $logoUrl }}" alt="{{ $branch['name'] }}" class="img-fluid rounded-circle" style="width:100%; height:100%; object-fit:cover;">
+                                        @if ($logoUrl)
+                                            <img src="{{ $logoUrl }}" alt="{{ $branch['name'] }}"
+                                                class="img-fluid rounded-circle"
+                                                style="width:100%; height:100%; object-fit:cover;">
                                         @else
-                                            <div class="bg-secondary text-white rounded-circle d-flex align-items-center justify-content-center" style="width:50px; height:50px;">
+                                            <div class="bg-secondary text-white rounded-circle d-flex align-items-center justify-content-center"
+                                                style="width:50px; height:50px;">
                                                 {{ strtoupper(substr($branch['name'] ?? 'N/A', 0, 2)) }}
                                             </div>
                                         @endif
@@ -526,8 +629,8 @@
                                             {{ $branch['address'] ?? 'N/A' }}
 
                                             {{-- Bootstrap badge for branch type --}}
-                                            @if(isset($branch['type']))
-                                                @if($branch['type'] === 'main')
+                                            @if (isset($branch['type']))
+                                                @if ($branch['type'] === 'main')
                                                     <span class="badge bg-primary">Main Branch</span>
                                                 @elseif($branch['type'] === 'sub branch')
                                                     <span class="badge bg-warning text-dark">Sub Branch</span>
@@ -541,51 +644,205 @@
                                 <hr>
                             @endforeach
                         </div>
-@endisset
+                    @endisset
+                    <?php
+                    if(isset($voucherSetting->validity_period)){
+                        $validity = json_decode($voucherSetting->validity_period, true);
+                        $days = json_decode($voucherSetting->specific_days_of_week, true);
+                        $holidays = json_decode($voucherSetting->holidays_occasions, true);
+                        $usageUser = json_decode($voucherSetting->usage_limit_per_user, true);
+                        $usageStore = json_decode($voucherSetting->usage_limit_per_store, true);
+                        $afterPurchase = json_decode($voucherSetting->offer_validity_after_purchase, true);
+                  
+                  
+                    ?>
 
 
-                        <div class="info-row" onclick="toggleInfo(this)">
-                            <span class="info-title">Usage Terms</span>
-                            <a href="#" class="view-button" onclick="event.preventDefault()">View <i
-                                    class="bi bi-chevron-down"></i></a>
-                        </div>
-                        <div class="info-content">
-                            <p>Valid for one-time use only. Cannot be combined with other offers. No cash value. Valid
-                                until
-                                expiry date shown above.</p>
-                        </div>
-
-                        <div class="info-row" onclick="toggleInfo(this)">
-                            <span class="info-title">How to use card</span>
-                            <a href="#" class="view-button" onclick="event.preventDefault()">View <i
-                                    class="bi bi-chevron-down"></i></a>
-                        </div>
-                        <div class="info-content">
-                            <p>1. Visit any participating Burger Bar outlet<br>
-                                2. Show the QR code or voucher number to the cashier<br>
-                                3. Your discount will be applied automatically<br>
-                                4. Enjoy your meal!</p>
-                        </div>
+                    <div class="info-row" onclick="toggleInfo(this)">
+                        <span class="info-title">Usage Terms</span>
+                        <a href="#" class="view-button" onclick="event.preventDefault()">View <i
+                                class="bi bi-chevron-down"></i></a>
                     </div>
+                    <div class="info-content space-y-4 text-sm text-gray-700">
+
+                  @if ($validity && isset($validity['active']) && $validity['active'] === 1)
+
+                        {{-- Usage Limits --}}
+                        <div>
+                            <h6 class="font-semibold text-gray-900 mb-1">Usage Limits</h6>
+                            <ul class="list-disc list-inside">
+                                <li>
+                                    Each user may redeem this voucher
+                                    <strong>{{ $usageUser['value'] }}</strong>
+                                    time(s) {{ strtolower($usageUser['period']) }}.
+                                </li>
+                                <li>
+                                    This voucher may be redeemed a maximum of
+                                    <strong>{{ $usageStore['value'] }}</strong>
+                                    time(s) {{ strtolower($usageStore['period']) }} per store.
+                                </li>
+                            </ul>
+                        </div>
+
+                        {{-- Offer Validity After Purchase --}}
+                        <div>
+                            <h6 class="font-semibold text-gray-900 mb-1">Validity After Purchase</h6>
+                            <p>
+                                The voucher must be used within
+                                <strong>{{ $afterPurchase['value'] }}
+                                    {{ strtolower($afterPurchase['period']) }}</strong>
+                                from the date of purchase.
+                            </p>
+                        </div>
+
+                        {{-- Age Restriction --}}
+                        @if (!empty($voucherSetting->age_restriction))
+                            <div>
+                                <h6 class="font-semibold text-gray-900 mb-1">Age Restriction</h6>
+                                <ul class="list-disc list-inside">
+                                    @foreach ($voucherSetting->age_restriction as $age)
+                                        <li>{{ $age['text'] }}</li>
+                                    @endforeach
+                                </ul>
+                            </div>
+                            <hr>
+                        @endif
+
+                        {{-- Group Size Requirement --}}
+                        @if (!empty($voucherSetting->group_size_requirement))
+                            <div>
+                                <h6 class="font-semibold text-gray-900 mb-1">Group Size Requirement</h6>
+                                <ul class="list-disc list-inside">
+                                    @foreach ($voucherSetting->group_size_requirement as $group)
+                                        <li>{{ $group['text'] }}</li>
+                                    @endforeach
+                                </ul>
+                            </div>
+                            <hr>
+                        @endif
+
+                        {{-- Blackout Dates --}}
+                        @if (!empty($voucherSetting->custom_blackout_dates))
+                            <div>
+                                <h6 class="font-semibold text-gray-900 mb-1">Blackout Dates</h6>
+                                <ul class="list-disc list-inside">
+                                    @foreach ($voucherSetting->custom_blackout_dates as $date)
+                                        <li>
+                                            {{ \Carbon\Carbon::parse($date['date'])->format('d M Y') }}
+                                            – {{ $date['description'] }}
+                                        </li>
+                                    @endforeach
+                                </ul>
+                            </div>
+                            <hr>
+                        @endif
 
 
+                    </div>
+                    <?php
+                        }
+                    ?>
+
+
+
+                    <div class="info-row" onclick="toggleInfo(this)">
+                        <span class="info-title">How to use card</span>
+                        <a href="#" class="view-button" onclick="event.preventDefault()">View <i
+                                class="bi bi-chevron-down"></i></a>
+                    </div>
+                    <div class="info-content">
+                        <p>1. Visit any participating Burger Bar outlet<br>
+                            2. Show the QR code or voucher number to the cashier<br>
+                            3. Your discount will be applied automatically<br>
+                            4. Enjoy your meal!</p>
+                    </div>
                 </div>
+
+
+
+
             </div>
         </div>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
-        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-        <script>
-            function toggleInfo(element) {
-                // Get the next sibling (the info-content div)
-                const content = element.nextElementSibling;
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function toggleInfo(element) {
+            // Get the next sibling (the info-content div)
+            const content = element.nextElementSibling;
 
-                // Toggle the 'show' class on the content
-                content.classList.toggle('show');
+            // Toggle the 'show' class on the content
+            content.classList.toggle('show');
 
-                // Toggle the 'active' class on the row (for chevron rotation)
-                element.classList.toggle('active');
-            }
-        </script>
+            // Toggle the 'active' class on the row (for chevron rotation)
+            element.classList.toggle('active');
+        }
+    </script>
+    <script>
+        async function downloadVoucherPDF() {
+            const {
+                jsPDF
+            } = window.jspdf;
+            const element = document.getElementById('voucherArea');
+
+            const actionSection = document.querySelector('.share-download-section');
+            actionSection.style.display = 'none';
+
+            // 🔥 Wait for images
+            await waitForImages(element);
+
+            const canvas = await html2canvas(element, {
+                scale: 2,
+                useCORS: true,
+                allowTaint: true,
+                backgroundColor: '#ffffff',
+                imageTimeout: 0
+            });
+
+            const imgData = canvas.toDataURL('image/png');
+
+            const pdf = new jsPDF('p', 'mm', 'a4');
+
+            const pageWidth = pdf.internal.pageSize.getWidth();
+            const pageHeight = pdf.internal.pageSize.getHeight();
+
+            const pxToMm = 25.4 / 96;
+            const imgWidthMm = canvas.width * pxToMm;
+            const imgHeightMm = canvas.height * pxToMm;
+
+            const scale = Math.min(
+                pageWidth / imgWidthMm,
+                pageHeight / imgHeightMm
+            );
+
+            const finalWidth = imgWidthMm * scale;
+            const finalHeight = imgHeightMm * scale;
+
+            const marginX = (pageWidth - finalWidth) / 2;
+            const marginY = (pageHeight - finalHeight) / 2;
+
+            pdf.addImage(imgData, 'PNG', marginX, marginY, finalWidth, finalHeight);
+            pdf.save('voucher-{{ $order->qr_code }}.pdf');
+
+            actionSection.style.display = 'flex';
+        }
+
+        // 🔥 Image wait helper
+        async function waitForImages(container) {
+            const images = container.querySelectorAll('img');
+            await Promise.all(
+                Array.from(images).map(img => {
+                    if (img.complete) return;
+                    return new Promise(resolve => {
+                        img.onload = img.onerror = resolve;
+                    });
+                })
+            );
+        }
+    </script>
+
 </body>
 
 </html>

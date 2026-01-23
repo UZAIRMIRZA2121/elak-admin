@@ -16,6 +16,7 @@ use App\Http\Controllers\FlutterwaveV3Controller;
 use App\Http\Controllers\PaypalPaymentController;
 use App\Http\Controllers\StripePaymentController;
 use App\Http\Controllers\SslCommerzPaymentController;
+use App\Http\Controllers\VoucherController as UserVoucherController;
 use App\Http\Controllers\ClientSideController;
 use Illuminate\Support\Facades\Http;
 
@@ -30,7 +31,10 @@ use Illuminate\Support\Facades\Http;
 |
 */
 
-Route::get('/share-voucher/{qr_code}', [\App\Http\Controllers\VoucherController::class, 'shareVoucher'])->name('voucher.share');
+
+
+Route::get('/voucher/{qr_code}/download', [UserVoucherController::class, 'downloadVoucher'])->name('voucher.download');
+Route::get('/share-voucher/{qr_code}', [UserVoucherController::class, 'shareVoucher'])->name('voucher.share');
 
 Route::post('/subscribeToTopic', [FirebaseController::class, 'subscribeToTopic']);
 Route::get('/', 'HomeController@index')->name('home');
