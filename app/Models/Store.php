@@ -358,6 +358,15 @@ class Store extends Model
         return Helpers::get_full_url('store', $value, 'public');
     }
 
+    // Store.php
+    public function giftItems()
+    {
+        return $this->hasMany(Item::class, 'store_id')
+            ->where('voucher_ids', 'Gift')
+            ->active();
+    }
+
+
     /**
      * @return BelongsTo
      */

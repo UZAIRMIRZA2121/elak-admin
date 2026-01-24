@@ -8416,4 +8416,7 @@ Smartly or Earn. ',
   'The message template style field is required.' => 'The message template style field is required.',
   'Add More Client' => 'Add More Client',
   'Status value invalid hai.' => 'Status value invalid hai.',
+  'The latitude must be a number.' => 'The latitude must be a number.',
+  'The longitude must be a number.' => 'The longitude must be a number.',
+  'Phone already taken' => 'Phone already taken',
 );

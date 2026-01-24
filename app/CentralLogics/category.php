@@ -410,76 +410,143 @@ class CategoryLogic
     }
 
 
-    public static function stores_all_gift($category_id, $zone_id, int $limit,int $offset, $type,$longitude=0,$latitude=0)
+    public static function stores_all_gift($category_id, $zone_id, int $limit, int $offset, $type, $longitude = 0, $latitude = 0)
     {
-        $query = Store::
-            withOpen($longitude??0,$latitude??0)
-            ->withCount(['items','campaigns']); 
 
-        // If category_id is not 'all', filter by category
-        if ($category_id !== 'all') {
-            $query->whereHas('items.category',function($q)use($category_id){
-                return $q->when(is_numeric($category_id),function ($qurey) use($category_id){
-                    return $qurey->whereId($category_id)->orWhere('parent_id', $category_id);
-                })
-                    ->when(!is_numeric($category_id),function ($qurey) use($category_id){
-                        $qurey->where('slug', $category_id);
-                    });
-            });
-        }
-
-        $paginator = $query
-            ->when(config('module.current_module_data'), function($query)use($zone_id){
-                $query->whereHas('zone.modules', function($query){
-                    $query->where('modules.id', config('module.current_module_data')['id']);
-                })->module(config('module.current_module_data')['id']);
-                if(!config('module.current_module_data')['all_zone_service']) {
-                    $query->whereIn('zone_id', json_decode($zone_id, true));
-                }
+        $gift_item_store_ids = Item::where('voucher_ids', 'Gift')
+            ->active()
+            ->when(is_numeric($category_id), function ($q) use ($category_id) {
+                $q->where('category_id', $category_id);
             })
-            ->active()->type($type)
-            ->latest()->paginate($limit, ['*'], 'page', $offset);
+            ->pluck('store_id')
+            ->unique()
+            ->toArray();
+
+        $longitude = (float)$longitude;
+        $latitude = (float)$latitude;
+
+        $query = Store::withOpen($longitude, $latitude)
+            ->with([
+                'giftItems:id,store_id,category_id,discount'
+            ])
+            ->withCount([
+                'giftItems as total_gift_items'
+            ])
+            ->when(!empty($gift_item_store_ids), function ($q) use ($gift_item_store_ids) {
+                $q->whereIn('id', $gift_item_store_ids);
+            })
+            ->active();
+
+            $paginator = $query->latest()->paginate($limit, ['*'], 'page', $offset);
 
 
-        $paginator->each(function ($store) {
-            $category_ids = DB::table('items')
-                ->join('categories', 'items.category_id', '=', 'categories.id')
-                ->selectRaw('
-                CAST(categories.id AS UNSIGNED) as id,
-                categories.parent_id
-            ')
-                ->where('items.store_id', $store->id)
-                ->where('categories.status', 1)
-                ->groupBy('id', 'categories.parent_id')
-                ->get();
+            $paginator->getCollection()->transform(function ($store) {
 
-            $data = json_decode($category_ids, true);
+            $categoryIds = [];
 
-            $mergedIds = [];
-
-            foreach ($data as $item) {
-                if ($item['id'] != 0) {
-                    $mergedIds[] = $item['id'];
-                }
-                if ($item['parent_id'] != 0) {
-                    $mergedIds[] = $item['parent_id'];
+            foreach ($store->giftItems as $item) {
+                if ($item->category_id) {
+                    $categoryIds[] = $item->category_id;
                 }
             }
 
-            $category_ids = array_values(array_unique($mergedIds));
+            $store->category_ids = array_values(array_unique($categoryIds));
 
-            $store->category_ids = $category_ids;
-            $store->discount_status = !empty($store->items->where('discount', '>', 0));
-            unset($store['items']);
+            $store->discount_status = $store->giftItems
+                ->where('discount', '>', 0)
+                ->isNotEmpty();
+
+            unset($store->giftItems);
+
+            return $store;
         });
 
         return [
             'total_size' => $paginator->total(),
-            'limit' => $limit,
-            'offset' => $offset,
-            'stores' => $paginator->items()
+            'limit'      => $limit,
+            'offset'     => $offset,
+            'stores'     => $paginator->items(),
         ];
+
+            
+      
     }
+
+//     public static function stores_all_gift($category_id, $zone_id, int $limit,int $offset, $type,$longitude=0,$latitude=0)
+//     {
+//         // dd($category_id);
+//         $query = Store::
+//             withOpen($longitude??0,$latitude??0)
+//             ->withCount(['items','campaigns']); 
+
+//         // If category_id is not 'all', filter by category
+//         if ($category_id != 'all') {
+//             $query->whereHas('items.category',function($q)use($category_id){
+//                 return $q->when(is_numeric($category_id),function ($qurey) use($category_id){
+//                     return $qurey->whereId($category_id)->orWhere('parent_id', $category_id);
+//                 })
+//                     ->when(!is_numeric($category_id),function ($qurey) use($category_id){
+//                         $qurey->where('slug', $category_id);
+//                     });
+//             });
+            
+          
+//         }
+
+//   dd($query);
+
+//         $paginator = $query
+//             ->when(config('module.current_module_data'), function($query)use($zone_id){
+//                 $query->whereHas('zone.modules', function($query){
+//                     $query->where('modules.id', config('module.current_module_data')['id']);
+//                 })->module(config('module.current_module_data')['id']);
+//                 if(!config('module.current_module_data')['all_zone_service']) {
+//                     $query->whereIn('zone_id', json_decode($zone_id, true));
+//                 }
+//             })
+//             ->active()->type($type)
+//             ->latest()->paginate($limit, ['*'], 'page', $offset);
+
+
+//         $paginator->each(function ($store) {
+//             $category_ids = DB::table('items')
+//                 ->join('categories', 'items.category_id', '=', 'categories.id')
+//                 ->selectRaw('
+//                 CAST(categories.id AS UNSIGNED) as id,
+//                 categories.parent_id
+//             ')
+//                 ->where('items.store_id', $store->id)
+//                 ->where('categories.status', 1)
+//                 ->groupBy('id', 'categories.parent_id')
+//                 ->get();
+
+//             $data = json_decode($category_ids, true);
+
+//             $mergedIds = [];
+
+//             foreach ($data as $item) {
+//                 if ($item['id'] != 0) {
+//                     $mergedIds[] = $item['id'];
+//                 }
+//                 if ($item['parent_id'] != 0) {
+//                     $mergedIds[] = $item['parent_id'];
+//                 }
+//             }
+
+//             $category_ids = array_values(array_unique($mergedIds));
+
+//             $store->category_ids = $category_ids;
+//             $store->discount_status = !empty($store->items->where('discount', '>', 0));
+//             unset($store['items']);
+//         });
+//         // dd($paginator);
+//         return [
+//             'total_size' => $paginator->total(),
+//             'limit' => $limit,
+//             'offset' => $offset,
+//             'stores' => $paginator->items()
+//         ];
+//     }
 
     public static function all_products($id, $zone_id)
     {

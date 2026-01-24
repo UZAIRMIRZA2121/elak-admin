@@ -64,13 +64,14 @@ class VendorController extends Controller
 
     public function store(Request $request)
     {
+        // dd($request->all());
         $rules = [
 
             'name.0' => 'required',
             'name.*' => 'max:191',
             'address' => 'required|max:1000',
-            'latitude' => 'required',
-            'longitude' => 'required',
+            'latitude' => 'required|numeric',
+            'longitude' => 'required|numeric',
             'voucher_id' => 'nullable|max:200',
             'parent_id' => 'nullable|max:200',
             'type' => 'nullable|max:200',
@@ -143,7 +144,7 @@ class VendorController extends Controller
 
         if ($request->zone_id) {
             $zone = Zone::query()
-                ->whereContains('coordinates', new Point($request->latitude, $request->longitude, POINT_SRID))
+                ->whereContains('coordinates', new Point((float)$request->latitude, (float)$request->longitude, POINT_SRID))
                 ->where('id', $request->zone_id)
                 ->first();
             if (!$zone) {
@@ -168,6 +169,12 @@ class VendorController extends Controller
 
 
 
+
+        // if (Vendor::where(['phone' => $phone])->exists()) {
+        //     $validator->getMessageBag()->add('phone', translate('messages.phone_already_taken'));
+        //     return back()->withErrors($validator)
+        //         ->withInput();
+        // }
 
         $vendor = new Vendor();
         $vendor->f_name = $firstName;
@@ -329,8 +336,8 @@ class VendorController extends Controller
             'name.0' => 'required',
             'name.*' => 'max:191',
             'address' => 'required|max:1000',
-            'latitude' => 'required',
-            'longitude' => 'required',
+            'latitude' => 'required|numeric',
+            'longitude' => 'required|numeric',
             'voucher_id' => 'nullable|max:200',
             'parent_id' => 'nullable|max:200',
             'type' => 'nullable|max:200',
@@ -366,7 +373,7 @@ class VendorController extends Controller
 
             'f_name' => 'nullable|max:100',
             'l_name' => 'nullable|max:100',
-            'phone' => 'nullable|regex:/^([0-9\s\-\+\(\)]*)$/|min:10|max:20',
+            'phone' => 'nullable|regex:/^([0-9\s\-\+\(\)]*)$/|min:10|max:20|phone',
 
 
         ];
@@ -394,7 +401,7 @@ class VendorController extends Controller
 
         if ($request->zone_id) {
             $zone = Zone::query()
-                ->whereContains('coordinates', new Point($request->latitude, $request->longitude, POINT_SRID))
+                ->whereContains('coordinates', new Point((float)$request->latitude, (float)$request->longitude, POINT_SRID))
                 ->where('id', $request->zone_id)
                 ->first();
             if (!$zone) {
