@@ -104,28 +104,40 @@
 </style>
 
 @section('content')
+@php
+    $bonusTiers = json_decode($product->discount_configuration ?? '[]', true);
+    if (empty($bonusTiers)) {
+        $bonusTiers = [["min_amount" => "0", "max_amount" => "", "bonus_percentage" => ""]];
+    }
+    
+    // Get saved How To Work ID from JSON array
+    $howAndConditionIds = json_decode($product->how_and_condition_ids ?? '[]', true);
+    $savedHowToWorkId = $howAndConditionIds[0] ?? '';
+@endphp
   <link rel="stylesheet" href="{{asset('public/assets/admin/css/voucher.css')}}">
   <link rel="stylesheet" href="{{asset('assets/admin/css/voucher.css')}}">
      <!-- Page Header -->
      <div class="container-fluid px-4 py-3">
-          @include("admin-views.voucher.store_include.include_heading")
+          @include("admin-views.voucher.edit_include.edit_include_heading")
         <div class="bg-white shadow rounded-lg p-4">
 
 
             {{-- Step 1: Select Voucher Type and Step 2: Select Management Type  --}}
-             @include("admin-views.voucher.store_include.include_client_voucher_management")
+             @include("admin-views.voucher.edit_include.edit_include_client_voucher_management")
 
             <form action="javascript:" method="post" id="item_form" enctype="multipart/form-data">
                 <input type="hidden" name="hidden_value" id="hidden_value" value="1"/>
             <input type="hidden" name="hidden_bundel" id="hidden_bundel" value="simple"/>
             <input type="hidden" name="hidden_name" id="hidden_name" value="Flat discount"/>
                 @csrf
-                @php($language = \App\Models\BusinessSetting::where('key', 'language')->first())
-                @php($language = $language->value ?? null)
-                @php($defaultLang = str_replace('_', '-', app()->getLocale()))
+                @php
+                    $language = \App\Models\BusinessSetting::where('key', 'language')->first();
+                    $language = $language->value ?? null;
+                    $defaultLang = str_replace('_', '-', app()->getLocale());
+                @endphp
                 {{-- Client Information and Partner Information --}}
 
-                 @include("admin-views.voucher.store_include.include_client_partner_information")
+                 @include("admin-views.voucher.edit_include.edit_include_client_partner_information")
 
                         <!--  Basic Information-->
                     <div class="section-card rounded p-4 mb-4" id="bundel_food_voucher_fields_1_3_1_4">
@@ -134,21 +146,21 @@
                         <div class="row g-3 mb-3">
                             <div class="col-12">
                                 <label class="form-label fw-medium">Voucher Title</label>
-                                <input type="text" name="voucher_title" class="form-control" placeholder="Voucher Title">
+                                <input type="text" name="voucher_title" class="form-control" placeholder="Voucher Title" value="{{ $product->name ?? '' }}">
                             </div>
                                 <div class="mb-3 col-12 ">
                                 <label class="form-label fw-medium">Short Description (Default) <span class="text-danger">*</span></label>
-                                <textarea type="text" name="description" class="form-control min-h-90px ckeditor"></textarea>
+                                <textarea type="text" name="description" class="form-control min-h-90px ckeditor">{{ $product->description ?? '' }}</textarea>
                             </div>
                             <div class="col-12" >
-                                @include("admin-views.voucher.store_include.include_images")
+                                @include("admin-views.voucher.edit_include.edit_include_images")
                             </div>
                         </div>
                             <div class="row g-3 mb-3">
                                 <div class="col-12 mt-3">
                                     <div class="form-group">
                                         <h3 class="h5 fw-semibold "> {{ translate('tags') }}</h3>
-                                        <input type="text" class="form-control" name="tags" placeholder="{{translate('messages.search_tags')}}" data-role="tagsinput">
+                                        <input type="text" class="form-control" name="tags" placeholder="{{translate('messages.search_tags')}}" data-role="tagsinput" value="{{ $product->tags_ids ?? '' }}">
                                     </div>
                                 </div>
                             </div>
@@ -164,17 +176,29 @@
                                     <!-- Discount Type Selection -->
                                     <h6 class="mb-3">Select Discount Type <span class="text-danger">*</span></h6>
                                     <div class="row mb-4">
-                                        <div class="col-md-6 selected">
-                                            <input type="radio" class="btn-check" name="discount_type" id="discount_type_direct" value="direct_discount" checked>
-                                            <label class="btn  w-100  p-3" for="discount_type_direct">
+                                        <div class="col-md-6  {{ trim($product->discount_type ?? '') === 'direct_discount' ? 'selected' : '' }}">
+                                            <input type="radio"
+                                                class="btn-check"
+                                                name="discount_type"
+                                                id="discount_type_cashback"
+                                                value="direct_discount"
+                                                {{ trim($product->discount_type ?? '') === 'direct_discount' ? 'checked' : '' }}>
+
+                                            <label class="btn  w-100  p-3" for="discount_type_cashback">
                                                 <i class="fas fa-hand-holding-usd me-2"></i>
                                                 <strong>Direct Discount</strong>
                                                 <small class="d-block text-muted mt-1">Flat discount applied directly on entire bill</small>
                                             </label>
                                         </div>
-                                        <div class="col-md-6">
-                                            <input type="radio" class="btn-check" name="discount_type" id="discount_type_cashback" value="cashback">
-                                            <label class="btn  w-100  p-3" for="discount_type_cashback">
+                                        <div class="col-md-6 {{ trim($product->discount_type ?? '') === 'cashback' ? 'selected' : '' }}">
+                                            <input type="radio"
+                                            class="btn-check"
+                                            name="discount_type"
+                                            id="discount_type_direct"
+                                            value="cashback"
+                                            {{ trim($product->discount_type ?? '') === 'cashback' ? 'checked' : '' }}>
+
+                                            <label class="btn  w-100  p-3" for="discount_type_direct">
                                                 <i class="fas fa-wallet me-2"></i>
                                                 <strong>Cashback</strong>
                                                 <small class="d-block text-muted mt-1">Cashback credited to customer wallet</small>
@@ -192,27 +216,35 @@
                                     <input type="hidden" name="bonus_type" value="percentage">
 
                                     <div id="bonusTiersContainer">
+                                        @php
+                                            $bonusTiers = json_decode($product->discount_configuration ?? '[]', true);
+                                            if (empty($bonusTiers)) {
+                                                $bonusTiers = [["min_amount" => "0", "max_amount" => "", "bonus_percentage" => ""]];
+                                            }
+                                        @endphp
+                                        @foreach($bonusTiers as $index => $tier)
                                         <div class="bonus-tier-item border rounded p-3 mb-3">
                                             <div class="row g-2">
                                                 <div class="col-md-4">
                                                     <label class="form-label">Min Amount ($)</label>
-                                                    <input type="number" class="form-control" name="bonus_tiers[0][min_amount]" step="0.01" min="0" placeholder="0" value="0">
+                                                    <input type="number" class="form-control" name="bonus_tiers[{{ $index }}][min_amount]" step="0.01" min="0" placeholder="0" value="{{ $tier['min_amount'] ?? 0 }}">
                                                 </div>
                                                 <div class="col-md-4">
                                                     <label class="form-label">Max Amount ($)</label>
-                                                    <input type="number" class="form-control" name="bonus_tiers[0][max_amount]" step="0.01" min="0" placeholder="100">
+                                                    <input type="number" class="form-control" name="bonus_tiers[{{ $index }}][max_amount]" step="0.01" min="0" placeholder="100" value="{{ $tier['max_amount'] ?? '' }}">
                                                 </div>
                                                 <div class="col-md-3">
                                                     <label class="form-label">Discount/Cashback (%)</label>
-                                                    <input type="number" class="form-control" name="bonus_tiers[0][bonus_percentage]" step="0.01" min="0" placeholder="5" required>
+                                                    <input type="number" class="form-control" name="bonus_tiers[{{ $index }}][bonus_percentage]" step="0.01" min="0" placeholder="5" required value="{{ $tier['bonus_percentage'] ?? '' }}">
                                                 </div>
                                                 <div class="col-md-1 d-flex align-items-end">
-                                                    <button type="button" class="btn btn-danger remove-bonus-tier" style="display: none;">
+                                                    <button type="button" class="btn btn-danger remove-bonus-tier" style="{{ $index == 0 ? 'display: none;' : '' }}">
                                                         <i class="fas fa-times"></i>
                                                     </button>
                                                 </div>
                                             </div>
                                         </div>
+                                        @endforeach
                                     </div>
 
                                     <button type="button" class="btn btn-sm btn-outline-primary" id="addBonusTierBtn">
@@ -227,36 +259,8 @@
                             </div>
 
                     </div>
-                    {{-- Terms & Conditions --}}
-                    {{-- <div class="section-card rounded p-4 mb-4">
-                        <h3 class="h5 fw-semibold mb-4"> Terms & Conditions</h3>
-                        <div class="card border shadow-sm mt-3">
-                            <div class="card-body">
-                                <div id="usageTerms" class="row">
-                                </div>
-                            </div>
-                        </div>
-                    </div> --}}
-                    <!-- How It Works-->
-                    {{-- <div class="section-card rounded p-4 mb-4">
-                        <h3 class="h5 fw-semibold mb-4">How It Works</h3>
-                        <div class="card ">
-                            <div class="card-body" id="workList">
-                            </div>
-                        </div>
-                    </div> --}}
 
-                    <!-- Action Buttons -->
-                    {{-- <div class="col-md-12">
-                        <div class="btn--container justify-content-end">
-                            <button type="reset" id="reset_btn"
-                                class="btn btn--reset">{{ translate('messages.reset') }}</button>
-                            <button type="submit" id="submitButton"  class="btn btn--primary">{{ translate('messages.submit') }}</button>
-                        </div>
-                    </div> --}}
-
-
-                       @include("admin-views.voucher.store_include.include_voucher")
+                       @include("admin-views.voucher.edit_include.edit_include_voucher")
 
             </form>
         </div>
@@ -531,42 +535,7 @@
                 });
             });
 
-            // Add bonus tier functionality
-            const addBonusTierBtn = document.getElementById('addBonusTierBtn');
-            const bonusTiersContainer = document.getElementById('bonusTiersContainer');
-            let bonusTierIndex = 1;
 
-            addBonusTierBtn.addEventListener('click', function() {
-                const newTier = document.createElement('div');
-                newTier.className = 'bonus-tier-item border rounded p-3 mb-3';
-                newTier.innerHTML = `
-                    <div class="row g-2">
-                        <div class="col-md-4">
-                            <label class="form-label">Min Amount ($)</label>
-                            <input type="number" class="form-control" name="bonus_tiers[${bonusTierIndex}][min_amount]" step="0.01" min="0" placeholder="0">
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label">Max Amount ($)</label>
-                            <input type="number" class="form-control" name="bonus_tiers[${bonusTierIndex}][max_amount]" step="0.01" min="0" placeholder="100">
-                        </div>
-                        <div class="col-md-3">
-                            <label class="form-label">Discount/Cashback (%)</label>
-                            <input type="number" class="form-control" name="bonus_tiers[${bonusTierIndex}][bonus_percentage]" step="0.01" min="0" placeholder="5" required>
-                        </div>
-                        <div class="col-md-1 d-flex align-items-end">
-                            <button type="button" class="btn btn-danger remove-bonus-tier">
-                                <i class="fas fa-times"></i>
-                            </button>
-                        </div>
-                    </div>
-                `;
-                bonusTiersContainer.appendChild(newTier);
-                bonusTierIndex++;
-
-                newTier.querySelector('.remove-bonus-tier').addEventListener('click', function() {
-                    newTier.remove();
-                });
-            });
 
             // Image preview
             document.getElementById('image').addEventListener('change', function(e) {
@@ -591,43 +560,6 @@
     </script>
 
     <script>
-        // Add bonus tier functionality
-        const addBonusTierBtn = document.getElementById('addBonusTierBtn');
-        const bonusTiersContainer = document.getElementById('bonusTiersContainer');
-        let bonusTierIndex = 1;
-
-        addBonusTierBtn.addEventListener('click', function() {
-            const newTier = document.createElement('div');
-            newTier.className = 'bonus-tier-item border rounded p-3 mb-3';
-            newTier.innerHTML = `
-                <div class="row g-2">
-                    <div class="col-md-4">
-                        <label class="form-label">Min Amount ($)</label>
-                        <input type="number" class="form-control" name="bonus_tiers[${bonusTierIndex}][min_amount]" step="0.01" min="0" placeholder="0">
-                    </div>
-                    <div class="col-md-4">
-                        <label class="form-label">Max Amount ($)</label>
-                        <input type="number" class="form-control" name="bonus_tiers[${bonusTierIndex}][max_amount]" step="0.01" min="0" placeholder="100">
-                    </div>
-                    <div class="col-md-3">
-                        <label class="form-label">Bonus (%)</label>
-                        <input type="number" class="form-control" name="bonus_tiers[${bonusTierIndex}][bonus_percentage]" step="0.01" min="0" placeholder="5">
-                    </div>
-                    <div class="col-md-1 d-flex align-items-end">
-                        <button type="button" class="btn btn-danger remove-bonus-tier">
-                            <i class="fas fa-times"></i>
-                        </button>
-                    </div>
-                </div>
-            `;
-            bonusTiersContainer.appendChild(newTier);
-            bonusTierIndex++;
-
-            newTier.querySelector('.remove-bonus-tier').addEventListener('click', function() {
-                newTier.remove();
-            });
-        });
-
         document.addEventListener('DOMContentLoaded', function() {
             const options = document.querySelectorAll('.type-option');
             const radios = document.querySelectorAll('input[name="type"]');
@@ -743,6 +675,8 @@
             });
         });
     </script>
+
+
 
     <script>
 
@@ -1578,60 +1512,119 @@
 
     <script>
         getDataFromServer(4)
-
-        function getDataFromServer(storeId) {
+          function getDataFromServer(voucher_id) {
+            // alert(storeId)
+            
+            // Get saved howto_work value for pre-selection
+              <?php
+                $rawHowtoWork = $product->how_and_condition_ids ?? '[]';
+                $decoded = json_decode($rawHowtoWork, true);
+                if (is_array($decoded) && !empty($decoded)) {
+                    $savedId = $decoded[0];
+                } elseif (is_scalar($decoded)) {
+                    $savedId = $decoded;
+                } else {
+                    $savedId = '';
+                }
+            ?>
+            let savedHowtoWork = '{{ $savedId }}';
+            console.log('Saved How To Work ID:', savedHowtoWork);
+            
             $.ajax({
                 url: "{{ route('admin.Voucher.get_document') }}",
                 type: "GET",
-                data: { store_id: storeId },
+                data: { voucher_id: voucher_id },
                 dataType: "json",
                 success: function(response) {
-                console.log(response);
+                    let workHtml = "";
 
-                // 🟢 WorkManagement (list items)
-                // let workHtml = "";
-                // $.each(response.work_management, function(index, item) {
-                //     workHtml += "<li>" + item.guid_title + "</li>";
-                // });
-                // $("#workList").html(workHtml);
+                   $.each(response.work_management, function(index, item) {
 
-                // 🟢 WorkManagement (show all details)
-                // resources/views/admin-views/voucher/index.blade.php
-                let workHtml = "";
+                    // sections already array — no JSON.parse needed
+                    let sections = Array.isArray(item.sections) ? item.sections : [];
 
-                $.each(response.work_management, function(index, item) {
+                    let sectionsHtml = '';
+                    $.each(sections, function(sIndex, section) {
+                        let stepsHtml = '';
+                        $.each(section.steps, function(stepIndex, step) {
+                            stepsHtml += `
+                                <li class="mb-2">
+                                    <i class="fas fa-circle text-muted" style="font-size: 6px; vertical-align: middle;"></i>
+                                    <span class="ms-2 text-muted">${step}</span>
+                                </li>
+                            `;
+                        });
+
+                        sectionsHtml += `
+                            <div class="mb-3">
+                                <h6 class="fw-semibold text-dark mb-2">${section.title}</h6>
+                                <ul class="list-unstyled ms-3">
+                                    ${stepsHtml}
+                                </ul>
+                            </div>
+                        `;
+                    });
+
+                    // Check if this radio button should be pre-selected
+                    // Check if this radio button should be pre-selected
+                    console.log('Comparing saved:', savedHowtoWork, 'with item:', item.id);
+                    let isChecked = (savedHowtoWork == item.id) ? 'checked' : '';
+                    
                     workHtml += `
-                        <div class="work-item mb-4 rounded-lg border p-4 flex items-center gap-3">
-                            <input type="checkbox" class="record-checkbox"
-                                id="record_${item.id}"
-                                data-item-id="${item.id}"
-                                name="howto_work[]">
-                            <label for="record_${item.id}" class="font-bold text-lg cursor-pointer">
-                                ${item.guid_title}
-                            </label>
+                        <div class="card mb-3 work-item shadow-sm">
+                            <div class="card-header bg-white d-flex align-items-center justify-content-between py-3 cursor-pointer"
+                                onclick="toggleAccordion(${item.id})">
+                                
+                                <div class="d-flex align-items-center flex-grow-1">
+                                    <input type="radio" name="howto_work[]" value="${item.id}"
+                                        class="form-check-input record-checkbox me-3"
+                                        id="record_${item.id}"
+                                        data-item-id="${item.id}"
+                                        ${isChecked}>
+                                    
+                                    <label for="record_${item.id}" class="fw-semibold mb-0 flex-grow-1">
+                                        ${item.guide_title}
+                                    </label>
+                                </div>
+
+                                <i class="fas fa-chevron-down text-muted accordion-icon"
+                                    id="icon_${item.id}" style="transition: transform 0.3s ease;">
+                                </i>
+                            </div>
+
+                            <div id="content_${item.id}" class="accordion-content collapse">
+                                <div class="card-body bg-light border-top">
+                                    ${sectionsHtml || '<p class="text-muted fst-italic mb-0">No sections available</p>'}
+                                </div>
+                            </div>
                         </div>
                     `;
                 });
 
-                $("#workList").html(workHtml);
 
+                    $("#workList").html(workHtml);
 
-
-                // 🟢 UsageTermManagement (checkboxes)
-                let usageHtml = "";
-                $.each(response.usage_term_management, function(index, term) {
+                $.each(response.usage_term_management, function (index, term) {
                     usageHtml += `
-                    <div class="col-md-4 mb-3">
-                        <div class="border rounded p-5 d-flex align-items-center">
-                        <input class="form-check-input mr-2" type="checkbox" name="term_and_condition[]" id="term${term.id}">
-                        <label class="form-check-label mb-0" for="term${term.id}">
-                            ${term.baseinfor_condition_title}
-                        </label>
+                        <div class="usage-item border rounded-lg mb-4 p-4 col-6">
+                            <div class="flex items-center gap-2 mb-2">
+                                <input
+                                    class="form-check-input step-checkbox"
+                                    name="term_and_condition[]"
+                                    type="checkbox"
+                                    value="${term.id}"
+                                    id="term${term.id}">
+
+                                <label for="term${term.id}" class="font-bold text-lg cursor-pointer m-0">
+                                    ${term.baseinfor_condition_title}
+                                </label>
+                            </div>
                         </div>
-                    </div>
                     `;
                 });
+
                 $("#usageTerms").html(usageHtml);
+
 
                 },
                 error: function(xhr, status, error) {
@@ -1640,6 +1633,7 @@
                 }
             });
         }
+
 
         function bundle(type) {
             // 1. Set the hidden input value
@@ -2219,45 +2213,81 @@
             });
         }
 
-        $('#item_form').on('submit', function(e) {
-            $('#submitButton').attr('disabled', true);
-            e.preventDefault();
-            let formData = new FormData(this);
-            $.ajaxSetup({
-                headers: {
-                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                }
-            });
-            $.post({
-                url: '{{ route('admin.Voucher.store') }}',
-                data: $('#item_form').serialize(),
-                data: formData,
-                cache: false,
-                contentType: false,
-                processData: false,
-                beforeSend: function() {
-                    $('#loading').show();
-                },
-                success: function(data) {
-                    $('#loading').hide();
-                    if (data.errors) {
-                        for (let i = 0; i < data.errors.length; i++) {
-                            toastr.error(data.errors[i].message, {
-                                CloseButton: true,
-                                ProgressBar: true
+        $(document).ready(function() {
+            $('#item_form').on('submit', function(e) {
+                $('#submitButton').attr('disabled', true);
+                e.preventDefault();
+                let formData = new FormData(this);
+                $.ajaxSetup({
+                    headers: {
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    }
+                });
+                $.ajax({
+                    url: '{{ route('admin.Voucher.update', [$product['id']]) }}',
+                    type: 'POST',
+                    data: formData,
+                    cache: false,
+                    contentType: false,
+                    processData: false,
+                    headers: {
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    },
+                    beforeSend: function() {
+                        $('#loading').show();
+                    },
+                    success: function(data) {
+                        $('#loading').hide();
+                        $('#submitButton').attr('disabled', false);
+
+                        if (data.errors && Array.isArray(data.errors)) {
+                            data.errors.forEach(function(err) {
+                                toastr.error(err.message, {
+                                    CloseButton: true,
+                                    ProgressBar: true
+                                });
                             });
+                            return;
                         }
-                    } else {
-                        toastr.success("{{ translate('messages.product_added_successfully') }}", {
+
+                        toastr.success("{{ translate('messages.voucher_updated_successfully') }}", {
                             CloseButton: true,
                             ProgressBar: true
                         });
                         setTimeout(function() {
-                            location.href =
-                                "{{ route('admin.Voucher.list') }}";
+                            location.href = "{{ route('admin.Voucher.list') }}";
                         }, 1000);
+                    },
+                    error: function(xhr) {
+                        $('#loading').hide();
+                        $('#submitButton').attr('disabled', false);
+                        
+                        if (xhr.responseJSON && xhr.responseJSON.errors) {
+                            let errors = xhr.responseJSON.errors;
+                            // Check if errors is an array, otherwise iterate object
+                            if (Array.isArray(errors)) {
+                                errors.forEach(function(err) {
+                                    toastr.error(err.message, {
+                                        CloseButton: true,
+                                        ProgressBar: true
+                                    });
+                                });
+                            } else {
+                                $.each(errors, function(key, err) {
+                                    toastr.error(err.message || err, {
+                                        CloseButton: true,
+                                        ProgressBar: true
+                                    });
+                                });
+                            }
+                        } else {
+                            toastr.error("{{ translate('messages.failed_to_update_voucher') }}", {
+                                CloseButton: true,
+                                ProgressBar: true
+                            });
+                        }
                     }
-                }
+                });
             });
         });
 
@@ -2369,8 +2399,8 @@
 
                     // 🟩 CATEGORIES
                     $('#categories').empty().append('<option value="">{{ translate("messages.select_category") }}</option>');
-                    if (response.categories && response.categories.categories) {
-                        $.each(response.categories.categories, function(key, category) {
+                    if (response.categories && response.categories) {
+                        $.each(response.categories, function(key, category) {
                             $('#categories').append('<option value="'+ category.id +'">' + category.name + '</option>');
                         });
                     } else {
@@ -2388,65 +2418,77 @@
 
 
 
+@endpush
 
-    {{-- <script>
-        function multiples_category() {
-            var category_ids_all = $('#category_id').val();
+@push('script_2')
+    <script src="{{ asset('public/assets/admin/js/spartan-multi-image-picker.js') }}"></script>
+    <script>
+        let removedImageKeys = [];
+        $(document).on('click', '.function_remove_img', function() {
+            let key = $(this).data('key');
+            let photo = $(this).data('photo');
+            function_remove_img(key, photo);
+        });
 
-            console.log("Selected category IDs:", category_ids_all);
+        function function_remove_img(key, photo) {
+            $('#product_images_' + key).addClass('d-none');
+            removedImageKeys.push(photo);
+            $('#removedImageKeysInput').val(removedImageKeys.join(','));
+        }
+    </script>
+    <script>
+        $(document).ready(function() {
+            // Add bonus tier functionality
+            const addBonusTierBtn = document.getElementById('addBonusTierBtn');
+            const bonusTiersContainer = document.getElementById('bonusTiersContainer');
 
-            if (!category_ids_all || category_ids_all.length === 0) {
-                alert("Please select at least one category!");
-                return;
-            }
-
-            $.ajax({
-                url: "{{ route('admin.Voucher.getSubcategories') }}",
-                type: "GET",
-                data: { category_ids_all: category_ids_all },
-                traditional: false, // ✅ array bhejne ke liye sahi setting
-                dataType: "json",
-                success: function(response) {
-                    console.log("Subcategories Response:", response);
-
-                    if (!Array.isArray(response) || response.length === 0) {
-                        $('#sub-categories_game').html('<option disabled>No subcategories found</option>');
-                        return;
-                    }
-
-                    // Build option list dynamically
-                    let options = '';
-                    response.forEach(function(item) {
-                        options += `<option value="${item.id}">
-                                        ${item.name}
-                                    </option>`;
+            if (addBonusTierBtn) {
+                addBonusTierBtn.addEventListener('click', function() {
+                    // Find valid starting index (prevent duplicate keys)
+                    let bonusTierIndex = 0;
+                    document.querySelectorAll('input[name^="bonus_tiers"]').forEach(function(input) {
+                        let match = input.name.match(/bonus_tiers\[(\d+)\]/);
+                        if (match) {
+                            let index = parseInt(match[1]);
+                            if (index >= bonusTierIndex) {
+                                bonusTierIndex = index + 1;
+                            }
+                        }
                     });
+                    if (bonusTierIndex === 0) bonusTierIndex = 1;
 
-                    // Put options in the select box
-                    $('#sub-categories_game').html(options);
+                    console.log("Calculated next index:", bonusTierIndex);
 
-                    // Agar Select2 use ho raha hai to refresh karna zaroori hai
-                    $('#sub-categories_game').trigger('change');
-                },
-                error: function(xhr, status, error) {
-                    console.error("AJAX Error:", error);
-                }
-            });
-        }
+                    const newTier = document.createElement('div');
+                    newTier.className = 'bonus-tier-item border rounded p-3 mb-3';
+                    newTier.innerHTML = `
+                        <div class="row g-2">
+                            <div class="col-md-4">
+                                <label class="form-label">Min Amount ($)</label>
+                                <input type="number" class="form-control" name="bonus_tiers[${bonusTierIndex}][min_amount]" step="0.01" min="0" placeholder="0">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Max Amount ($)</label>
+                                <input type="number" class="form-control" name="bonus_tiers[${bonusTierIndex}][max_amount]" step="0.01" min="0" placeholder="100">
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Discount/Cashback (%)</label>
+                                <input type="number" class="form-control" name="bonus_tiers[${bonusTierIndex}][bonus_percentage]" step="0.01" min="0" placeholder="5" required>
+                            </div>
+                            <div class="col-md-1 d-flex align-items-end">
+                                <button type="button" class="btn btn-danger remove-bonus-tier">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                    bonusTiersContainer.appendChild(newTier);
 
-        function multples_sub_category(){
-            // alert("multples_sub_category");
-        }
-
-   </script> --}}
-
-
-
-
-
-
-
-
-
-
+                    newTier.querySelector('.remove-bonus-tier').addEventListener('click', function() {
+                        newTier.remove();
+                    });
+                });
+            }
+        });
+    </script>
 @endpush

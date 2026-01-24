@@ -169,18 +169,23 @@
                                                     @endforeach
                                                 @endif
                                             @else
-                                                @if (count(json_decode($detail['variation'], true)) > 0)
-                                                    <strong><u>Variation : </u></strong>
-                                                    @foreach (json_decode($detail['variation'], true)[0] as $key1 => $variation)
-                                                        @if ($key1 != 'stock')
-                                                            <div class="font-size-sm text-body">
-                                                                <span>{{ $key1 }} : </span>
-                                                                <span
-                                                                    class="font-weight-bold">{{ $key1 == 'price' ? \App\CentralLogics\Helpers::format_currency($variation) : $variation }}</span>
-                                                            </div>
-                                                        @endif
-                                                    @endforeach
-                                                @endif
+                                   <?php
+                                        $variations = json_decode($detail['variation'], true);
+                                    ?>
+
+                                    @if (!empty($variations))
+                                        <strong><u>{{ translate('messages.variation') }} :</u></strong>
+
+                                        @foreach ($variations as $variation)
+                                            <div class="font-size-sm text-body">
+                                                <span>{{ ucfirst($variation['name']) }} : </span>
+                                                <span class="font-weight-bold">
+                                                    {{ $variation['values'][0]['label'] ?? '' }}
+                                                </span>
+                                            </div>
+                                        @endforeach
+                                    @endif
+
                                             @endif
                                             <div class="addons">
                                                 @foreach (json_decode($detail['add_ons'], true) as $key2 => $addon)

@@ -22,6 +22,7 @@ class Cart extends Model
     ];
 
     protected $fillable = [
+        'cart_group', // ✅ MISSING
         'user_id',
         'module_id',
         'item_id',
@@ -32,10 +33,20 @@ class Cart extends Model
         'price',
         'quantity',
         'variation',
+        'status',
+        'type',
+        'gift_details',
     ];
 
     public function item()
     {
         return $this->morphTo();
+    }
+       /**
+     * Relationship to the User (customer)
+     */
+    public function user()
+    {
+        return $this->belongsTo(\App\Models\User::class, 'user_id', 'id');
     }
 }

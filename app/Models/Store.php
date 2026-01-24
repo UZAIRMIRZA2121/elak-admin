@@ -433,6 +433,12 @@ class Store extends Model
         return $this->hasMany(Item::class);
     }
 
+    public function vouchers(): HasMany
+    {
+        return $this->hasMany(Item::class)
+            ->where('type', 'voucher');
+    }
+
     /**
      * @return HasMany
      */

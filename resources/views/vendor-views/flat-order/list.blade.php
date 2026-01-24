@@ -16,7 +16,7 @@
                 </span>
                 <span>
                     {{ translate(str_replace('_', ' ', $status)) }} {{ translate('messages.orders') }}
-                    <span class="badge badge-soft-dark ml-2">{{ $orders->total() }}</span>
+                    {{-- <span class="badge badge-soft-dark ml-2">{{$orders->total()}}</span> --}}
                 </span>
             </h1>
         </div>
@@ -26,36 +26,6 @@
         <div class="card">
             <!-- Header -->
             <div class="card-header py-2 border-0">
-                <div class="d-flex justify-content-between align-items-center flex-wrap">
-
-                    <!-- Voucher Type Buttons -->
-                    <div class="d-flex flex-wrap gap-2">
-                        <div class="d-flex flex-wrap gap-2">
-
-                            {{-- Default ALL --}}
-                            <a href="{{ route('vendor.order.list', ['all']) }}"
-                                class="btn btn-sm
-                         {{ !request()->has('type') ? 'btn-primary' : 'btn-outline-primary' }}">
-                                {{ translate('messages.all') }}
-                            </a>
-
-                            {{-- Voucher Types --}}
-                            @foreach ($voucher_types as $type)
-                                <a href="{{ route('vendor.order.list', ['all', 'type' => $type->name]) }}"
-                                    class="btn btn-sm
-                             {{ request('type') == $type->name ? 'btn-primary' : 'btn-outline-primary' }}">
-                                    {{ $type->name }}
-                                </a>
-                            @endforeach
-
-                        </div>
-
-
-                    </div>
-
-
-
-                </div>
                 <div class="search--button-wrapper justify-content-end">
                     <form class="search-form min--260">
 
@@ -231,150 +201,122 @@
                 <table id="datatable"
                     class="table table-hover table-borderless table-thead-bordered table-nowrap table-align-middle card-table"
                     data-hs-datatables-options='{
-                                    "order": [],
-                                    "orderCellsTop": true,
-                                    "paging":false
-                                }'>
+                    "order": [],
+                    "orderCellsTop": true,
+                    "paging":false
+                }'>
                     <thead class="thead-light">
                         <tr>
-                            <th class="border-0">
-                                {{ translate('messages.#') }}
-                            </th>
-                            <th class="border-0 table-column-pl-0">{{ translate('messages.order_id') }}</th>
-                            <th class="border-0">{{ translate('messages.order_date') }}</th>
+                            <th class="border-0">{{ translate('messages.#') }}</th>
+                            {{-- <th class="border-0 table-column-pl-0">{{ translate('messages.cart_id') }}</th> --}}
+                            <th class="border-0">{{ translate('messages.date') }}</th>
                             <th class="border-0">{{ translate('messages.customer_information') }}</th>
-                            <th class="border-0">{{ translate('messages.voucher_type') }}</th>
+                            <th class="border-0">{{ translate('messages.voucher') }}</th>
                             <th class="border-0">{{ translate('messages.total_amount') }}</th>
-                            <th class="border-0 text-center">{{ translate('messages.order_status') }}</th>
+                            <th class="border-0 text-center">{{ translate('messages.status') }}</th>
                             <th class="border-0 text-center">{{ translate('messages.actions') }}</th>
                         </tr>
                     </thead>
 
                     <tbody id="set-rows">
-                        @foreach ($orders as $key => $order)
-                            <tr class="status-{{ $order['order_status'] }} class-all">
-                                <td class="">
-                                    {{ $key + $orders->firstItem() }}
-                                </td>
-                                <td class="table-column-pl-0">
-                                    <a
-                                        href="{{ route('vendor.order.details', ['id' => $order['id']]) }}">{{ $order['id'] }}</a>
-                                </td>
+                        @foreach ($orders as $key => $cart)
+                            <tr class="status-{{ $cart->status }} class-all">
+                                <td>{{ $key + 1 }}</td>
+
+                                {{-- <td class="table-column-pl-0">
+                                    <a href="#">{{ $cart->id }}</a>
+                                </td> --}}
+
                                 <td>
-                                    <div>
-                                        {{ date('d M Y', strtotime($order['created_at'])) }}
-                                    </div>
+                                    <div>{{ \Carbon\Carbon::parse($cart->created_at)->format('d M Y') }}</div>
                                     <div class="d-block text-uppercase">
-                                        {{ date(config('timeformat'), strtotime($order['created_at'])) }}
+                                        {{ \Carbon\Carbon::parse($cart->created_at)->format('h:i A') }}
                                     </div>
                                 </td>
+
                                 <td>
-                                    @if ($order->is_guest)
-                                        @php($customer_details = json_decode($order['delivery_address'], true))
-                                        <strong>{{ $customer_details['contact_person_name'] }}</strong>
-                                        <div>{{ $customer_details['contact_person_number'] }}</div>
-                                    @elseif($order->customer)
-                                        <strong>
-                                            {{ $order->customer['f_name'] . ' ' . $order->customer['l_name'] }}
-                                        </strong>
-                                        <div>
-                                            {{ $order->customer['phone'] }}
-                                        </div>
+                                    @if ($cart->is_guest)
+                                        @php($customer = json_decode($cart->delivery_address ?? '{}', true))
+                                        <strong>{{ $customer['contact_person_name'] ?? 'Guest' }}</strong>
+                                        <div>{{ $customer['contact_person_number'] ?? '-' }}</div>
+                                    @elseif($cart->user)
+                                        <strong>{{ $cart->user->f_name . ' ' . $cart->user->l_name }}</strong>
+                                        <div>{{ $cart->user->phone }}</div>
                                     @else
                                         <label
                                             class="badge badge-danger">{{ translate('messages.invalid_customer_data') }}</label>
                                     @endif
                                 </td>
-                                <td class="text-capitalize">
-                                    {{ $order->voucher_type ?? translate('not_assigned') }}
+                                <td>
+
+                                    {{ ucwords($cart->item->name) }}
+
+
+                                </td>
+
                                 <td>
                                     <div class="text-right mw--85px">
-                                        <div>
-                                            {{ \App\CentralLogics\Helpers::format_currency($order['order_amount']) }}
-                                        </div>
-                                        @if ($order->payment_status == 'paid')
-                                            <strong class="text-success">
-                                                {{ translate('messages.paid') }}
-                                            </strong>
-                                        @elseif($order->payment_status == 'partially_paid')
-                                            <strong class="text-success">
-                                                {{ translate('messages.partially_paid') }}
-                                            </strong>
-                                        @else
-                                            <strong class="text-danger">
-                                                {{ translate('messages.unpaid') }}
-                                            </strong>
-                                        @endif
+                                        {{ \App\CentralLogics\Helpers::format_currency($cart->price * $cart->quantity) }}
                                     </div>
                                 </td>
+
                                 <td class="text-capitalize text-center">
-                                    @if ($order['order_status'] == 'pending')
-                                        <span class="badge badge-soft-info">
-                                            {{ translate('messages.pending') }}
-                                        </span>
-                                    @elseif($order['order_status'] == 'confirmed')
-                                        <span class="badge badge-soft-info">
-                                            {{ translate('messages.confirmed') }}
-                                        </span>
-                                    @elseif($order['order_status'] == 'processing')
-                                        <span class="badge badge-soft-warning">
-                                            {{ translate('messages.processing') }}
-                                        </span>
-                                    @elseif($order['order_status'] == 'picked_up')
-                                        <span class="badge badge-soft-warning">
-                                            {{ translate('messages.out_for_delivery') }}
-                                        </span>
-                                    @elseif($order['order_status'] == 'delivered')
-                                        <span class="badge badge-soft-success">
-                                            {{ translate('messages.delivered') }}
-                                        </span>
-                                    @elseif($order['order_status'] == 'failed')
-                                        <span class="badge badge-soft-danger">
-                                            {{ translate('messages.payment_failed') }}
-                                        </span>
+                                    @if ($cart->status == 'pending')
+                                        <span class="badge badge-soft-info">{{ translate('messages.pending') }}</span>
+                                    @elseif($cart->status == 'approved')
+                                        <span class="badge badge-soft-success">{{ translate('messages.approved') }}</span>
+                                    @elseif($cart->status == 'rejected')
+                                        <span class="badge badge-soft-danger">{{ translate('messages.rejected') }}</span>
                                     @else
-                                        <span class="badge badge-soft-danger">
-                                            {{ str_replace('_', ' ', $order['order_status']) }}
-                                        </span>
-                                    @endif
-                                    @if ($order['order_type'] == 'take_away')
-                                        <div class="text-info mt-1">
-                                            {{ translate('messages.take_away') }}
-                                        </div>
-                                    @else
-                                        <div class="text-title mt-1">
-                                            {{ translate('messages.home Delivery') }}
-                                        </div>
+                                        <span class="badge badge-soft-secondary">{{ $cart->status ?? '-' }}</span>
                                     @endif
                                 </td>
+
                                 <td>
                                     <div class="btn--container justify-content-center">
-                                        <a class="btn btn-sm btn--warning btn-outline-warning action-btn"
-                                            href="{{ route('vendor.order.details', ['id' => $order['id']]) }}"><i
-                                                class="tio-visible-outlined"></i></a>
-                                        <a class="btn btn-sm btn--primary btn-outline-primary action-btn" target="_blank"
-                                            href="{{ route('vendor.order.generate-invoice', [$order['id']]) }}"><i
-                                                class="tio-print"></i></a>
+                              
+                                        <!-- View -->
+                                        {{-- <a class="btn btn-sm btn--warning btn-outline-warning action-btn"
+                                            href="{{ route('vendor.flate.order.list', ['status' => 'all']) }}">
+                                            <i class="tio-visible-outlined"></i>
+
+                                        </a> --}}
+
+                                        <!-- Approve -->
+                                        <a class="btn btn-sm btn--primary btn-outline-primary action-btn"
+                                            href="{{ route('vendor.flate.order.update-status', ['id' => $cart->id, 'status' => 'approved']) }}">
+                                            <i class="tio-done"></i>
+
+
+                                        </a>
+
+                                        <!-- Reject -->
+                                        <a class="btn btn-sm btn--danger btn-outline-danger action-btn"
+                                            href="{{ route('vendor.flate.order.update-status', ['id' => $cart->id, 'status' => 'rejected']) }}">
+                                            <i class="tio-clear-circle"></i>
+                                        </a>
+
                                     </div>
                                 </td>
+
                             </tr>
                         @endforeach
                     </tbody>
                 </table>
+
                 @if (count($orders) === 0)
                     <div class="empty--data">
                         <img src="{{ asset('/public/assets/admin/svg/illustrations/sorry.svg') }}" alt="public">
-                        <h5>
-                            {{ translate('no_data_found') }}
-                        </h5>
+                        <h5>{{ translate('no_data_found') }}</h5>
                     </div>
                 @endif
             </div>
+
             <!-- End Table -->
         </div>
         <!-- Footer -->
         <div class="card-footer">
-            {!! $orders->links() !!}
+            {{-- {!! $orders->links() !!} --}}
         </div>
         <!-- End Footer -->
     </div>

@@ -17,7 +17,7 @@ class CategoryController extends Controller
 {
    public function index(Request $request)
     {
-         dd(123);
+     
         $key = explode(' ', $request['search']);
         $categories=Category::where(['position'=>0])->module(Helpers::get_store_data()->module_id)
         ->when(isset($key) , function($q) use($key){
@@ -149,5 +149,27 @@ class CategoryController extends Controller
             }
             return Excel::download(new StoreSubCategoryExport($data), 'SubCategories.xlsx');
 
+    }
+
+      public function get_stores(Request $request , $id)
+    {
+        dd($id);
+        $vendor = $request['vendor'];
+        try {
+            $categories = Category::where(['position' => 0, 'status' => 1])
+                ->when(config('module.current_module_data'), function ($query) {
+                    $query->module(config('module.current_module_data')['id']);
+                })
+                ->orderBy('priority', 'desc')
+                ->select('categories.*')
+                ->selectRaw('categories.*, ( SELECT COUNT(*)
+                            FROM items WHERE items.store_id = ?
+                            AND JSON_CONTAINS(items.category_ids, JSON_OBJECT("id", CAST(categories.id AS CHAR)), "$") AND JSON_CONTAINS(items.category_ids, JSON_OBJECT("position", 1), "$") ) AS products_count', [$vendor->stores[0]->id])
+                ->get();
+
+            return response()->json($categories, 200);
+        } catch (\Exception $e) {
+            return response()->json([$e], 200);
+        }
     }
 }

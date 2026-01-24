@@ -196,7 +196,7 @@
                                     {{ translate('messages.order_status') }} :
                                     @if ($order['order_status'] == 'pending')
                                         <span class="badge badge-soft-info ml-2 ml-sm-3 text-capitalize">
-                                            {{ translate('messages.pending') }}
+                                          {{ translate('messages.pending') }}
                                         </span>
                                     @elseif($order['order_status'] == 'confirmed')
                                         <span class="badge badge-soft-info ml-2 ml-sm-3 text-capitalize">
@@ -390,24 +390,25 @@
                                                                         @endforeach
                                                                     @endif
                                                                 @else
-                                                                    <?php
-                                                                    $variations = json_decode($detail['variation'], true);
-                                                                    ?>
+                                                                
+                                                                 <?php
+                                                                            $variations = json_decode($detail['variation'], true);
+                                                                        ?>
 
-                                                                    @if (!empty($variations))
-                                                                        <strong><u>{{ translate('messages.variation') }}
-                                                                                :</u></strong>
+                                                                        @if (!empty($variations))
+                                                                            <strong><u>{{ translate('messages.variation') }} :</u></strong>
 
-                                                                        @foreach ($variations as $variation)
-                                                                            <div class="font-size-sm text-body">
-                                                                                <span>{{ ucfirst($variation['name']) }} :
-                                                                                </span>
-                                                                                <span class="font-weight-bold">
-                                                                                    {{ $variation['values'][0]['label'] ?? '' }}
-                                                                                </span>
-                                                                            </div>
-                                                                        @endforeach
-                                                                    @endif
+                                                                            @foreach ($variations as $variation)
+                                                                                <div class="font-size-sm text-body">
+                                                                                    <span>{{ ucfirst($variation['name']) }} : </span>
+                                                                                    <span class="font-weight-bold">
+                                                                                        {{ $variation['values'][0]['label'] ?? '' }}
+                                                                                    </span>
+                                                                                </div>
+                                                                            @endforeach
+                                                                        @endif
+
+
                                                                 @endif
                                                             </div>
                                                         </div>
@@ -435,10 +436,10 @@
                                                     </td>
                                                 @endif
                                                 <td>
-                                                    <div class="text-right   ">
+                                                    <div
+                                                        class="text-right   ">
                                                         @php($amount = $detail['price'] * $detail['quantity'])
-                                                        <h5>{{ \App\CentralLogics\Helpers::format_currency($amount) }}
-                                                        </h5>
+                                                        <h5>{{ \App\CentralLogics\Helpers::format_currency($amount ) }}</h5>
                                                     </div>
                                                 </td>
                                             </tr>
@@ -494,6 +495,7 @@
                                                 @if ($order->store->module->module_type == 'food' || $order->store->module->module_type == 'food')
                                                     <td>
                                                         @foreach (json_decode($detail['add_ons'], true) as $key2 => $addon)
+                                                      
                                                             @if ($key2 == 0)
                                                                 <strong><u>{{ translate('messages.addons') }} :
                                                                     </u></strong>
@@ -587,9 +589,9 @@
 
 
 
-                                    {{-- <dt class="col-6">{{ translate('messages.coupon_discount') }}:</dt>
+                                    <dt class="col-6">{{ translate('messages.coupon_discount') }}:</dt>
                                     <dd class="col-6">
-                                        - {{ \App\CentralLogics\Helpers::format_currency($coupon_discount_amount) }}</dd> --}}
+                                        - {{ \App\CentralLogics\Helpers::format_currency($coupon_discount_amount) }}</dd>
 
                                     @if ($ref_bonus_amount > 0)
                                         <dt class="col-6">{{ translate('messages.Referral_Discount') }}:</dt>
@@ -597,26 +599,26 @@
                                             - {{ \App\CentralLogics\Helpers::format_currency($ref_bonus_amount) }}</dd>
                                     @endif
 
-                                    {{-- @if ($order->tax_status == 'excluded' || $order->tax_status == null)
+                                    @if ($order->tax_status == 'excluded' || $order->tax_status == null)
                                         <dt class="col-sm-6">{{ translate('messages.vat/tax') }}:</dt>
                                         <dd class="col-sm-6">
                                             +
                                             {{ \App\CentralLogics\Helpers::format_currency($total_tax_amount) }}
                                         </dd>
-                                    @endif --}}
-                                    {{-- <dt class="col-6">{{ translate('messages.delivery_man_tips') }}</dt>
+                                    @endif
+                                    <dt class="col-6">{{ translate('messages.delivery_man_tips') }}</dt>
                                     <dd class="col-6">
-                                        + {{ \App\CentralLogics\Helpers::format_currency($order->dm_tips) }}</dd> --}}
-                                    <dt class="col-6 d-none">{{ translate('messages.delivery_fee') }}:</dt>
-                                    <dd class="col-6 d-none">
+                                        + {{ \App\CentralLogics\Helpers::format_currency($order->dm_tips) }}</dd>
+                                    <dt class="col-6">{{ translate('messages.delivery_fee') }}:</dt>
+                                    <dd class="col-6">
                                         @php($del_c = $order['delivery_charge'])
                                         + {{ \App\CentralLogics\Helpers::format_currency($del_c) }}
                                         <hr>
                                     </dd>
-                                    <dt class="col-6 d-none">
+                                    <dt class="col-6">
                                         {{ \App\CentralLogics\Helpers::get_business_data('additional_charge_name') ?? translate('messages.additional_charge') }}:
                                     </dt>
-                                    <dd class="col-6 d-none">
+                                    <dd class="col-6">
                                         @php($additional_charge = $order['additional_charge'])
                                         + {{ \App\CentralLogics\Helpers::format_currency($additional_charge) }}
                                     </dd>
@@ -936,69 +938,6 @@
                         @endif
                     </div>
                 </div>
-                
-           @if($order->voucher_type === 'Gift' && !empty($order->details[0]['gift_details']))
-                    <?php $gift = $order->details[0]['gift_details']; ?>
-                <!-- order proof -->
-                <div class="card mb-2 mt-2">
-                    <div class="card-header border-0 text-center pb-0">
-                        <h4 class="m-0">{{ translate('messages.Gift Details') }}</h4>
-                    </div>
-                    <div class="card-body">
-                        <div class="media align-items-center">
-                            <div class="delivery--information-single d-block">
-
-                                <div class="d-flex mb-1">
-                                    <span class="name mr-2">{{ translate('messages.Occasion') }}:</span>
-                                    <span class="info">{{ $gift['occasion'] ?? '-' }}</span>
-                                </div>
-
-                                <div class="d-flex mb-1">
-                                    <span class="name mr-2">{{ translate('messages.Sender') }}:</span>
-                                    <span class="info">{{ $gift['sender_name'] ?? '-' }}</span>
-                                </div>
-
-                                <div class="d-flex mb-1">
-                                    <span class="name mr-2">{{ translate('messages.Recipient Name') }}:</span>
-                                    <span class="info">{{ $gift['recipient_name'] ?? '-' }}</span>
-                                </div>
-
-                                <div class="d-flex mb-1">
-                                    <span class="name mr-2">{{ translate('messages.Recipient Email') }}:</span>
-                                    <span class="info">{{ $gift['recipient_email'] ?? '-' }}</span>
-                                </div>
-
-                                <div class="d-flex mb-1">
-                                    <span class="name ">{{ translate('messages.Message') }}:</span>
-                                    <span class="info">{{ $gift['message'] ?? '-' }}</span>
-                                </div>
-
-                                <div class="d-flex mb-1">
-                                    <span class="name mr-2">{{ translate('messages.Delivery Time') }}:</span>
-                                    <span class="info">{{ $gift['delivery_time'] ?? '-' }}</span>
-                                </div>
-
-                                <div class="d-flex mb-1">
-                                    <span class="name mr-2">{{ translate('messages.Amount') }}:</span>
-                                    <span class="info">{{ $gift['amount'] ?? '-' }}</span>
-                                </div>
-                            
-
-                                @if (!empty($gift['image']))
-                                    <div class="d-flex mt-2">
-                                        <span class="name mr-2">{{ translate('messages.Image') }}:</span>
-                                        <img src="{{ asset($gift['image']) }}" alt="Gift Image" class="img-fluid"
-                                            style="max-height:100px;">
-                                    </div>
-                                @endif
-
-                            </div>
-                        </div>
-                    </div>
-                    </div>
-                   
-                @endif
-
 
                 <!-- Card -->
                 <div class="card">

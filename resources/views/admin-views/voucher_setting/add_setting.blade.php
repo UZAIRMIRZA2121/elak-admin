@@ -447,7 +447,7 @@
                                 </div>
 
                                 <!-- Offer Validity Periods Section -->
-                                <div class="col-md-12 mb-4">
+                                {{-- <div class="col-md-12 mb-4">
                                     <div class="card">
                                         <div class="card-header">
                                             <h5>Offer Validity Periods</h5>
@@ -482,7 +482,7 @@
                                             </div>
                                         </div>
                                     </div>
-                                </div>
+                                </div> --}}
 
                             </div>
                         </form>

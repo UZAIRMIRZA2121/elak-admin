@@ -20,27 +20,89 @@ class CategoryLogic
     {
         return Category::where(['parent_id' => $parent_id])->get();
     }
+ public static function recommended_products($zone_id, int $limit, int $offset)
+{
+    $category_sub_category_item_default_status = BusinessSetting::where('key', 'category_sub_category_item_default_status')->first()?->value ?? 1;
+    $category_sub_category_item_sort_by_general = PriorityList::where('name', 'category_sub_category_item_sort_by_general')->where('type','general')->first()?->value ?? '';
+    $category_sub_category_item_sort_by_unavailable = PriorityList::where('name', 'category_sub_category_item_sort_by_unavailable')->where('type','unavailable')->first()?->value ?? '';
+    $category_sub_category_item_sort_by_temp_closed = PriorityList::where('name', 'category_sub_category_item_sort_by_temp_closed')->where('type','temp_closed')->first()?->value ?? '';
+
+    $query = Item::query()
+        ->select(['items.*'])
+        ->selectSub(function ($subQuery) {
+            $subQuery->selectRaw('active as temp_available')
+                ->from('stores')
+                ->whereColumn('stores.id', 'items.store_id');
+        }, 'temp_available')
+        ->active()
+        ->type('voucher'); // 🔥 ONLY voucher products
+
+    if ($category_sub_category_item_default_status == '1') {
+
+        $query->latest();
+
+    } else {
+
+        if (config('module.current_module_data')['module_type'] !== 'food') {
+            if ($category_sub_category_item_sort_by_unavailable == 'remove') {
+                $query->where('stock', '>', 0);
+            } elseif ($category_sub_category_item_sort_by_unavailable == 'last') {
+                $query->orderByRaw('CASE WHEN stock = 0 THEN 1 ELSE 0 END');
+            }
+        }
+
+        if ($category_sub_category_item_sort_by_temp_closed == 'remove') {
+            $query->having('temp_available', '>', 0);
+        } elseif ($category_sub_category_item_sort_by_temp_closed == 'last') {
+            $query->orderByDesc('temp_available');
+        }
+
+        if ($category_sub_category_item_sort_by_general == 'rating') {
+            $query->orderByDesc('avg_rating');
+        } elseif ($category_sub_category_item_sort_by_general == 'review_count') {
+            $query->withCount('reviews')->orderByDesc('reviews_count');
+        } elseif ($category_sub_category_item_sort_by_general == 'a_to_z') {
+            $query->orderBy('name');
+        } elseif ($category_sub_category_item_sort_by_general == 'z_to_a') {
+            $query->orderByDesc('name');
+        } elseif ($category_sub_category_item_sort_by_general == 'order_count') {
+            $query->orderByDesc('order_count');
+        }
+    }
+
+    $paginator = $query->paginate($limit, ['*'], 'page', $offset);
+
+    return [
+        'total_size' => $paginator->total(),
+        'limit' => $limit,
+        'offset' => $offset,
+        'products' => $paginator->items(),
+    ];
+}
+
+
 
     public static function products($category_id, $zone_id, int $limit,int $offset, $type)
     {
-        
+          
         $category_sub_category_item_default_status = BusinessSetting::where('key', 'category_sub_category_item_default_status')->first()?->value ?? 1;
         $category_sub_category_item_sort_by_general = PriorityList::where('name', 'category_sub_category_item_sort_by_general')->where('type','general')->first()?->value ?? '';
         $category_sub_category_item_sort_by_unavailable = PriorityList::where('name', 'category_sub_category_item_sort_by_unavailable')->where('type','unavailable')->first()?->value ?? '';
         $category_sub_category_item_sort_by_temp_closed = PriorityList::where('name', 'category_sub_category_item_sort_by_temp_closed')->where('type','temp_closed')->first()?->value ?? '';
 
         $query = Item::
-        whereHas('module.zones', function($query)use($zone_id){
-            $query->whereIn('zones.id', json_decode($zone_id, true));
-        })
+        // whereHas('module.zones', function($query)use($zone_id){
+        //     $query->whereIn('zones.id', json_decode($zone_id, true));
+        // })
             // ->whereHas('store', function($query)use($zone_id){
-            //     $query->whereIn('zone_id', json_decode($zone_id, true))->whereHas('zone.modules',function($query){
-            //         $query->when(config('module.current_module_data'), function($query){
-            //             $query->where('modules.id', config('module.current_module_data')['id']);
-            //         });
-            //     });
+            //     // $query->whereIn('zone_id', json_decode($zone_id, true))->whereHas('zone.modules',function($query){
+            //     //     $query->when(config('module.current_module_data'), function($query){
+            //     //         $query->where('modules.id', config('module.current_module_data')['id']);
+            //     //     });
+            //     // });
             // })
-            ->whereHas('category',function($q)use($category_id){
+            // ->
+            whereHas('category',function($q)use($category_id){
                 return $q->when(is_numeric($category_id),function ($qurey) use($category_id){
                     return $qurey->whereId($category_id)->orWhere('parent_id', $category_id);
                 })
@@ -344,70 +406,120 @@ class CategoryLogic
     }
 
 
-    public static function stores($category_id, $zone_id, int $limit,int $offset, $type,$longitude=0,$latitude=0)
-    {
-        $paginator = Store::
-        withOpen($longitude??0,$latitude??0)
-            ->withCount(['items','campaigns'])
-            ->whereHas('items.category',function($q)use($category_id){
-                return $q->when(is_numeric($category_id),function ($qurey) use($category_id){
-                    return $qurey->whereId($category_id)->orWhere('parent_id', $category_id);
-                })
-                    ->when(!is_numeric($category_id),function ($qurey) use($category_id){
-                        $qurey->where('slug', $category_id);
-                    });
-            })
-            ->when(config('module.current_module_data'), function($query)use($zone_id){
-                $query->whereHas('zone.modules', function($query){
-                    $query->where('modules.id', config('module.current_module_data')['id']);
-                })->module(config('module.current_module_data')['id']);
-                if(!config('module.current_module_data')['all_zone_service']) {
-                    $query->whereIn('zone_id', json_decode($zone_id, true));
-                }
-            })
-            ->active()->type($type)
-            ->latest()->paginate($limit, ['*'], 'page', $offset);
-
-
-        $paginator->each(function ($store) {
-            $category_ids = DB::table('items')
-                ->join('categories', 'items.category_id', '=', 'categories.id')
-                ->selectRaw('
-                CAST(categories.id AS UNSIGNED) as id,
-                categories.parent_id
-            ')
-                ->where('items.store_id', $store->id)
-                ->where('categories.status', 1)
-                ->groupBy('id', 'categories.parent_id')
-                ->get();
-
-            $data = json_decode($category_ids, true);
-
-            $mergedIds = [];
-
-            foreach ($data as $item) {
-                if ($item['id'] != 0) {
-                    $mergedIds[] = $item['id'];
-                }
-                if ($item['parent_id'] != 0) {
-                    $mergedIds[] = $item['parent_id'];
-                }
-            }
-
-            $category_ids = array_values(array_unique($mergedIds));
-
-            $store->category_ids = $category_ids;
-            $store->discount_status = !empty($store->items->where('discount', '>', 0));
-            unset($store['items']);
-        });
-
-        return [
-            'total_size' => $paginator->total(),
-            'limit' => $limit,
-            'offset' => $offset,
-            'stores' => $paginator->items()
-        ];
+public static function stores(
+    $category_id,
+    $zone_id,
+    int $limit,
+    int $offset,
+    $type,
+    $longitude = 0,
+    $latitude = 0
+) {
+    // ✅ Normalize zone_id
+    if (is_string($zone_id)) {
+        $zone_id = json_decode($zone_id, true);
     }
+    $zone_id = is_array($zone_id) ? $zone_id : [$zone_id];
+
+    $paginator = Store::withOpen($longitude ?? 0, $latitude ?? 0)
+
+        // ✅ Load FULL voucher data
+        ->with([
+            'vouchers' => function ($q) {
+                $q->select(
+                    'id',
+                    'store_id',
+                    'category_id',
+                    'name',
+                    'price',
+                    'discount',
+                    'type',
+                    'created_at'
+                );
+            }
+        ])
+
+        // Optional counts
+        ->withCount(['items', 'campaigns'])
+
+        // ✅ Category filter (items OR vouchers)
+        ->where(function ($query) use ($category_id) {
+
+            // Items
+            $query->whereHas('items.category', function ($q) use ($category_id) {
+                $q->when(is_numeric($category_id), function ($q) use ($category_id) {
+                    $q->where('id', $category_id)
+                      ->orWhere('parent_id', $category_id);
+                })->when(!is_numeric($category_id), function ($q) use ($category_id) {
+                    $q->where('slug', $category_id);
+                });
+            })
+
+            // Vouchers
+            ->orWhereHas('vouchers.category', function ($q) use ($category_id) {
+                $q->when(is_numeric($category_id), function ($q) use ($category_id) {
+                    $q->where('id', $category_id)
+                      ->orWhere('parent_id', $category_id);
+                })->when(!is_numeric($category_id), function ($q) use ($category_id) {
+                    $q->where('slug', $category_id);
+                });
+            });
+        })
+
+        // ✅ Module + zone filter
+        ->when(config('module.current_module_data'), function ($query) use ($zone_id) {
+            $query->whereHas('zone.modules', function ($q) {
+                $q->where('modules.id', config('module.current_module_data')['id']);
+            })->module(config('module.current_module_data')['id']);
+
+            if (!config('module.current_module_data')['all_zone_service']) {
+                $query->whereIn('zone_id', $zone_id);
+            }
+        })
+
+        ->active()
+        ->type($type)
+        ->latest()
+        ->paginate($limit, ['*'], 'page', $offset);
+
+    // ✅ Post processing
+    $paginator->each(function ($store) {
+
+        // Category IDs
+        $category_ids = DB::table('items')
+            ->join('categories', 'items.category_id', '=', 'categories.id')
+            ->where('items.store_id', $store->id)
+            ->where('categories.status', 1)
+            ->selectRaw('CAST(categories.id AS UNSIGNED) as id, categories.parent_id')
+            ->groupBy('id', 'categories.parent_id')
+            ->get();
+
+        $mergedIds = [];
+        foreach ($category_ids as $item) {
+            if ($item->id) {
+                $mergedIds[] = $item->id;
+            }
+            if ($item->parent_id) {
+                $mergedIds[] = $item->parent_id;
+            }
+        }
+
+        $store->category_ids = array_values(array_unique($mergedIds));
+
+        // ✅ Discount check (items OR vouchers)
+        $store->discount_status =
+            $store->items()->where('discount', '>', 0)->exists()
+            || $store->vouchers->where('discount', '>', 0)->isNotEmpty();
+    });
+
+    return [
+        'total_size' => $paginator->total(),
+        'limit'      => $limit,
+        'offset'     => $offset,
+        'stores'     => $paginator->items(),
+    ];
+}
+
 
      
     

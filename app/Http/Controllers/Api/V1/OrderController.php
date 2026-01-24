@@ -21,6 +21,7 @@ use Illuminate\Support\Facades\DB;
 use App\CentralLogics\ProductLogic;
 use App\Http\Controllers\Controller;
 use App\Models\OfflinePaymentMethod;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use App\Models\ParcelDeliveryInstruction;
 use App\Traits\PlaceNewOrder;
@@ -60,9 +61,9 @@ class OrderController extends Controller
             $order['delivery_man'] = $order['delivery_man'] ? Helpers::deliverymen_data_formatting([$order['delivery_man']]) : $order['delivery_man'];
             $order['refund_cancellation_note'] = $order['refund'] ? $order['refund']['admin_note'] : null;
             $order['refund_customer_note'] = $order['refund'] ? $order['refund']['customer_note'] : null;
-            $order['min_delivery_time'] =  $order->store ? (int) explode('-', $order->store?->delivery_time)[0] ?? 0 : 0;
-            $order['max_delivery_time'] =  $order->store ? (int) explode('-', $order->store?->delivery_time)[1] ?? 0 : 0;
-            $order['offline_payment'] =  isset($order->offline_payments) ? Helpers::offline_payment_formater($order->offline_payments) : null;
+            $order['min_delivery_time'] = $order->store ? (int) explode('-', $order->store?->delivery_time)[0] ?? 0 : 0;
+            $order['max_delivery_time'] = $order->store ? (int) explode('-', $order->store?->delivery_time)[1] ?? 0 : 0;
+            $order['offline_payment'] = isset($order->offline_payments) ? Helpers::offline_payment_formater($order->offline_payments) : null;
 
             unset($order['offline_payments']);
             unset($order['details']);
@@ -96,13 +97,20 @@ class OrderController extends Controller
 
             ->Notpos()->latest()->paginate($request['limit'], ['*'], 'page', $request['offset']);
         $orders = array_map(function ($data) {
+
             $data['delivery_address'] = $data['delivery_address'] ? json_decode($data['delivery_address']) : $data['delivery_address'];
             $data['store'] = $data['store'] ? Helpers::store_data_formatting($data['store']) : $data['store'];
             $data['delivery_man'] = $data['delivery_man'] ? Helpers::deliverymen_data_formatting([$data['delivery_man']]) : $data['delivery_man'];
             $data['refund_cancellation_note'] = $data['refund'] ? $data['refund']['admin_note'] : null;
             $data['refund_customer_note'] = $data['refund'] ? $data['refund']['customer_note'] : null;
+
+            /* ================= VOUCHER ITEMS ================= */
+            $data['voucher_items'] = Helpers::order_voucher_details_formatting_from_formatted(
+                $data['details'] ?? []
+            );
             return $data;
         }, $paginator->items());
+
         $data = [
             'total_size' => $paginator->total(),
             'limit' => $request['limit'],
@@ -155,6 +163,7 @@ class OrderController extends Controller
         if ($validator->fails()) {
             return response()->json(['errors' => Helpers::error_processor($validator)], 403);
         }
+        
         $user_id = $request?->user?->id;
 
         $order = Order::with('details', 'offline_payments', 'parcel_category')
@@ -164,11 +173,14 @@ class OrderController extends Controller
             ->when($request->user, function ($query) use ($user_id) {
                 return $query->where('user_id', $user_id);
             })->findOrFail($request->order_id);
-
+       
         $details = isset($order->details) ? $order->details : null;
         if ($details != null && $details->count() > 0) {
+   
+           
             $details = Helpers::order_details_data_formatting($details);
-            $details[0]['is_guest'] = (int)$order->is_guest;
+            $details['qr_code'] = $order->qr_code;
+            $details[0]['is_guest'] = (int) $order->is_guest;
             return response()->json($details, 200);
         } else if ($order->order_type == 'parcel' || $order->prescription_order == 1) {
             $order->delivery_address = json_decode($order->delivery_address, true);
@@ -224,7 +236,7 @@ class OrderController extends Controller
             $order->cancellation_reason = $request->reason;
             $order->canceled_by = 'customer';
             $order->save();
-            $order?->store ?   Helpers::increment_order_count($order?->store) : '';
+            $order?->store ? Helpers::increment_order_count($order?->store) : '';
 
             Helpers::send_order_notification($order);
             return response()->json(['message' => translate('messages.order_canceled_successfully')], 200);
@@ -512,7 +524,7 @@ class OrderController extends Controller
         $order = Order::where('id', $request->order_id)->firstOrfail();
 
         $info = OfflinePayments::where('order_id', $request->order_id)->firstOrfail();
-        $old_data =   json_decode($info->payment_info, true);
+        $old_data = json_decode($info->payment_info, true);
         $method_id = data_get($old_data, 'method_id', null);
         $offline_payment_info = [];
         $method = OfflinePaymentMethod::where('id', $method_id)->first();
@@ -579,7 +591,7 @@ class OrderController extends Controller
 
     private function createCashBackHistory($order_amount, $user_id, $order_id)
     {
-        $cashBack =  Helpers::getCalculatedCashBackAmount(amount: $order_amount, customer_id: $user_id);
+        $cashBack = Helpers::getCalculatedCashBackAmount(amount: $order_amount, customer_id: $user_id);
         if (data_get($cashBack, 'calculated_amount') > 0) {
             $CashBackHistory = new CashBackHistory();
             $CashBackHistory->user_id = $user_id;
@@ -620,6 +632,9 @@ class OrderController extends Controller
 
     public function place_order(Request $request)
     {
+        Log::info('New Place Order Request', [
+            'body' => $request->all(),
+        ]);
         return $this->new_place_order($request);
     }
     public function prescription_place_order(Request $request)
@@ -646,4 +661,31 @@ class OrderController extends Controller
 
         return $this->getSurgePrice($request->zone_id, $request->module_id, $request->date_time);
     }
+
+
+
+
+
+    public function orderScanUpdate(Request $request)
+    {
+
+        $request->validate([
+            'order_id' => 'required|exists:orders,id'
+        ]);
+
+
+        $store_data = auth('vendor')->user();
+        dd($store_data);
+        $order = Order::find($request->order_id);
+
+        $order->update([
+            'order_status' => 'in_progress',
+            'store_id' => 66
+        ]);
+
+        return response()->json([
+            'success' => true
+        ]);
+    }
+
 }

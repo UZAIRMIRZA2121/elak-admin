@@ -28,6 +28,7 @@ use App\Mail\WithdrawRequestMail;
 use App\Models\StoreSubscription;
 use App\CentralLogics\CouponLogic;
 use App\Models\AccountTransaction;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Mail;
@@ -1457,4 +1458,6 @@ class VendorController extends Controller
 
         return response()->json($data, 200);
     }
+
+
 }
