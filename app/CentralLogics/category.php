@@ -527,62 +527,85 @@ public static function stores(
     public static function stores_all_gift($category_id, $zone_id, int $limit, int $offset, $type, $longitude = 0, $latitude = 0)
     {
 
-        $gift_item_store_ids = Item::where('voucher_ids', 'Gift')
-            ->active()
-            ->when(is_numeric($category_id), function ($q) use ($category_id) {
-                $q->where('category_id', $category_id);
-            })
-            ->pluck('store_id')
-            ->unique()
-            ->toArray();
+      $longitude = (float)$longitude;
+    $latitude  = (float)$latitude;
 
-        $longitude = (float)$longitude;
-        $latitude = (float)$latitude;
+    // 1️⃣ Get gift items store IDs based on category
+    $gift_item_store_ids = DB::table('items')
+        ->when($category_id !== 'all', function ($q) use ($category_id) {
+            $q->where('category_id', (int)$category_id);
+        })
+        ->where('voucher_ids', 'Gift')
+        ->pluck('store_id')
+        ->unique()
+        ->values()
+        ->toArray();
 
-        $query = Store::withOpen($longitude, $latitude)
-            ->with([
-                'giftItems:id,store_id,category_id,discount'
-            ])
-            ->withCount([
-                'giftItems as total_gift_items'
-            ])
-            ->when(!empty($gift_item_store_ids), function ($q) use ($gift_item_store_ids) {
-                $q->whereIn('id', $gift_item_store_ids);
-            })
-            ->active();
-
-            $paginator = $query->latest()->paginate($limit, ['*'], 'page', $offset);
-
-
-            $paginator->getCollection()->transform(function ($store) {
-
-            $categoryIds = [];
-
-            foreach ($store->giftItems as $item) {
-                if ($item->category_id) {
-                    $categoryIds[] = $item->category_id;
-                }
-            }
-
-            $store->category_ids = array_values(array_unique($categoryIds));
-
-            $store->discount_status = $store->giftItems
-                ->where('discount', '>', 0)
-                ->isNotEmpty();
-
-            unset($store->giftItems);
-
-            return $store;
-        });
-        
-
+    // If no stores found, return empty response
+    if (empty($gift_item_store_ids)) {
         return [
-            'total_size' => $paginator->total(),
+            'total_size' => 0,
             'limit'      => $limit,
             'offset'     => $offset,
-            'stores'     => $paginator->items(),
+            'stores'     => [],
         ];
+    }
+//    dd($gift_item_store_ids);
+    // 2️⃣ Query stores
+    $query = DB::table('stores')
+        ->whereIn('id', $gift_item_store_ids)
+        ->where('status', 1) // active stores
+        ->orderBy('id', 'desc')
+        ->offset(($offset - 1) * $limit)
+        ->limit($limit);
 
+    $stores = $query->get();
+    $store_ids = $stores->pluck('id')->toArray();
+    dd($stores);
+    // 3️⃣ Fetch categories for Gift items in one query
+    $categories = DB::table('items')
+        ->join('categories', 'items.category_id', '=', 'categories.id')
+        ->select('items.store_id', DB::raw('GROUP_CONCAT(DISTINCT categories.id, ",", categories.parent_id) as cat_ids'))
+        ->whereIn('items.store_id', $store_ids)
+        ->where('items.voucher_ids', 'Gift')
+        ->where('categories.status', 1)
+        ->groupBy('items.store_id')
+        ->get()
+        ->keyBy('store_id');
+
+    // 4️⃣ Fetch discount status for Gift items in one query
+    $discount_statuses = DB::table('items')
+        ->whereIn('store_id', $store_ids)
+        ->where('voucher_ids', 'Gift')
+        ->where('discount', '>', 0)
+        ->distinct()
+        ->pluck('store_id')
+        ->toArray();
+
+    // 5️⃣ Merge categories and discount into stores
+    $stores = $stores->map(function ($store) use ($categories, $discount_statuses) {
+        $cat_ids = [];
+
+        if (isset($categories[$store->id])) {
+            $raw_ids = explode(',', $categories[$store->id]->cat_ids);
+            foreach ($raw_ids as $id) {
+                if ($id != 0) $cat_ids[] = (int)$id;
+            }
+        }
+
+        $store->category_ids    = array_values(array_unique($cat_ids));
+        $store->discount_status = in_array($store->id, $discount_statuses);
+
+        return $store;
+    });
+
+    // 6️⃣ Return paginated response
+    return [
+        'total_size' => count($gift_item_store_ids),
+        'limit'      => $limit,
+        'offset'     => $offset,
+        'stores'     => $stores,
+    ];
             
       
     }

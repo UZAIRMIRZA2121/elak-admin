@@ -359,12 +359,12 @@ class Store extends Model
     }
 
     // Store.php
-    public function giftItems()
-    {
-        return $this->hasMany(Item::class, 'store_id')
-            ->where('voucher_ids', 'Gift')
-            ->active();
-    }
+    // public function giftItems()
+    // {
+    //     return $this->hasMany(Item::class, 'store_id')
+    //         ->where('voucher_ids', 'Gift')
+    //         ->active();
+    // }
 
 
     /**
