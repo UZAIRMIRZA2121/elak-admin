@@ -410,6 +410,7 @@ class CategoryLogic
     }
 
      
+    
 
     public static function stores_all_gift($category_id, $zone_id, int $limit, int $offset, $type, $longitude = 0, $latitude = 0)
     {
