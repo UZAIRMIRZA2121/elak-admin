@@ -561,7 +561,7 @@ public static function stores(
 
     $stores = $query->get();
     $store_ids = $stores->pluck('id')->toArray();
-    dd($stores);
+    // dd($stores);
     // 3️⃣ Fetch categories for Gift items in one query
     $categories = DB::table('items')
         ->join('categories', 'items.category_id', '=', 'categories.id')
