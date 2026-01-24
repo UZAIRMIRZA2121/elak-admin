@@ -574,6 +574,7 @@ public static function stores(
 
             return $store;
         });
+        
 
         return [
             'total_size' => $paginator->total(),
