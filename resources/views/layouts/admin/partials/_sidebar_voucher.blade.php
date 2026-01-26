@@ -321,14 +321,14 @@
                         </ul>
                     </li>
 
-                    {{-- <li class="navbar-vertical-aside-has-menu {{ Request::is('admin/flash-sale*') ? 'active' : '' }}">
+                    <li class="navbar-vertical-aside-has-menu {{ Request::is('admin/flash-sale*') ? 'active' : '' }}">
                         <a class="js-navbar-vertical-aside-menu-link nav-link" href="{{ route('admin.flash-sale.add-new') }}" title="{{ translate('messages.flash_sales') }}">
                             <i class="tio-apps nav-icon"></i>
                             <span class="navbar-vertical-aside-mini-mode-hidden-elements text-truncate">
                                 {{ translate('messages.flash_sales') }}
                             </span>
                         </a>
-                    </li> --}}
+                    </li> 
                     @endif
 
                 {{-- @if (\App\CentralLogics\Helpers::module_permission_check('campaign'))
@@ -392,6 +392,7 @@
                     <small class="nav-subtitle" title="{{ translate('Promotion Management') }}">{{ translate('Promotion Management') }}</small>
                     <small class="tio-more-horizontal nav-subtitle-replacer"></small>
                 </li>
+                
                 <!-- Campaign -->
                 {{-- @if (\App\CentralLogics\Helpers::module_permission_check('campaign'))
                 <li class="navbar-vertical-aside-has-menu {{ Request::is('admin/campaign') ? 'active' : '' }}">
@@ -431,12 +432,13 @@
                             <span class="navbar-vertical-aside-mini-mode-hidden-elements text-truncate">{{ translate('messages.banners') }}</span>
                         </a>
                     </li>
-                    {{-- <li class="navbar-vertical-aside-has-menu {{ Request::is('admin/promotional-banner*') ? 'active' : '' }}">
+                     <li class="navbar-vertical-aside-has-menu {{ Request::is('admin/promotional-banner*') ? 'active' : '' }}">
                         <a class="js-navbar-vertical-aside-menu-link nav-link" href="{{ route('admin.promotional-banner.add-new') }}" title="{{ translate('messages.other_banners') }}">
                             <i class="tio-image nav-icon"></i>
                             <span class="navbar-vertical-aside-mini-mode-hidden-elements text-truncate">{{ translate('messages.other_banners') }}</span>
                         </a>
-                    </li> --}}
+                    </li> 
+                    
                 @endif
                 <!-- End Banner -->
                 <!-- Coupon -->

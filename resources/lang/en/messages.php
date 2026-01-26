@@ -2916,7 +2916,7 @@
   'Best_Reviewed_Section_Banner' => 'Best Reviewed Section Banner',
   'Banner_Image_Ratio_4:1' => 'Banner Image Ratio 4:1',
   'Min_Size_for_Better_Resolution_235_x_375_px' => 'Min Size for Better Resolution 235 x 375 px',
-  'this_banner_is_only_for_react_web.' => 'This banner is only for react web.',
+  'this_banner_is_only_for_react_web.' => 'This banner is only for App.',
   'Banner_Image_Ratio_5:1' => 'Banner Image Ratio 5:1',
   'Basic_Medicine_Nearby' => 'Basic Medicine Nearby',
   'Best_Reviewed_Items' => 'Best Reviewed Items',
@@ -8416,11 +8416,9 @@ Smartly or Earn. ',
   'The message template style field is required.' => 'The message template style field is required.',
   'Add More Client' => 'Add More Client',
   'Status value invalid hai.' => 'Status value invalid hai.',
-<<<<<<< HEAD
   'The latitude must be a number.' => 'The latitude must be a number.',
   'The longitude must be a number.' => 'The longitude must be a number.',
   'Phone already taken' => 'Phone already taken',
-=======
   'voucher_updated_successfully' => 'Voucher updated successfully',
   'The delivery options field is required.' => 'The delivery options field is required.',
   'failed_to_update_voucher' => 'Failed to update voucher',
@@ -8449,5 +8447,5 @@ Smartly or Earn. ',
   'Recipient Name' => 'Recipient Name',
   'Recipient Email' => 'Recipient Email',
   'Delivery Time' => 'Delivery Time',
->>>>>>> 46ad4898b317b2f43304a1a61e2d6dca90fea70b
+  'The vendor discount percentage field is required.' => 'The vendor discount percentage field is required.',
 );

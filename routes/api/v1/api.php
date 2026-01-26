@@ -485,6 +485,8 @@ Route::group(['namespace' => 'Api\V1', 'middleware' => 'localization'], function
             Route::get('reviews/{item_id}', 'ItemController@get_product_reviews');
             Route::get('rating/{item_id}', 'ItemController@get_product_rating');
             Route::get('recommended', 'ItemController@get_recommended');
+            Route::get('new-voucher', 'ItemController@new_voucher');
+            Route::get('hot-voucher', 'ItemController@hot_voucher');
             Route::get('basic', 'ItemController@get_popular_basic_products');
             Route::get('suggested', 'ItemController@get_cart_suggest_products');
             Route::get('item-or-store-search', 'ItemController@item_or_store_search');

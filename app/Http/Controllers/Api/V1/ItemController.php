@@ -591,6 +591,45 @@ class ItemController extends Controller
         ], 404);
     }
 
+    public function new_voucher(Request $request)
+    {
+      
+        if (!$request->hasHeader('zoneId')) {
+            $errors = [];
+            array_push($errors, ['code' => 'zoneId', 'message' => translate('messages.zone_id_required')]);
+            return response()->json([
+                'errors' => $errors
+            ], 403);
+        }
+
+        $type = $request->query('type', 'all');
+        $filter = $request->query('filter', 'all');
+  
+        $zone_id = $request->header('zoneId');
+        $items = ProductLogic::new_voucher_items($zone_id, $request->store_id, $request['limit'], $request['offset'], $type, $filter);
+        $items['items'] = Helpers::product_data_formatting($items['items'], true, false, app()->getLocale());
+        return response()->json($items, 200);
+    }
+
+       public function hot_voucher(Request $request)
+    {
+        if (!$request->hasHeader('zoneId')) {
+            $errors = [];
+            array_push($errors, ['code' => 'zoneId', 'message' => translate('messages.zone_id_required')]);
+            return response()->json([
+                'errors' => $errors
+            ], 403);
+        }
+
+        $type = $request->query('type', 'all');
+        $filter = $request->query('filter', 'all');
+
+        $zone_id = $request->header('zoneId');
+        $items = ProductLogic::hot_voucher_items($zone_id, $request->store_id, $request['limit'], $request['offset'], $type, $filter);
+        $items['items'] = Helpers::product_data_formatting($items['items'], true, false, app()->getLocale());
+        return response()->json($items, 200);
+    }
+
     public function get_recommended(Request $request)
     {
         if (!$request->hasHeader('zoneId')) {

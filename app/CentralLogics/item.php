@@ -431,6 +431,72 @@ class ProductLogic
             ->get();
     }
 
+    public static function new_voucher_items($zone_id, $store_id = null, $limit = null, $offset = null, $type = 'all', $filter = 'all')
+    {
+        $data = [];
+        $query = Item::where('type', 'voucher')
+            ->when(config('module.current_module_data'), function ($query) {
+                $query->where('module_id', config('module.current_module_data')['id']);
+            })
+           
+            ->where('created_at', '>=', now()->subWeek());
+
+        if ($limit != null && $offset != null) {
+            $paginator = $query->paginate(4);
+            $data = $paginator->items();
+        } else {
+            $paginator = $query->limit(50)->get();
+            $data = $paginator;
+        }
+
+        return [
+            'total_size' => $paginator instanceof \Illuminate\Pagination\LengthAwarePaginator ? $paginator->total() : $paginator->count(),
+            'limit' => $limit,
+            'offset' => $offset,
+            'items' => $data
+        ];
+    }
+    public static function hot_voucher_items($zone_id, $store_id = null, $limit = null, $offset = null, $type = 'all', $filter = 'all')
+    {
+        $data = [];
+        $query = Item::where('type', 'voucher')
+            ->when(config('module.current_module_data'), function ($query) {
+                $query->where('module_id', config('module.current_module_data')['id']);
+            })
+            ->whereHas('store', function ($query) use ($zone_id) {
+                $query->whereIn('zone_id', json_decode($zone_id, true));
+            })
+            ->active()
+            ->where('created_at', '<', now()->subWeek())
+            ->when($filter == 'new_arrival', function ($qurey) {
+                $qurey->latest();
+            })
+            ->when($filter == 'top_rated', function ($qurey) {
+                $qurey->withCount('reviews')->orderBy('reviews_count', 'desc');
+            })
+            ->when($filter == 'best_selling', function ($qurey) {
+                $qurey->popular();
+            });
+
+        if ($limit != null && $offset != null) {
+          
+            $paginator = $query->paginate(3);
+            $data = $paginator->items();
+            //   dd($data);
+        } else {
+            $paginator = $query->limit(3)->get();
+            $data = $paginator;
+        }
+
+        return [
+            'total_size' => $paginator instanceof \Illuminate\Pagination\LengthAwarePaginator ? $paginator->total() : $paginator->count(),
+            'limit' => $limit,
+            'offset' => $offset,
+            'items' => $data
+        ];
+    }
+
+
     public static function recommended_items($zone_id, $store_id = null, $limit = null, $offset = null, $type = 'all', $filter = 'all')
     {
         $data = [];
