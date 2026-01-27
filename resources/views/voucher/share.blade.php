@@ -1,19 +1,20 @@
 @php
-    $voucher = json_decode($order->voucherDetail->item_details);
+    $voucherDetail = $order->voucherDetail;
+    $voucher = $voucherDetail ? json_decode($voucherDetail->item_details) : null;
 
     $items_details = $order->details;
 
-    $item_details = $order->firstDetail->item;
-    $gift_details = $order->firstDetail->gift_details ?? null;
-    $branches = $order->firstDetail->item->branches;
+    $firstDetail = $order->firstDetail;
+    $item_details = $firstDetail ? $firstDetail->item : null;
+    $gift_details = $firstDetail->gift_details ?? null;
+    $branches = ($firstDetail && $firstDetail->item) ? $firstDetail->item->branches : collect([]);
 
-    $main_branch = $item_details->store;
-    $voucherSetting = App\Models\VoucherSetting::where('item_id', $item_details->id)->first();
+    $main_branch = $item_details ? $item_details->store : null;
+    $voucherSetting = $item_details ? App\Models\VoucherSetting::where('item_id', $item_details->id)->first() : null;
 
-    $termIds = json_decode($item_details->term_and_condition_ids, true); // decode to array
+    $termIds = ($item_details && $item_details->term_and_condition_ids) ? json_decode($item_details->term_and_condition_ids, true) : []; 
 
-    $usage_terms = App\Models\UsageTermManagement::whereIn('id', $termIds)->get();
-
+    $usage_terms = !empty($termIds) ? App\Models\UsageTermManagement::whereIn('id', $termIds)->get() : collect([]);
 @endphp
 
 <!DOCTYPE html>
@@ -46,7 +47,7 @@
 
         .voucher-card {
             background: white;
-            overflow: hidden;
+            /* overflow: hidden; */ /* Removing this to allow share dropdown to be visible */
             position: relative;
         }
 
@@ -75,6 +76,36 @@
             font-size: 12px;
             font-weight: 500;
             z-index: 10;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .badge-download-btn {
+            background: white;
+            color: #1bb4c5;
+            border: none;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            transition: transform 0.2s ease, background 0.2s ease;
+            padding: 0;
+            margin-right: -4px;
+        }
+
+        .badge-download-btn:hover {
+            transform: scale(1.1);
+            background: #f8f8f8;
+        }
+
+        .badge-download-btn i {
+            font-size: 14px;
+            line-height: 1;
         }
 
         /* Dashed Border */
@@ -250,9 +281,114 @@
         /* Share Download Section */
         .share-download-section {
             display: flex;
-            gap: 24px;
-            padding: 16px 0;
+            gap: 16px;
+            padding: 20px 0;
             border-bottom: 1px solid #e5e5e5;
+            flex-wrap: wrap;
+            position: relative;
+        }
+
+        .share-dropdown-container {
+            position: relative;
+        }
+
+        .share-btn {
+            background: #1bb4c5;
+            color: white;
+            border: none;
+            padding: 10px 24px;
+            border-radius: 25px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(27, 180, 197, 0.2);
+            transition: all 0.3s ease;
+            text-decoration: none;
+        }
+
+        .share-btn:hover {
+            background: #179fb0;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(27, 180, 197, 0.3);
+            color: white;
+        }
+
+        .share-dropdown-menu {
+            position: absolute;
+            top: calc(100% + 10px);
+            left: 0;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            border: 1px solid #eee;
+            min-width: 220px;
+            z-index: 1050;
+            overflow: visible;
+            display: none;
+            opacity: 0;
+            transform: translateY(-10px);
+            transition: opacity 0.3s ease, transform 0.3s ease;
+            padding: 8px 0;
+        }
+
+        .share-dropdown-menu.show {
+            display: block;
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .share-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 16px;
+            color: #333;
+            text-decoration: none;
+            font-size: 14px;
+            transition: background 0.2s ease;
+            cursor: pointer;
+        }
+
+        .share-item:hover {
+            background: #f5f5f5;
+            color: #1bb4c5;
+        }
+
+        .share-item i {
+            font-size: 18px;
+            width: 20px;
+            text-align: center;
+        }
+
+        .share-item.whatsapp i { color: #25D366; }
+        .share-item.telegram i { color: #0088cc; }
+        .share-item.facebook i { color: #1877F2; }
+        .share-item.twitter i { color: #1DA1F2; }
+        .share-item.copy i { color: #1bb4c5; }
+
+        .download-btn-outline {
+            background: white;
+            color: #1bb4c5;
+            border: 2px solid #1bb4c5;
+            padding: 8px 22px;
+            border-radius: 25px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+        }
+
+        .download-btn-outline:hover {
+            background: rgba(27, 180, 197, 0.05);
+            transform: translateY(-2px);
+            color: #179fb0;
         }
 
         .action-button {
@@ -402,20 +538,21 @@
 </head>
 
 <body>
-    <button class="action-button" onclick="downloadVoucherPDF()">
-        <i class="bi bi-download"></i>
-    </button>
+
 
     <div class="voucher-container" id="voucherArea">
         <div class="voucher-card">
             <!-- Image with In-Store Badge -->
             <div class="voucher-image-wrapper">
-                <div class="in-store-badge">{{ $order->voucher_type }}</div>
-
-
+                <div class="in-store-badge">
+                    <span>{{ $order->voucher_type }}</span>
+                    <button class="badge-download-btn" onclick="downloadVoucherPDF()" title="Download PDF">
+                        <i class="bi bi-download"></i>
+                    </button>
+                </div>
 
                 <img class="img-fluid rounded onerror-image"
-                    src="{{ $item_details->image_full_url ?? asset('public/assets/admin/img/160x160/img2.jpg') }}"
+                    src="{{ optional($item_details)->image_full_url ?? asset('public/assets/admin/img/160x160/img2.jpg') }}"
                     data-onerror-image="{{ asset('public/assets/admin/img/160x160/img2.jpg') }}"
                     alt="Image Description">
             </div>
@@ -427,7 +564,7 @@
                 <!-- Title and Gift Value -->
                 <div class="title-section">
                     <div class="voucher-title">
-                        {{ $voucher->name }}
+                        {{ $voucher->name ?? 'Voucher Details Unavailable' }}
                     </div>
                     <div class="gift-value-box">
                         <div class="gift-value-label">Gift Value</div>
@@ -440,19 +577,21 @@
                             @php
                                 // Determine logo URL
                                 $logoUrl =
-                                    $main_branch->logo_full_url ??
-                                    asset('storage/store/' . ($main_branch->logo ?? 'default.png'));
+                                    optional($main_branch)->logo_full_url ??
+                                    ($main_branch ? asset('storage/store/' . ($main_branch->logo ?? 'default.png')) : null);
                             @endphp
 
                             @if ($logoUrl)
-                                <img src="{{ $logoUrl }}" alt="{{ $main_branch->name }} Logo">
-                            @else
+                                <img src="{{ $logoUrl }}" alt="{{ optional($main_branch)->name }} Logo">
+                            @elseif ($main_branch)
                                 <span class="restaurant-logo-text">
                                     {{ strtoupper(substr($main_branch->name, 0, 2)) }}
                                 </span>
+                            @else
+                                <span class="restaurant-logo-text">N/A</span>
                             @endif
                         </div>
-                        <div class="restaurant-name">{{ $main_branch->name }}</div>
+                        <div class="restaurant-name">{{ optional($main_branch)->name ?? 'Store N/A' }}</div>
                     </div>
                 </div>
                 <!-- QR Code and Expiry -->
@@ -475,16 +614,34 @@
                 </div>
                 <!-- Share and Download Buttons -->
                 <div class="share-download-section">
-                    <button class="action-button">
-                        <i class="bi bi-share"></i>
-
-                    </button>
-                    <button class="action-button">
-                        <a href="{{ route('voucher.download', $order->qr_code) }}" class="action-button">
-                            <i class="bi bi-download"></i>
-                            {{-- <span>Download</span> --}}
-                        </a>
-                    </button>
+                    <div class="share-dropdown-container">
+                        <button class="share-btn" id="shareTrigger">
+                            <i class="bi bi-share"></i>
+                            <span>Share Voucher</span>
+                        </button>
+                        <div class="share-dropdown-menu" id="shareMenu">
+                            <div class="share-item whatsapp" onclick="shareTo('whatsapp')">
+                                <i class="bi bi-whatsapp"></i> WhatsApp
+                            </div>
+                            <div class="share-item telegram" onclick="shareTo('telegram')">
+                                <i class="bi bi-telegram"></i> Telegram
+                            </div>
+                            <div class="share-item facebook" onclick="shareTo('facebook')">
+                                <i class="bi bi-facebook"></i> Facebook
+                            </div>
+                            <div class="share-item twitter" onclick="shareTo('twitter')">
+                                <i class="bi bi-twitter-x"></i> Twitter
+                            </div>
+                            <div class="share-item copy" onclick="shareTo('copy')">
+                                <i class="bi bi-link-45deg"></i> Copy Link
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <a href="{{ route('voucher.download', $order->qr_code) }}" class="download-btn-outline">
+                        <i class="bi bi-download"></i>
+                        <span>Download PDF</span>
+                    </a>
                 </div>
                 @if (isset($gift_details))
                     <!-- Message Box -->
@@ -498,7 +655,7 @@
                 <!-- Info Items -->
                 <div class="info-items">
 
-                    @if (!empty($item_details->description))
+                    @if ($item_details && !empty($item_details->description))
                         <div class="info-row" onclick="toggleInfo(this)">
                             <span class="info-title">Vouchers Info</span>
                             <a href="#" class="view-button" onclick="event.preventDefault()">
@@ -509,26 +666,26 @@
                         <div class="info-content">
 
                             @foreach ($items_details as $detail)
-                              @if (isset($detail->item_id) && $detail->item->type !== 'voucher')
+                              @if (isset($detail->item_id) && optional($detail->item)->type !== 'voucher')
                                 <div class="media media--sm">
                                     <div class="media-body">
                                         <div>
                                             <strong
-                                                class="line--limit-1">{{ Str::limit($detail->item['name'], 25, '...') }}</strong>
+                                                class="line--limit-1">{{ Str::limit(optional($detail->item)->name ?? 'Item', 25, '...') }}</strong>
                                              
                                             <br>
                                           
                                                 <?php
                                                 $variations = json_decode($detail['variation'], true);
                                                 ?>
-
+                                        
                                                 @if (!empty($variations))
                                                     {{-- <strong><u>{{ translate('messages.variation') }}
                                                             :</u></strong> --}}
 
                                                     @foreach ($variations as $variation)
                                                         <div class="font-size-sm text-body">
-                                                            <span>{{ ucfirst($variation['name']) }} :
+                                                            <span>{{ ucfirst($variation['name'] ?? 'Variation') }} :
                                                             </span>
                                                             <span class="font-weight-bold">
                                                                 {{ $variation['values'][0]['label'] ?? '' }}
@@ -825,6 +982,71 @@ if (isset($voucherSetting)) {
                     });
                 })
             );
+        }
+
+        async function shareVoucher() {
+            const text = 'Check out this voucher: {{ $voucher->name ?? "Gift Voucher" }} from {{ optional($main_branch)->name ?? "our store" }}!';
+            const url = window.location.href;
+
+            if (navigator.share) {
+                try {
+                    await navigator.share({
+                        title: '{{ $voucher->name ?? "Voucher" }}',
+                        text: text,
+                        url: url,
+                    });
+                } catch (err) {
+                    console.error('Share failed:', err);
+                }
+            }
+        }
+
+        // Share Dropdown Logic
+        const shareTrigger = document.getElementById('shareTrigger');
+        const shareMenu = document.getElementById('shareMenu');
+
+        shareTrigger.addEventListener('click', (e) => {
+            e.stopPropagation();
+            shareMenu.classList.toggle('show');
+        });
+
+        document.addEventListener('click', () => {
+            shareMenu.classList.remove('show');
+        });
+
+        shareMenu.addEventListener('click', (e) => {
+            e.stopPropagation();
+        });
+
+        function shareTo(platform) {
+            const text = 'Check out this voucher: {{ $voucher->name ?? "Gift Voucher" }} from {{ optional($main_branch)->name ?? "our store" }}!';
+            const url = window.location.href;
+            let shareUrl = '';
+
+            switch(platform) {
+                case 'whatsapp':
+                    shareUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(text + "\n" + url)}`;
+                    break;
+                case 'telegram':
+                    shareUrl = `https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(text)}`;
+                    break;
+                case 'facebook':
+                    shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`;
+                    break;
+                case 'twitter':
+                    shareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`;
+                    break;
+                case 'copy':
+                    navigator.clipboard.writeText(url).then(() => {
+                        alert('Link copied to clipboard!');
+                    });
+                    return;
+            }
+
+            if (shareUrl) {
+                window.open(shareUrl, '_blank');
+            }
+            shareMenu.classList.remove('show');
         }
     </script>
 

@@ -1,15 +1,18 @@
 @php
-    $voucher = json_decode($order->voucherDetail->item_details);
-    $item = $order->firstDetail->item;
-    $gift = $order->firstDetail->gift_details ?? null;
-    $branches = $item->branches ?? [];
-    $store = $item->store;
+    $voucherDetail = $order->voucherDetail;
+    $voucher = $voucherDetail ? json_decode($voucherDetail->item_details) : null;
+    
+    $firstDetail = $order->firstDetail;
+    $item = $firstDetail ? $firstDetail->item : null;
+    $gift = $firstDetail->gift_details ?? null;
+    $branches = $item ? ($item->branches ?? []) : [];
+    $store = $item ? $item->store : null;
 
-    $mainImage = $item->image
+    $mainImage = ($item && $item->image)
         ? public_path('storage/' . str_replace('storage/', '', $item->image))
         : null;
 
-    $logo = $store->logo
+    $logo = ($store && $store->logo)
         ? public_path('storage/store/' . $store->logo)
         : null;
 @endphp
@@ -104,7 +107,7 @@ body {
     <div class="body">
 
         <div class="section">
-            <span class="title">{{ $voucher->name }}</span>
+            <span class="title">{{ optional($voucher)->name ?? 'Voucher Details Unavailable' }}</span>
             <span class="value">{{ $order->order_amount }}</span>
             <div style="clear:both"></div>
         </div>
@@ -115,7 +118,7 @@ body {
                     <img src="{{ $logo }}">
                 </span>
             @endif
-            <strong style="margin-left:10px">{{ $store->name }}</strong>
+            <strong style="margin-left:10px">{{ optional($store)->name ?? 'Store N/A' }}</strong>
         </div>
 
         <div class="section qr">
@@ -134,7 +137,7 @@ body {
             </div>
         @endif
 
-        @if(!empty($item->description))
+        @if($item && !empty($item->description))
             <div class="section">
                 <strong>Voucher Info</strong>
                 <p class="small">{{ $item->description }}</p>
