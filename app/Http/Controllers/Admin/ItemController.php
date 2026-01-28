@@ -1066,7 +1066,8 @@ class ItemController extends Controller
             })
             ->when($request->module_id, function ($q) use ($request) {
                 $q->where('module_id', $request->module_id);
-            })->whereDoesntHave('flashSaleItems.flashSale', function ($query) {
+            })->where('type', 'voucher')
+            ->whereDoesntHave('flashSaleItems.flashSale', function ($query) {
                 $now = now();
                 $query->where('start_date', '<=', $now)
                     ->where('end_date', '>=', $now);

@@ -8448,4 +8448,5 @@ Smartly or Earn. ',
   'Recipient Email' => 'Recipient Email',
   'Delivery Time' => 'Delivery Time',
   'The vendor discount percentage field is required.' => 'The vendor discount percentage field is required.',
+  'Item_discount_amount_exceeded' => 'Item discount amount exceeded',
 );

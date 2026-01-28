@@ -177,13 +177,13 @@ class FlashSaleController extends Controller
             Toastr::error(translate('messages.Item_already_exists'));
             return back();
         }
-
         $item = Item::find($request->item_id);
-
-        if($request->stock>$item->stock){
-            Toastr::error(translate('messages.Item_stock_exceeded'));
-            return back();
-        }
+        // dd($item);
+        // dd($request->stock>$item->stock);
+        // if($request->stock>$item->stock){
+        //     Toastr::error(translate('messages.Item_stock_exceeded'));
+        //     return back();
+        // }
 
         $flash_sale = new FlashSaleItem();
         $flash_sale->flash_sale_id = $request->flash_sale_id;
