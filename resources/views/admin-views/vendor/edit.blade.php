@@ -395,7 +395,7 @@
 
                                 </div>
 
-                                {{-- <div class="col-lg-8">
+                                <div class="col-lg-8">
                                     <input id="pac-input" class="controls rounded"
                                         data-toggle="tooltip" data-placement="right" data-original-title="{{ translate('messages.search_your_location_here') }}" type="text" placeholder="{{ translate('messages.search_here') }}" />
                                     <div id="map"></div>
@@ -412,7 +412,7 @@
                                         <label class="input-label" for="flate_discount">{{translate('Flate Discount')}}</label>
                                         <input type="text" id="flate_discount"  value="{{$store->flate_discount}}" name="flate_discount" class="form-control" placeholder="Flate Discount"  required >
                                     </div>
-                                </div> --}}
+                                </div>
                             </div>
                         </div>
                     </div>
