@@ -116,17 +116,17 @@
                     $defaultLang = str_replace('_', '-', app()->getLocale());
                     
                     // Initialize variables for Gift Voucher
-                    $selected_occasions = json_decode($product->occasions_id ?? '[]', true);
-                    $howAndConditionIds = json_decode($product->how_and_condition_ids ?? '[]', true);
+                    $selected_occasions = is_array($product->occasions_id) ? $product->occasions_id : json_decode($product->occasions_id ?? '[]', true);
+                    $howAndConditionIds = is_array($product->how_and_condition_ids) ? $product->how_and_condition_ids : json_decode($product->how_and_condition_ids ?? '[]', true);
                     $savedHowToWorkId = $howAndConditionIds[0] ?? '';
 
                     // Recipient Info
-                    $recipientSettings = json_decode($product->recipient_info_form_fields ?? '[]', true);
+                    $recipientSettings = is_array($product->recipient_info_form_fields) ? $product->recipient_info_form_fields : json_decode($product->recipient_info_form_fields ?? '[]', true);
                     $savedFormFields = $recipientSettings['form_fields'] ?? [];
                     $savedRequiredFields = $recipientSettings['required_fields'] ?? [];
 
                     // Message Template
-                    $savedMessageTemplate = json_decode($product->message_template_style ?? 'null', true);
+                    $savedMessageTemplate = is_array($product->message_template_style) ? $product->message_template_style : json_decode($product->message_template_style ?? 'null', true);
                     
                     // Delivery Options
 
@@ -142,11 +142,11 @@
                     // Amount Config
                     $savedAmountType = $product->amount_type ?? 'fixed';
                     $savedEnableCustom = $product->enable_custom_amount ?? 0;
-                    $savedFixedAmounts = json_decode($product->fixed_amount_options ?? '[]', true);
-                    $savedMinMax = json_decode($product->min_max_amount ?? '[]', true); // [0]=>min, [1]=>max
+                    $savedFixedAmounts = is_array($product->fixed_amount_options) ? $product->fixed_amount_options : json_decode($product->fixed_amount_options ?? '[]', true);
+                    $savedMinMax = is_array($product->min_max_amount) ? $product->min_max_amount : json_decode($product->min_max_amount ?? '[]', true); // [0]=>min, [1]=>max
 
                     // Bonus Config
-                    $savedBonusTiers = json_decode($product->bonus_configuration ?? '[]', true);
+                    $savedBonusTiers = is_array($product->bonus_configuration) ? $product->bonus_configuration : json_decode($product->bonus_configuration ?? '[]', true);
                     if (empty($savedBonusTiers)) {
                         $savedBonusTiers = [["min_amount" => "0", "max_amount" => "", "bonus_percentage" => ""]];
                     }
