@@ -8449,4 +8449,5 @@ Smartly or Earn. ',
   'Delivery Time' => 'Delivery Time',
   'The vendor discount percentage field is required.' => 'The vendor discount percentage field is required.',
   'Item_discount_amount_exceeded' => 'Item discount amount exceeded',
+  'Recommended_Store_added_successfully' => 'Recommended Store added successfully',
 );

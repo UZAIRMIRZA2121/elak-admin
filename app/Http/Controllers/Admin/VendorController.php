@@ -373,7 +373,7 @@ class VendorController extends Controller
 
             'f_name' => 'nullable|max:100',
             'l_name' => 'nullable|max:100',
-            'phone' => 'nullable|regex:/^([0-9\s\-\+\(\)]*)$/|min:10|max:20|phone',
+            'phone' => 'nullable|regex:/^([0-9\s\-\+\(\)]*)$/|min:10|max:20',
 
 
         ];
