@@ -153,6 +153,56 @@
                 @endphp
                  {{-- Client Information and Partner Information --}}
                   @include("admin-views.voucher.edit_include.edit_include_client_partner_information")
+
+
+
+  <!-- Voucher Details  Bundle Delivery/Pickup  == Food and Product Bundle-->
+                    <div class="section-card rounded p-4 mb-4" id="bundel_food_voucher_fields_1_3_1_4">
+                        <h3 class="h5 fw-semibold mb-4">Voucher Details</h3>
+                        {{-- Voucher Title --}}
+                        <div class="row g-3 mb-3">
+                            <div class="col-12">
+                                 <label class="input-label" for="voucher_title">{{ translate('Voucher Title') }}
+                                    <span class="form-label-secondary text-danger" data-toggle="tooltip" data-placement="right" data-original-title="{{ translate('messages.Required.')}}"> *</span>
+                                </label>
+                                <input type="text" name="voucher_title" class="form-control" placeholder="Voucher Title" value="{{ $product->name ?? '' }}">
+                            </div>
+                            {{-- <div class="col-6">
+                                <label class="form-label fw-medium">Valid Until</label>
+                                <input type="date" name="valid_until" class="form-control">
+                            </div> --}}
+                        </div>
+                            {{-- images --}}
+                        <div class="row g-3">
+                            <div class="col-12" >
+                                @include("admin-views.voucher.edit_include.edit_include_images")
+                            </div>
+                        </div>
+                        {{-- images  --}}
+                        <div class="row g-3">
+                            <div class="mb-3 col-12 ">
+                                <label class="form-label fw-medium">Short Description (Default) <span class="text-danger">*</span></label>
+                                <textarea type="text" name="description" class="form-control min-h-90px ckeditor">{{ $product->description ?? '' }}</textarea>
+                            </div>
+                        </div>
+
+                        {{-- tags --}}
+                        <div class="col-12 mt-3">
+                            <div class="form-group">
+                                <h3 class="h5 fw-semibold "> {{ translate('tags') }}</h3>
+                                <input type="text" class="form-control" name="tags" placeholder="{{translate('messages.search_tags')}}" data-role="tagsinput" value="{{ $product->tags_ids ?? '' }}">
+                            </div>
+                        </div>
+                    </div>
+
+
+
+
+
+
+
+
+
                      <div class="section-card rounded p-4 mb-4">
                         <div class="col-12 mt-3">
                             <p class="text-muted mb-3">Select occasions for this gift card</p>
@@ -261,7 +311,7 @@
                         </div>
                     </div>
                     <!-- Message Template Style-->
-                    <div class="section-card rounded p-4 mb-4">
+                    <!-- <div class="section-card rounded p-4 mb-4">
                         <h3 class="h5 fw-semibold mb-4">Message Template Style</h3>
                         <div class="card shadow-sm mb-4">
                         <div class="card-body">
@@ -289,9 +339,9 @@
                                 </div>
                             </div>
                         </div>
-                    </div>
+                    </div> -->
                     <!-- Delivery Options-->
-                    <div class="section-card rounded p-4 mb-4">
+                    <!-- <div class="section-card rounded p-4 mb-4">
                         <h3 class="h5 fw-semibold mb-4">Delivery Options</h3>
                         {{-- tags --}}
                         <div class="card shadow-sm mb-4">
@@ -336,7 +386,7 @@
                                 </div>
                             </div>
                         </div>
-                    </div>
+                    </div> -->
 
                     {{-- Amount Configuration --}}
                     <div class="section-card rounded p-4 mb-4">

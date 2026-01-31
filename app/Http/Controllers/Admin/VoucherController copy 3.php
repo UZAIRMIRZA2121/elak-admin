@@ -211,7 +211,6 @@ class VoucherController extends Controller
 
         return [];
     }
-    
     //     public function store(Request $request)
 //     {
 
@@ -713,14 +712,10 @@ class VoucherController extends Controller
         } elseif ($type_name == "Gift") {
             $rules = array_merge($rules, [
                 'occasions_id' => 'required',
-                // 'message_template_style' => 'required',
-                // 'delivery_options' => 'required',
+                'message_template_style' => 'required',
+                'delivery_options' => 'required',
                 'type' => 'required',
                 'min_max_amount' => 'required',
-                 'voucher_title' => 'required',
-                'item_images' => $imageValidation,
-                'image' => $imageValidation,
-                'description' => 'required',
             ]);
         }
 
@@ -932,11 +927,6 @@ class VoucherController extends Controller
         $item->validity_period = json_encode($request->validity_period ?? []);
         $item->usage_restrictions = json_encode($request->usage_restrictions ?? []);
         $item->blackout_dates = json_encode($request->blackout_dates ?? []);
-
-           // Image data
-         $item->name = $request->voucher_title;
-        $item->description = $request->description;
-         $item->tags_ids = $request->tags ?? null;
     }
 
     public function view_voucher($id)
