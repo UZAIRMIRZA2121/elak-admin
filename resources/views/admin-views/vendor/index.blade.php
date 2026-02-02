@@ -344,6 +344,7 @@
                                     <div class="form-group" id="sub_branch_group">
                                         <label class="input-label" for="parent_id">
                                             {{ translate('Main Branch') }}
+                                            <span class="text-danger" id="parent_id_required_indicator">*</span>
                                             <span class="form-label-secondary" data-toggle="tooltip"
                                                 data-placement="right"
                                                 data-original-title="{{ translate('Main Branch') }}"></span>
@@ -523,21 +524,15 @@
                                 </div>
                                 <div class="col-md-4 col-12">
                                     <div class="js-form-message form-group mb-0">
-                                        <label class="input-label"
-                                            for="signupSrPassword">{{ translate('messages.password') }}<span
-                                                class="form-label-secondary" data-toggle="tooltip" data-placement="right"
-                                                data-original-title="{{ translate('messages.Must_contain_at_least_one_number_and_one_uppercase_and_lowercase_letter_and_symbol,_and_at_least_8_or_more_characters') }}"><img
-                                                    src="{{ asset('/public/assets/admin/img/info-circle.svg') }}"
-                                                    alt="{{ translate('messages.Must_contain_at_least_one_number_and_one_uppercase_and_lowercase_letter_and_symbol,_and_at_least_8_or_more_characters') }}"></span></label>
+                                        <label class="input-label" for="signupSrPassword">
+                                            {{ translate('messages.password') }}
+                                        </label>
 
                                         <div class="input-group input-group-merge">
                                             <input type="password" class="js-toggle-password form-control"
                                                 name="password" id="signupSrPassword"
-                                                pattern="(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}"
-                                                title="{{ translate('messages.Must_contain_at_least_one_number_and_one_uppercase_and_lowercase_letter_and_symbol,_and_at_least_8_or_more_characters') }}"
-                                                placeholder="{{ translate('messages.password_length_placeholder', ['length' => '8+']) }}"
-                                                aria-label="8+ characters required" required
-                                                data-msg="Your password is invalid. Please try again."
+                                                placeholder="{{ translate('messages.password') }}"
+                                                aria-label="Password" required
                                                 data-hs-toggle-password-options='{
                                             "target": [".js-toggle-password-target-1", ".js-toggle-password-target-2"],
                                             "defaultClass": "tio-hidden-outlined",
@@ -559,11 +554,8 @@
                                         <div class="input-group input-group-merge">
                                             <input type="password" class="js-toggle-password form-control"
                                                 name="confirmPassword" id="signupSrConfirmPassword"
-                                                pattern="(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}"
-                                                title="{{ translate('messages.Must_contain_at_least_one_number_and_one_uppercase_and_lowercase_letter_and_symbol,_and_at_least_8_or_more_characters') }}"
-                                                placeholder="{{ translate('messages.password_length_placeholder', ['length' => '8+']) }}"
-                                                aria-label="8+ characters required" required
-                                                data-msg="Password does not match the confirm password."
+                                                placeholder="{{ translate('messages.confirm_password') }}"
+                                                aria-label="Confirm Password" required
                                                 data-hs-toggle-password-options='{
                                                 "target": [".js-toggle-password-target-1", ".js-toggle-password-target-2"],
                                                 "defaultClass": "tio-hidden-outlined",
@@ -730,22 +722,38 @@
         function toggleSections() {
             let checkbox = document.getElementById("type");
             let subBranch = document.getElementById("sub_branch_group");
+            let parentIdSelect = document.getElementById("parent_id");
+            let requiredIndicator = document.getElementById("parent_id_required_indicator");
             let owner_info_div = document.getElementById("owner_info_div");
             let agreementSection = document.getElementById("agreement_section");
             let hiddenCheck = document.getElementById("hiiden_check");
 
             if (checkbox.checked) {
-                // When checked → hide sub branch, hide agreement
+                // When checked (Is Main Branch = YES)
+                // Hide sub branch, show agreement
                 subBranch.style.display = "none";
                 agreementSection.style.display = "block";
                 owner_info_div.style.display = "block";
                 hiddenCheck.value = "1";
+                
+                // Remove required from Main Branch dropdown
+                parentIdSelect.removeAttribute("required");
+                
+                // Hide red asterisk
+                requiredIndicator.style.display = "none";
             } else {
-                // When unchecked → show sub branch, show agreement
+                // When unchecked (Is Main Branch = NO)
+                // Show sub branch, hide agreement
                 subBranch.style.display = "block";
-                   owner_info_div.style.display = "none";
+                owner_info_div.style.display = "none";
                 agreementSection.style.display = "none";
                 hiddenCheck.value = "0";
+                
+                // Add required to Main Branch dropdown
+                parentIdSelect.setAttribute("required", "required");
+                
+                // Show red asterisk
+                requiredIndicator.style.display = "inline";
             }
         }
 
@@ -756,6 +764,34 @@
         document.getElementById("type").addEventListener("change", toggleSections);
     </script>
 
+    <script>
+        // Form validation for Main Branch field
+        document.getElementById("vendor_form").addEventListener("submit", function(e) {
+            let checkbox = document.getElementById("type");
+            let parentIdSelect = document.getElementById("parent_id");
+            
+            // If checkbox is unchecked (Is Main Branch = NO), then parent_id is required
+            if (!checkbox.checked) {
+                let selectedValue = parentIdSelect.value;
+                
+                // Check if no value is selected or empty value is selected
+                if (!selectedValue || selectedValue === "") {
+                    e.preventDefault(); // Stop form submission
+                    
+                    // Show alert
+                    alert("Please select a Main Branch. This field is required.");
+                    
+                    // Focus on the field
+                    parentIdSelect.focus();
+                    
+                    // Scroll to the field
+                    parentIdSelect.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    
+                    return false;
+                }
+            }
+        });
+    </script>
 
 
     <script>

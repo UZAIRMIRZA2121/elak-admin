@@ -81,19 +81,8 @@ class VendorController extends Controller
             'maximum_delivery_time' => 'nullable',
             'delivery_time_type' => 'nullable',
 
-            'password' => [
-                'required',
-                Password::min(8)
-                    ->mixedCase()
-                    ->letters()
-                    ->numbers()
-                    ->symbols(),
-                function ($attribute, $value, $fail) {
-                    if (strpos($value, ' ') !== false) {
-                        $fail('The :attribute cannot contain white spaces.');
-                    }
-                },
-            ],
+
+            'password' => 'required',
 
             'zone_id' => 'required',
             'logo' => 'required',

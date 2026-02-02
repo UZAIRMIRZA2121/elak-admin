@@ -655,7 +655,7 @@ class VoucherController extends Controller
             // Exclude current item from check
             if ($type_name == "Gift") {
                 $existingGiftVoucher = Item::where('store_id', $request->store_id)
-                    ->where('name', 'Gift')
+                    ->where('voucher_ids', 'Gift')
                     ->where('type', 'voucher')
                     ->where('id', '!=', $id)
                     ->first();
@@ -1827,7 +1827,7 @@ class VoucherController extends Controller
         }
 
         return response()->json([
-            'count' => $items->count(),
+            'count' => $items ? $items->count() : 0,
             'view' => view($view, compact('items'))->render()
         ]);
     }
