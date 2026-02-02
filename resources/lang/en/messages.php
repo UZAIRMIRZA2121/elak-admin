@@ -8454,4 +8454,5 @@ Smartly or Earn. ',
   'item_thumbnail_is_required' => 'Item thumbnail is required',
   'item_images_are_required' => 'Item images are required',
   'failed_to_add_voucher' => 'Failed to add voucher',
+  'Voucher Image' => 'Voucher Image',
 );

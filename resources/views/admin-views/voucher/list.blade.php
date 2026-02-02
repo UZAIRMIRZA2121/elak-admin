@@ -221,6 +221,7 @@
                     <thead class="thead-light">
                         <tr>
                             <th class="border-0">{{ translate('sl') }}</th>
+                            <th class="border-0">{{ translate('messages.name') }}</th>
                             <th class="border-0">{{ translate('Voucher Type') }}</th>
                             <th class="border-0">{{ translate('messages.category') }}</th>
                             <th class="border-0">{{ translate('messages.store') }}</th>
@@ -247,6 +248,18 @@
                         @foreach ($items as $key => $item)
                             <tr>
                                 <td>{{ $key + $items->firstItem() }}</td>
+                                   <td>
+                                    <div class="media align-items-center">
+                                        <img class="avatar avatar-lg mr-3 onerror-image custom-image-preview" 
+                                            src="{{ $item['image_full_url'] ?? asset('public/assets/admin/img/160x160/img2.jpg') }}"
+                                            data-onerror-image="{{ asset('public/assets/admin/img/160x160/img2.jpg') }}"
+                                            alt="{{ $item->name }} image"
+                                            style="cursor: pointer;">
+                                        <a href="{{ route('admin.Voucher.view', [$item['id']]) }}" title="{{ $item['name'] }}" class="media-body">
+                                            <h5 class="text-hover-primary mb-0">{{ Str::limit($item['name'], 20, '...') }}</h5>
+                                        </a>
+                                    </div>
+                                </td>
                                 <td>
                                     <a title="{{ $item?->store?->name }}"
                                         href="{{ route('admin.Voucher.view_voucher', [$item['id']]) }}" class="table-rest-info"
@@ -255,6 +268,7 @@
                                   
                                         {{ $item->bundle_type ? ' ('.$item->bundle_type.')' : '' }}
                                 </td>
+                                
                                 <td>
                                     @php
                                         // Get first valid category ID
@@ -300,25 +314,13 @@
                                     @endif
 
                                 </td>
-                                {{-- <td>
-                                    <a class="media align-items-center"
-                                        href="{{ route('admin.Voucher.view', [$item['id']]) }}">
-                                        <img class="avatar avatar-lg mr-3 onerror-image"
-                                            src="{{ $item['image_full_url'] ?? asset('public/assets/admin/img/160x160/img2.jpg') }}"
-                                            data-onerror-image="{{ asset('public/assets/admin/img/160x160/img2.jpg') }}"
-                                            alt="{{ $item->name }} image">
-                                        <div title="{{ $item['name'] }}" class="media-body">
-                                            <h5 class="text-hover-primary mb-0">{{ Str::limit($item['name'], 20, '...') }}
-                                            </h5>
-                                        </div>
-                                    </a>
-                                </td>
-                                <td>
+                             
+                                <!-- <td>
                                     @if ($item->uuid)
                                         {!! QrCode::size(80)->generate($item->uuid) !!}
                                     @else
                                     @endif
-                                </td> --}}
+                                </td>  -->
 
 
 
@@ -451,6 +453,22 @@
                                 class="btn btn--primary">{{ translate('update_stock') }}</button>
                         </div>
                     </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="imageViewModal" tabindex="-1" role="dialog" aria-labelledby="imageViewModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="imageViewModalLabel">{{ translate('Voucher Image') }}</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body text-center">
+                    <img id="modalViewImage" src="" class="img-fluid rounded shadow-sm" alt="Voucher Image">
                 </div>
             </div>
         </div>
@@ -639,5 +657,12 @@
                 $('input[name="current_stock"]').attr("readonly", false);
             }
         }
+
+        // Image Preview Modal Handler
+        $(document).on('click', '.custom-image-preview', function() {
+            const imgSrc = $(this).attr('src');
+            $('#modalViewImage').attr('src', imgSrc);
+            $('#imageViewModal').modal('show');
+        });
     </script>
 @endpush

@@ -432,14 +432,14 @@
                                                         src="{{ asset('storage/' . $image['img']) }}"
                                                         data-onerror-image="{{ asset('public/assets/admin/img/160x160/img2.jpg') }}"
                                                         alt="{{ $product->name }} image"
-                                                        style="cursor: pointer;width:200px">
+                                                        style="cursor: pointer;">
                                                 @endif
                                             @endforeach
                                         @else
                                             <img class="avatar avatar-lg mr-3 custom-image-preview"
                                                 src="{{ asset('public/assets/admin/img/160x160/img2.jpg') }}"
                                                 alt="No image"
-                                                style="cursor: pointer;width:200px">
+                                                style="cursor: pointer;">
                                         @endif
                                     </td>
 
@@ -451,7 +451,7 @@
                                             src="{{ $product->image ?? asset('public/assets/admin/img/160x160/img2.jpg') }}"
                                             data-onerror-image="{{ asset('public/assets/admin/img/160x160/img2.jpg') }}"
                                             alt="{{ $product->name }} image"
-                                            style="cursor: pointer;width:200px"> </td>
+                                            style="cursor: pointer;"> </td>
                                 </tr>
                                 <tr>
                                     <th><i class="fas fa-folder mr-2"></i>Description </th>
@@ -479,14 +479,14 @@
                                             src="{{ $product['image_full_url'] ?? asset('public/assets/admin/img/160x160/img2.jpg') }}"
                                             data-onerror-image="{{ asset('public/assets/admin/img/160x160/img2.jpg') }}"
                                             alt="{{ $product->name }} image"
-                                            style="cursor: pointer;width:200px">
+                                            style="cursor: pointer;">
                                         <div title="{{ $product['name'] }}" class="media-body">
                                             <h5 class="text-hover-primary mb-0">
                                                 {{ Str::limit($product['name'], 20, '...') }}</h5>
                                         </div>
                                     </td>
                                 </tr>
-                                <!-- <tr>
+                                <tr>
                                     <th><i class="fas fa-align-left mr-2"></i>Qr Code</th>
                                     <td>
                                         @if ($product->uuid)
@@ -495,7 +495,7 @@
                                             N/A
                                         @endif
                                     </td>
-                                </tr> -->
+                                </tr>
                                 <tr>
                                     <th><i class="fas fa-tag mr-2"></i>Type</th>
                                     <td><span class="badge-custom badge-info">Gift</span>
@@ -626,8 +626,8 @@
                                     <td> <img class="avatar avatar-lg mr-3 onerror-image custom-image-preview"
                                             src="{{ $product['image_full_url'] ?? asset('public/assets/admin/img/160x160/img2.jpg') }}"
                                             data-onerror-image="{{ asset('public/assets/admin/img/160x160/img2.jpg') }}"
-                                            alt="{{ $product->name }} image" 
-                                            style="cursor: pointer;widtgh:200px">
+                                            alt="{{ $product->name }} image"
+                                            style="cursor: pointer;">
                                         <div title="{{ $product['name'] }}" class="media-body">
                                             <h5 class="text-hover-primary mb-0">
                                                 {{ Str::limit($product['name'], 20, '...') }}</h5>
@@ -640,7 +640,7 @@
                                         {{ $product->description }}
                                     </td>
                                 </tr>
-                                <!-- <tr>
+                                <tr>
                                     <th><i class="fas fa-align-left mr-2"></i>Qr Code</th>
                                     <td>
                                         @if ($product->uuid)
@@ -649,7 +649,7 @@
                                             N/A
                                         @endif
                                     </td>
-                                </tr> -->
+                                </tr>
                                 @php
                                     // Decode JSON safely
                                     $images = is_array($product->images)
@@ -664,7 +664,7 @@
                                             <img src="{{ asset('storage/product/' . $image['img']) }}"
                                                 alt="Product Image"
                                                 class="custom-image-preview"
-                                                style="width: 80px; height: 80px; object-fit: cover; margin-right: 5px; cursor: pointer;width:300px">
+                                                style="width: 80px; height: 80px; object-fit: cover; margin-right: 5px; cursor: pointer;">
                                         @empty
                                             —
                                         @endforelse
@@ -917,11 +917,11 @@
                                                     <tr>
                                                         <th><i class="fas fa-user mr-2"></i>Age Restriction</th>
                                                         <td>
-                                                            @forelse($product->AgeRestrictions as $age)
-                                                                <span class="badge-custom badge-info">{{ $age->name_en ?? 'N/A' }}</span>
-                                                            @empty
-                                                                N/A
-                                                            @endforelse
+                                                            @if (is_array($product->VoucherSetting->age_restriction))
+                                                                {{ implode(' - ', $product->VoucherSetting->age_restriction) }}
+                                                            @else
+                                                                {{ $product->VoucherSetting->age_restriction ?? 'N/A' }}
+                                                            @endif
                                                         </td>
                                                     </tr>
 
@@ -929,11 +929,11 @@
                                                     <tr>
                                                         <th><i class="fas fa-users mr-2"></i>Group Size</th>
                                                         <td>
-                                                            @forelse($product->GroupSizes as $group)
-                                                                <span class="badge-custom badge-warning">{{ $group->name_en ?? 'N/A' }}</span>
-                                                            @empty
-                                                                N/A
-                                                            @endforelse
+                                                            @if (is_array($product->VoucherSetting->group_size_requirement))
+                                                                {{ implode(' - ', $product->VoucherSetting->group_size_requirement) }}
+                                                            @else
+                                                                {{ $product->VoucherSetting->group_size_requirement ?? 'N/A' }}
+                                                            @endif
                                                         </td>
                                                     </tr>
 
@@ -964,7 +964,7 @@
                                                         <th><i class="fas fa-hourglass mr-2"></i>Offer Validity</th>
                                                         <td>
                                                             @if (is_array($product->VoucherSetting->offer_validity_after_purchase))
-                                                                {{ $product->VoucherSetting->offer_validity_after_purchase['value'] ?? '' }} Days
+                                                                {{ implode(' - ', $product->VoucherSetting->offer_validity_after_purchase) }}
                                                             @else
                                                                 {{ $product->VoucherSetting->offer_validity_after_purchase ?? 'N/A' }}
                                                             @endif

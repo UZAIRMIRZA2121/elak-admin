@@ -493,13 +493,13 @@
                                                     class="form-control"
                                                     name="validity_after[value]"
                                                     value="{{ $validity_after['value'] ?? '' }}"
-                                                    placeholder="Number of Day"
+                                                    placeholder="Number of times"
                                                     min="1">
                                             </div>
 
-                                            <span class="times-label">Day</span>
+                                            <span class="times-label">--</span>
 
-                                            <!-- <div class="form-group">
+                                            <div class="form-group">
                                                 <select class="form-control" name="validity_after[period]">
                                                     <option value="">Select period</option>
 
@@ -511,7 +511,7 @@
                                                     @endforeach
 
                                                 </select>
-                                            </div> -->
+                                            </div>
 
                                         </div>
                                     </div>
@@ -987,8 +987,8 @@
                                                         min="1">
                                                 </div>
 
-                                                <span class="times-label">Days</span>
-<!-- 
+                                                <span class="times-label">--</span>
+
                                                 <div class="form-group">
                                                     <select class="form-control" name="validity_after[period]">
                                                         <option value="">Select period</option>
@@ -1002,7 +1002,7 @@
                                                         
 
                                                     </select>
-                                                </div> -->
+                                                </div>
 
                                             </div>
                                         </div>
