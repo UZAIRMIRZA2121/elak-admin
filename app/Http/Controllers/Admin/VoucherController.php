@@ -1700,7 +1700,8 @@ class VoucherController extends Controller
 
         $type = $request->query('type', 'all');
         $key = explode(' ', $request['search']);
-        $items = Item::withoutGlobalScope(StoreScope::class)
+        $items = Item::with(['store', 'category'])
+            ->withoutGlobalScope(StoreScope::class)
             ->when($request->query('module_id', null), function ($query) use ($request) {
                 return $query->module($request->query('module_id'));
             })

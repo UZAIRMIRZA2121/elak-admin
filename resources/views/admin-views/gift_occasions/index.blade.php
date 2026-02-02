@@ -91,27 +91,35 @@
                             @csrf
                             @if ($language)
                                 <div class="row">
-                                    <div class="col-6 ">
-                                        <div class="lang_form" id="default-form">
-                                            <div class="form-group">
-                                                <label class="input-label" for="title"> Title
-                                                </label>
-                                                <input type="text" name="title" id="title" class="form-control"
-                                                    placeholder="Enter Title">
-                                            </div>
-                                            <input type="hidden" name="lang[]" value="default">
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label class="input-label" for="title">Title</label>
+                                            <input type="text" name="title" id="title" class="form-control" placeholder="Enter Title" required>
                                         </div>
                                     </div>
-                                    <div class="col-6 ">
-                                        <div class="lang_form" id="default-form">
-                                            <div class="form-group">
-                                                <label class="input-label" for="icon">icon </label>
-                                                <input type="file" name="icon[]" id="icon" class="form-control"
-                                                    multiple>
-                                            </div>
+                                      <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label class="input-label" for="icon">Icons (Multiple)</label>
+                                            <input type="file" name="icon[]" id="icon" class="form-control" multiple>
                                         </div>
                                     </div>
                                 </div>
+
+                                <div id="message_container">
+                                    <div class="row align-items-end mb-3">
+                                        <div class="col-md-10">
+                                            <div class="form-group mb-0">
+                                                <label class="input-label">Message</label>
+                                                <input type="text" name="messages[]" class="form-control" placeholder="Enter Message" required>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-2">
+                                            <button type="button" class="btn btn-primary btn-block" onclick="addMessageField()">Add More</button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                         
                             @endif
                             <div class="btn--container justify-content-end mt-5">
                                 <button type="reset" class="btn btn--reset">{{ translate('messages.reset') }}</button>
@@ -154,11 +162,12 @@
                                  "order": [],
                                  "orderCellsTop": true,
                                  "paging":false
-                               }'>
+                                }'>
                                     <thead class="thead-light">
                                         <tr class="text-center">
                                             <th class="border-0">{{ translate('sl') }}</th>
                                             <th class="border-0">Title</th>
+                                            <th class="border-0">Messages</th>
                                             <th class="border-0">Gallery</th>
                                             <th class="border-0">Status</th>
                                             <th class="border-0">Action</th>
@@ -177,14 +186,24 @@
                                                 </td>
 
 
-                                                {{-- Client Name --}}
+                                                {{-- Title --}}
                                                 <td class="text-center">
                                                     <span title="{{ $item->title }}" class="font-size-sm text-body mr-3">
                                                         {{ Str::limit($item->title, 20, '...') }}
                                                     </span>
                                                 </td>
 
-                                                {{-- Client Created At --}}
+                                                {{-- Messages --}}
+                                                <td class="text-center">
+                                                    @php($messages = json_decode($item->message, true))
+                                                    <span class="font-size-sm text-body mr-3">
+                                                        @if(is_array($messages))
+                                                            {{ Str::limit(implode(', ', $messages), 30, '...') }}
+                                                        @else
+                                                            {{ Str::limit($item->message, 30, '...') }}
+                                                        @endif
+                                                    </span>
+                                                </td>
 
                                                 <td class="text-center">
                                                     <a class="btn action-btn btn--primary btn-outline-primary   "
@@ -294,6 +313,25 @@
             <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.full.min.js"></script>
 
             <script>
+                function addMessageField() {
+                    let html = `
+                    <div class="row align-items-end mb-3 message-row">
+                        <div class="col-md-10">
+                            <div class="form-group mb-0">
+                                <input type="text" name="messages[]" class="form-control" placeholder="Enter Message" required>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <button type="button" class="btn btn-danger btn-block" onclick="removeMessageField(this)">Remove</button>
+                        </div>
+                    </div>`;
+                    $('#message_container').append(html);
+                }
+
+                function removeMessageField(btn) {
+                    $(btn).closest('.message-row').remove();
+                }
+
                 $(function() {
                     $('#type').select2({
                         theme: 'bootstrap4',

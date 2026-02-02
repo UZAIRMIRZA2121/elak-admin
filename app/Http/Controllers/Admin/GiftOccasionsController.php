@@ -35,13 +35,15 @@ class GiftOccasionsController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'title' => 'required|max:100',
+            'title' => 'required|max:255',
+            'messages' => 'required',
             'icon' => 'required',
             'icon.*' => 'image|mimes:jpg,jpeg,png,webp|max:2048',
         ]);
 
         $GiftOccasions = new GiftOccasions();
         $GiftOccasions->title = $request->title;
+        $GiftOccasions->message = json_encode($request->messages);
         $GiftOccasions->status = "active";
 
         $icons = [];
@@ -136,14 +138,16 @@ class GiftOccasionsController extends Controller
     {
         // Validate input
         $request->validate([
-            'title' => 'required|max:100',
+            'title' => 'required|max:255',
+            'messages' => 'required',
             'icon.*' => 'image|mimes:jpg,jpeg,png,webp|max:2048'
         ]);
 
         $GiftOccasions = GiftOccasions::findOrFail($id);
 
-        // Update title
+        // Update title and message
         $GiftOccasions->title = $request->title;
+        $GiftOccasions->message = json_encode($request->messages);
 
         // ===========================
         // 🔥 Keep old icons
