@@ -432,14 +432,14 @@
                                                         src="{{ asset('storage/' . $image['img']) }}"
                                                         data-onerror-image="{{ asset('public/assets/admin/img/160x160/img2.jpg') }}"
                                                         alt="{{ $product->name }} image"
-                                                        style="cursor: pointer;width:200px">
+                                                        style="cursor: pointer;width:200px;height:200px">
                                                 @endif
                                             @endforeach
                                         @else
                                             <img class="avatar avatar-lg mr-3 custom-image-preview"
                                                 src="{{ asset('public/assets/admin/img/160x160/img2.jpg') }}"
                                                 alt="No image"
-                                                style="cursor: pointer;width:200px">
+                                                style="cursor: pointer;width:200px;height:200px">
                                         @endif
                                     </td>
 
@@ -451,7 +451,7 @@
                                             src="{{ $product->image ?? asset('public/assets/admin/img/160x160/img2.jpg') }}"
                                             data-onerror-image="{{ asset('public/assets/admin/img/160x160/img2.jpg') }}"
                                             alt="{{ $product->name }} image"
-                                            style="cursor: pointer;width:200px"> </td>
+                                            style="cursor: pointer;width:200px;height:200px"> </td>
                                 </tr>
                                 <tr>
                                     <th><i class="fas fa-folder mr-2"></i>Description </th>
@@ -479,7 +479,7 @@
                                             src="{{ $product['image_full_url'] ?? asset('public/assets/admin/img/160x160/img2.jpg') }}"
                                             data-onerror-image="{{ asset('public/assets/admin/img/160x160/img2.jpg') }}"
                                             alt="{{ $product->name }} image"
-                                            style="cursor: pointer;width:200px">
+                                            style="cursor: pointer;width:200px;height:200px">
                                         <div title="{{ $product['name'] }}" class="media-body">
                                             <h5 class="text-hover-primary mb-0">
                                                 {{ Str::limit($product['name'], 20, '...') }}</h5>
