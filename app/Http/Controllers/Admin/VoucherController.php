@@ -1697,7 +1697,7 @@ class VoucherController extends Controller
                 });
             })
             ->where('is_approved', 1)
-            ->where('type', "voucher")
+            ->whereIn('type', ['food', 'product'])
             ->module(Config::get('module.current_module_id'))
             ->type($type)
             ->latest()->paginate(config('default_pagination'));
@@ -1776,7 +1776,11 @@ class VoucherController extends Controller
                 return $query->whereHas('category', function ($q) use ($category_id) {
                     return $q->whereId($category_id)->orWhere('parent_id', $category_id);
                 });
-            })->module(Config::get('module.current_module_id'))->where('is_approved', 1);
+            })->when(isset($request->product_gallery) && $request->product_gallery == 1, function($query){
+                return $query->whereIn('type', ['food', 'product']);
+            }, function($query){
+                return $query->module(Config::get('module.current_module_id'));
+            })->where('is_approved', 1);
 
         if (isset($request->product_gallery) && $request->product_gallery == 1) {
             $items = $items->limit(12)->get();
@@ -2715,7 +2719,7 @@ class VoucherController extends Controller
             ->orderByRaw("FIELD(name, ?) DESC", [$request['name']])
             ->whereNotNull('type')
             ->where('is_approved', 1)
-            ->module(Config::get('module.current_module_id'))
+            ->whereIn('type', ['food', 'product'])
             ->type($type)
             // ->latest()->paginate(config('default_pagination'));
             ->inRandomOrder()->limit(12)->get();

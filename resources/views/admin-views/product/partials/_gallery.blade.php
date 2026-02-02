@@ -7,12 +7,13 @@
                 <div class="table-responsive">
                     <div class="min-width-720">
                     <div class="d-flex">
-                        <div>
+                        <div class="mr-3">
                             <img class="avatar avatar-xxl avatar-4by3 onerror-image aspect-ratio-1 h-unset"
 
                             src="{{ $item['image_full_url'] ?? asset('public/assets/admin/img/160x160/img2.jpg') }}"
                                 data-onerror-image="{{ asset('public/assets/admin/img/160x160/img2.jpg') }}"
                                 alt="Image Description">
+                           
                         </div>
                         <div class="col-10">
                             <div class="d-flex align-items-center justify-content-between">
@@ -21,7 +22,17 @@
                                     <a target="_blank" href="{{ route('admin.item.edit',['id' => $item->id , 'product_gellary' => true ]) }}" class="btn btn--sm btn-outline-primary">
                                             {{ translate('messages.use_this_product_info') }}
                                     </a>
+                                    <a href="{{ route('admin.item.edit',['id' => $item->id]) }}" class="btn btn--sm btn-success ml-2" title="{{ translate('messages.edit') }}">
+                                        <i class="tio-edit"></i> {{ translate('messages.edit') }}
+                                    </a>
+                                    <a href="javascript:" class="btn btn--sm btn-outline-danger ml-2 form-alert" data-id="item-{{$item->id}}" data-message="{{ translate('messages.Want_to_delete_this_item') }}" title="{{ translate('messages.delete') }}">
+                                        <i class="tio-delete"></i> {{ translate('messages.delete') }}
+                                    </a>
+                                    <form action="{{route('admin.item.delete',[$item['id']])}}" method="post" id="item-{{$item->id}}">
+                                        @csrf @method('delete')
+                                    </form>
                                 </div>
+                                
                             </div>
                             <table class="table table-borderless table-thead-bordered m-0">
                                 <tbody>
@@ -46,6 +57,12 @@
                                                 <span>{{ translate('messages.Category') }}</span>
                                                 <span>:</span>
                                                 <strong>{{ Str::limit(($item?->category?->parent ? $item?->category?->parent?->name : $item?->category?->name )  ?? translate('messages.uncategorize')
+                                                    , 20, '...') }}</strong>
+                                            </span>
+                                            <span class="d-block mb-1">
+                                                <span>{{ translate('Type') }}</span>
+                                                <span>:</span>
+                                                <strong>{{ Str::limit(($item?->type)  ?? translate('messages.uncategorize')
                                                     , 20, '...') }}</strong>
                                             </span>
                                             <span class="d-block mb-1">
@@ -76,6 +93,11 @@
                                                 </span>
                                                 @endif
                                             @endif
+
+                                             <div class="mt-2">
+                                <h6>{{ translate('description') }}:</h6>
+                                <p class="m-0">{{ $item?->getRawOriginal('description') }}</p>
+                            </div>
                                         </td>
                                         <td class="px-4 product-gallery-info">
                                             @if ($item->module->module_type == 'food')
@@ -145,10 +167,6 @@
                             </tbody>
                             </table>
                         </div>
-                        </div>
-                        <div>
-                            <h6> {{ translate('description') }}:</h6>
-                            <P class="m-0"> {{ $item?->getRawOriginal('description') }}</P>
                         </div>
                     </div>
                 </div>
