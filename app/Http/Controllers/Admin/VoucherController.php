@@ -593,6 +593,23 @@ class VoucherController extends Controller
         // Process categories
         $categoryData = $this->processCategories($request);
 
+        // Check if store already has a gift voucher (only one gift voucher per store allowed)
+        if ($type_name == "Gift") {
+            $existingGiftVoucher = Item::where('store_id', $request->store_id)
+                ->where('voucher_ids', 'Gift')
+                ->where('type', 'voucher')
+                ->first();
+            
+            if ($existingGiftVoucher) {
+                return response()->json([
+                    'errors' => [[
+                        'code' => 'gift_voucher_exists',
+                        'message' => translate('messages.store_already_has_gift_voucher') ?: 'This store already has a gift voucher. Each store can only have one gift voucher.'
+                    ]]
+                ], 422);
+            }
+        }
+
         // Create item
         $item = new Item;
         $this->setCommonItemData($item, $request, $type_name, $data, $data_b, $imageData, $categoryData);
@@ -633,6 +650,26 @@ class VoucherController extends Controller
 
             // Process categories
             $categoryData = $this->processCategories($request);
+
+            // Check if store already has a gift voucher (only one gift voucher per store allowed)
+            // Exclude current item from check
+            if ($type_name == "Gift") {
+                $existingGiftVoucher = Item::where('store_id', $request->store_id)
+                    ->where('name', 'Gift')
+                    ->where('type', 'voucher')
+                    ->where('id', '!=', $id)
+                    ->first();
+                
+                if ($existingGiftVoucher) {
+                    DB::rollBack();
+                    return response()->json([
+                        'errors' => [[
+                            'code' => 'gift_voucher_exists',
+                            'message' => translate('messages.store_already_has_gift_voucher') ?: 'This store already has a gift voucher. Each store can only have one gift voucher.'
+                        ]]
+                    ], 422);
+                }
+            }
 
             // Update common item data
             $this->setCommonItemData($item, $request, $type_name, $data, $data_b, $imageData, $categoryData);
