@@ -1026,6 +1026,12 @@ class VoucherController extends Controller
         }
 
         $branchIds = json_decode($product->branch_ids, true);
+        
+        // Ensure branchIds is an array, default to empty array if null
+        if (!is_array($branchIds) || empty($branchIds)) {
+            $branchIds = [];
+        }
+        
         $product->branches = Store::whereIn('parent_id', $branchIds)
             ->orWhereIn('id', $branchIds)
             ->where('status', 1)
