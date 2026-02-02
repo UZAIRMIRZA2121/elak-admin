@@ -32,7 +32,13 @@
                     
                     {{-- Display existing multiple images --}}
                     @php
-                        $existingImages = json_decode($product->images ?? '[]', true);
+                        $existingImages = $product->images;
+                        if(is_string($existingImages)){
+                            $existingImages = json_decode($existingImages, true);
+                        }
+                        if(!is_array($existingImages)){
+                            $existingImages = [];
+                        }
                     @endphp
                     @if(!empty($existingImages))
                         <div class="mt-3">

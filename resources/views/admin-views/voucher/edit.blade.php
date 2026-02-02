@@ -27,7 +27,7 @@
 @section('content')
 @php
     // Prepare existing images data for JavaScript (used in multiple includes)
-    $existingImages = json_decode($product->images ?? '[]', true);
+    $existingImages = is_array($product->images) ? $product->images : json_decode($product->images ?? '[]', true);
     $imageUrls = [];
     if (!empty($existingImages) && is_array($existingImages)) {
         foreach ($existingImages as $image) {
