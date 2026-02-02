@@ -914,11 +914,11 @@ class VoucherController extends Controller
 
     private function setGiftItemData($item, $request)
     {
-        $form_fields = $request->form_fields ?? [];
-        $required_fields = $request->required_fields ?? [];
-        $settings = ["form_fields" => $form_fields, "required_fields" => $required_fields];
+        // $form_fields = $request->form_fields ?? [];
+        // $required_fields = $request->required_fields ?? [];
+        // $settings = ["form_fields" => $form_fields, "required_fields" => $required_fields];
 
-        $item->recipient_info_form_fields = json_encode($settings);
+        // $item->recipient_info_form_fields = json_encode($settings);
         $item->occasions_id = json_encode($request->occasions_id ?? []);
         $item->message_template_style = json_encode($request->message_template_style ?? []);
         $item->delivery_options = json_encode($request->delivery_options ?? []);

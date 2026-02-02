@@ -8450,4 +8450,8 @@ Smartly or Earn. ',
   'The vendor discount percentage field is required.' => 'The vendor discount percentage field is required.',
   'Item_discount_amount_exceeded' => 'Item discount amount exceeded',
   'Recommended_Store_added_successfully' => 'Recommended Store added successfully',
+  'description_field_is_required' => 'Description field is required',
+  'item_thumbnail_is_required' => 'Item thumbnail is required',
+  'item_images_are_required' => 'Item images are required',
+  'failed_to_add_voucher' => 'Failed to add voucher',
 );

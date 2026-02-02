@@ -58,9 +58,9 @@
             <div class="col-sm-12">
                 <div class="form-group mb-0">
                     <label class="input-label" for="sub_branch_id">{{ translate('Branches') }}
-                        <span class="form-label-secondary" data-toggle="tooltip" data-placement="right" data-original-title="{{ translate('Branches') }}"></span>
+                        <span class="form-label-secondary text-danger" data-toggle="tooltip" data-placement="right" data-original-title="{{ translate('Branches') }}">*</span>
                     </label>
-                    <select name="sub_branch_id[]" id="sub-branch" class="form-control" multiple>
+                    <select name="sub_branch_id[]" id="sub-branch" class="form-control" multiple required>
                     </select>
                 </div>
             </div>

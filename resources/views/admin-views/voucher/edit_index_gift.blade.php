@@ -165,7 +165,7 @@
                                  <label class="input-label" for="voucher_title">{{ translate('Voucher Title') }}
                                     <span class="form-label-secondary text-danger" data-toggle="tooltip" data-placement="right" data-original-title="{{ translate('messages.Required.')}}"> *</span>
                                 </label>
-                                <input type="text" name="voucher_title" class="form-control" placeholder="Voucher Title" value="{{ $product->name ?? '' }}">
+                                <input type="text" name="voucher_title" class="form-control" placeholder="Voucher Title" value="{{ $product->name ?? '' }}" required>
                             </div>
                             {{-- <div class="col-6">
                                 <label class="form-label fw-medium">Valid Until</label>
@@ -182,7 +182,7 @@
                         <div class="row g-3">
                             <div class="mb-3 col-12 ">
                                 <label class="form-label fw-medium">Short Description (Default) <span class="text-danger">*</span></label>
-                                <textarea type="text" name="description" class="form-control min-h-90px ckeditor">{{ $product->description ?? '' }}</textarea>
+                                <textarea type="text" name="description" class="form-control min-h-90px ckeditor" required>{{ $product->description ?? '' }}</textarea>
                             </div>
                         </div>
 
@@ -194,13 +194,6 @@
                             </div>
                         </div>
                     </div>
-
-
-
-
-
-
-
 
 
                      <div class="section-card rounded p-4 mb-4">
@@ -231,7 +224,7 @@
                         </div>
                     </div>
                     <!-- Recipient Info Form Fields-->
-                    <div class="section-card rounded p-4 mb-4">
+                    <!-- <div class="section-card rounded p-4 mb-4">
                         <h3 class="h5 fw-semibold mb-4">Recipient Info Form Fields</h3>
                         <div class="card shadow-sm mb-4">
                             <div class="card-body">
@@ -309,7 +302,7 @@
                                 </div>
                             </div>
                         </div>
-                    </div>
+                    </div> -->
                     <!-- Message Template Style-->
                     <!-- <div class="section-card rounded p-4 mb-4">
                         <h3 class="h5 fw-semibold mb-4">Message Template Style</h3>
@@ -496,16 +489,16 @@
                                         <div class="bonus-tier-item border rounded p-3 mb-3">
                                             <div class="row g-2">
                                                 <div class="col-md-4">
-                                                    <label class="form-label">Min Amount ($)</label>
-                                                    <input type="number" class="form-control" name="bonus_tiers[{{ $index }}][min_amount]" step="0.01" min="0" placeholder="0" value="{{ $tier['min_amount'] ?? '' }}">
+                                                    <label class="form-label">Min Amount ($) <span class="text-danger">*</span></label>
+                                                    <input type="number" class="form-control" name="bonus_tiers[{{ $index }}][min_amount]" step="0.01" min="0" placeholder="0" value="{{ $tier['min_amount'] ?? '' }}" required>
                                                 </div>
                                                 <div class="col-md-4">
-                                                    <label class="form-label">Max Amount ($)</label>
-                                                    <input type="number" class="form-control" name="bonus_tiers[{{ $index }}][max_amount]" step="0.01" min="0" placeholder="100" value="{{ $tier['max_amount'] ?? '' }}">
+                                                    <label class="form-label">Max Amount ($) <span class="text-danger">*</span></label>
+                                                    <input type="number" class="form-control" name="bonus_tiers[{{ $index }}][max_amount]" step="0.01" min="0" placeholder="100" value="{{ $tier['max_amount'] ?? '' }}" required>
                                                 </div>
                                                 <div class="col-md-3">
-                                                    <label class="form-label">Bonus (%)</label>
-                                                    <input type="number" class="form-control" name="bonus_tiers[{{ $index }}][bonus_percentage]" step="0.01" min="0" placeholder="5" value="{{ $tier['bonus_percentage'] ?? '' }}">
+                                                    <label class="form-label">Bonus (%) <span class="text-danger">*</span></label>
+                                                    <input type="number" class="form-control" name="bonus_tiers[{{ $index }}][bonus_percentage]" step="0.01" min="0" placeholder="5" value="{{ $tier['bonus_percentage'] ?? '' }}" required>
                                                 </div>
                                                 <div class="col-md-1 d-flex align-items-end">
                                                     <button type="button" class="btn btn-danger remove-bonus-tier" {{ count($savedBonusTiers) == 1 ? 'style="display: none;"' : '' }}>
@@ -550,6 +543,9 @@
         // Add bonus tier functionality
         const addBonusTierBtn = document.getElementById('addBonusTierBtn');
         const bonusTiersContainer = document.getElementById('bonusTiersContainer');
+
+        // Enter key prevention moved to the bottom submit handler section
+
         let bonusTierIndex = 1;
 
         addBonusTierBtn.addEventListener('click', function() {
@@ -558,16 +554,16 @@
             newTier.innerHTML = `
                 <div class="row g-2">
                     <div class="col-md-4">
-                        <label class="form-label">Min Amount ($)</label>
-                        <input type="number" class="form-control" name="bonus_tiers[${bonusTierIndex}][min_amount]" step="0.01" min="0" placeholder="0">
+                        <label class="form-label">Min Amount ($) <span class="text-danger">*</span></label>
+                        <input type="number" class="form-control" name="bonus_tiers[${bonusTierIndex}][min_amount]" step="0.01" min="0" placeholder="0" required>
                     </div>
                     <div class="col-md-4">
-                        <label class="form-label">Max Amount ($)</label>
-                        <input type="number" class="form-control" name="bonus_tiers[${bonusTierIndex}][max_amount]" step="0.01" min="0" placeholder="100">
+                        <label class="form-label">Max Amount ($) <span class="text-danger">*</span></label>
+                        <input type="number" class="form-control" name="bonus_tiers[${bonusTierIndex}][max_amount]" step="0.01" min="0" placeholder="100" required>
                     </div>
                     <div class="col-md-3">
-                        <label class="form-label">Bonus (%)</label>
-                        <input type="number" class="form-control" name="bonus_tiers[${bonusTierIndex}][bonus_percentage]" step="0.01" min="0" placeholder="5">
+                        <label class="form-label">Bonus (%) <span class="text-danger">*</span></label>
+                        <input type="number" class="form-control" name="bonus_tiers[${bonusTierIndex}][bonus_percentage]" step="0.01" min="0" placeholder="5" required>
                     </div>
                     <div class="col-md-1 d-flex align-items-end">
                         <button type="button" class="btn btn-danger remove-bonus-tier">
@@ -617,6 +613,18 @@
                 const selectedType = document.querySelector('input[name="type"]:checked')?.value;
                 fixedSection.style.display = selectedType === 'fixed' ? 'block' : 'none';
                 rangeSection.style.display = selectedType === 'range' ? 'block' : 'none';
+
+                // Update required attributes
+                const fixedInputs = fixedSection.querySelectorAll('input[name="fixed_amounts[]"]');
+                const rangeInputs = rangeSection.querySelectorAll('input[name="min_max_amount[]"]');
+
+                if (selectedType === 'fixed') {
+                    fixedInputs.forEach(input => input.required = true);
+                    rangeInputs.forEach(input => input.required = false);
+                } else {
+                    fixedInputs.forEach(input => input.required = false);
+                    rangeInputs.forEach(input => input.required = true);
+                }
             }
 
             typeSelect.forEach(radio => {
@@ -626,11 +634,13 @@
 
             // 🔹 Add new fixed amount input
             addAmountBtn.addEventListener('click', function() {
+                const selectedType = document.querySelector('input[name="type"]:checked')?.value;
+                const isRequired = selectedType === 'fixed' ? 'required' : '';
                 const newField = document.createElement('div');
                 newField.className = 'input-group mb-2';
                 newField.innerHTML = `
                     <span class="input-group-text">$</span>
-                    <input type="number" class="form-control" name="fixed_amounts[]" step="0.01" min="0" placeholder="25.00">
+                    <input type="number" class="form-control" name="fixed_amounts[]" step="0.01" min="0" placeholder="25.00" ${isRequired}>
                     <button type="button" class="btn btn-danger remove-amount">
                         <i class="fas fa-times"></i>
                     </button>
@@ -1548,9 +1558,80 @@
         }
 
         $(document).ready(function() {
+            // 1. Enter Key Prevention (Aggressive)
+            $(document).on('keydown', '#item_form', function(e) {
+                if (e.key === 'Enter' || e.keyCode === 13) {
+                    if (e.target.tagName !== 'TEXTAREA' && !$(e.target).hasClass('ckeditor')) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        return false;
+                    }
+                }
+            });
+
             $('#item_form').on('submit', function(e) {
-                $('#submitButton').attr('disabled', true);
                 e.preventDefault();
+
+                // 2. Browser standard validation (Title, etc.)
+                if (!this.checkValidity()) {
+                    this.reportValidity();
+                    return false;
+                }
+
+                // 3. Description Validation (CKEditor)
+                let description = "";
+                if (typeof CKEDITOR !== 'undefined' && CKEDITOR.instances.description) {
+                    description = CKEDITOR.instances.description.getData();
+                } else {
+                    description = $('textarea[name="description"]').val();
+                }
+
+                if (!description || description.trim() === "") {
+                    toastr.error("{{ translate('messages.description_field_is_required') }}");
+                    return false;
+                }
+
+                // 4. Thumbnail Validation
+                let hasThumbnail = false;
+                let viewerSrc = $('#viewer').attr('src');
+                if (viewerSrc && !viewerSrc.includes('upload-img.png') && !viewerSrc.includes('upload.png')) {
+                    hasThumbnail = true; 
+                }
+                if ($('#customFileEg1')[0] && $('#customFileEg1')[0].files && $('#customFileEg1')[0].files.length > 0) {
+                    hasThumbnail = true;
+                }
+                if (!hasThumbnail) {
+                    toastr.error("{{ translate('messages.item_thumbnail_is_required') }}");
+                    return false;
+                }
+
+                // 5. Item Images Validation
+                let hasItemImages = false;
+                // Check existing images that are not hidden
+                if ($('div[id^="product_images_"]').not('.d-none').length > 0) {
+                    hasItemImages = true;
+                }
+                // Check Spartan added images (newly picked but not yet submitted)
+                if ($('.spartan_item_wrapper img').filter(function(){
+                    let src = $(this).attr('src');
+                    return src && !src.includes('upload-img.png');
+                }).length > 0) {
+                    hasItemImages = true;
+                }
+                // Also check file inputs specifically
+                if ($('input[name="item_images[]"]').filter(function(){ return this.files && this.files.length > 0 }).length > 0) {
+                    hasItemImages = true;
+                }
+
+                if (!hasItemImages) {
+                    toastr.error("{{ translate('messages.item_images_are_required') }}");
+                    return false;
+                }
+
+                // If all validations pass, THEN show loader
+                $('#submitButton').attr('disabled', true);
+                $('#loading').show();
+
                 let formData = new FormData(this);
                 $.ajaxSetup({
                     headers: {
@@ -1566,9 +1647,6 @@
                     processData: false,
                     headers: {
                         'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                    },
-                    beforeSend: function() {
-                        $('#loading').show();
                     },
                     success: function(data) {
                         $('#loading').hide();
@@ -1598,7 +1676,6 @@
                         
                         if (xhr.responseJSON && xhr.responseJSON.errors) {
                             let errors = xhr.responseJSON.errors;
-                            // Check if errors is an array, otherwise iterate object
                             if (Array.isArray(errors)) {
                                 errors.forEach(function(err) {
                                     toastr.error(err.message, {

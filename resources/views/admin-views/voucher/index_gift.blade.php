@@ -126,7 +126,7 @@
                                  <label class="input-label" for="voucher_title">{{ translate('Voucher Title') }}
                                     <span class="form-label-secondary text-danger" data-toggle="tooltip" data-placement="right" data-original-title="{{ translate('messages.Required.')}}"> *</span>
                                 </label>
-                                <input type="text" name="voucher_title" class="form-control" placeholder="Voucher Title">
+                                <input type="text" name="voucher_title" class="form-control" placeholder="Voucher Title" required>
                             </div>
                             {{-- <div class="col-6">
                                 <label class="form-label fw-medium">Valid Until</label>
@@ -143,7 +143,7 @@
                         <div class="row g-3">
                             <div class="mb-3 col-12 ">
                                 <label class="form-label fw-medium">Short Description (Default) <span class="text-danger">*</span></label>
-                                <textarea type="text" name="description" class="form-control min-h-90px ckeditor"></textarea>
+                                <textarea type="text" name="description" class="form-control min-h-90px ckeditor" required></textarea>
                             </div>
                         </div>
 
@@ -181,7 +181,7 @@
                         </div>
                     </div>
                     <!-- Recipient Info Form Fields-->
-                    <div class="section-card rounded p-4 mb-4">
+                    <!-- <div class="section-card rounded p-4 mb-4">
                         <h3 class="h5 fw-semibold mb-4">Recipient Info Form Fields</h3>
                         <div class="card shadow-sm mb-4">
                             <div class="card-body">
@@ -342,7 +342,7 @@
                                 </div>
                             </div>
                         </div>
-                    </div>
+                    </div> -->
                     <!-- Message Template Style-->
                     <!-- <div class="section-card rounded p-4 mb-4">
                         <h3 class="h5 fw-semibold mb-4">Message Template Style</h3>
@@ -510,16 +510,16 @@
                                     <div class="bonus-tier-item border rounded p-3 mb-3">
                                         <div class="row g-2">
                                             <div class="col-md-4">
-                                                <label class="form-label">Min Amount ($)</label>
-                                                <input type="number" class="form-control" name="bonus_tiers[0][min_amount]" step="0.01" min="0" placeholder="0" value="0">
+                                                <label class="form-label">Min Amount ($) <span class="text-danger">*</span></label>
+                                                <input type="number" class="form-control" name="bonus_tiers[0][min_amount]" step="0.01" min="0" placeholder="0" value="0" required>
                                             </div>
                                             <div class="col-md-4">
-                                                <label class="form-label">Max Amount ($)</label>
-                                                <input type="number" class="form-control" name="bonus_tiers[0][max_amount]" step="0.01" min="0" placeholder="100">
+                                                <label class="form-label">Max Amount ($) <span class="text-danger">*</span></label>
+                                                <input type="number" class="form-control" name="bonus_tiers[0][max_amount]" step="0.01" min="0" placeholder="100" required>
                                             </div>
                                             <div class="col-md-3">
-                                                <label class="form-label">Bonus (%)</label>
-                                                <input type="number" class="form-control" name="bonus_tiers[0][bonus_percentage]" step="0.01" min="0" placeholder="5">
+                                                <label class="form-label">Bonus (%) <span class="text-danger">*</span></label>
+                                                <input type="number" class="form-control" name="bonus_tiers[0][bonus_percentage]" step="0.01" min="0" placeholder="5" required>
                                             </div>
                                             <div class="col-md-1 d-flex align-items-end">
                                                 <button type="button" class="btn btn-danger remove-bonus-tier" style="display: none;">
@@ -571,16 +571,16 @@
             newTier.innerHTML = `
                 <div class="row g-2">
                     <div class="col-md-4">
-                        <label class="form-label">Min Amount ($)</label>
-                        <input type="number" class="form-control" name="bonus_tiers[${bonusTierIndex}][min_amount]" step="0.01" min="0" placeholder="0">
+                        <label class="form-label">Min Amount ($) <span class="text-danger">*</span></label>
+                        <input type="number" class="form-control" name="bonus_tiers[${bonusTierIndex}][min_amount]" step="0.01" min="0" placeholder="0" required>
                     </div>
                     <div class="col-md-4">
-                        <label class="form-label">Max Amount ($)</label>
-                        <input type="number" class="form-control" name="bonus_tiers[${bonusTierIndex}][max_amount]" step="0.01" min="0" placeholder="100">
+                        <label class="form-label">Max Amount ($) <span class="text-danger">*</span></label>
+                        <input type="number" class="form-control" name="bonus_tiers[${bonusTierIndex}][max_amount]" step="0.01" min="0" placeholder="100" required>
                     </div>
                     <div class="col-md-3">
-                        <label class="form-label">Bonus (%)</label>
-                        <input type="number" class="form-control" name="bonus_tiers[${bonusTierIndex}][bonus_percentage]" step="0.01" min="0" placeholder="5">
+                        <label class="form-label">Bonus (%) <span class="text-danger">*</span></label>
+                        <input type="number" class="form-control" name="bonus_tiers[${bonusTierIndex}][bonus_percentage]" step="0.01" min="0" placeholder="5" required>
                     </div>
                     <div class="col-md-1 d-flex align-items-end">
                         <button type="button" class="btn btn-danger remove-bonus-tier">
@@ -630,6 +630,18 @@
                 const selectedType = document.querySelector('input[name="type"]:checked')?.value;
                 fixedSection.style.display = selectedType === 'fixed' ? 'block' : 'none';
                 rangeSection.style.display = selectedType === 'range' ? 'block' : 'none';
+
+                // Update required attributes
+                const fixedInputs = fixedSection.querySelectorAll('input[name="fixed_amounts[]"]');
+                const rangeInputs = rangeSection.querySelectorAll('input[name="min_max_amount[]"]');
+
+                if (selectedType === 'fixed') {
+                    fixedInputs.forEach(input => input.required = true);
+                    rangeInputs.forEach(input => input.required = false);
+                } else {
+                    fixedInputs.forEach(input => input.required = false);
+                    rangeInputs.forEach(input => input.required = true);
+                }
             }
 
             typeSelect.forEach(radio => {
@@ -639,11 +651,13 @@
 
             // 🔹 Add new fixed amount input
             addAmountBtn.addEventListener('click', function() {
+                const selectedType = document.querySelector('input[name="type"]:checked')?.value;
+                const isRequired = selectedType === 'fixed' ? 'required' : '';
                 const newField = document.createElement('div');
                 newField.className = 'input-group mb-2';
                 newField.innerHTML = `
                     <span class="input-group-text">$</span>
-                    <input type="number" class="form-control" name="fixed_amounts[]" step="0.01" min="0" placeholder="25.00">
+                    <input type="number" class="form-control" name="fixed_amounts[]" step="0.01" min="0" placeholder="25.00" ${isRequired}>
                     <button type="button" class="btn btn-danger remove-amount">
                         <i class="fas fa-times"></i>
                     </button>
@@ -1545,55 +1559,123 @@
             });
         }
 
+        $(document).on('keydown', '#item_form', function(e) {
+            if (e.key === 'Enter' || e.keyCode === 13) {
+                if (e.target.tagName !== 'TEXTAREA' && !$(e.target).hasClass('ckeditor')) {
+                    e.preventDefault();
+                    return false;
+                }
+            }
+        });
+
         $('#item_form').on('submit', function(e) {
-            $('#submitButton').attr('disabled', true);
             e.preventDefault();
+
+            // 1. Browser standard validation (Title, etc.)
+            if (!this.checkValidity()) {
+                this.reportValidity();
+                return false;
+            }
+
+            // 2. Description Validation (CKEditor)
+            let description = "";
+            if (typeof CKEDITOR !== 'undefined' && CKEDITOR.instances.description) {
+                description = CKEDITOR.instances.description.getData();
+            } else {
+                description = $('textarea[name="description"]').val();
+            }
+
+            if (!description || description.trim() === "") {
+                toastr.error("{{ translate('messages.description_field_is_required') }}");
+                return false;
+            }
+
+            // 3. Image Validation (Mandatory for Create)
+            let thumbnailInput = $('#customFileEg1')[0];
+            if (!thumbnailInput.files || thumbnailInput.files.length === 0) {
+                toastr.error("{{ translate('messages.item_thumbnail_is_required') }}");
+                return false;
+            }
+
+            let newFilesCount = 0;
+            $('input[name="item_images[]"]').each(function() {
+                if (this.files && this.files.length > 0) {
+                    newFilesCount += this.files.length;
+                }
+            });
+
+            if (newFilesCount === 0) {
+                toastr.error("{{ translate('messages.item_images_are_required') }}");
+                return false;
+            }
+
+            // If all validations pass, THEN show loader
+            $('#submitButton').attr('disabled', true);
+            $('#loading').show();
+
             let formData = new FormData(this);
             $.ajaxSetup({
                 headers: {
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 }
             });
-            $.post({
+            $.ajax({
                 url: '{{ route('admin.Voucher.store') }}',
-                data: $('#item_form').serialize(),
+                type: 'POST',
                 data: formData,
                 cache: false,
                 contentType: false,
                 processData: false,
-                beforeSend: function() {
-                    $('#loading').show();
-                },
                 success: function(data) {
                     $('#loading').hide();
+                    $('#submitButton').attr('disabled', false);
 
-                      // ✅ If backend returns errors
-                        if (data.errors && Array.isArray(data.errors)) {
-                            data.errors.forEach(function(err) {
-                                toastr.error(err.message, '', {
-                                    closeButton: true,
-                                    progressBar: true
-                                });
-                            });
-                            return;
-                        }
-
-                    if (data.errors) {
-                        for (let i = 0; i < data.errors.length; i++) {
-                            toastr.error(data.errors[i].message, {
+                    if (data.errors && Array.isArray(data.errors)) {
+                        data.errors.forEach(function(err) {
+                            toastr.error(err.message, {
                                 CloseButton: true,
                                 ProgressBar: true
                             });
+                        });
+                        return;
+                    }
+
+                    toastr.success("{{ translate('messages.product_added_successfully') }}", {
+                        CloseButton: true,
+                        ProgressBar: true
+                    });
+                    setTimeout(function() {
+                        location.href = "{{ route('admin.Voucher.list') }}";
+                    }, 1000);
+                },
+                error: function(xhr) {
+                    $('#loading').hide();
+                    $('#submitButton').attr('disabled', false);
+                    
+                    if (xhr.responseJSON && xhr.responseJSON.errors) {
+                        let errors = xhr.responseJSON.errors;
+                        // Handle both array and object error formats
+                        if (Array.isArray(errors)) {
+                            $.each(errors, function(index, err) {
+                                toastr.error(err.message, {
+                                    CloseButton: true,
+                                    ProgressBar: true
+                                });
+                            });
+                        } else {
+                            $.each(errors, function(key, err) {
+                                let msg = Array.isArray(err) ? err[0] : (err.message || err);
+                                toastr.error(msg, {
+                                    CloseButton: true,
+                                    ProgressBar: true
+                                });
+                            });
                         }
                     } else {
-                        toastr.success("{{ translate('messages.product_added_successfully') }}", {
+                        toastr.error("{{ translate('messages.failed_to_add_voucher') }}", {
                             CloseButton: true,
                             ProgressBar: true
                         });
-                        setTimeout(function() {
-                            location.href =
-                                "{{ route('admin.Voucher.list') }}";
-                        }, 1000);
                     }
                 }
             });
