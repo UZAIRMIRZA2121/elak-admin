@@ -42,6 +42,7 @@ use Illuminate\Support\Facades\DB;
 use App\Mail\OrderVerificationMail;
 use App\Models\NotificationMessage;
 use App\Models\NotificationSetting;
+use App\Models\GiftOccasions;
 
 use App\Models\SubscriptionPackage;
 use App\Traits\PaymentGatewayTrait;
@@ -176,6 +177,19 @@ class Helpers
                 'stock' => (int) ($var['stock'] ?? 0)
             ]);
         }
+
+        $occasions = [];
+        $occasions_ids = isset($data['occasions_id']) ? (is_array($data['occasions_id']) ? $data['occasions_id'] : json_decode($data['occasions_id'], true)) : [];
+        foreach ($occasions_ids ?? [] as $value) {
+            $occasion_data = GiftOccasions::find($value);
+            if ($occasion_data) {
+                $occasion_data->icon = collect($occasion_data->icon)->map(function ($path) {
+                    return asset(str_replace('public/', '', $path));
+                });
+                $occasions[] = $occasion_data;
+            }
+        }
+        $data['occasions'] = $occasions;
         if ($data->title) {
             $data['name'] = $data->title;
             unset($data['title']);
@@ -300,9 +314,12 @@ class Helpers
 
     public static function product_data_formatting($data, $multi_data = false, $trans = false, $local = 'en', $temp_product = false)
     {
+        // dd($multi_data);
         $storage = [];
         if ($multi_data == true) {
             foreach ($data as $item) {
+
+                // dd($item['occasions_id']);
                 $variations = [];
                 if ($item->title) {
                     $item['name'] = $item->title;
@@ -331,7 +348,23 @@ class Helpers
                     $category_name = Category::where('id', $value->id)->pluck('name');
                     $categories[] = ['id' => (string) $value->id, 'position' => $value->position, 'name' => data_get($category_name, '0', 'NA')];
                 }
+
                 $item['category_ids'] = $categories;
+
+                $occasions = [];
+                $occasions_ids = isset($item['occasions_id']) ? (is_array($item['occasions_id']) ? $item['occasions_id'] : json_decode($item['occasions_id'], true)) : [];
+                foreach ($occasions_ids ?? [] as $value) {
+                    $occasion_data = GiftOccasions::find($value);
+                    if ($occasion_data) {
+                        $occasion_data->icon = collect($occasion_data->icon)->map(function ($path) {
+                            return asset(str_replace('public/', '', $path));
+                        });
+                        $occasions[] = $occasion_data;
+                    }
+                }
+                $item['occasions'] = $occasions;
+
+
                 $item['attributes'] = json_decode($item['attributes']);
                 $item['choice_options'] = json_decode($item['choice_options']);
                 $item['add_ons'] = self::addon_data_formatting(AddOn::whereIn('id', json_decode($item['add_ons'], true))->active()->get(), true, $trans, $local);
@@ -406,6 +439,19 @@ class Helpers
                 $categories[] = ['id' => (string) $value->id, 'position' => $value->position, 'name' => data_get($category_name, '0', 'NA')];
             }
             $data['category_ids'] = $categories;
+
+            $occasions = [];
+            $occasions_ids = isset($data['occasions_id']) ? (is_array($data['occasions_id']) ? $data['occasions_id'] : json_decode($data['occasions_id'], true)) : [];
+            foreach ($occasions_ids ?? [] as $value) {
+                $occasion_data = GiftOccasions::find($value);
+                if ($occasion_data) {
+                    $occasion_data->icon = collect($occasion_data->icon)->map(function ($path) {
+                        return asset(str_replace('public/', '', $path));
+                    });
+                    $occasions[] = $occasion_data;
+                }
+            }
+            $data['occasions'] = $occasions;
 
             $data['attributes'] = json_decode($data['attributes']);
             $data['choice_options'] = json_decode($data['choice_options']);
@@ -498,7 +544,7 @@ class Helpers
             unset($data['generic']);
 
         }
-
+        // dd($data);
         return $data;
     }
 
@@ -549,6 +595,19 @@ class Helpers
                     $categories[] = ['id' => (string) $value->id, 'position' => $value->position];
                 }
                 $item['category_ids'] = $categories;
+
+                $occasions = [];
+                $occasions_ids = isset($item['occasions_id']) ? (is_array($item['occasions_id']) ? $item['occasions_id'] : json_decode($item['occasions_id'], true)) : [];
+                foreach ($occasions_ids ?? [] as $value) {
+                    $occasion_data = GiftOccasions::find($value);
+                    if ($occasion_data) {
+                        $occasion_data->icon = collect($occasion_data->icon)->map(function ($path) {
+                            return asset(str_replace('public/', '', $path));
+                        });
+                        $occasions[] = $occasion_data;
+                    }
+                }
+                $item['occasions'] = $occasions;
                 $item['attributes'] = json_decode($item['attributes']);
                 $item['choice_options'] = json_decode($item['choice_options']);
                 $item['add_ons'] = self::addon_data_formatting(AddOn::withoutGlobalScope('translate')->whereIn('id', json_decode($item['add_ons'], true))->active()->get(), true, $trans, $local);
@@ -649,6 +708,18 @@ class Helpers
             }
             $data['category_ids'] = $categories;
 
+            $occasions = [];
+            $occasions_ids = isset($data['occasions_id']) ? (is_array($data['occasions_id']) ? $data['occasions_id'] : json_decode($data['occasions_id'], true)) : [];
+            foreach ($occasions_ids ?? [] as $value) {
+                $occasion_data = GiftOccasions::find($value);
+                if ($occasion_data) {
+                    $occasion_data->icon = collect($occasion_data->icon)->map(function ($path) {
+                        return asset(str_replace('public/', '', $path));
+                    });
+                    $occasions[] = $occasion_data;
+                }
+            }
+            $data['occasions'] = $occasions;
             $data['attributes'] = json_decode($data['attributes']);
             $data['choice_options'] = json_decode($data['choice_options']);
             $data['add_ons'] = self::addon_data_formatting(AddOn::whereIn('id', json_decode($data['add_ons']))->active()->get(), true, $trans, $local);

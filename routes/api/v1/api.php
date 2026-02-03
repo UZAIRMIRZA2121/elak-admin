@@ -550,7 +550,6 @@ Route::group(['namespace' => 'Api\V1', 'middleware' => 'localization'], function
             Route::get('featured/items', 'CategoryController@get_featured_category_products');
             Route::get('popular', 'CategoryController@get_popular_category_list');
 
-
         });
 
         Route::group(['prefix' => 'common-condition'], function () {

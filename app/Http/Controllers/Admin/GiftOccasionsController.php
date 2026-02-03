@@ -43,7 +43,7 @@ class GiftOccasionsController extends Controller
 
         $GiftOccasions = new GiftOccasions();
         $GiftOccasions->title = $request->title;
-        $GiftOccasions->message = json_encode($request->messages);
+        $GiftOccasions->message = $request->messages;
         $GiftOccasions->status = "active";
 
         $icons = [];
@@ -68,7 +68,7 @@ class GiftOccasionsController extends Controller
         }
 
         // Save as JSON in DB
-        $GiftOccasions->icon = json_encode($icons);
+        $GiftOccasions->icon = $icons;
 
         $GiftOccasions->save();
 
@@ -89,7 +89,7 @@ class GiftOccasionsController extends Controller
         $occasion = GiftOccasions::findOrFail($id);
 
         // Icon column se images array lein
-        $imagePaths = json_decode($occasion->icon, true) ?? [];
+        $imagePaths = $occasion->icon ?? [];
 
         // Full URLs banayein
         $images = collect($imagePaths)->map(function ($path) {
@@ -103,7 +103,7 @@ class GiftOccasionsController extends Controller
     public function gallery_destroy(Request $request, $id)
     {
         $item = GiftOccasions::findOrFail($id);
-        $icons = json_decode($item->icon, true);
+        $icons = $item->icon;
 
         // Get the image path from request
         $imgToDelete = $request->img;
@@ -124,7 +124,7 @@ class GiftOccasionsController extends Controller
             $icons = array_values($icons);
 
             // Save updated JSON back to DB
-            $item->icon = json_encode($icons);
+            $item->icon = $icons;
             $item->save();
 
             return response()->json(['success' => true]);
@@ -147,12 +147,12 @@ class GiftOccasionsController extends Controller
 
         // Update title and message
         $GiftOccasions->title = $request->title;
-        $GiftOccasions->message = json_encode($request->messages);
+        $GiftOccasions->message = $request->messages;
 
         // ===========================
         // 🔥 Keep old icons
         // ===========================
-        $existingIcons = $GiftOccasions->icon ? json_decode($GiftOccasions->icon, true) : [];
+        $existingIcons = $GiftOccasions->icon ?: [];
         $newIcons = $existingIcons; // start with existing icons
 
         // ===========================
@@ -176,7 +176,7 @@ class GiftOccasionsController extends Controller
             }
 
             // Save updated icon list
-            $GiftOccasions->icon = json_encode($newIcons);
+            $GiftOccasions->icon = $newIcons;
         }
 
         $GiftOccasions->save();
@@ -195,7 +195,7 @@ class GiftOccasionsController extends Controller
         // 🔥 Delete ALL old icons (JSON array)
         // -----------------------------------------
         if ($GiftOccasions->icon) {
-            $icons = json_decode($GiftOccasions->icon, true);
+            $icons = $GiftOccasions->icon;
 
             if (is_array($icons)) {
                 foreach ($icons as $img) {

@@ -788,12 +788,12 @@
                                         <span class="text-truncate">{{ translate('Gift Occasions') }}</span>
                                     </a>
                                 </li>
-                                <li class="nav-item {{ Request::is('admin/MessageTemplate/add-new') ? 'active' : '' }}">
+                                <!-- <li class="nav-item {{ Request::is('admin/MessageTemplate/add-new') ? 'active' : '' }}">
                                     <a class="nav-link " href="{{ route('admin.MessageTemplate.add-new') }}" title="{{ translate('Message Template') }}">
                                         <span class="tio-circle nav-indicator-icon"></span>
                                         <span class="text-truncate text-capitalize">{{ translate('Message Template') }}</span>
                                     </a>
-                                </li>
+                                </li> -->
                                 <li class="nav-item {{ Request::is('admin/DeliveryOption/add-new') ? 'active' : '' }}">
                                     <a class="nav-link " href="{{ route('admin.DeliveryOption.add-new') }}" title="{{ translate('Delivery Option') }}">
                                         <span class="tio-circle nav-indicator-icon"></span>
@@ -1006,12 +1006,12 @@
                         <span class="text-truncate"> Gift Occasions</span>
                     </a>
                 </li>
-                    <li class="navbar-vertical-aside-has-menu ">
+                    <!-- <li class="navbar-vertical-aside-has-menu ">
                     <a class="js-navbar-vertical-aside-menu-link nav-link" href="{{ route('admin.MessageTemplate.add-new') }}" title="">
                          <span class="tio-calendar-note nav-icon"></span>
                         <span class="text-truncate"> Message Template</span>
                     </a>
-                </li>
+                </li> -->
                     <li class="navbar-vertical-aside-has-menu ">
                     <a class="js-navbar-vertical-aside-menu-link nav-link" href="{{ route('admin.DeliveryOption.add-new') }}" title="">
                          <span class="tio-calendar-note nav-icon"></span>

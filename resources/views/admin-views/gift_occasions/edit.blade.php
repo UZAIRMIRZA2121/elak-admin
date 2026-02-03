@@ -91,7 +91,7 @@
                     @php($language = $language->value ?? null)
                     @php($defaultLang = str_replace('_', '-', app()->getLocale()))
                     @if ($language)
-                        @php($messages = json_decode($GiftOccasions->message, true) ?? ($GiftOccasions->message ? [$GiftOccasions->message] : []))
+                        @php($messages = $GiftOccasions->message ?: [])
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="form-group">
@@ -110,7 +110,7 @@
                             <div class="col-12">
                                 <label class="input-label">Current Icons</label>
                                 @if (!empty($GiftOccasions->icon))
-                                    @php($icons = json_decode($GiftOccasions->icon, true))
+                                    @php($icons = $GiftOccasions->icon ?: [])
                                     <div class="d-flex flex-wrap gap-3">
                                         @foreach ($icons as $key => $img)
                                             <div id="img-{{ $img }}" class="position-relative d-inline-block mr-2 mb-2"

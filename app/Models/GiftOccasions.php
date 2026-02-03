@@ -12,5 +12,10 @@ class GiftOccasions extends Model
     protected $table = 'gift_occasions';
 
     protected $fillable = ['title', 'message', 'icon', 'status'];
-
+    
+    protected $casts = [
+        'icon' => 'array',
+        'message' => 'array',
+        'status' => 'string',
+    ];
 }

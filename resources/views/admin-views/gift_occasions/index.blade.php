@@ -195,7 +195,7 @@
 
                                                 {{-- Messages --}}
                                                 <td class="text-center">
-                                                    @php($messages = json_decode($item->message, true))
+                                                    @php($messages = $item->message ?: [])
                                                     <span class="font-size-sm text-body mr-3">
                                                         @if(is_array($messages))
                                                             {{ Str::limit(implode(', ', $messages), 30, '...') }}

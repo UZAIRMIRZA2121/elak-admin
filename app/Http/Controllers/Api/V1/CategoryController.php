@@ -193,7 +193,7 @@ class CategoryController extends Controller
             'limit' => 'required',
             'offset' => 'required',
         ]);
-
+        // dd("vjhsvs");
         if ($validator->fails()) {
             return response()->json(['errors' => Helpers::error_processor($validator)], 403);
         }
