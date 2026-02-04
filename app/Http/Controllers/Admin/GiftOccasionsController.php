@@ -94,9 +94,11 @@ class GiftOccasionsController extends Controller
         // Full URLs banayein
         $images = collect($imagePaths)->map(function ($path) {
             // Remove 'public/' from start for URL
-            $urlPath = str_replace('public/', '', $path);
+            $urlPath = str_replace('/public', '', $path);
             return ['url' => asset($urlPath)];
         })->toArray();
+
+        // dd($images);
 
         return response()->json(['images' => $images]);
     }

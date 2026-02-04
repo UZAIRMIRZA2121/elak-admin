@@ -362,11 +362,11 @@
                                     galleryHtml += `
                                     <div class="col-md-4 col-sm-6 mb-3">
                                         <div class="card">
-                                            <img src="public/${publicUrl}" 
+                                            <img src="${publicUrl}" 
                                                 class="card-img-top" 
                                                 alt="Gallery Image" 
                                                 style="height: 200px; object-fit: cover; cursor: pointer;" 
-                                                onclick="viewFullImage('public${publicUrl}')">
+                                                onclick="viewFullImage('${publicUrl}')">
                                         </div>
                                     </div>
                                 `;
