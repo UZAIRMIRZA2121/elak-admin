@@ -121,7 +121,7 @@
                                                     style="position: absolute; top: 4px; right: 4px; padding: 0; width: 22px; height: 22px; line-height: 18px; font-size: 14px; border-radius: 50%; display: flex; align-items: center; justify-content: center; z-index: 10;">
                                                     <i class="tio-delete"></i>
                                                 </a>
-                                                <img src="{{ asset('public/' . $img) }}" class="img-thumbnail"
+                                                <img src="{{ asset('/' . $img) }}" class="img-thumbnail"
                                                     style="width: 120px; height: 120px; object-fit: cover;">
                                             </div>
                                         @endforeach
