@@ -214,6 +214,8 @@ class VoucherController extends Controller
 
     public function store(Request $request)
     {
+
+        // dd($request->all());
         $type_name = $request->hidden_name;
         $data = $this->processProductsData($request->products_data ?? $request->bogo_products_a ?? []);
         $data_b = $this->processProductsData($request->bogo_products_b ?? []);
@@ -571,7 +573,8 @@ class VoucherController extends Controller
 
     private function setProductItemData($item, $request)
     {
-        $item->price = $request->product_real_price ?? 0;
+        $item->price = $request->price ?? 0;
+        $item->actual_price = $request->actual_price_input_hide ?? 0;
         $item->discount_type = $request->discount_type;
         $item->discount = $request->discount;
         $item->offer_type = $request->offer_type;

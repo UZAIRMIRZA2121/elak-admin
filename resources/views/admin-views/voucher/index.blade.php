@@ -324,7 +324,7 @@
                                 <div class="form-group mb-0">
                                     <label class="input-label"  for="exampleFormControlInput1">{{ translate('Actual Price') }} <span class="form-label-secondary text-danger"  data-toggle="tooltip" data-placement="right" data-original-title="{{ translate('messages.Required.')}}"> *  </span> </label>
                                     <input type="number" min="0" id="actual_price" max="999999999999.99" step="0.01" value="1" name="actual_price_input_hide" class="form-control"placeholder="{{ translate('messages.Ex:') }} 100" required>
-                                    <input type="hidden"  id="actual_price_input_hide"name="actual_price_input_hide" >
+                                    <!-- <input type="hidden"  id="actual_price_input_hide"name="actual_price_input_hide" > -->
                                     <input type="hidden"  id="product_real_price"name="product_real_price" value="" >
                                 </div>
                             </div>
