@@ -524,7 +524,7 @@ class VoucherController extends Controller
         $item->voucher_ids = $type_name;
         $item->bundle_type = $request->bundle_offer_type ?? null;
         $item->type = "voucher";
-        $item->required_quantity = $request->required_quantity ?? 0.00;
+        $item->required_quantity = $request->required_qty ?? 0.00;
 
         // Category data
         $item->category_ids = json_encode($categoryData['category_ids']);
