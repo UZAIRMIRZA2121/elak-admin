@@ -429,7 +429,7 @@
                                             @foreach ($images as $image)
                                                 @if (isset($image['img']))
                                                     <img class="avatar avatar-lg mr-2 mb-2 onerror-image custom-image-preview"
-                                                        src="{{ asset('storage/' . $image['img']) }}"
+                                                        src="{{ asset('storage/product/' . $image['img']) }}"
                                                         data-onerror-image="{{ asset('public/assets/admin/img/160x160/img2.jpg') }}"
                                                         alt="{{ $product->name }} image"
                                                         style="cursor: pointer;width:200px;height:200px">
@@ -446,9 +446,8 @@
 
                                 </tr>
                                 <tr>
-                                    <th><i class="fas fa-folder mr-2"></i>Thumnail Image </th>
                                     <td> <img class="avatar avatar-lg mr-3 onerror-image custom-image-preview"
-                                            src="{{ $product->image ?? asset('public/assets/admin/img/160x160/img2.jpg') }}"
+                                            src="{{ $product->image_full_url ?? asset('public/assets/admin/img/160x160/img2.jpg') }}"
                                             data-onerror-image="{{ asset('public/assets/admin/img/160x160/img2.jpg') }}"
                                             alt="{{ $product->name }} image"
                                             style="cursor: pointer;width:200px;height:200px"> </td>
@@ -476,7 +475,7 @@
                                 <tr>
                                     <th><i class="fas fa-heading mr-2"></i>Voucher </th>
                                     <td> <img class="avatar avatar-lg mr-3 onerror-image custom-image-preview"
-                                            src="{{ $product['image_full_url'] ?? asset('public/assets/admin/img/160x160/img2.jpg') }}"
+                                            src="{{ $product->image_full_url ?? asset('public/assets/admin/img/160x160/img2.jpg') }}"
                                             data-onerror-image="{{ asset('public/assets/admin/img/160x160/img2.jpg') }}"
                                             alt="{{ $product->name }} image"
                                             style="cursor: pointer;width:200px;height:200px">
