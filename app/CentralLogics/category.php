@@ -584,20 +584,57 @@ public static function stores(
 
     public static function stores_all_gift($category_id, $zone_id, int $limit, int $offset, $type, $longitude = 0, $latitude = 0)
     {
-
+    //   dd("jdhvchsgdv");
       $longitude = (float)$longitude;
         $latitude  = (float)$latitude;
 
         // 1️⃣ Get gift items store IDs based on category
+        // $gift_item_store_ids = DB::table('items')
+        //     ->when($category_id !== 'all', function ($q) use ($category_id) {
+        //         $q->where('category_id', (int)$category_id);
+        //     })
+        //     ->where('voucher_ids', 'Gift')
+        //     ->pluck('store_id')
+        //     ->unique()
+        //     ->values()
+        //     ->toArray();
+
+
+
+        // Step 1: Get category IDs (parent + children)
+        $categoryIds = Category::when(is_numeric($category_id), function ($q) use ($category_id) {
+                $q->where('id', $category_id)
+                ->orWhere('parent_id', $category_id);
+            })
+            ->when(!is_numeric($category_id), function ($q) use ($category_id) {
+                $q->where('slug', $category_id)
+                ->orWhere('parent_id', function ($sub) use ($category_id) {
+                    $sub->select('id')
+                        ->from('categories')
+                        ->where('slug', $category_id);
+                });
+            })
+            ->pluck('id')
+            ->map(fn ($id) => (string) $id) // JSON me ids string hone chahiye
+            ->toArray();
+
+        // Step 2: Query items with category_ids JSON and voucher_ids = 'Gift'
         $gift_item_store_ids = DB::table('items')
-            ->when($category_id !== 'all', function ($q) use ($category_id) {
-                $q->where('category_id', (int)$category_id);
+            ->when($category_id !== 'all', function ($q) use ($categoryIds) {
+                $q->where(function ($query) use ($categoryIds) {
+                    foreach ($categoryIds as $catId) {
+                        $query->orWhereJsonContains('category_ids', ['id' => $catId]);
+                    }
+                });
             })
             ->where('voucher_ids', 'Gift')
             ->pluck('store_id')
             ->unique()
             ->values()
             ->toArray();
+
+
+
 
         // If no stores found, return empty response
         if (empty($gift_item_store_ids)) {
