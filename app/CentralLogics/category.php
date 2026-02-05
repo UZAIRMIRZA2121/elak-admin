@@ -89,8 +89,8 @@ class CategoryLogic
         $category_sub_category_item_sort_by_general = PriorityList::where('name', 'category_sub_category_item_sort_by_general')->where('type','general')->first()?->value ?? '';
         $category_sub_category_item_sort_by_unavailable = PriorityList::where('name', 'category_sub_category_item_sort_by_unavailable')->where('type','unavailable')->first()?->value ?? '';
         $category_sub_category_item_sort_by_temp_closed = PriorityList::where('name', 'category_sub_category_item_sort_by_temp_closed')->where('type','temp_closed')->first()?->value ?? '';
-
-        $query = Item::
+        // dd("sdjhvbdsh");
+ 
         // whereHas('module.zones', function($query)use($zone_id){
         //     $query->whereIn('zones.id', json_decode($zone_id, true));
         // })
@@ -102,22 +102,80 @@ class CategoryLogic
             //     // });
             // })
             // ->
-            whereHas('category',function($q)use($category_id){
-                return $q->when(is_numeric($category_id),function ($qurey) use($category_id){
-                    return $qurey->whereId($category_id)->orWhere('parent_id', $category_id);
-                })
-                    ->when(!is_numeric($category_id),function ($qurey) use($category_id){
-                        $qurey->where('slug', $category_id);
-                    });
-            })
+            // whereHas('category',function($q)use($category_id){
+            //     return $q->when(is_numeric($category_id),function ($qurey) use($category_id){
+            //         return $qurey->whereId($category_id)->orWhere('parent_id', $category_id);
+            //     })
+            //         ->when(!is_numeric($category_id),function ($qurey) use($category_id){
+            //             $qurey->where('slug', $category_id);
+            //         });
+            // })
 
-            ->select(['items.*'])
-            ->selectSub(function ($subQuery) {
-                $subQuery->selectRaw('active as temp_available')
-                    ->from('stores')
-                    ->whereColumn('stores.id', 'items.store_id');
-            }, 'temp_available')
-            ->active()->type($type);
+            // Step 1: Get category IDs (parent + children)
+                $categoryIds = Category::when(is_numeric($category_id), function ($q) use ($category_id) {
+                        $q->where('id', $category_id)
+                        ->orWhere('parent_id', $category_id);
+                    })
+                    ->when(!is_numeric($category_id), function ($q) use ($category_id) {
+                        $q->where('slug', $category_id)
+                        ->orWhere('parent_id', function ($sub) use ($category_id) {
+                            $sub->select('id')
+                                ->from('categories')
+                                ->where('slug', $category_id);
+                        });
+                    })
+                    ->pluck('id')
+                    ->map(fn ($id) => (string) $id) // JSON me ids string hoti hain
+                    ->toArray();
+
+
+                // Step 2: Build items query
+                $query = Item::select(['items.*'])
+                    ->selectSub(function ($subQuery) {
+                        $subQuery->selectRaw('active as temp_available')
+                            ->from('stores')
+                            ->whereColumn('stores.id', 'items.store_id');
+                    }, 'temp_available')
+                    ->where(function ($q) use ($categoryIds) {
+                        foreach ($categoryIds as $catId) {
+                            $q->orWhereJsonContains('category_ids', [
+                                'id' => $catId
+                            ]);
+                        }
+                    })
+                    ->active()
+                    ->type($type);
+
+
+                // Step 3: Get result
+                $items = $query->get();
+
+
+    //    $query = Item::
+    //             $categoryIds = Category::when(is_numeric($category_id), function ($q) use ($category_id) {
+    //                     $q->where('id', $category_id)
+    //                     ->orWhere('parent_id', $category_id);
+    //                 })
+    //                 ->when(!is_numeric($category_id), function ($q) use ($category_id) {
+    //                     $q->where('slug', $category_id)
+    //                     ->orWhere('parent_id', function ($sub) use ($category_id) {
+    //                         $sub->select('id')
+    //                             ->from('categories')
+    //                             ->where('slug', $category_id);
+    //                     });
+    //                 })
+    //                 ->pluck('id')
+    //                 ->map(fn ($id) => (string) $id) // JSON string ids
+    //                 ->toArray()
+
+
+    //         ->select(['items.*'])
+    //         ->selectSub(function ($subQuery) {
+    //             $subQuery->selectRaw('active as temp_available')
+    //                 ->from('stores')
+    //                 ->whereColumn('stores.id', 'items.store_id');
+    //         }, 'temp_available')
+    //         ->active()->type($type);
 
             if ($category_sub_category_item_default_status == '1'){
                 $query = $query->latest();
