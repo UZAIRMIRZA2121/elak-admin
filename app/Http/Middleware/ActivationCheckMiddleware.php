@@ -23,6 +23,7 @@ class ActivationCheckMiddleware
     {
         $response = $this->checkActivationCache(app: $area);
         $response = true ;
+        
         if (!$response) {
             if (!strpos(url()->current(), '/api')) {
                 return Redirect::away(route(base64_decode('c3lzdGVtLmFjdGl2YXRpb24tY2hlY2s=')))->send();
