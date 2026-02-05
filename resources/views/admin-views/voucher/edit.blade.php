@@ -1798,7 +1798,7 @@
                                 onclick="toggleAccordion(${item.id})">
                                 
                                 <div class="d-flex align-items-center flex-grow-1">
-                                    <input type="radio" name="howto_work[]" value="${item.id}"
+                                    <input type="checkbox" name="howto_work[]" value="${item.id}"
                                         class="form-check-input record-checkbox me-3"
                                         id="record_${item.id}"
                                         data-item-id="${item.id}"

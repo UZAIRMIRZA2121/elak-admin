@@ -99,7 +99,7 @@
                                     </div>
                                       <div class="col-md-6">
                                         <div class="form-group">
-                                            <label class="input-label" for="icon">Icons (Multiple)</label>
+                                            <label class="input-label" for="icon">Gallery (Multiple)</label>
                                             <input type="file" name="icon[]" id="icon" class="form-control" multiple>
                                         </div>
                                     </div>
