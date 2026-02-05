@@ -840,30 +840,61 @@ class VoucherController extends Controller
 
     public function delete(Request $request)
     {
-
         if ($request?->temp_product) {
-            $product = TempProduct::withoutGlobalScope(StoreScope::class)->find($request->id);
+            $product = TempProduct::withoutGlobalScope(StoreScope::class)
+                ->find($request->id);
         } else {
-            $product = Item::withoutGlobalScope(StoreScope::class)->withoutGlobalScope('translate')->find($request->id);
+            $product = Item::withoutGlobalScope(StoreScope::class)
+                ->withoutGlobalScope('translate')
+                ->find($request->id);
+
+            // related temp product cleanup
             $product?->temp_product?->translations()?->delete();
             $product?->temp_product()?->delete();
             $product?->carts()?->delete();
         }
 
-        if ($product->image) {
-            Helpers::check_and_delete('product/', $product['image']);
+        if (!$product) {
+            Toastr::error(translate('messages.product_not_found'));
+            return back();
         }
-        foreach ($product->images as $value) {
-            $value = is_array($value) ? $value : ['img' => $value, 'storage' => 'public'];
-            Helpers::check_and_delete('product/', $value['img']);
-        }
-        $product?->translations()->delete();
-        $product?->taxVats()->delete();
 
+        // single image delete
+        if (!empty($product->image)) {
+            Helpers::check_and_delete('product/', $product->image);
+        }
+
+        // multiple images delete (FIXED)
+        $images = $product->images;
+
+        // agar string (JSON) ho to decode karo
+        if (is_string($images)) {
+            $images = json_decode($images, true);
+        }
+
+        if (is_array($images)) {
+            foreach ($images as $value) {
+                $value = is_array($value)
+                    ? $value
+                    : ['img' => $value, 'storage' => 'public'];
+
+                if (!empty($value['img'])) {
+                    Helpers::check_and_delete('product/', $value['img']);
+                }
+            }
+        }
+
+        // relations cleanup
+        $product?->translations()?->delete();
+        $product?->taxVats()?->delete();
+
+        // finally delete product
         $product->delete();
+
         Toastr::success(translate('messages.product_deleted_successfully'));
         return back();
     }
+
 
     public function variant_combination(Request $request)
     {
