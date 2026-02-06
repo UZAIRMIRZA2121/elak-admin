@@ -174,7 +174,7 @@
                                 </div>
                                 <div class="card-body">
                                     <!-- Discount Type Selection -->
-                                    <h6 class="mb-3">Select Discount Type <span class="text-danger">*</span></h6>
+                                    <!-- <h6 class="mb-3">Select Discount Type <span class="text-danger">*</span></h6>
                                     <div class="row mb-4">
                                         <div class="col-md-6  {{ trim($product->discount_type ?? '') === 'direct_discount' ? 'selected' : '' }}">
                                             <input type="radio"
@@ -203,6 +203,34 @@
                                                 <strong>Cashback</strong>
                                                 <small class="d-block text-muted mt-1">Cashback credited to customer wallet</small>
                                             </label>
+                                        </div>
+                                    </div> -->
+
+                                      <div class="row g-3 p-3">
+                                        <div class="col-6 col-md-3">
+                                            <div class="form-group mb-0">
+                                                <label class="input-label" for="offer_type">
+                                                    {{ translate('Offer Type') }}
+                                                </label>
+                                                <select name="offer_type" id="offer_type" class="form-control js-select2-custom">
+                                                    <option value="direct discount">{{ translate('Direct Discount') }}</option>
+                                                    <option value="cash back">{{ translate('Cash back') }}</option>
+                                                </select>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-6 col-md-3" id="discount_input_hide">
+                                            <div class="form-group mb-0">
+                                                <label class="input-label" for="discount_type">
+                                                    {{ translate('Discount Type') }}
+                                                </label>
+                                                <select name="discount_type" id="discount_type" class="form-control js-select2-custom">
+                                                    <option value="percent">{{ translate('messages.percent') }} (%)</option>
+                                                    <option value="fixed">
+                                                        {{ translate('Fixed') }} ({{ \App\CentralLogics\Helpers::currency_symbol() }})
+                                                    </option>
+                                                </select>
+                                            </div>
                                         </div>
                                     </div>
 
@@ -234,7 +262,7 @@
                                                     <input type="number" class="form-control" name="bonus_tiers[{{ $index }}][max_amount]" step="0.01" min="0" placeholder="100" value="{{ $tier['max_amount'] ?? '' }}">
                                                 </div>
                                                 <div class="col-md-3">
-                                                    <label class="form-label">Discount/Cashback (%)</label>
+                                                    <label class="form-label">Discount/Cashback <span class="change_v">(%)</span></label>
                                                     <input type="number" class="form-control" name="bonus_tiers[{{ $index }}][bonus_percentage]" step="0.01" min="0" placeholder="5" required value="{{ $tier['bonus_percentage'] ?? '' }}">
                                                 </div>
                                                 <div class="col-md-1 d-flex align-items-end">
@@ -2437,6 +2465,22 @@
         }
     </script>
     <script>
+$(document).ready(function () {
+    $('#discount_type').on('change', function () {
+        let value = $(this).val();
+
+        if (value === 'percent') {
+            $('.change_v').text('(%)');
+        } else if (value === 'fixed') {
+            $('.change_v').text('($)');
+        }
+    });
+    
+    // Trigger change on page load to set initial label
+    $('#discount_type').trigger('change');
+});
+</script>
+    <script>
         $(document).ready(function() {
             // Add bonus tier functionality
             const addBonusTierBtn = document.getElementById('addBonusTierBtn');
@@ -2444,6 +2488,10 @@
 
             if (addBonusTierBtn) {
                 addBonusTierBtn.addEventListener('click', function() {
+                    // Get current discount type to set correct symbol
+                    const discountType = document.getElementById('discount_type').value;
+                    const symbol = discountType === 'percent' ? '%' : '$';
+                    
                     // Find valid starting index (prevent duplicate keys)
                     let bonusTierIndex = 0;
                     document.querySelectorAll('input[name^="bonus_tiers"]').forEach(function(input) {
@@ -2472,7 +2520,7 @@
                                 <input type="number" class="form-control" name="bonus_tiers[${bonusTierIndex}][max_amount]" step="0.01" min="0" placeholder="100">
                             </div>
                             <div class="col-md-3">
-                                <label class="form-label">Discount/Cashback (%)</label>
+                                <label class="form-label">Discount/Cashback <span class="change_v">(${symbol})</span></label>
                                 <input type="number" class="form-control" name="bonus_tiers[${bonusTierIndex}][bonus_percentage]" step="0.01" min="0" placeholder="5" required>
                             </div>
                             <div class="col-md-1 d-flex align-items-end">

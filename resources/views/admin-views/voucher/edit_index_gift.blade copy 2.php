@@ -98,26 +98,65 @@
   <link rel="stylesheet" href="{{asset('assets/admin/css/voucher.css')}}">
      <!-- Page Header -->
      <div class="container-fluid px-4 py-3">
-          @include("admin-views.voucher.store_include.include_heading")
+          @include("admin-views.voucher.edit_include.edit_include_heading")
         <div class="bg-white shadow rounded-lg p-4">
 
 
             {{-- Step 1: Select Voucher Type and Step 2: Select Management Type  --}}
-             @include("admin-views.voucher.store_include.include_client_voucher_management")
+             @include("admin-views.voucher.edit_include.edit_include_client_voucher_management")
 
             <form action="javascript:" method="post" id="item_form" enctype="multipart/form-data">
                  <input type="hidden" name="hidden_value" id="hidden_value" value="1"/>
             <input type="hidden" name="hidden_bundel" id="hidden_bundel" value="simple"/>
             <input type="hidden" name="hidden_name" id="hidden_name" value="Gift"/>
                 @csrf
-                @php($language = \App\Models\BusinessSetting::where('key', 'language')->first())
-                @php($language = $language->value ?? null)
-                @php($defaultLang = str_replace('_', '-', app()->getLocale()))
-                {{-- Client Information and Partner Information --}}
-                 @include("admin-views.voucher.store_include.include_client_partner_information")
+                @php
+                    $language = \App\Models\BusinessSetting::where('key', 'language')->first();
+                    $language = $language->value ?? null;
+                    $defaultLang = str_replace('_', '-', app()->getLocale());
+                    
+                    // Initialize variables for Gift Voucher
+                    $selected_occasions = is_array($product->occasions_id) ? $product->occasions_id : json_decode($product->occasions_id ?? '[]', true);
+                    $howAndConditionIds = is_array($product->how_and_condition_ids) ? $product->how_and_condition_ids : json_decode($product->how_and_condition_ids ?? '[]', true);
+                    $savedHowToWorkId = $howAndConditionIds[0] ?? '';
+
+                    // Recipient Info
+                    $recipientSettings = is_array($product->recipient_info_form_fields) ? $product->recipient_info_form_fields : json_decode($product->recipient_info_form_fields ?? '[]', true);
+                    $savedFormFields = $recipientSettings['form_fields'] ?? [];
+                    $savedRequiredFields = $recipientSettings['required_fields'] ?? [];
+
+                    // Message Template
+                    $savedMessageTemplate = is_array($product->message_template_style) ? $product->message_template_style : json_decode($product->message_template_style ?? 'null', true);
+                    
+                    // Delivery Options
+
+                    $raw = $product->getRawOriginal('delivery_options');
+
+                    // double decode
+                    $savedDeliveryOptions = json_decode(json_decode($raw, true), true);
+
+                    if (!is_array($savedDeliveryOptions)) {
+                        $savedDeliveryOptions = [];
+                    }
+
+                    // Amount Config
+                    $savedAmountType = $product->amount_type ?? 'fixed';
+                    $savedEnableCustom = $product->enable_custom_amount ?? 0;
+                    $savedFixedAmounts = is_array($product->fixed_amount_options) ? $product->fixed_amount_options : json_decode($product->fixed_amount_options ?? '[]', true);
+                    $savedMinMax = is_array($product->min_max_amount) ? $product->min_max_amount : json_decode($product->min_max_amount ?? '[]', true); // [0]=>min, [1]=>max
+
+                    // Bonus Config
+                    $savedBonusTiers = is_array($product->bonus_configuration) ? $product->bonus_configuration : json_decode($product->bonus_configuration ?? '[]', true);
+                    if (empty($savedBonusTiers)) {
+                        $savedBonusTiers = [["min_amount" => "0", "max_amount" => "", "bonus_percentage" => ""]];
+                    }
+                @endphp
+                 {{-- Client Information and Partner Information --}}
+                  @include("admin-views.voucher.edit_include.edit_include_client_partner_information")
 
 
-                   <!-- Voucher Details  Bundle Delivery/Pickup  == Food and Product Bundle-->
+
+  <!-- Voucher Details  Bundle Delivery/Pickup  == Food and Product Bundle-->
                     <div class="section-card rounded p-4 mb-4" id="bundel_food_voucher_fields_1_3_1_4">
                         <h3 class="h5 fw-semibold mb-4">Voucher Details</h3>
                         {{-- Voucher Title --}}
@@ -126,7 +165,7 @@
                                  <label class="input-label" for="voucher_title">{{ translate('Voucher Title') }}
                                     <span class="form-label-secondary text-danger" data-toggle="tooltip" data-placement="right" data-original-title="{{ translate('messages.Required.')}}"> *</span>
                                 </label>
-                                <input type="text" name="voucher_title" class="form-control" placeholder="Voucher Title" required>
+                                <input type="text" name="voucher_title" class="form-control" placeholder="Voucher Title" value="{{ $product->name ?? '' }}" required>
                             </div>
                             {{-- <div class="col-6">
                                 <label class="form-label fw-medium">Valid Until</label>
@@ -136,14 +175,14 @@
                             {{-- images --}}
                         <div class="row g-3">
                             <div class="col-12" >
-                                @include("admin-views.voucher.store_include.include_images")
+                                @include("admin-views.voucher.edit_include.edit_include_images")
                             </div>
                         </div>
                         {{-- images  --}}
                         <div class="row g-3">
                             <div class="mb-3 col-12 ">
                                 <label class="form-label fw-medium">Short Description (Default) <span class="text-danger">*</span></label>
-                                <textarea type="text" name="description" class="form-control min-h-90px ckeditor" required></textarea>
+                                <textarea type="text" name="description" class="form-control min-h-90px ckeditor" required>{{ $product->description ?? '' }}</textarea>
                             </div>
                         </div>
 
@@ -151,16 +190,20 @@
                         <div class="col-12 mt-3">
                             <div class="form-group">
                                 <h3 class="h5 fw-semibold "> {{ translate('tags') }}</h3>
-                                <input type="text" class="form-control" name="tags" placeholder="{{translate('messages.search_tags')}}" data-role="tagsinput">
+                                <input type="text" class="form-control" name="tags" placeholder="{{translate('messages.search_tags')}}" data-role="tagsinput" value="{{ $product->tags_ids ?? '' }}">
                             </div>
                         </div>
                     </div>
 
-                    <div class="section-card rounded p-4 mb-4">
+
+                     <div class="section-card rounded p-4 mb-4">
                         <div class="col-12 mt-3">
                             <p class="text-muted mb-3">Select occasions for this gift card</p>
                             <div class="form-group mb-0">
                                 <label class="input-label">{{ translate('Occasions') }}</label>
+                                @php
+                                    // $selected_occasions initialized at top
+                                @endphp
                                 <div class="d-flex flex-wrap">
                                     @foreach (\App\Models\GiftOccasions::all() as $item)
                                         <div class="form-check me-3 mb-2">
@@ -169,7 +212,7 @@
                                                 type="checkbox"
                                                 name="occasions_id[]"
                                                 value="{{ $item->id }}"
-                                                checked
+                                                {{ in_array($item->id, $selected_occasions) ? 'checked' : '' }}
                                                 id="occasion_{{ $item->id }}">
                                             <label class="form-check-label" for="occasion_{{ $item->id }}">
                                                 {{ $item->title }}
@@ -181,7 +224,162 @@
                         </div>
                     </div>
                     <!-- Recipient Info Form Fields-->
-                
+                    <!-- <div class="section-card rounded p-4 mb-4">
+                        <h3 class="h5 fw-semibold mb-4">Recipient Info Form Fields</h3>
+                        <div class="card shadow-sm mb-4">
+                            <div class="card-body">
+                                <p class="text-muted mb-4">Select which fields will appear on the recipient info form</p>
+
+                                <div class="table-responsive">
+                                    <table class="table table-bordered">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th width="40%">Field Name</th>
+                                                <th width="30%" class="text-center">Show Field</th>
+                                                <th width="30%" class="text-center">Mark as Required</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @php
+                                                $fields = [
+                                                    'sender_name' => ['label' => 'Sender Name', 'desc' => 'Who is sending the gift card', 'default' => false],
+                                                    'sender_email' => ['label' => 'Sender Email', 'desc' => "Sender's email address", 'default' => false],
+                                                    'recipient_name' => ['label' => 'Recipient Name', 'desc' => 'Who will receive the gift card', 'default' => true],
+                                                    'recipient_email' => ['label' => 'Recipient Email', 'desc' => 'Where to send the gift card', 'default' => true],
+                                                    'recipient_phone' => ['label' => 'Recipient Phone', 'desc' => 'Phone number for WhatsApp delivery', 'default' => false],
+                                                    'message' => ['label' => 'Personal Message', 'desc' => 'Custom message from sender', 'default' => false],
+                                                    'delivery_date' => ['label' => 'Scheduled Delivery Date', 'desc' => 'When to send the gift card', 'default' => false],
+                                                    'recipient_address' => ['label' => 'Recipient Address', 'desc' => 'Physical address (for physical cards)', 'default' => false],
+                                                ];
+                                            @endphp
+
+                                            @foreach($fields as $key => $field)
+                                            @php
+                                                $isShowChecked = in_array($key, $savedFormFields);
+                                                // If initializing new record or no saved data, logic might fallback to default, but here we assume edit page edits existing.
+                                                // If savedFormFields is empty, maybe we should use defaults? 
+                                                // But usually empty means user unchecked all. So strict check is better.
+                                                // However, for pre-existing records that didn't have this column, this might be issue. 
+                                                // Assuming $product exists, distinct logic applies.
+                                                
+                                                $isRequiredChecked = in_array($key, $savedRequiredFields);
+                                                $isDisabled = !$isShowChecked ? 'disabled' : '';
+                                            @endphp
+                                            <tr>
+                                                <td>
+                                                    <strong>{{ $field['label'] }}</strong>
+                                                    <small class="d-block text-muted">{{ $field['desc'] }}</small>
+                                                </td>
+                                                <td class="text-center">
+                                                    <div class="form-check form-switch d-inline-block">
+                                                        <input class="form-check-input field-toggle" type="checkbox" 
+                                                            id="field_{{ $key }}" 
+                                                            name="form_fields[]" 
+                                                            value="{{ $key }}" 
+                                                            data-target="req_{{ $key }}"
+                                                            {{ $isShowChecked ? 'checked' : '' }}>
+                                                    </div>
+                                                </td>
+                                                <td class="text-center">
+                                                    <div class="form-check form-switch d-inline-block">
+                                                        <input class="form-check-input" type="checkbox" 
+                                                            id="req_{{ $key }}" 
+                                                            name="required_fields[]" 
+                                                            value="{{ $key }}" 
+                                                            {{ $isDisabled }}
+                                                            {{ $isRequiredChecked ? 'checked' : '' }}>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                            @endforeach
+                                        </tbody>
+                                    </table>
+                                </div>
+
+                                <div class=" mt-3 mb-0 p-2 " style="background:#005555;color:white">
+                                    <i class="fas fa-info-circle"></i>
+                                    <strong>Note:</strong> Enable "Show Field" first, then you can mark it as required. Recipient Name and Email are enabled by default.
+                                </div>
+                            </div>
+                        </div>
+                    </div> -->
+                    <!-- Message Template Style-->
+                    <!-- <div class="section-card rounded p-4 mb-4">
+                        <h3 class="h5 fw-semibold mb-4">Message Template Style</h3>
+                        <div class="card shadow-sm mb-4">
+                        <div class="card-body">
+                            <p class="text-muted mb-3">Select one message template style for this gift card</p>
+                                <div class="row g-3">
+                                    @foreach (\App\Models\MessageTemplate::all() as $item)
+                                        @php(
+                                        $id = 'template_' . $item->id
+                                        )
+                                        <div class="col-md-6">
+                                        <input type="radio" 
+                                            class="btn-check template-radio" 
+                                            name="message_template_style" 
+                                            id="{{ $id }}" 
+                                            value="{{ $item->id }}"
+                                            {{ $savedMessageTemplate == $item->id ? 'checked' : '' }}>
+                                        <label class="template-card border rounded p-3 w-100 d-block {{ $savedMessageTemplate == $item->id ? 'selected' : '' }}" for="{{ $id }}">
+                                            <img src="{{ asset($item->icon) }}" alt="" style="width: 25px; height: 25px;">
+                                            <strong class="ms-2">{{ $item->title }}</strong>
+                                            <small class="d-block text-muted mt-1">{{ $item->sub_title }}</small>
+                                        </label>
+                                        </div>
+                                    @endforeach
+
+                                </div>
+                            </div>
+                        </div>
+                    </div> -->
+                    <!-- Delivery Options-->
+                    <!-- <div class="section-card rounded p-4 mb-4">
+                        <h3 class="h5 fw-semibold mb-4">Delivery Options</h3>
+                        {{-- tags --}}
+                        <div class="card shadow-sm mb-4">
+                            <div class="card-body">
+                                <p class="text-muted mb-3">Select how gift cards will be delivered to recipients</p>
+
+                            <div class="row">
+                                @foreach (\App\Models\DeliveryOption::all() as $item)
+                                    @php(
+                                        $id = 'delivery_' . $item->id
+                                        )
+                                    <div class="col-md-6 mb-3">
+                                        <div class="card border-primary h-100">
+                                            <div class="card-body">
+                                                <div class="form-check form-switch">
+                                                    <input
+                                                        class="form-check-input delivery-option"
+                                                        type="checkbox"
+                                                        id="{{ $id }}"
+                                                        name="delivery_options[]"
+                                                        value="{{ $item->id }}"
+                                                        {{ in_array($item->id , $savedDeliveryOptions) ? 'checked' : '' }}
+                                                    >
+                                                    <label class="form-check-label" for="{{ $id }}">
+                                                        <h6 class="mb-1">
+                                                        <img src="{{ asset($item->icon) }}" alt="" style="width: 25px; height: 25px;">
+                                                        {{ $item->title }}
+                                                        </h6>
+                                                        <small class="text-muted">{{ $item->sub_title }}</small>
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                @endforeach
+                            </div>
+
+
+                            <div class=" mt-3 mb-0 p-2 " style="background:#005555;color:white">
+                                    <i class="fas fa-info-circle"></i>
+                                    <strong>Note:</strong> At least one delivery option must be selected. Email is enabled by default.
+                                </div>
+                            </div>
+                        </div>
+                    </div> -->
 
                     {{-- Amount Configuration --}}
                     <div class="section-card rounded p-4 mb-4">
@@ -192,14 +390,14 @@
                                     <label class="form-label">Amount Type <span class="text-danger">*</span></label>
                                 <div class="row g-2" id="amountTypeGroup">
                                         <div class="col-md-4">
-                                            <input type="radio" class="btn-check" name="type" id="type_fixed" value="fixed" {{ old('type', 'fixed') == 'fixed' ? 'checked' : '' }}>
+                                            <input type="radio" class="btn-check" name="type" id="type_fixed" value="fixed" {{ $savedAmountType == 'fixed' ? 'checked' : '' }}>
                                             <label class="btn border type-option " for="type_fixed">
                                                 <i class="fas fa-list"></i> Fixed Amounts
                                             </label>
                                         </div>
 
                                         <div class="col-md-4">
-                                            <input type="radio" class="btn-check" name="type" id="type_range" value="range" {{ old('type') == 'range' ? 'checked' : '' }}>
+                                            <input type="radio" class="btn-check" name="type" id="type_range" value="range" {{ $savedAmountType == 'range' ? 'checked' : '' }}>
                                             <label class="btn border type-option " for="type_range">
                                                 <i class="fas fa-arrows-alt-h"></i> Range
                                             </label>
@@ -209,7 +407,7 @@
 
                                 <div class="mb-3">
                                     <div class="form-check form-switch form-switch-lg">
-                                        <input class="form-check-input" type="checkbox" id="enable_custom_amount" name="enable_custom_amount" value="1" {{ old('enable_custom_amount') ? 'checked' : '' }}>
+                                        <input class="form-check-input" type="checkbox" id="enable_custom_amount" name="enable_custom_amount" value="1" {{ $savedEnableCustom ? 'checked' : '' }}>
                                         <label class="form-check-label" for="enable_custom_amount">
                                             <strong>Enable Custom Amount</strong>
                                             <small class="d-block text-muted">Allow customers to enter their own amount</small>
@@ -221,13 +419,25 @@
                                 <div id="fixedAmountsSection" style="display: none;">
                                     <label class="form-label">Fixed Amount Options <span class="text-danger">*</span></label>
                                     <div id="fixedAmountsContainer">
-                                        <div class="input-group mb-2">
-                                            <span class="input-group-text">$</span>
-                                            <input type="number" class="form-control" name="fixed_amounts[]" step="0.01" min="0" placeholder="25.00">
-                                            <button type="button" class="btn btn-danger remove-amount" style="display: none;">
-                                                <i class="fas fa-times"></i>
-                                            </button>
-                                        </div>
+                                        @if(!empty($savedFixedAmounts) && count($savedFixedAmounts) > 0)
+                                            @foreach($savedFixedAmounts as $index => $amount)
+                                                <div class="input-group mb-2">
+                                                    <span class="input-group-text">$</span>
+                                                    <input type="number" class="form-control" name="fixed_amounts[]" step="0.01" min="0" placeholder="25.00" value="{{ $amount }}">
+                                                    <button type="button" class="btn btn-danger remove-amount" {{ count($savedFixedAmounts) == 1 ? 'style="display: none;"' : '' }}>
+                                                        <i class="fas fa-times"></i>
+                                                    </button>
+                                                </div>
+                                            @endforeach
+                                        @else
+                                            <div class="input-group mb-2">
+                                                <span class="input-group-text">$</span>
+                                                <input type="number" class="form-control" name="fixed_amounts[]" step="0.01" min="0" placeholder="25.00">
+                                                <button type="button" class="btn btn-danger remove-amount" style="display: none;">
+                                                    <i class="fas fa-times"></i>
+                                                </button>
+                                            </div>
+                                        @endif
                                     </div>
                                     <button type="button" class="btn btn-sm btn-outline-secondary border" id="addAmountBtn">
                                         <i class="fas fa-plus"></i> Add Another Amount
@@ -242,7 +452,7 @@
                                             <div class="input-group">
                                                 <span class="input-group-text">$</span>
                                                 <input type="number" class="form-control @error('min_amount') is-invalid @enderror"
-                                                    id="min_amount" name="min_max_amount[]" step="0.01" min="0" value="{{ old('min_amount') }}" placeholder="10.00">
+                                                    id="min_amount" name="min_max_amount[]" step="0.01" min="0" value="{{ $savedMinMax[0] ?? '' }}" placeholder="10.00">
                                             </div>
                                             @error('min_amount')
                                                 <div class="invalid-feedback">{{ $message }}</div>
@@ -253,7 +463,7 @@
                                             <div class="input-group">
                                                 <span class="input-group-text">$</span>
                                                 <input type="number" class="form-control @error('max_amount') is-invalid @enderror"
-                                                    id="max_amount" name="min_max_amount[]" step="0.01" min="0" value="{{ old('max_amount') }}" placeholder="1000.00">
+                                                    id="max_amount" name="min_max_amount[]" step="0.01" min="0" value="{{ $savedMinMax[1] ?? '' }}" placeholder="1000.00">
                                             </div>
                                             @error('max_amount')
                                                 <div class="invalid-feedback">{{ $message }}</div>
@@ -268,35 +478,6 @@
                     <div class="section-card rounded p-4 mb-4">
                         <h3 class="h5 fw-semibold mb-4"> Bonus Configuration</h3>
                         <div class="card shadow-sm mb-4">
-
-                           <div class="row g-3 p-3">
-                                <div class="col-6 col-md-3">
-                                    <div class="form-group mb-0">
-                                        <label class="input-label" for="offer_type">
-                                            {{ translate('Offer Type') }}
-                                        </label>
-                                        <select name="offer_type" id="offer_type" class="form-control js-select2-custom">
-                                            <option value="direct discount">{{ translate('Direct Discount') }}</option>
-                                            <option value="cash back">{{ translate('Cash back') }}</option>
-                                        </select>
-                                    </div>
-                                </div>
-
-                                <div class="col-6 col-md-3" id="discount_input_hide">
-                                    <div class="form-group mb-0">
-                                        <label class="input-label" for="discount_type">
-                                            {{ translate('Discount Type') }}
-                                        </label>
-                                        <select name="discount_type" id="discount_type" class="form-control js-select2-custom">
-                                            <option value="percent">{{ translate('messages.percent') }} (%)</option>
-                                            <option value="fixed">
-                                                {{ translate('Fixed') }} ({{ \App\CentralLogics\Helpers::currency_symbol() }})
-                                            </option>
-                                        </select>
-                                    </div>
-                                </div>
-                            </div>
-
                             <div class="card-body">
                                 <input type="hidden" name="bonus_enabled" value="1">
                                 <input type="hidden" name="bonus_type" value="percentage">
@@ -304,27 +485,29 @@
                                 <p class="text-muted mb-3">Set bonus percentage based on top-up amount ranges</p>
 
                                 <div id="bonusTiersContainer">
-                                    <div class="bonus-tier-item border rounded p-3 mb-3">
-                                        <div class="row g-2">
-                                            <div class="col-md-4">
-                                                <label class="form-label">Min Amount ($) <span class="text-danger">*</span></label>
-                                                <input type="number" class="form-control" name="bonus_tiers[0][min_amount]" step="0.01" min="0" placeholder="0" value="0" required>
-                                            </div>
-                                            <div class="col-md-4">
-                                                <label class="form-label">Max Amount ($) <span class="text-danger">*</span></label>
-                                                <input type="number" class="form-control" name="bonus_tiers[0][max_amount]" step="0.01" min="0" placeholder="100" required>
-                                            </div>
-                                            <div class="col-md-3">
-                                                <label class="form-label">Bonus <span class="change_v">(%)</span> <span class="text-danger">*</span></label>
-                                                <input type="number" class="form-control" name="bonus_tiers[0][bonus_percentage]" step="0.01" min="0" placeholder="5" required>
-                                            </div>
-                                            <div class="col-md-1 d-flex align-items-end">
-                                                <button type="button" class="btn btn-danger remove-bonus-tier" style="display: none;">
-                                                    <i class="fas fa-times"></i>
-                                                </button>
+                                    @foreach($savedBonusTiers as $index => $tier)
+                                        <div class="bonus-tier-item border rounded p-3 mb-3">
+                                            <div class="row g-2">
+                                                <div class="col-md-4">
+                                                    <label class="form-label">Min Amount ($) <span class="text-danger">*</span></label>
+                                                    <input type="number" class="form-control" name="bonus_tiers[{{ $index }}][min_amount]" step="0.01" min="0" placeholder="0" value="{{ $tier['min_amount'] ?? '' }}" required>
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <label class="form-label">Max Amount ($) <span class="text-danger">*</span></label>
+                                                    <input type="number" class="form-control" name="bonus_tiers[{{ $index }}][max_amount]" step="0.01" min="0" placeholder="100" value="{{ $tier['max_amount'] ?? '' }}" required>
+                                                </div>
+                                                <div class="col-md-3">
+                                                    <label class="form-label">Bonus (%) <span class="text-danger">*</span></label>
+                                                    <input type="number" class="form-control" name="bonus_tiers[{{ $index }}][bonus_percentage]" step="0.01" min="0" placeholder="5" value="{{ $tier['bonus_percentage'] ?? '' }}" required>
+                                                </div>
+                                                <div class="col-md-1 d-flex align-items-end">
+                                                    <button type="button" class="btn btn-danger remove-bonus-tier" {{ count($savedBonusTiers) == 1 ? 'style="display: none;"' : '' }}>
+                                                        <i class="fas fa-times"></i>
+                                                    </button>
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
+                                    @endforeach
                                 </div>
 
                                 <button type="button" class="btn btn-sm btn-outline-secondary" id="addBonusTierBtn">
@@ -338,13 +521,13 @@
                             </div>
                         </div>
                     </div>
-                     @include("admin-views.voucher.store_include.include_voucher")
+                     @include("admin-views.voucher.edit_include.edit_include_voucher")
 
             </form>
         </div>
       </div>
 
-                    @include("admin-views.voucher.store_include.include_model")
+                    @include("admin-views.voucher.edit_include.edit_include_model")
 
 @endsection
 
@@ -357,33 +540,15 @@
     <script src="{{asset('public/assets/admin')}}/js/view-pages/product-index.js"></script>
 
     <script>
-$(document).ready(function () {
-    $('#discount_type').on('change', function () {
-        let value = $(this).val();
-
-        if (value === 'percent') {
-            $('.change_v').text('(%)');
-        } else if (value === 'fixed') {
-            $('.change_v').text('($)');
-        }
-    });
-    
-    // Trigger change on page load to set initial label
-    $('#discount_type').trigger('change');
-});
-</script>
-
-    <script>
         // Add bonus tier functionality
         const addBonusTierBtn = document.getElementById('addBonusTierBtn');
         const bonusTiersContainer = document.getElementById('bonusTiersContainer');
+
+        // Enter key prevention moved to the bottom submit handler section
+
         let bonusTierIndex = 1;
 
         addBonusTierBtn.addEventListener('click', function() {
-            // Get current discount type to set correct symbol
-            const discountType = document.getElementById('discount_type').value;
-            const symbol = discountType === 'percent' ? '%' : '$';
-            
             const newTier = document.createElement('div');
             newTier.className = 'bonus-tier-item border rounded p-3 mb-3';
             newTier.innerHTML = `
@@ -397,7 +562,7 @@ $(document).ready(function () {
                         <input type="number" class="form-control" name="bonus_tiers[${bonusTierIndex}][max_amount]" step="0.01" min="0" placeholder="100" required>
                     </div>
                     <div class="col-md-3">
-                        <label class="form-label">Bonus <span class="change_v">(${symbol})</span> <span class="text-danger">*</span></label>
+                        <label class="form-label">Bonus (%) <span class="text-danger">*</span></label>
                         <input type="number" class="form-control" name="bonus_tiers[${bonusTierIndex}][bonus_percentage]" step="0.01" min="0" placeholder="5" required>
                     </div>
                     <div class="col-md-1 d-flex align-items-end">
@@ -690,8 +855,25 @@ $(document).ready(function () {
     <script>
         getDataFromServer(8)
 
-       function getDataFromServer(voucher_id) {
+    
+  function getDataFromServer(voucher_id) {
             // alert(storeId)
+            
+            // Get saved howto_work value for pre-selection
+              <?php
+                $rawHowtoWork = $product->how_and_condition_ids ?? '[]';
+                $decoded = json_decode($rawHowtoWork, true);
+                if (is_array($decoded) && !empty($decoded)) {
+                    $savedId = $decoded[0];
+                } elseif (is_scalar($decoded)) {
+                    $savedId = $decoded;
+                } else {
+                    $savedId = '';
+                }
+            ?>
+            let savedHowtoWork = '{{ $savedId }}';
+            console.log('Saved How To Work ID:', savedHowtoWork);
+            
             $.ajax({
                 url: "{{ route('admin.Voucher.get_document') }}",
                 type: "GET",
@@ -700,73 +882,69 @@ $(document).ready(function () {
                 success: function(response) {
                     let workHtml = "";
 
-                    $.each(response.work_management, function(index, item) {
-                        // Parse sections from JSON string
-                        let sections = [];
-                        try {
-                            sections = JSON.parse(item.sections);
-                        } catch(e) {
-                            console.error('Error parsing sections:', e);
-                        }
+                   $.each(response.work_management, function(index, item) {
 
-                        // Create sections HTML
-                        let sectionsHtml = '';
-                        $.each(sections, function(sIndex, section) {
-                            let stepsHtml = '';
-                            $.each(section.steps, function(stepIndex, step) {
-                                stepsHtml += `
-                                    <li class="mb-2">
-                                        <i class="fas fa-circle text-muted" style="font-size: 6px; vertical-align: middle;"></i>
-                                        <span class="ms-2 text-muted">${step}</span>
-                                    </li>
-                                `;
-                            });
+                    // sections already array — no JSON.parse needed
+                    let sections = Array.isArray(item.sections) ? item.sections : [];
 
-                            sectionsHtml += `
-                                <div class="mb-3">
-                                    <h6 class="fw-semibold text-dark mb-2">${section.title}</h6>
-                                    <ul class="list-unstyled ms-3">
-                                        ${stepsHtml}
-                                    </ul>
-                                </div>
+                    let sectionsHtml = '';
+                    $.each(sections, function(sIndex, section) {
+                        let stepsHtml = '';
+                        $.each(section.steps, function(stepIndex, step) {
+                            stepsHtml += `
+                                <li class="mb-2">
+                                    <i class="fas fa-circle text-muted" style="font-size: 6px; vertical-align: middle;"></i>
+                                    <span class="ms-2 text-muted">${step}</span>
+                                </li>
                             `;
                         });
 
-                        workHtml += `
-                            <div class="card mb-3 work-item shadow-sm">
-                                <!-- Header with checkbox and toggle -->
-                                <div class="card-header bg-white d-flex align-items-center justify-content-between py-3 cursor-pointer"
-                                    onclick="toggleAccordion(${item.id})"
-                                    style="cursor: pointer;">
-                                    <div class="d-flex align-items-center flex-grow-1">
-                                        <input type="checkbox"
-                                            class="form-check-input record-checkbox me-3"
-                                            id="record_${item.id}" value="${item.id}"
-                                            data-item-id="${item.id}"
-                                            name="howto_work[]"
-                                            onclick="event.stopPropagation()">
-                                        <label for="record_${item.id}"
-                                            class="fw-semibold mb-0 cursor-pointer flex-grow-1"
-                                            style="cursor: pointer;"
-                                            onclick="event.stopPropagation()">
-                                            ${item.guide_title}
-                                        </label>
-                                    </div>
-                                    <i class="fas fa-chevron-down text-muted accordion-icon"
-                                    id="icon_${item.id}"
-                                    style="transition: transform 0.3s ease;"></i>
-                                </div>
-
-                                <!-- Accordion Content -->
-                                <div id="content_${item.id}"
-                                    class="accordion-content collapse">
-                                    <div class="card-body bg-light border-top">
-                                        ${sectionsHtml || '<p class="text-muted fst-italic mb-0">No sections available</p>'}
-                                    </div>
-                                </div>
+                        sectionsHtml += `
+                            <div class="mb-3">
+                                <h6 class="fw-semibold text-dark mb-2">${section.title}</h6>
+                                <ul class="list-unstyled ms-3">
+                                    ${stepsHtml}
+                                </ul>
                             </div>
                         `;
                     });
+
+                    // Check if this radio button should be pre-selected
+                    // Check if this radio button should be pre-selected
+                    console.log('Comparing saved:', savedHowtoWork, 'with item:', item.id);
+                    let isChecked = (savedHowtoWork == item.id) ? 'checked' : '';
+                    
+                    workHtml += `
+                        <div class="card mb-3 work-item shadow-sm">
+                            <div class="card-header bg-white d-flex align-items-center justify-content-between py-3 cursor-pointer"
+                                onclick="toggleAccordion(${item.id})">
+                                
+                                <div class="d-flex align-items-center flex-grow-1">
+                                    <input type="radio" name="howto_work[]" value="${item.id}"
+                                        class="form-check-input record-checkbox me-3"
+                                        id="record_${item.id}"
+                                        data-item-id="${item.id}"
+                                        ${isChecked}>
+                                    
+                                    <label for="record_${item.id}" class="fw-semibold mb-0 flex-grow-1">
+                                        ${item.guide_title}
+                                    </label>
+                                </div>
+
+                                <i class="fas fa-chevron-down text-muted accordion-icon"
+                                    id="icon_${item.id}" style="transition: transform 0.3s ease;">
+                                </i>
+                            </div>
+
+                            <div id="content_${item.id}" class="accordion-content collapse">
+                                <div class="card-body bg-light border-top">
+                                    ${sectionsHtml || '<p class="text-muted fst-italic mb-0">No sections available</p>'}
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+
 
                     $("#workList").html(workHtml);
 
@@ -799,6 +977,8 @@ $(document).ready(function () {
                 }
             });
         }
+
+
         function bundle(type) {
             // 1. Set the hidden input value
             document.getElementById('hidden_bundel').value = type;
@@ -1377,125 +1557,148 @@ $(document).ready(function () {
             });
         }
 
-        $(document).on('keydown', '#item_form', function(e) {
-            if (e.key === 'Enter' || e.keyCode === 13) {
-                if (e.target.tagName !== 'TEXTAREA' && !$(e.target).hasClass('ckeditor')) {
-                    e.preventDefault();
+        $(document).ready(function() {
+            // 1. Enter Key Prevention (Aggressive)
+            $(document).on('keydown', '#item_form', function(e) {
+                if (e.key === 'Enter' || e.keyCode === 13) {
+                    if (e.target.tagName !== 'TEXTAREA' && !$(e.target).hasClass('ckeditor')) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        return false;
+                    }
+                }
+            });
+
+            $('#item_form').on('submit', function(e) {
+                e.preventDefault();
+
+                // 2. Browser standard validation (Title, etc.)
+                if (!this.checkValidity()) {
+                    this.reportValidity();
                     return false;
                 }
-            }
-        });
 
-        $('#item_form').on('submit', function(e) {
-            e.preventDefault();
-
-            // 1. Browser standard validation (Title, etc.)
-            if (!this.checkValidity()) {
-                this.reportValidity();
-                return false;
-            }
-
-            // 2. Description Validation (CKEditor)
-            let description = "";
-            if (typeof CKEDITOR !== 'undefined' && CKEDITOR.instances.description) {
-                description = CKEDITOR.instances.description.getData();
-            } else {
-                description = $('textarea[name="description"]').val();
-            }
-
-            if (!description || description.trim() === "") {
-                toastr.error("{{ translate('messages.description_field_is_required') }}");
-                return false;
-            }
-
-            // 3. Image Validation (Mandatory for Create)
-            let thumbnailInput = $('#customFileEg1')[0];
-            if (!thumbnailInput.files || thumbnailInput.files.length === 0) {
-                toastr.error("{{ translate('messages.item_thumbnail_is_required') }}");
-                return false;
-            }
-
-            let newFilesCount = 0;
-            $('input[name="item_images[]"]').each(function() {
-                if (this.files && this.files.length > 0) {
-                    newFilesCount += this.files.length;
+                // 3. Description Validation (CKEditor)
+                let description = "";
+                if (typeof CKEDITOR !== 'undefined' && CKEDITOR.instances.description) {
+                    description = CKEDITOR.instances.description.getData();
+                } else {
+                    description = $('textarea[name="description"]').val();
                 }
-            });
 
-            if (newFilesCount === 0) {
-                toastr.error("{{ translate('messages.item_images_are_required') }}");
-                return false;
-            }
-
-            // If all validations pass, THEN show loader
-            $('#submitButton').attr('disabled', true);
-            $('#loading').show();
-
-            let formData = new FormData(this);
-            $.ajaxSetup({
-                headers: {
-                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                if (!description || description.trim() === "") {
+                    toastr.error("{{ translate('messages.description_field_is_required') }}");
+                    return false;
                 }
-            });
-            $.ajax({
-                url: '{{ route('admin.Voucher.store') }}',
-                type: 'POST',
-                data: formData,
-                cache: false,
-                contentType: false,
-                processData: false,
-                success: function(data) {
-                    $('#loading').hide();
-                    $('#submitButton').attr('disabled', false);
 
-                    if (data.errors && Array.isArray(data.errors)) {
-                        data.errors.forEach(function(err) {
-                            toastr.error(err.message, {
-                                CloseButton: true,
-                                ProgressBar: true
-                            });
-                        });
-                        return;
+                // 4. Thumbnail Validation
+                let hasThumbnail = false;
+                let viewerSrc = $('#viewer').attr('src');
+                if (viewerSrc && !viewerSrc.includes('upload-img.png') && !viewerSrc.includes('upload.png')) {
+                    hasThumbnail = true; 
+                }
+                if ($('#customFileEg1')[0] && $('#customFileEg1')[0].files && $('#customFileEg1')[0].files.length > 0) {
+                    hasThumbnail = true;
+                }
+                if (!hasThumbnail) {
+                    toastr.error("{{ translate('messages.item_thumbnail_is_required') }}");
+                    return false;
+                }
+
+                // 5. Item Images Validation
+                let hasItemImages = false;
+                // Check existing images that are not hidden
+                if ($('div[id^="product_images_"]').not('.d-none').length > 0) {
+                    hasItemImages = true;
+                }
+                // Check Spartan added images (newly picked but not yet submitted)
+                if ($('.spartan_item_wrapper img').filter(function(){
+                    let src = $(this).attr('src');
+                    return src && !src.includes('upload-img.png');
+                }).length > 0) {
+                    hasItemImages = true;
+                }
+                // Also check file inputs specifically
+                if ($('input[name="item_images[]"]').filter(function(){ return this.files && this.files.length > 0 }).length > 0) {
+                    hasItemImages = true;
+                }
+
+                if (!hasItemImages) {
+                    toastr.error("{{ translate('messages.item_images_are_required') }}");
+                    return false;
+                }
+
+                // If all validations pass, THEN show loader
+                $('#submitButton').attr('disabled', true);
+                $('#loading').show();
+
+                let formData = new FormData(this);
+                $.ajaxSetup({
+                    headers: {
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                     }
+                });
+                $.ajax({
+                    url: '{{ route('admin.Voucher.update', [$product['id']]) }}',
+                    type: 'POST',
+                    data: formData,
+                    cache: false,
+                    contentType: false,
+                    processData: false,
+                    headers: {
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    },
+                    success: function(data) {
+                        $('#loading').hide();
+                        $('#submitButton').attr('disabled', false);
 
-                    toastr.success("{{ translate('messages.product_added_successfully') }}", {
-                        CloseButton: true,
-                        ProgressBar: true
-                    });
-                    setTimeout(function() {
-                        location.href = "{{ route('admin.Voucher.list') }}";
-                    }, 1000);
-                },
-                error: function(xhr) {
-                    $('#loading').hide();
-                    $('#submitButton').attr('disabled', false);
-                    
-                    if (xhr.responseJSON && xhr.responseJSON.errors) {
-                        let errors = xhr.responseJSON.errors;
-                        // Handle both array and object error formats
-                        if (Array.isArray(errors)) {
-                            $.each(errors, function(index, err) {
+                        if (data.errors && Array.isArray(data.errors)) {
+                            data.errors.forEach(function(err) {
                                 toastr.error(err.message, {
                                     CloseButton: true,
                                     ProgressBar: true
                                 });
                             });
-                        } else {
-                            $.each(errors, function(key, err) {
-                                let msg = Array.isArray(err) ? err[0] : (err.message || err);
-                                toastr.error(msg, {
-                                    CloseButton: true,
-                                    ProgressBar: true
-                                });
-                            });
+                            return;
                         }
-                    } else {
-                        toastr.error("{{ translate('messages.failed_to_add_voucher') }}", {
+
+                        toastr.success("{{ translate('messages.voucher_updated_successfully') }}", {
                             CloseButton: true,
                             ProgressBar: true
                         });
+                        setTimeout(function() {
+                            location.href = "{{ route('admin.Voucher.list') }}";
+                        }, 1000);
+                    },
+                    error: function(xhr) {
+                        $('#loading').hide();
+                        $('#submitButton').attr('disabled', false);
+                        
+                        if (xhr.responseJSON && xhr.responseJSON.errors) {
+                            let errors = xhr.responseJSON.errors;
+                            if (Array.isArray(errors)) {
+                                errors.forEach(function(err) {
+                                    toastr.error(err.message, {
+                                        CloseButton: true,
+                                        ProgressBar: true
+                                    });
+                                });
+                            } else {
+                                $.each(errors, function(key, err) {
+                                    toastr.error(err.message || err, {
+                                        CloseButton: true,
+                                        ProgressBar: true
+                                    });
+                                });
+                            }
+                        } else {
+                            toastr.error("{{ translate('messages.failed_to_update_voucher') }}", {
+                                CloseButton: true,
+                                ProgressBar: true
+                            });
+                        }
                     }
-                }
+                });
             });
         });
 
@@ -1624,4 +1827,22 @@ $(document).ready(function () {
         }
     </script>
 
+@endpush
+
+@push('script_2')
+    <script src="{{ asset('public/assets/admin/js/spartan-multi-image-picker.js') }}"></script>
+    <script>
+        let removedImageKeys = [];
+        $(document).on('click', '.function_remove_img', function() {
+            let key = $(this).data('key');
+            let photo = $(this).data('photo');
+            function_remove_img(key, photo);
+        });
+
+        function function_remove_img(key, photo) {
+            $('#product_images_' + key).addClass('d-none');
+            removedImageKeys.push(photo);
+            $('#removedImageKeysInput').val(removedImageKeys.join(','));
+        }
+    </script>
 @endpush

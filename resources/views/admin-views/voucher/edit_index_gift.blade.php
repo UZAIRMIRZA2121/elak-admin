@@ -478,6 +478,34 @@
                     <div class="section-card rounded p-4 mb-4">
                         <h3 class="h5 fw-semibold mb-4"> Bonus Configuration</h3>
                         <div class="card shadow-sm mb-4">
+
+                            <div class="row g-3 p-3">
+                                  <div class="col-6 col-md-3">
+                                <div class="form-group mb-0">
+                                    <label class="input-label"
+                                        for="offer_type">{{ translate('Offer Type') }}
+                                    </label>
+                                    <!-- Dropdown: Only Percent & Fixed -->
+                                    <select name="offer_type" id="offer_type" class="form-control js-select2-custom">
+                                        <option value="direct discount" {{ $product->offer_type == 'direct discount' ? 'selected' : '' }}>{{ translate('Direct Discount') }} </option>
+                                        <option value="cash back" {{ $product->offer_type == 'cash back' ? 'selected' : '' }}>{{ translate('Cash back') }}</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-6 col-md-3" id="discount_input_hide">
+                                <div class="form-group mb-0">
+                                    <label class="input-label" for="discount_type">{{ translate('Discount Type') }}
+                                    </label>
+                                    <!-- Dropdown: Only Percent & Fixed -->
+                                    <select name="discount_type" id="discount_type"
+                                        class="form-control js-select2-custom">
+                                        <option value="percent" {{ $product->discount_type == 'percent' ? 'selected' : '' }}>{{ translate('messages.percent') }} (%)</option>
+                                        <option value="fixed" {{ $product->discount_type == 'fixed' ? 'selected' : '' }}>{{ translate('Fixed') }} ({{ \App\CentralLogics\Helpers::currency_symbol() }})</option>
+                                    </select>
+                                </div>
+                            </div>
+                            </div>
+
                             <div class="card-body">
                                 <input type="hidden" name="bonus_enabled" value="1">
                                 <input type="hidden" name="bonus_type" value="percentage">
@@ -497,7 +525,7 @@
                                                     <input type="number" class="form-control" name="bonus_tiers[{{ $index }}][max_amount]" step="0.01" min="0" placeholder="100" value="{{ $tier['max_amount'] ?? '' }}" required>
                                                 </div>
                                                 <div class="col-md-3">
-                                                    <label class="form-label">Bonus (%) <span class="text-danger">*</span></label>
+                                                    <label class="form-label">Bonus <span class="change_v">(%)</span> <span class="text-danger">*</span></label>
                                                     <input type="number" class="form-control" name="bonus_tiers[{{ $index }}][bonus_percentage]" step="0.01" min="0" placeholder="5" value="{{ $tier['bonus_percentage'] ?? '' }}" required>
                                                 </div>
                                                 <div class="col-md-1 d-flex align-items-end">
@@ -540,6 +568,23 @@
     <script src="{{asset('public/assets/admin')}}/js/view-pages/product-index.js"></script>
 
     <script>
+$(document).ready(function () {
+    $('#discount_type').on('change', function () {
+        let value = $(this).val();
+
+        if (value === 'percent') {
+            $('.change_v').text('(%)');
+        } else if (value === 'fixed') {
+            $('.change_v').text('($)');
+        }
+    });
+    
+    // Trigger change on page load to set initial label
+    $('#discount_type').trigger('change');
+});
+</script>
+
+    <script>
         // Add bonus tier functionality
         const addBonusTierBtn = document.getElementById('addBonusTierBtn');
         const bonusTiersContainer = document.getElementById('bonusTiersContainer');
@@ -549,6 +594,10 @@
         let bonusTierIndex = 1;
 
         addBonusTierBtn.addEventListener('click', function() {
+            // Get current discount type to set correct symbol
+            const discountType = document.getElementById('discount_type').value;
+            const symbol = discountType === 'percent' ? '%' : '$';
+            
             const newTier = document.createElement('div');
             newTier.className = 'bonus-tier-item border rounded p-3 mb-3';
             newTier.innerHTML = `
@@ -562,7 +611,7 @@
                         <input type="number" class="form-control" name="bonus_tiers[${bonusTierIndex}][max_amount]" step="0.01" min="0" placeholder="100" required>
                     </div>
                     <div class="col-md-3">
-                        <label class="form-label">Bonus (%) <span class="text-danger">*</span></label>
+                        <label class="form-label">Bonus <span class="change_v">(${symbol})</span> <span class="text-danger">*</span></label>
                         <input type="number" class="form-control" name="bonus_tiers[${bonusTierIndex}][bonus_percentage]" step="0.01" min="0" placeholder="5" required>
                     </div>
                     <div class="col-md-1 d-flex align-items-end">

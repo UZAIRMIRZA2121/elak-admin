@@ -140,7 +140,7 @@ class VoucherController extends Controller
         $taxData = Helpers::getTaxSystemType();
         $productWiseTax = $taxData['productWiseTax'];
         $taxVats = $taxData['taxVats'];
-//  dd($stores);
+        //  dd($stores);
         return view('admin-views.voucher.index', compact('categories', 'productWiseTax', 'taxVats', 'stores'));
 
     }
@@ -576,8 +576,8 @@ class VoucherController extends Controller
     {
         $item->price = $request->price ?? 0;
         $item->actual_price = $request->actual_price_input_hide ?? 0;
-        $item->discount_type = $request->discount_type;
         $item->discount = $request->discount;
+        $item->discount_type = $request->discount_type;
         $item->offer_type = $request->offer_type;
         $item->name = $request->voucher_title;
         $item->description = $request->description;
@@ -589,6 +589,8 @@ class VoucherController extends Controller
         $item->description = $request->description;
         $item->discount_configuration = json_encode(array_filter($request->bonus_tiers ?? []));
         $item->discount_type = $request->discount_type ?? 0;
+           $item->discount_type = $request->discount_type;
+        $item->offer_type = $request->offer_type;
     }
 
     private function setGiftItemData($item, $request)
@@ -611,6 +613,9 @@ class VoucherController extends Controller
         $item->validity_period = json_encode($request->validity_period ?? []);
         $item->usage_restrictions = json_encode($request->usage_restrictions ?? []);
         $item->blackout_dates = json_encode($request->blackout_dates ?? []);
+           $item->discount_type = $request->discount_type;
+        $item->offer_type = $request->offer_type;
+
 
            // Image data
          $item->name = $request->voucher_title;
