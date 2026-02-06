@@ -59,11 +59,13 @@ class VendorController extends Controller
     public function index()
     {
 
+        
         return view('admin-views.vendor.index');
     }
 
     public function store(Request $request)
     {
+        
         // dd($request->all());
         $rules = [
 
@@ -606,7 +608,6 @@ class VendorController extends Controller
 
     public function view(Request $request, $store_id, $tab = null, $sub_tab = 'cash')
     {
-         
         $voucher_ids = $request->voucher_ids;
         $bundle_type = $request->bundle_type;
         $category_search = $request->category;
@@ -661,7 +662,6 @@ class VendorController extends Controller
             return view('admin-views.vendor.view.order', compact('store', 'orders'));
         } else if ($tab == 'voucher') {
 
-            // dd($request->all());
 
 
             if ($sub_tab == 'pending-items' || $sub_tab == 'rejected-items') {
@@ -728,6 +728,8 @@ class VendorController extends Controller
             return view('admin-views.vendor.view.voucher', compact('store', 'foods', 'sub_tab', 'productWiseTax'));
 
         } else if ($tab == 'item') {
+
+
             if ($sub_tab == 'pending-items' || $sub_tab == 'rejected-items') {
               
 
@@ -851,6 +853,7 @@ class VendorController extends Controller
 
 
         }
+
         return view('admin-views.vendor.view.index', compact('store', 'wallet'));
     }
 

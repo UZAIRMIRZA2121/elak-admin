@@ -1,242 +1,477 @@
 @extends('layouts.admin.app')
 
-@section('title',translate('Product_Gallery'))
+@section('title', ($store ? $store->name . "'s " : translate('messages.all') . ' ') . translate('messages.items'))
 
 @push('css_or_js')
-    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <!-- Custom styles for this page -->
+    <link href="{{ asset('public/assets/admin/css/croppie.css') }}" rel="stylesheet">
 @endpush
 
 @section('content')
     <div class="content container-fluid">
-        <!-- Page Header -->
-        <div class="page-header">
-            <div class="row align-items-center g-2">
-                <div class="col-md-9 col-12">
-                    <h1 class="page-header-title">
-                        <span class="page-header-icon">
-                            <img src="{{asset('public/assets/admin/img/group.png')}}" class="w--22" alt="">
-                        </span>
-                        <span>
-                            {{translate('Voucher Gallery')}} <span class="badge badge-soft-dark ml-2" id="foodCount"></span>
-                        </span>
-                    </h1>
+        @if($store)
+            @include('admin-views.vendor.view.partials._header', ['store' => $store])
+        @endif
+        <!-- Page Heading -->
+
+          <div class="row my-4">
+            <div class="col-sm-6 col-md-3">
+                <div class="select-item">
+                    <select name="category" class="form-control js-select2-custom set-filter"
+                            data-url="{{url()->full()}}" data-filter="category">
+                        <option value="" {{!request('category')?'selected':''}}>{{ translate('All Category') }}</option>
+                        @foreach(\App\Models\Category::where("parent_id" ,"0")->orderBy('name')->get(['id','name']) as $z)
+                            <option
+                                value="{{$z['id']}}" {{request()?->category == $z['id']?'selected':''}}>
+                                {{$z['name']}}
+                            </option>
+                        @endforeach
+                    </select>
                 </div>
             </div>
+           <div class="col-sm-6 col-md-3">
+    <div class="select-item">
+        @php
+            // Custom static array of voucher types
+            $voucherTypes = ['Food', 'Product'];
+        @endphp
 
-        </div>
-        <!-- End Page Header -->
-        <!-- Card -->
-        <div class="card mb-3">
-            <!-- Header -->
-            <div class="card-body border-0">
-                <form id="search-form" action="javascript:;" class="search-form">
-                    @csrf
-                    <input type="hidden" value="1" name="product_gallery">
-                    <div class="row g-2">
-                        <div class="col-md-3 col-lg-3">
-                            <select name="store_id" id="store" data-url="{{url()->full()}}" data-placeholder="{{translate('messages.select_store')}}" class="js-data-example-ajax form-control store-filter" required title="Select Store" oninvalid="this.setCustomValidity('{{translate('messages.please_select_store')}}')">
-                                @if($store)
-                                    <option value="{{$store->id}}" selected>{{$store->name}}</option>
-                                @else
-                                    <option value="all" selected>{{translate('messages.all_stores')}}</option>
-                                @endif
-                            </select>
-                        </div>
-                        <div class="col-md-3 col-lg-3">
-                            <select name="category_id" id="category_id" data-placeholder="{{ translate('messages.select_category') }}"
-                                    class="js-data-example-ajax form-control set-filter" id="category_id"
-                                    data-url="{{url()->full()}}" data-filter="category_id">
-                                @if($category)
-                                    <option value="{{$category->id}}" selected>{{$category->name}}</option>
-                                @else
-                                    <option value="all" selected>{{translate('messages.all_category')}}</option>
-                                @endif
-                            </select>
-                        </div>
-                        <div class="col-md-4 col-lg-4">
-                            <input id="datatableSearch" type="search" value="{{  request()?->search ?? null }}" name="search" class="form-control h--42px" placeholder="{{translate('messages.ex_search_name')}}" aria-label="{{translate('messages.search_here')}}">
-                        </div>
-                        <div class="col-md-2 col-lg-2 text-end">
-                            <button type="submit" class="btn btn--primary w-100 h-100">{{ translate('messages.search') }}</button>
-                        </div>
-                    </div>
-                </form>
-            </div>
-            <!-- End Header -->
-        </div>
+        <select name="item_type" class="form-control js-select2-custom set-filter" data-url="{{ url()->full() }}" data-filter="item_type">
+            {{-- Default option to remove filter --}}
+            <option value="" {{ request()->query('item_type') ? '' : 'selected' }}>
+                {{ translate('All Types') }}
+            </option>
 
-        <div class="row" id="set-rows">
-                        @include('admin-views.product.partials._gallery', [
-                            $items,
-                        ])
-                    </div>
-
-        @if(count($items) === 0)
-        <div class="empty--data">
-            <img src="{{asset('/public/assets/admin/svg/illustrations/sorry.svg')}}" alt="public">
-            <h5>
-                {{translate('no_data_found')}}
-            </h5>
-        </div>
-        @endif
+            @foreach($voucherTypes as $value)
+                <option value="{{ $value }}" {{ request()->query('item_type') == $value ? 'selected' : '' }}>
+                    {{ $value }}
+                </option>
+            @endforeach
+        </select>
     </div>
-    <!-- End Table -->
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        document.querySelectorAll('.set-filter').forEach(function(select) {
+            select.addEventListener('change', function () {
+                let url = new URL(window.location.href);
+                let param = select.getAttribute('data-filter');
+                let value = select.value;
+
+                if (value) {
+                    url.searchParams.set(param, value); // set filter
+                } else {
+                    url.searchParams.delete(param); // remove filter
+                }
+
+                window.location.href = url.toString(); // reload page
+            });
+        });
+    });
+</script>
 
 
+        </div>
+
+        <div class="tab-content">
+            <div class="tab-pane fade show active" id="product">
+
+                @if($store)
+                <div class="col-12 mb-3">
+                    <div class="row g-2">
+                        @php($item = \App\Models\Item::withoutGlobalScope(\App\Scopes\StoreScope::class)->where(['store_id' => $store->id])->count())
+                        <div class="col-sm-6 col-lg-3">
+                            <a class="order--card h-100"
+                                href="{{ route('admin.store.view', ['store' => $store->id, 'tab' => 'item']) }}">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <h6 class="card-subtitle d-flex justify-content-between m-0 align-items-center">
+                                        <img src="{{ asset('/public/assets/admin/img/store_items/fi_9752284.png') }}"
+                                            alt="dashboard" class="oder--card-icon">
+                                        <span>{{ translate('All_Items') }}</span>
+                                    </h6>
+                                    <span class="card-title text-success">
+                                        {{ $item }}
+                                    </span>
+                                </div>
+                            </a>
+                        </div>
+
+                        @php( $item = \App\Models\Item::withoutGlobalScope(\App\Scopes\StoreScope::class)->where(['store_id' => $store->id, 'status' => 1])->count())
+                        <div class="col-sm-6 col-lg-3">
+                            <a class="order--card h-100"
+                                href="{{ route('admin.store.view', ['store' => $store->id, 'tab' => 'item', 'sub_tab' => 'active-items']) }}">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <h6 class="card-subtitle d-flex justify-content-between m-0 align-items-center">
+                                        <img src="{{ asset('/public/assets/admin/img/store_items/fi_10608883.png') }}"
+                                            alt="dashboard" class="oder--card-icon">
+                                        <span>{{ translate('messages.Active_Items') }}</span>
+                                    </h6>
+                                    <span class="card-title text-success">
+                                        {{ $item }}
+                                    </span>
+                                </div>
+                            </a>
+                        </div>
+                        @php( $item = \App\Models\Item::withoutGlobalScope(\App\Scopes\StoreScope::class)->where(['store_id' => $store->id, 'status' => 0])->count())
+                        <div class="col-sm-6 col-lg-3">
+                            <a class="order--card h-100"
+                                href="{{ route('admin.store.view', ['store' => $store->id, 'tab' => 'item', 'sub_tab' => 'inactive-items']) }}">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <h6 class="card-subtitle d-flex justify-content-between m-0 align-items-center">
+                                        <img src="{{ asset('/public/assets/admin/img/store_items/fi_10186054.png') }}"
+                                            alt="dashboard" class="oder--card-icon">
+                                        <span>{{ translate('messages.Inactive_Items') }}</span>
+                                    </h6>
+                                    <span class="card-title text-success">
+                                        {{ $item }}
+                                    </span>
+                                </div>
+                            </a>
+                        </div>
+                        @php($item = \App\Models\TempProduct::withoutGlobalScope(\App\Scopes\StoreScope::class)->where(['store_id' => $store->id, 'is_rejected' => 0])->count())
+                        <div class="col-sm-6 col-lg-3">
+                            <a class="order--card h-100"
+                                href="{{ route('admin.store.view', ['store' => $store->id, 'tab' => 'item', 'sub_tab' => 'pending-items']) }}">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <h6 class="card-subtitle d-flex justify-content-between m-0 align-items-center">
+                                        <img src="{{ asset('/public/assets/admin/img/store_items/fi_5106700.png') }}"
+                                            alt="dashboard" class="oder--card-icon">
+                                        <span>{{ translate('messages.Pending_for_Approval') }}</span>
+                                    </h6>
+                                    <span class="card-title text-success">
+                                        {{ $item }}
+                                    </span>
+                                </div>
+                            </a>
+                        </div>
+                        @php($item = \App\Models\TempProduct::withoutGlobalScope(\App\Scopes\StoreScope::class)->where(['store_id' => $store->id, 'is_rejected' => 1])->count())
+                        <div class="col-sm-6 col-lg-3">
+                            <a class="order--card h-100"
+                                href="{{ route('admin.store.view', ['store' => $store->id, 'tab' => 'item', 'sub_tab' => 'rejected-items']) }}">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <h6 class="card-subtitle d-flex justify-content-between m-0 align-items-center">
+                                        <img src="{{ asset('/public/assets/admin/img/store_items/image 89.png') }}"
+                                            alt="dashboard" class="oder--card-icon">
+                                        <span>{{ translate('messages.Rejected_Items') }}</span>
+                                    </h6>
+                                    <span class="card-title text-success">
+                                        {{ $item }}
+                                    </span>
+                                </div>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                @endif
+
+
+
+                <div class="card">
+                    <div class="card-header border-0 py-2">
+                        <div class="search--button-wrapper">
+                            <h3 class="card-title">{{ translate('messages.items') }} <span
+                                    class="badge badge-soft-dark ml-2"><span
+                                        class="total_items">{{ count($items) }}</span></span>
+                            </h3>
+
+                            <form class="search-form">
+                                @if($store)
+                                <input type="hidden" name="store_id" value="{{ $store->id }}">
+                                @endif
+                                <!-- Search -->
+                                <div class="input-group input--group">
+                                    <input id="datatableSearch" name="search" value="{{ request()?->search ?? null }}"
+                                        type="search" class="form-control h--40px"
+                                        placeholder="{{ translate('Search by name...') }}"
+                                        aria-label="{{ translate('messages.search_here') }}">
+                                    <button type="submit" class="btn btn--secondary h--40px"><i
+                                            class="tio-search"></i></button>
+                                </div>
+                                <!-- End Search -->
+                            </form>
+
+                            <!-- Unfold -->
+                            <div class="hs-unfold mr-2">
+                                <a class="js-hs-unfold-invoker btn btn-sm btn-white dropdown-toggle min-height-40"
+                                    href="javascript:;"
+                                    data-hs-unfold-options='{
+                                    "target": "#usersExportDropdown",
+                                    "type": "css-animation"
+                                }'>
+                                    <i class="tio-download-to mr-1"></i> {{ translate('messages.export') }}
+                                </a>
+
+                                <div id="usersExportDropdown"
+                                    class="hs-unfold-content dropdown-unfold dropdown-menu dropdown-menu-sm-right">
+
+                                    <span class="dropdown-header">{{ translate('messages.download_options') }}</span>
+                                    <a id="export-excel" class="dropdown-item"
+                                        href="{{ route('admin.item.store-item-export', ['type' => 'excel', 'store_id' => $store ? $store->id : 'all', request()->getQueryString()]) }}">
+                                        <img class="avatar avatar-xss avatar-4by3 mr-2"
+                                            src="{{ asset('public/assets/admin') }}/svg/components/excel.svg"
+                                            alt="Image Description">
+                                        {{ translate('messages.excel') }}
+                                    </a>
+                                    <a id="export-csv" class="dropdown-item"
+                                        href="{{ route('admin.item.store-item-export', ['type' => 'csv', 'store_id' => $store ? $store->id : 'all', request()->getQueryString()]) }}">
+                                        <img class="avatar avatar-xss avatar-4by3 mr-2"
+                                            src="{{ asset('public/assets/admin') }}/svg/components/placeholder-csv-format.svg"
+                                            alt="Image Description">
+                                        .{{ translate('messages.csv') }}
+                                    </a>
+
+                                </div>
+                            </div>
+                            <!-- End Unfold -->
+                            <a href="{{ route('admin.item.add-new') }}" class="btn btn--primary pull-right"><i
+                                    class="tio-add-circle"></i> {{ translate('messages.add_new_item') }}</a>
+                        </div>
+                    </div>
+                    <div class="table-responsive datatable-custom">
+                        <table id="columnSearchDatatable"
+                            class="table table-borderless table-thead-bordered table-nowrap table-align-middle card-table"
+                            data-hs-datatables-options='{
+                                "order": [],
+                                "orderCellsTop": true,
+                                "paging": false
+                            }'>
+                            <thead class="thead-light">
+                                <tr>
+                                    <th class="border-0">{{ translate('sl') }}</th>
+                                    <th class="border-0">{{ translate('messages.name') }}</th>
+                                    <th class="border-0">{{ translate('messages.type') }}</th>
+                                    <th class="border-0">{{ translate('messages.category') }}</th>
+                                    @if (Config::get('module.current_module_type') != 'food')
+                                        <th class="border-0">{{ translate('messages.quantity') }}</th>
+                                    @endif
+                                    <th class="border-0">{{ translate('messages.price') }}</th>
+                                      @if ($productWiseTax)
+                                        <th  class="border-0 ">{{ translate('messages.Vat/Tax') }}</th>
+                                    @endif
+                                    <th class="border-0">{{ translate('messages.status') }}</th>
+                                    <th class="border-0 text-center">{{ translate('messages.action') }}</th>
+                                </tr>
+                            </thead>
+
+                            <tbody id="setrows">
+
+                                @foreach ($items as $key => $food)
+                                        <tr>
+                                            <td>{{ $key + 1 }}</td>
+                                            <td>
+                                                <a class="media align-items-center"
+                                                    href="{{ route('admin.item.view', [$food['id']]) }}">
+                                                    <img class="avatar avatar-lg mr-3 onerror-image"
+                                                        src="{{ $food['image_full_url'] ?? asset('public/assets/admin/img/160x160/img2.jpg') }}"
+                                                        data-onerror-image="{{ asset('public/assets/admin/img/160x160/img2.jpg') }}"
+                                                        alt="{{ $food->name }} image">
+
+                                                    <div class="media-body">
+                                                        <h5 class="text-hover-primary mb-0">
+                                                            {{ Str::limit($food['name'], 20, '...') }}</h5>
+                                                    </div>
+                                                </a>
+                                            </td>
+                                             <td>
+                                                @if ($food->type)
+                                                    @if ($food->type == 'Product')
+                                                        <span class="badge bg-success">{{ translate('Product') }}</span>
+                                                    @else
+                                                        <span class="badge bg-success">{{ translate('Food') }}</span>
+                                                    @endif
+                                                @endif
+
+                                             </td>
+                                            {{-- @dd($food->category_id) --}}
+                                               @php( $categories = \App\Models\Category::find($food->category_id)  )
+
+                                            <td>
+                                               {{$categories->name ?? "Delete Category"}}
+                                            </td>
+{{--
+                                            <td>
+                                                {{ Str::limit($food->category ? $food->category->name : translate('messages.category_deleted'), 20, '...') }}
+                                            </td> --}}
+                                            @if (Config::get('module.current_module_type') != 'food')
+                                                <td>
+                                                    <div class="d-flex align-items-center gap-2">
+                                                        <h5 class="text-hover-primary fw-medium mb-0">{{ $food->stock }}
+                                                        </h5>
+                                                        <span data-toggle="modal" data-id="{{ $food->id }}"
+                                                            data-target="#update-quantity"
+                                                            class="text-primary tio-add-circle fs-22 cursor-pointer update-quantity"></span>
+                                                    </div>
+                                                </td>
+                                            @endif
+                                            <td>{{ \App\CentralLogics\Helpers::format_currency($food['price']) }}</td>
+                                            @if ($productWiseTax)
+                                            <td>
+                                                <span class="d-block font-size-sm text-body">
+                                                    @forelse ($food?->taxVats?->pluck('tax.name', 'tax.tax_rate')->toArray() as $key => $tax)
+                                                        <span> {{ $tax }} : <span class="font-bold">
+                                                                ({{ $key }}%)
+                                                            </span> </span>
+                                                        <br>
+                                                    @empty
+                                                        <span> {{ translate('messages.no_tax') }} </span>
+                                                    @endforelse
+                                                </span>
+                                            </td>
+
+                                            @endif
+                                            <td>
+                                                <label class="toggle-switch toggle-switch-sm"
+                                                    for="stocksCheckbox{{ $food->id }}">
+                                                    <input type="checkbox" class="toggle-switch-input redirect-url"
+                                                        data-url="{{ route('admin.item.status', [$food['id'], $food->status ? 0 : 1]) }}"
+                                                        id="stocksCheckbox{{ $food->id }}"
+                                                        {{ $food->status ? 'checked' : '' }}>
+                                                    <span class="toggle-switch-label">
+                                                        <span class="toggle-switch-indicator"></span>
+                                                    </span>
+                                                </label>
+                                            </td>
+                                            <td>
+                                                <div class="btn--container justify-content-center">
+                                                    <a class="btn action-btn btn--primary btn-outline-primary"
+                                                        href="{{ route('admin.item.edit', [$food['id']]) }}"
+                                                        title="{{ translate('messages.edit_item') }}"><i
+                                                            class="tio-edit"></i>
+                                                    </a>
+                                                    <a class="btn action-btn btn--danger btn-outline-danger form-alert"
+                                                        href="javascript:" data-id="food-{{ $food['id'] }}"
+                                                        data-message="{{ translate('messages.Want to delete this item ?') }}"
+                                                        title="{{ translate('messages.delete_item') }}"><i
+                                                            class="tio-delete-outlined"></i>
+                                                    </a>
+                                                </div>
+                                                <form action="{{ route('admin.item.delete', [$food['id']]) }}"
+                                                    method="post" id="food-{{ $food['id'] }}">
+                                                    @csrf @method('delete')
+                                                </form>
+                                            </td>
+                                        </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                    @if (count($items) === 0)
+                        <div class="empty--data">
+                            <img src="{{ asset('/public/assets/admin/svg/illustrations/sorry.svg') }}" alt="public">
+                            <h5>
+                                {{ translate('no_data_found') }}
+                            </h5>
+                        </div>
+                    @endif
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{-- Add Quantity Modal --}}
+    <div class="modal fade update-quantity-modal" id="update-quantity" tabindex="-1">
+        <div class="modal-dialog modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body pt-0">
+
+                    <form action="{{ route('admin.item.stock-update') }}" method="post">
+                        @csrf
+                        <div class="mt-2 rest-part w-100"></div>
+                        <div class="btn--container justify-content-end">
+                            <button type="reset" data-dismiss="modal" aria-label="Close"
+                                class="btn btn--reset">{{ translate('cancel') }}</button>
+                            <button type="submit" id="submit_new_customer"
+                                class="btn btn--primary">{{ translate('update_stock') }}</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
 @endsection
 
 @push('script_2')
+    <!-- Page level plugins -->
     <script>
-        "use strict";
-        $(document).on('ready', function () {
+        "use script";
+        // Call the dataTables jQuery plugin
+        $(document).ready(function() {
+            $('#dataTable').DataTable();
+
             // INITIALIZATION OF DATATABLES
             // =======================================================
-        let datatable = $.HSCore.components.HSDatatables.init($('#datatable'), {
-          select: {
-            style: 'multi',
-            classMap: {
-              checkAll: '#datatableCheckAll',
-              counter: '#datatableCounter',
-              counterInfo: '#datatableCounterInfo'
-            }
-          },
-          language: {
-            zeroRecords: '<div class="text-center p-4">' +
-                '<img class="w-7rem mb-3" src="{{asset('public/assets/admin/svg/illustrations/sorry.svg')}}" alt="Image Description">' +
+            let datatable = $.HSCore.components.HSDatatables.init($('#columnSearchDatatable'));
 
-                '</div>'
-          }
-        });
+            $('#column1_search').on('keyup', function() {
+                datatable
+                    .columns(1)
+                    .search(this.value)
+                    .draw();
+            });
 
-        $('#datatableSearch').on('mouseup', function (e) {
-          let $input = $(this),
-            oldValue = $input.val();
+            $('#column2_search').on('keyup', function() {
+                datatable
+                    .columns(2)
+                    .search(this.value)
+                    .draw();
+            });
 
-          if (oldValue == "") return;
+            $('#column3_search').on('change', function() {
+                datatable
+                    .columns(3)
+                    .search(this.value)
+                    .draw();
+            });
 
-          setTimeout(function(){
-            let newValue = $input.val();
+            $('#column4_search').on('keyup', function() {
+                datatable
+                    .columns(4)
+                    .search(this.value)
+                    .draw();
+            });
 
-            if (newValue == ""){
-              // Gotcha
-              datatable.search('').draw();
-            }
-          }, 1);
-        });
-
-        $('#toggleColumn_index').change(function (e) {
-          datatable.columns(0).visible(e.target.checked)
-        })
-        $('#toggleColumn_name').change(function (e) {
-          datatable.columns(1).visible(e.target.checked)
-        })
-
-        $('#toggleColumn_type').change(function (e) {
-          datatable.columns(2).visible(e.target.checked)
-        })
-
-        $('#toggleColumn_vendor').change(function (e) {
-          datatable.columns(3).visible(e.target.checked)
-        })
-
-        $('#toggleColumn_status').change(function (e) {
-          datatable.columns(5).visible(e.target.checked)
-        })
-        $('#toggleColumn_price').change(function (e) {
-          datatable.columns(4).visible(e.target.checked)
-        })
-        $('#toggleColumn_action').change(function (e) {
-          datatable.columns(6).visible(e.target.checked)
-        })
 
             // INITIALIZATION OF SELECT2
             // =======================================================
-            $('.js-select2-custom').each(function () {
+            $('.js-select2-custom').each(function() {
                 let select2 = $.HSCore.components.HSSelect2.init($(this));
             });
+
         });
-
-        $('#store').select2({
-            ajax: {
-                url: '{{url('/')}}/admin/store/get-stores',
-                data: function (params) {
-                    return {
-                        q: params.term, // search term
-                        module_id:{{Config::get('module.current_module_id')}},
-                        page: params.page
-                    };
+        $('.update-quantity').on('click', function() {
+            let val = $(this).data('id');
+            $.get({
+                url: '{{ route('admin.item.get_stock') }}',
+                data: {
+                    id: val
                 },
-                processResults: function (data) {
-                    return {
-                    results: data
-                    };
+                dataType: 'json',
+                success: function(data) {
+                    $('.rest-part').empty().html(data.view);
+                    update_qty();
                 },
-                __port: function (params, success, failure) {
-                    let $request = $.ajax(params);
+            });
+        })
 
-                    $request.then(success);
-                    $request.fail(failure);
-
-                    return $request;
-                }
+        function update_qty() {
+            let total_qty = 0;
+            let qty_elements = $('input[name^="stock_"]');
+            for (let i = 0; i < qty_elements.length; i++) {
+                total_qty += parseInt(qty_elements.eq(i).val());
             }
-        });
+            if (qty_elements.length > 0) {
 
-        $('#category_id').select2({
-            ajax: {
-                url: '{{route("admin.category.get-all")}}',
-                data: function (params) {
-                    return {
-                        q: params.term, // search term
-                        all:true,
-                        module_id:{{Config::get('module.current_module_id')}},
-                        page: params.page
-                    };
-                },
-                processResults: function (data) {
-                    return {
-                    results: data
-                    };
-                },
-                __port: function (params, success, failure) {
-                    let $request = $.ajax(params);
-
-                    $request.then(success);
-                    $request.fail(failure);
-
-                    return $request;
-                }
+                $('input[name="current_stock"]').attr("readonly", 'readonly');
+                $('input[name="current_stock"]').val(total_qty);
+            } else {
+                $('input[name="current_stock"]').attr("readonly", false);
             }
-        });
-
-        $('#search-form').on('submit', function (e) {
-    e.preventDefault();
-    let formData = new FormData(this);
-    let queryParams = $(this).serialize();
-    $.ajaxSetup({
-        headers: {
-            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
         }
-    });
-
-    $.post({
-        url: '{{ route('admin.Voucher.search') }}?' + queryParams,
-        data: formData,
-        cache: false,
-        contentType: false,
-        processData: false,
-        beforeSend: function () {
-            $('#loading').show();
-        },
-        success: function (data) {
-            $('#set-rows').html(data.view);
-            $('.page-area').hide();
-            $('#foodCount').html(data.count);
-        },
-        complete: function () {
-            $('#loading').hide();
-        },
-    });
-});
     </script>
 @endpush

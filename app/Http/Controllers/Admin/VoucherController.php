@@ -2141,6 +2141,46 @@ class VoucherController extends Controller
         return to_route('admin.item.approval_list');
     }
 
+
+    //   public function product_gallery(Request $request)
+    // {
+    //     $voucher_ids = $request->voucher_ids;
+    //     $bundle_type = $request->bundle_type;
+    //     $category_search = $request->category;
+    //     $filter = $request?->filter;
+    //     $item_type = $request?->item_type;
+    //     $key = explode(' ', request()->search);
+    //     // $store = Store::findOrFail($store_id);
+
+
+    //     $foods = Item::withoutGlobalScope(\App\Scopes\StoreScope::class)
+    //         ->where('store_id', $request->store)
+    //         ->whereIn('type', ['Product', 'Food'])
+            
+        
+    //         ->when(isset($key), function ($q) use ($key) {
+    //             $q->where(function ($q) use ($key) {
+    //                 foreach ($key as $value) {
+    //                     $q->where('name', 'like', "%{$value}%");
+    //                 }
+    //             });
+    //         })
+    //         ->when(!empty($category_search), function ($query) use ($category_search) {
+    //             $query->where('category_id', 'like', "%{$category_search}%");
+    //         })
+    //         ->latest()->paginate(25);
+         
+
+    //         // dd($store->id);
+
+    //         $taxData = Helpers::getTaxSystemType(getTaxVatList: false);
+    //         $productWiseTax = $taxData['productWiseTax'];
+
+    //         dd($foods);
+    //         return view('admin-views.voucher.product_gallery', compact( 'foods',  'productWiseTax'));
+      
+    // }
+
     public function product_gallery(Request $request)
     {
         // dd("dfgf");
@@ -2177,7 +2217,11 @@ class VoucherController extends Controller
         // dd();
         $store = $store_id != 'all' ? Store::findOrFail($store_id) : null;
         $category = $category_id != 'all' ? Category::findOrFail($category_id) : null;
-        return view('admin-views.voucher.product_gallery', compact('items', 'store', 'category', 'type'));
+        
+        $taxData = Helpers::getTaxSystemType();
+        $productWiseTax = $taxData['productWiseTax'];
+        
+        return view('admin-views.voucher.product_gallery', compact('items', 'store', 'category', 'type', 'productWiseTax'));
     }
 
     public function get_gift_occasions(): JsonResponse
@@ -2201,5 +2245,44 @@ class VoucherController extends Controller
             'data' => $msg_templates
         ], 200);
     }
+
+    //  public function product_gallery(Request $request)
+    // {
+    //     // dd("dfgf");
+    //     $store_id = $request->query('store_id', 'all');
+    //     $category_id = $request->query('category_id', 'all');
+    //     $type = $request->query('type', 'all');
+    //     $key = explode(' ', $request['search']);
+    //     $items = Item::withoutGlobalScope(StoreScope::class)
+    //         ->when($request->query('module_id', null), function ($query) use ($request) {
+    //             return $query->module($request->query('module_id'));
+    //         })
+    //         ->when(is_numeric($store_id), function ($query) use ($store_id) {
+    //             return $query->where('store_id', $store_id);
+    //         })
+    //         ->when(is_numeric($category_id), function ($query) use ($category_id) {
+    //             return $query->whereHas('category', function ($q) use ($category_id) {
+    //                 return $q->whereId($category_id)->orWhere('parent_id', $category_id);
+    //             });
+    //         })
+    //         ->when($request['search'], function ($query) use ($key) {
+    //             return $query->where(function ($q) use ($key) {
+    //                 foreach ($key as $value) {
+    //                     $q->where('name', 'like', "%{$value}%");
+    //                 }
+    //             });
+    //         })
+    //         ->orderByRaw("FIELD(name, ?) DESC", [$request['name']])
+    //         ->whereNotNull('type')
+    //         ->where('is_approved', 1)
+    //         ->wherein('type', ['food','product'])
+    //         ->type($type)
+    //         // ->latest()->paginate(config('default_pagination'));
+    //         ->inRandomOrder()->limit(12)->get();
+    //     // dd();
+    //     $store = $store_id != 'all' ? Store::findOrFail($store_id) : null;
+    //     $category = $category_id != 'all' ? Category::findOrFail($category_id) : null;
+    //     return view('admin-views.voucher.product_gallery', compact('items', 'store', 'category', 'type'));
+    // }
 
 }
