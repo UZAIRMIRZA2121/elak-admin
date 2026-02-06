@@ -181,7 +181,239 @@
                         </div>
                     </div>
                     <!-- Recipient Info Form Fields-->
-                
+                    <!-- <div class="section-card rounded p-4 mb-4">
+                        <h3 class="h5 fw-semibold mb-4">Recipient Info Form Fields</h3>
+                        <div class="card shadow-sm mb-4">
+                            <div class="card-body">
+                                <p class="text-muted mb-4">Select which fields will appear on the recipient info form</p>
+
+                                <div class="table-responsive">
+                                    <table class="table table-bordered">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th width="40%">Field Name</th>
+                                                <th width="30%" class="text-center">Show Field</th>
+                                                <th width="30%" class="text-center">Mark as Required</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td>
+                                                    <strong>Sender Name</strong>
+                                                    <small class="d-block text-muted">Who is sending the gift card</small>
+                                                </td>
+                                                <td class="text-center">
+                                                    <div class="form-check form-switch d-inline-block">
+                                                        <input class="form-check-input field-toggle" type="checkbox" id="field_sender_name" name="form_fields[]" value="sender_name" data-target="req_sender_name">
+                                                    </div>
+                                                </td>
+                                                <td class="text-center">
+                                                    <div class="form-check form-switch d-inline-block">
+                                                        <input class="form-check-input" type="checkbox" id="req_sender_name" name="required_fields[]" value="sender_name" disabled>
+                                                    </div>
+                                                </td>
+                                            </tr>
+
+                                            <tr>
+                                                <td>
+                                                    <strong>Sender Email</strong>
+                                                    <small class="d-block text-muted">Sender's email address</small>
+                                                </td>
+                                                <td class="text-center">
+                                                    <div class="form-check form-switch d-inline-block">
+                                                        <input class="form-check-input field-toggle" type="checkbox" id="field_sender_email" name="form_fields[]" value="sender_email" data-target="req_sender_email">
+                                                    </div>
+                                                </td>
+                                                <td class="text-center">
+                                                    <div class="form-check form-switch d-inline-block">
+                                                        <input class="form-check-input" type="checkbox" id="req_sender_email" name="required_fields[]" value="sender_email" disabled>
+                                                    </div>
+                                                </td>
+                                            </tr>
+
+                                            <tr>
+                                                <td>
+                                                    <strong>Recipient Name</strong>
+                                                    <small class="d-block text-muted">Who will receive the gift card</small>
+                                                </td>
+                                                <td class="text-center">
+                                                    <div class="form-check form-switch d-inline-block">
+                                                        <input class="form-check-input field-toggle" type="checkbox" id="field_recipient_name" name="form_fields[]" value="recipient_name" checked data-target="req_recipient_name">
+                                                    </div>
+                                                </td>
+                                                <td class="text-center">
+                                                    <div class="form-check form-switch d-inline-block">
+                                                        <input class="form-check-input" type="checkbox" id="req_recipient_name" name="required_fields[]" value="recipient_name" checked>
+                                                    </div>
+                                                </td>
+                                            </tr>
+
+                                            <tr>
+                                                <td>
+                                                    <strong>Recipient Email</strong>
+                                                    <small class="d-block text-muted">Where to send the gift card</small>
+                                                </td>
+                                                <td class="text-center">
+                                                    <div class="form-check form-switch d-inline-block">
+                                                        <input class="form-check-input field-toggle" type="checkbox" id="field_recipient_email" name="form_fields[]" value="recipient_email" checked data-target="req_recipient_email">
+                                                    </div>
+                                                </td>
+                                                <td class="text-center">
+                                                    <div class="form-check form-switch d-inline-block">
+                                                        <input class="form-check-input" type="checkbox" id="req_recipient_email" name="required_fields[]" value="recipient_email" checked>
+                                                    </div>
+                                                </td>
+                                            </tr>
+
+                                            <tr>
+                                                <td>
+                                                    <strong>Recipient Phone</strong>
+                                                    <small class="d-block text-muted">Phone number for WhatsApp delivery</small>
+                                                </td>
+                                                <td class="text-center">
+                                                    <div class="form-check form-switch d-inline-block">
+                                                        <input class="form-check-input field-toggle" type="checkbox" id="field_recipient_phone" name="form_fields[]" value="recipient_phone" data-target="req_recipient_phone">
+                                                    </div>
+                                                </td>
+                                                <td class="text-center">
+                                                    <div class="form-check form-switch d-inline-block">
+                                                        <input class="form-check-input" type="checkbox" id="req_recipient_phone" name="required_fields[]" value="recipient_phone" disabled>
+                                                    </div>
+                                                </td>
+                                            </tr>
+
+                                            <tr>
+                                                <td>
+                                                    <strong>Personal Message</strong>
+                                                    <small class="d-block text-muted">Custom message from sender</small>
+                                                </td>
+                                                <td class="text-center">
+                                                    <div class="form-check form-switch d-inline-block">
+                                                        <input class="form-check-input field-toggle" type="checkbox" id="field_message" name="form_fields[]" value="message" data-target="req_message">
+                                                    </div>
+                                                </td>
+                                                <td class="text-center">
+                                                    <div class="form-check form-switch d-inline-block">
+                                                        <input class="form-check-input" type="checkbox" id="req_message" name="required_fields[]" value="message" disabled>
+                                                    </div>
+                                                </td>
+                                            </tr>
+
+                                            <tr>
+                                                <td>
+                                                    <strong>Scheduled Delivery Date</strong>
+                                                    <small class="d-block text-muted">When to send the gift card</small>
+                                                </td>
+                                                <td class="text-center">
+                                                    <div class="form-check form-switch d-inline-block">
+                                                        <input class="form-check-input field-toggle" type="checkbox" id="field_delivery_date" name="form_fields[]" value="delivery_date" data-target="req_delivery_date">
+                                                    </div>
+                                                </td>
+                                                <td class="text-center">
+                                                    <div class="form-check form-switch d-inline-block">
+                                                        <input class="form-check-input" type="checkbox" id="req_delivery_date" name="required_fields[]" value="delivery_date" disabled>
+                                                    </div>
+                                                </td>
+                                            </tr>
+
+                                            <tr>
+                                                <td>
+                                                    <strong>Recipient Address</strong>
+                                                    <small class="d-block text-muted">Physical address (for physical cards)</small>
+                                                </td>
+                                                <td class="text-center">
+                                                    <div class="form-check form-switch d-inline-block">
+                                                        <input class="form-check-input field-toggle" type="checkbox" id="field_recipient_address" name="form_fields[]" value="recipient_address" data-target="req_recipient_address">
+                                                    </div>
+                                                </td>
+                                                <td class="text-center">
+                                                    <div class="form-check form-switch d-inline-block">
+                                                        <input class="form-check-input" type="checkbox" id="req_recipient_address" name="required_fields[]" value="recipient_address" disabled>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+
+                                <div class=" mt-3 mb-0 p-2 " style="background:#005555;color:white">
+                                    <i class="fas fa-info-circle"></i>
+                                    <strong>Note:</strong> Enable "Show Field" first, then you can mark it as required. Recipient Name and Email are enabled by default.
+                                </div>
+                            </div>
+                        </div>
+                    </div> -->
+                    <!-- Message Template Style-->
+                    <!-- <div class="section-card rounded p-4 mb-4">
+                        <h3 class="h5 fw-semibold mb-4">Message Template Style</h3>
+                        <div class="card shadow-sm mb-4">
+                        <div class="card-body">
+                            <p class="text-muted mb-3">Select one message template style for this gift card</p>
+                                <div class="row g-3">
+                                    @foreach (\App\Models\MessageTemplate::all() as $item)
+                                        @php(
+                                        $id = 'template_' . $item->id
+                                        )
+                                        <div class="col-md-6">
+                                        <input type="radio" class="btn-check template-radio" name="message_template_style" id="{{ $id }}" value="{{ $item->id }}">
+                                        <label class="template-card border rounded p-3 w-100 d-block" for="{{ $id }}">
+                                            <img src="{{ asset($item->icon) }}" alt="" style="width: 25px; height: 25px;">
+                                            <strong class="ms-2">{{ $item->title }}</strong>
+                                            <small class="d-block text-muted mt-1">{{ $item->sub_title }}</small>
+                                        </label>
+                                        </div>
+                                    @endforeach
+
+                                </div>
+                            </div>
+                        </div>
+                    </div> -->
+                    <!-- Delivery Options-->
+                    <!-- <div class="section-card rounded p-4 mb-4">
+                        <h3 class="h5 fw-semibold mb-4">Delivery Options</h3>
+                        <div class="card shadow-sm mb-4">
+                            <div class="card-body">
+                                <p class="text-muted mb-3">Select how gift cards will be delivered to recipients</p>
+
+                            <div class="row">
+                                @foreach (\App\Models\DeliveryOption::all() as $item)
+                                    @php(
+                                        $id = 'delivery_' . $item->id
+                                        )
+                                    <div class="col-md-6 mb-3">
+                                        <div class="card border-primary h-100">
+                                            <div class="card-body">
+                                                <div class="form-check form-switch">
+                                                    <input
+                                                        class="form-check-input delivery-option"
+                                                        type="checkbox"
+                                                        id="{{ $id }}"
+                                                        name="delivery_options[]"
+                                                        value="{{ $item->slug ?? $item->id }}"
+                                                        {{ $loop->first ? 'checked' : '' }}
+                                                    >
+                                                    <label class="form-check-label" for="{{ $id }}">
+                                                        <h6 class="mb-1">
+                                                        <img src="{{ asset($item->icon) }}" alt="" style="width: 25px; height: 25px;">
+                                                        {{ $item->title }}
+                                                        </h6>
+                                                        <small class="text-muted">{{ $item->sub_title }}</small>
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                @endforeach
+                            </div>
+
+
+                            <div class=" mt-3 mb-0 p-2 " style="background:#005555;color:white">
+                                    <i class="fas fa-info-circle"></i>
+                                    <strong>Note:</strong> At least one delivery option must be selected. Email is enabled by default.
+                                </div>
+                            </div>
+                        </div>
+                    </div> -->
 
                     {{-- Amount Configuration --}}
                     <div class="section-card rounded p-4 mb-4">
@@ -268,35 +500,6 @@
                     <div class="section-card rounded p-4 mb-4">
                         <h3 class="h5 fw-semibold mb-4"> Bonus Configuration</h3>
                         <div class="card shadow-sm mb-4">
-
-                           <div class="row g-3 p-3">
-                                <div class="col-6 col-md-3">
-                                    <div class="form-group mb-0">
-                                        <label class="input-label" for="offer_type">
-                                            {{ translate('Offer Type') }}
-                                        </label>
-                                        <select name="offer_type" id="offer_type" class="form-control js-select2-custom">
-                                            <option value="direct discount">{{ translate('Direct Discount') }}</option>
-                                            <option value="cash back">{{ translate('Cash back') }}</option>
-                                        </select>
-                                    </div>
-                                </div>
-
-                                <div class="col-6 col-md-3" id="discount_input_hide">
-                                    <div class="form-group mb-0">
-                                        <label class="input-label" for="discount_type">
-                                            {{ translate('Discount Type') }}
-                                        </label>
-                                        <select name="discount_type" id="discount_type" class="form-control js-select2-custom">
-                                            <option value="percent">{{ translate('messages.percent') }} (%)</option>
-                                            <option value="fixed">
-                                                {{ translate('Fixed') }} ({{ \App\CentralLogics\Helpers::currency_symbol() }})
-                                            </option>
-                                        </select>
-                                    </div>
-                                </div>
-                            </div>
-
                             <div class="card-body">
                                 <input type="hidden" name="bonus_enabled" value="1">
                                 <input type="hidden" name="bonus_type" value="percentage">

@@ -162,33 +162,25 @@
                                 </div>
                                 <div class="card-body">
                                     <!-- Discount Type Selection -->
-                                    <div class="row g-3 p-3">
-                                <div class="col-6 col-md-3">
-                                    <div class="form-group mb-0">
-                                        <label class="input-label" for="offer_type">
-                                            {{ translate('Offer Type') }}
-                                        </label>
-                                        <select name="offer_type" id="offer_type" class="form-control js-select2-custom">
-                                            <option value="direct discount">{{ translate('Direct Discount') }}</option>
-                                            <option value="cash back">{{ translate('Cash back') }}</option>
-                                        </select>
+                                    <h6 class="mb-3">Select Discount Type <span class="text-danger">*</span></h6>
+                                    <div class="row mb-4">
+                                        <div class="col-md-6 selected">
+                                            <input type="radio" class="btn-check" name="discount_type" id="discount_type_direct" value="direct_discount" checked>
+                                            <label class="btn  w-100  p-3" for="discount_type_direct">
+                                                <i class="fas fa-hand-holding-usd me-2"></i>
+                                                <strong>Direct Discount</strong>
+                                                <small class="d-block text-muted mt-1">Flat discount applied directly on entire bill</small>
+                                            </label>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <input type="radio" class="btn-check" name="discount_type" id="discount_type_cashback" value="cashback">
+                                            <label class="btn  w-100  p-3" for="discount_type_cashback">
+                                                <i class="fas fa-wallet me-2"></i>
+                                                <strong>Cashback</strong>
+                                                <small class="d-block text-muted mt-1">Cashback credited to customer wallet</small>
+                                            </label>
+                                        </div>
                                     </div>
-                                </div>
-
-                                <div class="col-6 col-md-3" id="discount_input_hide">
-                                    <div class="form-group mb-0">
-                                        <label class="input-label" for="discount_type">
-                                            {{ translate('Discount Type') }}
-                                        </label>
-                                        <select name="discount_type" id="discount_type" class="form-control js-select2-custom">
-                                            <option value="percent">{{ translate('messages.percent') }} (%)</option>
-                                            <option value="fixed">
-                                                {{ translate('Fixed') }} ({{ \App\CentralLogics\Helpers::currency_symbol() }})
-                                            </option>
-                                        </select>
-                                    </div>
-                                </div>
-                            </div>
 
                                     <hr class="my-3">
 
