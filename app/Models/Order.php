@@ -16,6 +16,11 @@ class Order extends Model
 
     protected $casts = [
         'order_amount' => 'float',
+        
+        // New columns immediately after order_amount
+        'total_order_amount' => 'float', // total amount including all fees/discounts
+        'offer_type' => 'string',        // offer type, e.g., 'direct discount', 'voucher', etc.
+
         'coupon_discount_amount' => 'float',
         'total_tax_amount' => 'float',
         'store_discount_amount' => 'float',
@@ -112,9 +117,9 @@ class Order extends Model
         return $this->hasMany(OrderDetail::class);
     }
     public function firstDetail()
-{
-    return $this->hasOne(OrderDetail::class);
-}
+    {
+        return $this->hasOne(OrderDetail::class);
+    }
     public function voucherDetail()
     {
         return $this->hasOne(OrderDetail::class)

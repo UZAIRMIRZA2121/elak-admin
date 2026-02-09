@@ -42,6 +42,11 @@ class OrderDetail extends Model
     {
         return $this->belongsTo(Item::class, 'item_id');
     }
+    public function voucher()
+{
+    return $this->belongsTo(Item::class, 'item_id')
+                ->where('type', 'voucher');
+}
     public function campaign()
     {
         return $this->belongsTo(ItemCampaign::class, 'item_campaign_id');

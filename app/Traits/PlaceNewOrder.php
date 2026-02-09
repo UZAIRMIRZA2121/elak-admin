@@ -3,8 +3,10 @@
 namespace App\Traits;
 
 use App\Models\Cart;
+use App\Models\CashBack;
 use App\Models\Item;
 use App\Models\User;
+use App\Models\WalletPayment;
 use App\Models\Zone;
 use App\Models\Order;
 use App\Models\Store;
@@ -18,6 +20,7 @@ use App\Models\ParcelCategory;
 use App\Models\BusinessSetting;
 use App\CentralLogics\OrderLogic;
 use App\CentralLogics\CouponLogic;
+
 use Illuminate\Support\Facades\DB;
 use App\CentralLogics\ProductLogic;
 use App\Mail\OrderVerificationMail;
@@ -32,14 +35,18 @@ use App\Mail\PlaceOrder;
 use App\Models\AddOn;
 use App\Models\SurgePrice;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Auth;
 
 trait PlaceNewOrder
 {
 
     public function new_place_order(Request $request, $is_prescription = false)
     {
+
+
         $validator = Validator::make($request->all(), [
             'order_amount' => 'required',
+            'total_order_amount' => 'required',
             'payment_method' => 'required|in:cash_on_delivery,digital_payment,wallet,offline_payment',
             'order_type' => 'required|in:take_away,delivery,parcel',
             'store_id' => ':order_type,parcel',
@@ -286,7 +293,6 @@ trait PlaceNewOrder
 
             if ($request->order_type !== 'parcel') {
                 if ($is_prescription === false) {
-
                     $carts = Cart::where('user_id', $order->user_id)->where('is_guest', $order->is_guest)->where('module_id', $request->header('moduleId'))
                         ->when(isset($request->is_buy_now) && $request->is_buy_now == 1 && $request->cart_id, function ($query) use ($request) {
                             return $query->where('id', $request->cart_id);
@@ -466,6 +472,7 @@ trait PlaceNewOrder
 
             //DM TIPS
             $order->order_amount = $order->order_amount + $order->dm_tips + $order->additional_charge + $order->extra_packaging_amount;
+
             if ($request->payment_method == 'wallet' && $request->user->wallet_balance < $order->order_amount) {
                 DB::rollBack();
                 return response()->json([
@@ -520,13 +527,14 @@ trait PlaceNewOrder
                     : $carts[0]['gift_details'];
             }
 
-   
+
+
             if ($request->order_type !== 'parcel') {
                 $taxMapCollection = collect($taxMap);
                 foreach ($order_details as $key => $item) {
                     $order_details[$key]['order_id'] = $order->id;
 
-                     $order_details[$key]['gift_details'] = json_encode($gift_details); // store as array
+                    $order_details[$key]['gift_details'] = json_encode($gift_details); // store as array
 
                     if ($item['item_id']) {
                         $item_id = $item['item_id'];
@@ -541,8 +549,48 @@ trait PlaceNewOrder
                         $order_details[$key]['tax_status'] = $matchedTax['include'] == 1 ? 'included' : 'excluded';
                         $order_details[$key]['tax_amount'] = $matchedTax['totalTaxamount'];
                     }
+                    // Make sure $item['item_details'] exists
+                    if (isset($item['item_details'])) {
+                        $itemDetails = json_decode($item['item_details'], true);
+
+                        $offerType = $itemDetails['offer_type'] ?? null;
+                        $discountType = $itemDetails['discount_type'] ?? null;
+                        $discountValue = (float) ($itemDetails['discount'] ?? 0);
+
+                        $itemPrice = (float) $item['price'];
+                        $quantity = (int) $item['quantity'];
+
+                        $total_order_amount = $request->total_order_amount;
+                        $cashbackAmount = 0;
+
+                        if ($offerType === 'cash back') {
+
+                            // Cashback does NOT reduce order amount
+                            if ($discountType === 'percent') {
+                                $cashbackAmount = ($total_order_amount * $discountValue) / 100;
+                            } elseif ($discountType === 'amount') {
+                                $cashbackAmount = $discountValue;
+                            }
+
+
+
+                            // safety check
+                            $cashbackAmount = min($cashbackAmount, $total_order_amount);
+
+
+
+
+
+
+                        }
+
+
+                    }
+
 
                 }
+
+
 
                 OrderDetail::insert($order_details);
 
@@ -552,6 +600,7 @@ trait PlaceNewOrder
                         ProductLogic::update_flash_stock($item['item'], $item['quantity'])?->save();
                     }
                 }
+
                 $store->increment('total_order');
             }
             if (count($orderTaxIds)) {
@@ -565,12 +614,17 @@ trait PlaceNewOrder
                     $cart?->delete();
                 }
             }
+
             if ($request->user) {
+
                 $customer = $request->user;
                 $customer->zone_id = $order->zone_id;
                 $customer->save();
                 if ($request->payment_method == 'wallet')
                     CustomerLogic::create_wallet_transaction($order->user_id, $order->order_amount, 'order_place', $order->id);
+                if ($cashbackAmount > 0) {
+                    CustomerLogic::create_wallet_transaction($order->user_id, $cashbackAmount, 'add_fund', $order->id);
+                }
 
                 if ($request->partial_payment) {
                     if ($request->user->wallet_balance <= 0) {
@@ -595,6 +649,8 @@ trait PlaceNewOrder
             }
 
             DB::commit();
+
+
 
             $this->sentOrderPlaceNotification($request, $order, $store);
 

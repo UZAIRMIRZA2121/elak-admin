@@ -8456,4 +8456,5 @@ Smartly or Earn. ',
   'failed_to_add_voucher' => 'Failed to add voucher',
   'Voucher Image' => 'Voucher Image',
   'store_already_has_gift_voucher' => 'Store already has gift voucher',
+  111111 => '111111',
 );

@@ -635,6 +635,7 @@ class OrderController extends Controller
 
     public function place_order(Request $request)
     {
+        
         Log::info('New Place Order Request', [
             'body' => $request->all(),
         ]);
