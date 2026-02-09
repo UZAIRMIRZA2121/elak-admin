@@ -193,6 +193,7 @@ class VoucherController extends Controller
             ->get();
         $WorkManagement = WorkManagement::where('voucher_id', $id)->get();
         $UsageTermManagement = UsageTermManagement::get();
+        // dd($UsageTermManagement);
         return response()->json([
             'work_management' => $WorkManagement,
             'usage_term_management' => $UsageTermManagement
@@ -271,6 +272,7 @@ class VoucherController extends Controller
 
     public function update(Request $request, $id)
     {
+        // dd($request->all());
         DB::beginTransaction();
         try {
             $item = Item::findOrFail($id);

@@ -769,21 +769,26 @@ $(document).ready(function () {
                     });
 
                     $("#workList").html(workHtml);
-
+                 let usageHtml = "";
                 $.each(response.usage_term_management, function (index, term) {
                     usageHtml += `
-                        <div class="usage-item border rounded-lg mb-4 p-4 col-6">
-                            <div class="flex items-center gap-2 mb-2">
-                                <input
-                                    class="form-check-input step-checkbox"
-                                    name="term_and_condition[]"
-                                    type="checkbox"
-                                    value="${term.id}"
-                                    id="term${term.id}">
-
-                                <label for="term${term.id}" class="font-bold text-lg cursor-pointer m-0">
-                                    ${term.baseinfor_condition_title}
-                                </label>
+                        <div class="col-md-6 mb-3">
+                            <div class="card h-100 border shadow-sm hover-shadow-lg transition-all">
+                                <div class="card-body p-4">
+                                    <div class="d-flex align-items-start">
+                                        <input
+                                            class="form-check-input mt-1 flex-shrink-0"
+                                            style="width: 15px; height: 15px; cursor: pointer;"
+                                            name="term_and_condition[]"
+                                            type="checkbox"
+                                            value="${term.id}"
+                                            id="term${term.id}">
+                                        
+                                        <label for="term${term.id}" class="form-check-label fw-semibold mb-0 cursor-pointer flex-grow-1 ms-3 mt-1 ml-2" style="cursor: pointer; line-height: 1.5;">
+                                            ${term.baseinfor_condition_title}
+                                        </label>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     `;

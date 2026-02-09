@@ -146,7 +146,7 @@
                                 {{-- Render existing products --}}
                                     {{-- Server-side rendering removed to rely on JS --}}
                                     {{-- Hidden input for all products --}}
-                                    <!-- <input type="text" class="hidden-product-input" name="products_data" value='{{ json_encode($existingProducts) }}'> -->
+                                    <input type="hidden" class="hidden-product-input" name="products_data" value='{{ json_encode($existingProducts) }}'>
                                 
 
                             @else
@@ -519,11 +519,11 @@
                             }
 
                             // 2. Create card with FULL variations
-                            const cardHtml = createProductCard(item.product_id, item.product_name, parseFloat(item.base_price || item.price || 0), fullVariations, productCounter);
+                            const cardHtml = createProductCard(item.product_id, item.product_name, parseFloat(item.price), fullVariations, productCounter);
                             $('#productDetails').append(cardHtml);
                             
                             // 3. Update global array
-                            addToSelectedProducts(item.product_id, item.product_name, parseFloat(item.base_price || item.price || 0), fullVariations, bundleType, null, productCounter);
+                            addToSelectedProducts(item.product_id, item.product_name, parseFloat(item.price), fullVariations, bundleType, null, productCounter);
                             
                             // 4. Check saved variations (The saved data contains the *selected* ones)
                             // item.variations usually contains the selected ones in the DB structure we saw earlier
@@ -578,14 +578,14 @@
                                 fullVariations = item.variations || [];
                             }
     
-                            const cardHtml = createBogoProductCard(item.product_id, item.product_name, parseFloat(item.base_price || item.price || 0), fullVariations, 'a', bogoCounterA);
+                            const cardHtml = createBogoProductCard(item.product_id, item.product_name, parseFloat(item.price), fullVariations, 'a', bogoCounterA);
                             $('#productDetails_section_a').append(cardHtml);
     
                              // Add to bogo array
                             bogoSelectedProductsA.push({
                                 product_id: item.product_id,
                                 name: item.product_name,
-                                price: parseFloat(item.base_price || item.price || 0),
+                                price: parseFloat(item.price),
                                 variations: fullVariations,
                                 selected_variations: [],
                                 temp_id: bogoCounterA
@@ -624,14 +624,14 @@
                                 fullVariations = item.variations || [];
                             }
                             
-                            const cardHtml = createBogoProductCard(item.product_id, item.product_name, parseFloat(item.base_price || item.price || 0), fullVariations, 'b', bogoCounterB);
+                            const cardHtml = createBogoProductCard(item.product_id, item.product_name, parseFloat(item.price), fullVariations, 'b', bogoCounterB);
                             $('#productDetails_section_b').append(cardHtml);
     
                              // Add to bogo array
                             bogoSelectedProductsB.push({
                                 product_id: item.product_id,
                                 name: item.product_name,
-                                price: parseFloat(item.base_price || item.price || 0),
+                                price: parseFloat(item.price),
                                 variations: fullVariations,
                                 selected_variations: [],
                                 temp_id: bogoCounterB
@@ -782,7 +782,7 @@
                     
                     // Create hidden input with JSON data
                     const hiddenInput = `
-                        0111<input type="text" class="hidden-product-input" 
+                        <input type="hidden" class="hidden-product-input" 
                                name="products_data" value='${JSON.stringify(productsData)}'>
                     `;
                     $('#productDetails').append(hiddenInput);
@@ -1734,11 +1734,11 @@
     </script>
 
     <script>
-        $(document).ready(function() {
-            getDataFromServer(7);
-        });
+         getDataFromServer(7)
 
         function getDataFromServer(voucher_id) {
+            // alert(storeId)
+            
             // Get saved howto_work value for pre-selection
              <?php
                 $rawHowtoWork = $product->how_and_condition_ids ?? '[]';
@@ -1753,15 +1753,6 @@
             ?>
             let savedHowtoWork = '{{ $savedId }}';
             console.log('Saved How To Work ID:', savedHowtoWork);
-            
-            // Get saved term_and_condition_ids for pre-selection
-            <?php
-                $rawTermCondition = $product->term_and_condition_ids ?? '[]';
-                $decodedTerms = json_decode($rawTermCondition, true);
-                $savedTermIds = is_array($decodedTerms) ? $decodedTerms : [];
-            ?>
-            let savedTermIds = @json($savedTermIds);
-            console.log('Saved Term & Condition IDs:', savedTermIds);
             
             $.ajax({
                 url: "{{ route('admin.Voucher.get_document') }}",
@@ -1834,30 +1825,21 @@
 
 
                     $("#workList").html(workHtml);
-                    let usageHtml = "";
+
                 $.each(response.usage_term_management, function (index, term) {
-                    // Check if this term is in saved IDs (using == for type coercion)
-                    let isTermChecked = savedTermIds.some(id => id == term.id) ? 'checked' : '';
-                    
                     usageHtml += `
-                        <div class="col-md-6 mb-3">
-                            <div class="card h-100 border shadow-sm hover-shadow-lg transition-all">
-                                <div class="card-body p-4">
-                                    <div class="d-flex align-items-start">
-                                        <input
-                                            class="form-check-input mt-1 flex-shrink-0"
-                                            style="width: 15px; height: 15px; cursor: pointer;"
-                                            name="term_and_condition[]"
-                                            type="checkbox"
-                                            value="${term.id}"
-                                            id="term${term.id}"
-                                            ${isTermChecked}>
-                                        
-                                        <label for="term${term.id}" class="form-check-label fw-semibold mb-0 cursor-pointer flex-grow-1 ms-3 mt-1 ml-2" style="cursor: pointer; line-height: 1.5;">
-                                            ${term.baseinfor_condition_title}
-                                        </label>
-                                    </div>
-                                </div>
+                        <div class="usage-item border rounded-lg mb-4 p-4 col-6">
+                            <div class="flex items-center gap-2 mb-2">
+                                <input
+                                    class="form-check-input step-checkbox"
+                                    name="term_and_condition[]"
+                                    type="checkbox"
+                                    value="${term.id}"
+                                    id="term${term.id}">
+
+                                <label for="term${term.id}" class="font-bold text-lg cursor-pointer m-0">
+                                    ${term.baseinfor_condition_title}
+                                </label>
                             </div>
                         </div>
                     `;
@@ -2545,10 +2527,10 @@
         });
 
 
-    <script>
-       let existingImageUrls = @json($imageUrls);
+<script>
+    let existingImageUrls = @json($imageUrls);
     
-       $(function() {
+    $(function() {
             $("#coba").spartanMultiImagePicker({
                 fieldName: 'item_images[]',
                 maxCount: 5,
