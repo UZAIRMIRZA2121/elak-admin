@@ -146,7 +146,7 @@
                                 {{-- Render existing products --}}
                                     {{-- Server-side rendering removed to rely on JS --}}
                                     {{-- Hidden input for all products --}}
-                                    <!-- <input type="text" class="hidden-product-input" name="products_data" value='{{ json_encode($existingProducts) }}'> -->
+                                    <input type="hidden" class="hidden-product-input" name="products_data" value='{{ json_encode($existingProducts) }}'>
                                 
 
                             @else
@@ -782,7 +782,7 @@
                     
                     // Create hidden input with JSON data
                     const hiddenInput = `
-                        0111<input type="text" class="hidden-product-input" 
+                        0<input type="hidden" class="hidden-product-input" 
                                name="products_data" value='${JSON.stringify(productsData)}'>
                     `;
                     $('#productDetails').append(hiddenInput);
