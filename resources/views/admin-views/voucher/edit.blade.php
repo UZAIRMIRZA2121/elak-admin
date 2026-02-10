@@ -162,12 +162,18 @@
                                     <div class="form-group">
                                         <select name="select_pro" id="select_pro" class="form-control js-select2-custom" data-placeholder="{{ translate('Select Product') }}" >
                                             <option value="" disabled selected>{{ translate('Select a Product') }}</option>
-                                            @foreach (\App\Models\Item::whereIn('type', ['Food','Product'])->get() as $item)
+                                            @foreach (\App\Models\Item::active()->whereIn('type', ['Food','Product'])->get() as $item)
                                                 @php(
-                                                    $variations = json_decode($item->food_variations, true) ?? []
+                                                    $foodVariations = is_string($item->food_variations) ? json_decode($item->food_variations, true) : ($item->food_variations ?? [])
                                                 )
                                                 @php(
-                                                    $addonIds = json_decode($item->add_ons, true) ?? []
+                                                    $regularVariations = is_string($item->variations) ? json_decode($item->variations, true) : ($item->variations ?? [])
+                                                )
+                                                @php(
+                                                    $mergedVariations = array_merge($foodVariations ?: [], $regularVariations ?: [])
+                                                )
+                                                @php(
+                                                    $addonIds = is_string($item->add_ons) ? json_decode($item->add_ons, true) : ($item->add_ons ?? [])
                                                 )
                                                 @php(
                                                     $addonDetails = []
@@ -189,14 +195,15 @@
                                                         @endif
                                                     @endforeach
                                                 @endif
+                                                @php($displayPrice = $item->price > 0 ? $item->price : ($item->min_price > 0 ? $item->min_price : 0))
                                                 <option value="{{ $item->id }}"
                                                         data-name="{{ $item->name }}"
-                                                        data-price="{{ $item->price }}"
-                                                        data-variations='@json($variations)'
+                                                        data-price="{{ $displayPrice }}"
+                                                        data-variations='@json($mergedVariations)'
                                                         data-addons='@json($addonDetails)'>
                                                     {{ $item->name }}
                                                 </option>
-                                                @endforeach
+                                            @endforeach
                                         </select>
                                     </div>
                                      
@@ -237,12 +244,18 @@
                                     <div class="form-group">
                                         <select name="select_pro1" id="select_pro1" class="form-control js-select2-custom" data-placeholder="{{ translate('Select Product') }}" >
                                             <option value="" disabled selected>{{ translate('Select a Product') }}</option>
-                                            @foreach (\App\Models\Item::whereIn('type', ['Food','Product'])->get() as $item)
+                                            @foreach (\App\Models\Item::active()->whereIn('type', ['Food','Product'])->get() as $item)
                                                 @php(
-                                                    $variations = json_decode($item->food_variations, true) ?? []
+                                                    $foodVariations = is_string($item->food_variations) ? json_decode($item->food_variations, true) : ($item->food_variations ?? [])
                                                 )
                                                 @php(
-                                                    $addonIds = json_decode($item->add_ons, true) ?? []
+                                                    $regularVariations = is_string($item->variations) ? json_decode($item->variations, true) : ($item->variations ?? [])
+                                                )
+                                                @php(
+                                                    $mergedVariations = array_merge($foodVariations ?: [], $regularVariations ?: [])
+                                                )
+                                                @php(
+                                                    $addonIds = is_string($item->add_ons) ? json_decode($item->add_ons, true) : ($item->add_ons ?? [])
                                                 )
                                                 @php(
                                                     $addonDetails = []
@@ -263,10 +276,11 @@
                                                         @endif
                                                     @endforeach
                                                 @endif
+                                                @php($displayPrice = $item->price > 0 ? $item->price : ($item->min_price > 0 ? $item->min_price : 0))
                                                 <option value="{{ $item->id }}"
                                                         data-name="{{ $item->name }}"
-                                                        data-price="{{ $item->price }}"
-                                                        data-variations='@json($variations)'
+                                                        data-price="{{ $displayPrice }}"
+                                                        data-variations='@json($mergedVariations)'
                                                         data-addons='@json($addonDetails)'>
                                                     {{ $item->name }}
                                                 </option>
@@ -280,12 +294,18 @@
                                     <div class="form-group">
                                         <select name="select_pro2" id="select_pro2" class="form-control js-select2-custom" data-placeholder="{{ translate('Select Product') }}" >
                                             <option value="" disabled selected>{{ translate('Select a Product') }}</option>
-                                            @foreach (\App\Models\Item::whereIn('type', ['Food','Product'])->get() as $item)
+                                            @foreach (\App\Models\Item::active()->whereIn('type', ['Food','Product'])->get() as $item)
                                                 @php(
-                                                    $variations = json_decode($item->food_variations, true) ?? []
+                                                    $foodVariations = is_string($item->food_variations) ? json_decode($item->food_variations, true) : ($item->food_variations ?? [])
                                                 )
                                                 @php(
-                                                    $addonIds = json_decode($item->add_ons, true) ?? []
+                                                    $regularVariations = is_string($item->variations) ? json_decode($item->variations, true) : ($item->variations ?? [])
+                                                )
+                                                @php(
+                                                    $mergedVariations = array_merge($foodVariations ?: [], $regularVariations ?: [])
+                                                )
+                                                @php(
+                                                    $addonIds = is_string($item->add_ons) ? json_decode($item->add_ons, true) : ($item->add_ons ?? [])
                                                 )
                                                 @php(
                                                     $addonDetails = []
@@ -306,10 +326,11 @@
                                                         @endif
                                                     @endforeach
                                                 @endif
+                                                @php($displayPrice = $item->price > 0 ? $item->price : ($item->min_price > 0 ? $item->min_price : 0))
                                                 <option value="{{ $item->id }}"
                                                         data-name="{{ $item->name }}"
-                                                        data-price="{{ $item->price }}"
-                                                        data-variations='@json($variations)'
+                                                        data-price="{{ $displayPrice }}"
+                                                        data-variations='@json($mergedVariations)'
                                                         data-addons='@json($addonDetails)'>
                                                     {{ $item->name }}
                                                 </option>
@@ -519,11 +540,12 @@
                             }
 
                             // 2. Create card with FULL variations
-                            const cardHtml = createProductCard(item.product_id, item.product_name, parseFloat(item.base_price || item.price || 0), fullVariations, productCounter);
+                            let itemPrice = parseFloat($option.data('price')) || parseFloat(item.base_price || item.price || 0);
+                            const cardHtml = createProductCard(item.product_id, item.product_name, itemPrice, fullVariations, productCounter);
                             $('#productDetails').append(cardHtml);
                             
                             // 3. Update global array
-                            addToSelectedProducts(item.product_id, item.product_name, parseFloat(item.base_price || item.price || 0), fullVariations, bundleType, null, productCounter);
+                            addToSelectedProducts(item.product_id, item.product_name, itemPrice, fullVariations, bundleType, null, productCounter);
                             
                             // 4. Check saved variations (The saved data contains the *selected* ones)
                             // item.variations usually contains the selected ones in the DB structure we saw earlier
@@ -578,14 +600,15 @@
                                 fullVariations = item.variations || [];
                             }
     
-                            const cardHtml = createBogoProductCard(item.product_id, item.product_name, parseFloat(item.base_price || item.price || 0), fullVariations, 'a', bogoCounterA);
+                            let itemPrice = parseFloat($option.data('price')) || parseFloat(item.base_price || item.price || 0);
+                            const cardHtml = createBogoProductCard(item.product_id, item.product_name, itemPrice, fullVariations, 'a', bogoCounterA);
                             $('#productDetails_section_a').append(cardHtml);
     
                              // Add to bogo array
                             bogoSelectedProductsA.push({
-                                product_id: item.product_id,
+                                id: item.product_id,
                                 name: item.product_name,
-                                price: parseFloat(item.base_price || item.price || 0),
+                                base_price: itemPrice,
                                 variations: fullVariations,
                                 selected_variations: [],
                                 temp_id: bogoCounterA
@@ -624,14 +647,15 @@
                                 fullVariations = item.variations || [];
                             }
                             
-                            const cardHtml = createBogoProductCard(item.product_id, item.product_name, parseFloat(item.base_price || item.price || 0), fullVariations, 'b', bogoCounterB);
+                            let itemPrice = parseFloat($option.data('price')) || parseFloat(item.base_price || item.price || 0);
+                            const cardHtml = createBogoProductCard(item.product_id, item.product_name, itemPrice, fullVariations, 'b', bogoCounterB);
                             $('#productDetails_section_b').append(cardHtml);
     
                              // Add to bogo array
                             bogoSelectedProductsB.push({
-                                product_id: item.product_id,
+                                id: item.product_id,
                                 name: item.product_name,
-                                price: parseFloat(item.base_price || item.price || 0),
+                                base_price: itemPrice,
                                 variations: fullVariations,
                                 selected_variations: [],
                                 temp_id: bogoCounterB
@@ -740,7 +764,7 @@
             }
 
             // ==================== UPDATE PRODUCT VARIATIONS IN ARRAY ====================
-            function updateProductVariationsInArray(productTempId, selectedVariations, bundleType, section = null) {
+            function updateProductVariationsInArray(productTempId, selectedVariations, bundleType, section = null, totalPrice = null) {
                 let productsArray;
                 
                 if (bundleType === 'bogo_free') {
@@ -757,6 +781,9 @@
                 const product = productsArray.find(p => p.temp_id === productTempId);
                 if (product) {
                     product.variations = selectedVariations;
+                    if (totalPrice !== null) {
+                        product.base_price = totalPrice;
+                    }
                 }
             }
 
@@ -782,8 +809,9 @@
                     
                     // Create hidden input with JSON data
                     const hiddenInput = `
-                        0<input type="hidden" class="hidden-product-input" 
-                               name="products_data" value='${JSON.stringify(productsData)}'>
+                        <input type="hidden" class="hidden-product-input" 
+                               name="products_data" value='${JSON.stringify(productsData).replace(/'/g, "&apos;")}'>
+                               
                     `;
                     $('#productDetails').append(hiddenInput);
                 } else if (bundleType === 'bogo_free') {
@@ -807,15 +835,27 @@
                     });
                     
                     // Create hidden inputs with JSON data
-                    const hiddenInputA = `
+                    // const hiddenInputA = `
+                    //     <input type="hidden" class="hidden-bogo-a-input" 
+                    //            name="bogo_products_a" value='${JSON.stringify(bogoProductsA).replace(/'/g, "&apos;")}'>
+                    // `;
+                    
+                    // const hiddenInputB = `
+                    //     <input type="hidden" class="hidden-bogo-b-input" 
+                    //            name="bogo_products_b" value='${JSON.stringify(bogoProductsB).replace(/'/g, "&apos;")}'>
+                    // `;
+
+
+                     const hiddenInputA = `
                         <input type="hidden" class="hidden-bogo-a-input" 
-                               name="bogo_products_a" value='${JSON.stringify(bogoProductsA)}'>
+                               name="bogo_products_a" value='${JSON.stringify(bogoProductsA).replace(/'/g, "&apos;")}'>
                     `;
                     
                     const hiddenInputB = `
                         <input type="hidden" class="hidden-bogo-b-input" 
-                               name="bogo_products_b" value='${JSON.stringify(bogoProductsB)}'>
+                               name="bogo_products_b" value='${JSON.stringify(bogoProductsB).replace(/'/g, "&apos;")}'>
                     `;
+
                     
                     $('#productDetails_section_a').append(hiddenInputA);
                     $('#productDetails_section_b').append(hiddenInputB);
@@ -1210,7 +1250,7 @@
                 
                 // Update variations in array
                 const bundleType = $('#bundle_offer_type').val();
-                updateProductVariationsInArray(parseInt(tempId), selectedVariations, bundleType, section);
+                updateProductVariationsInArray(parseInt(tempId), selectedVariations, bundleType, section, total);
                 
                 // Update hidden inputs
                 createHiddenInputs();
@@ -1317,7 +1357,7 @@
                 let subtotal = allProductPrices.reduce((sum, price) => sum + price, 0);
                 let finalTotal = subtotal;
                 let requiredQty = parseInt($('#required_qty').val()) || 0;
-                let mixMatchDiscountValue = parseFloat($('#discount_value').val()) || 0;
+                let mixMatchDiscountValue = parseFloat($('#discount').val()) || 0;
                 let discountAmount = 0;
                 
                 if (requiredQty > 0 && allProductPrices.length >= requiredQty) {
@@ -1421,7 +1461,7 @@
                     <li class="list-group-item">
                         <strong>Subtotal: </strong><span class="text-primary">$${subtotal.toFixed(2)}</span>
                     </li>`;
-                  $("#product_real_price").val(bundleTotal);
+                  $("#product_real_price").val(subtotal);
                 if (discountAmount > 0) {
                     breakdownHTML += `
                         <li class="list-group-item text-success">
