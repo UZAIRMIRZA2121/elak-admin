@@ -46,7 +46,7 @@ trait PlaceNewOrder
 
         $validator = Validator::make($request->all(), [
             'order_amount' => 'required',
-            'total_order_amount' => 'required',
+        
             'payment_method' => 'required|in:cash_on_delivery,digital_payment,wallet,offline_payment',
             'order_type' => 'required|in:take_away,delivery,parcel',
             'store_id' => ':order_type,parcel',
@@ -560,7 +560,7 @@ trait PlaceNewOrder
                         $itemPrice = (float) $item['price'];
                         $quantity = (int) $item['quantity'];
 
-                        $total_order_amount = $request->total_order_amount;
+                        $total_order_amount = $request->order_amount;
                         $cashbackAmount = 0;
 
                         if ($offerType === 'cash back') {
@@ -622,7 +622,7 @@ trait PlaceNewOrder
                 $customer->save();
                 if ($request->payment_method == 'wallet')
                     CustomerLogic::create_wallet_transaction($order->user_id, $order->order_amount, 'order_place', $order->id);
-                if ($cashbackAmount > 0) {
+                if ($cashbackAmount > 0 && $offerType === 'cash back') {
                     CustomerLogic::create_wallet_transaction($order->user_id, $cashbackAmount, 'add_fund', $order->id);
                 }
 
