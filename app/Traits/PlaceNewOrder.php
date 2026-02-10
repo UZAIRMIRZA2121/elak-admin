@@ -42,11 +42,8 @@ trait PlaceNewOrder
 
     public function new_place_order(Request $request, $is_prescription = false)
     {
-
-
         $validator = Validator::make($request->all(), [
             'order_amount' => 'required',
-        
             'payment_method' => 'required|in:cash_on_delivery,digital_payment,wallet,offline_payment',
             'order_type' => 'required|in:take_away,delivery,parcel',
             'store_id' => ':order_type,parcel',
@@ -571,17 +568,11 @@ trait PlaceNewOrder
                             } elseif ($discountType === 'amount') {
                                 $cashbackAmount = $discountValue;
                             }
-
-
-
                             // safety check
                             $cashbackAmount = min($cashbackAmount, $total_order_amount);
-
-
-
-
-
-
+                            if ($cashbackAmount > 0) {
+                                CustomerLogic::create_wallet_transaction($order->user_id, $cashbackAmount, 'add_fund', $order->id);
+                            }
                         }
 
 
@@ -622,9 +613,7 @@ trait PlaceNewOrder
                 $customer->save();
                 if ($request->payment_method == 'wallet')
                     CustomerLogic::create_wallet_transaction($order->user_id, $order->order_amount, 'order_place', $order->id);
-                if ($cashbackAmount > 0 && $offerType === 'cash back') {
-                    CustomerLogic::create_wallet_transaction($order->user_id, $cashbackAmount, 'add_fund', $order->id);
-                }
+
 
                 if ($request->partial_payment) {
                     if ($request->user->wallet_balance <= 0) {
