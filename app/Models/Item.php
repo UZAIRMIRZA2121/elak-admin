@@ -958,4 +958,22 @@ class Item extends Model
         return $stores;
     }
 
+    public function termsAndConditions(): Collection
+    {
+        $termIds = $this->term_and_condition_ids;
+
+        if (is_string($termIds)) {
+            $termIds = json_decode($termIds, true);
+            if (is_string($termIds)) {
+                $termIds = json_decode($termIds, true);
+            }
+        }
+
+        if (!is_array($termIds)) {
+            $termIds = [];
+        }
+
+        return \App\Models\UsageTermManagement::whereIn('id', $termIds)->get();
+    }
+
 }
