@@ -519,11 +519,12 @@
                             }
 
                             // 2. Create card with FULL variations
-                            const cardHtml = createProductCard(item.product_id, item.product_name, parseFloat(item.base_price || item.price || 0), fullVariations, productCounter);
+                            let itemPrice = parseFloat($option.data('price')) || parseFloat(item.base_price || item.price || 0);
+                            const cardHtml = createProductCard(item.product_id, item.product_name, itemPrice, fullVariations, productCounter);
                             $('#productDetails').append(cardHtml);
                             
                             // 3. Update global array
-                            addToSelectedProducts(item.product_id, item.product_name, parseFloat(item.base_price || item.price || 0), fullVariations, bundleType, null, productCounter);
+                            addToSelectedProducts(item.product_id, item.product_name, itemPrice, fullVariations, bundleType, null, productCounter);
                             
                             // 4. Check saved variations (The saved data contains the *selected* ones)
                             // item.variations usually contains the selected ones in the DB structure we saw earlier
@@ -578,14 +579,15 @@
                                 fullVariations = item.variations || [];
                             }
     
-                            const cardHtml = createBogoProductCard(item.product_id, item.product_name, parseFloat(item.base_price || item.price || 0), fullVariations, 'a', bogoCounterA);
+                            let itemPrice = parseFloat($option.data('price')) || parseFloat(item.base_price || item.price || 0);
+                            const cardHtml = createBogoProductCard(item.product_id, item.product_name, itemPrice, fullVariations, 'a', bogoCounterA);
                             $('#productDetails_section_a').append(cardHtml);
     
                              // Add to bogo array
                             bogoSelectedProductsA.push({
                                 product_id: item.product_id,
                                 name: item.product_name,
-                                price: parseFloat(item.base_price || item.price || 0),
+                                price: itemPrice,
                                 variations: fullVariations,
                                 selected_variations: [],
                                 temp_id: bogoCounterA
@@ -624,14 +626,15 @@
                                 fullVariations = item.variations || [];
                             }
                             
-                            const cardHtml = createBogoProductCard(item.product_id, item.product_name, parseFloat(item.base_price || item.price || 0), fullVariations, 'b', bogoCounterB);
+                            let itemPrice = parseFloat($option.data('price')) || parseFloat(item.base_price || item.price || 0);
+                            const cardHtml = createBogoProductCard(item.product_id, item.product_name, itemPrice, fullVariations, 'b', bogoCounterB);
                             $('#productDetails_section_b').append(cardHtml);
     
                              // Add to bogo array
                             bogoSelectedProductsB.push({
                                 product_id: item.product_id,
                                 name: item.product_name,
-                                price: parseFloat(item.base_price || item.price || 0),
+                                price: itemPrice,
                                 variations: fullVariations,
                                 selected_variations: [],
                                 temp_id: bogoCounterB
@@ -782,8 +785,9 @@
                     
                     // Create hidden input with JSON data
                     const hiddenInput = `
-                        0<input type="hidden" class="hidden-product-input" 
-                               name="products_data" value='${JSON.stringify(productsData)}'>
+                        <input type="hidden" class="hidden-product-input" 
+                               name="products_data" value='${JSON.stringify(productsData).replace(/'/g, "&apos;")}'>
+                               
                     `;
                     $('#productDetails').append(hiddenInput);
                 } else if (bundleType === 'bogo_free') {
@@ -809,12 +813,12 @@
                     // Create hidden inputs with JSON data
                     const hiddenInputA = `
                         <input type="hidden" class="hidden-bogo-a-input" 
-                               name="bogo_products_a" value='${JSON.stringify(bogoProductsA)}'>
+                               name="bogo_products_a" value='${JSON.stringify(bogoProductsA).replace(/'/g, "&apos;")}'>
                     `;
                     
                     const hiddenInputB = `
                         <input type="hidden" class="hidden-bogo-b-input" 
-                               name="bogo_products_b" value='${JSON.stringify(bogoProductsB)}'>
+                               name="bogo_products_b" value='${JSON.stringify(bogoProductsB).replace(/'/g, "&apos;")}'>
                     `;
                     
                     $('#productDetails_section_a').append(hiddenInputA);
@@ -1317,7 +1321,7 @@
                 let subtotal = allProductPrices.reduce((sum, price) => sum + price, 0);
                 let finalTotal = subtotal;
                 let requiredQty = parseInt($('#required_qty').val()) || 0;
-                let mixMatchDiscountValue = parseFloat($('#discount_value').val()) || 0;
+                let mixMatchDiscountValue = parseFloat($('#discount').val()) || 0;
                 let discountAmount = 0;
                 
                 if (requiredQty > 0 && allProductPrices.length >= requiredQty) {
@@ -1421,7 +1425,7 @@
                     <li class="list-group-item">
                         <strong>Subtotal: </strong><span class="text-primary">$${subtotal.toFixed(2)}</span>
                     </li>`;
-                  $("#product_real_price").val(bundleTotal);
+                  $("#product_real_price").val(subtotal);
                 if (discountAmount > 0) {
                     breakdownHTML += `
                         <li class="list-group-item text-success">
