@@ -531,9 +531,11 @@ class ItemController extends Controller
                     'status' => $settings->status,
                 ] : null;
 
-                $item['terms_conditions'] = $item->termsAndConditions() ?? [];
+                
 
-            }
+            }// Get related holidays
+
+            dd($item);
 
             return response()->json($item, 200);
 
