@@ -192,6 +192,10 @@
                                 class="btn btn--primary font-regular">{{ translate('messages.New_Product_Request') }}</a>
                         </div>
                     @endif
+                     <div>
+                            <a href="{{ route('admin.Voucher.add-new') }}"
+                                class="btn btn--primary font-regular">{{ translate('Add New Voucher') }}</a>
+                        </div>
                 </div>
                 <!-- End Row -->
             </div>
@@ -437,7 +441,7 @@
         <div class="modal-dialog modal-dialog-scrollable">
             <div class="modal-content">
                 <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <button type="button" class="close" data-dismiss="modal" data-bs-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
@@ -447,7 +451,7 @@
                         @csrf
                         <div class="mt-2 rest-part w-100"></div>
                         <div class="btn--container justify-content-end">
-                            <button type="reset" data-dismiss="modal" aria-label="Close"
+                            <button type="reset" data-dismiss="modal" data-bs-dismiss="modal" aria-label="Close"
                                 class="btn btn--reset">{{ translate('cancel') }}</button>
                             <button type="submit" id="submit_new_customer"
                                 class="btn btn--primary">{{ translate('update_stock') }}</button>
@@ -463,7 +467,7 @@
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="imageViewModalLabel">{{ translate('Voucher Image') }}</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <button type="button" class="close" data-dismiss="modal" data-bs-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>

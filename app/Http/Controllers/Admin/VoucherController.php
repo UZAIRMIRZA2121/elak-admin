@@ -2192,10 +2192,11 @@ class VoucherController extends Controller
     {
         // dd("dfgf");
         $store_id = $request->query('store_id', 'all');
-        $category_id = $request->query('category_id', 'all');
-        $type = $request->query('type', 'all');
+        $category_id = $request->query('category', 'all');
+        $type = $request->query('item_type', 'all');
         $key = explode(' ', $request['search']);
         $items = Item::withoutGlobalScope(StoreScope::class)
+            ->with(['store', 'category'])
             ->when($request->query('module_id', null), function ($query) use ($request) {
                 return $query->module($request->query('module_id'));
             })
@@ -2203,9 +2204,7 @@ class VoucherController extends Controller
                 return $query->where('store_id', $store_id);
             })
             ->when(is_numeric($category_id), function ($query) use ($category_id) {
-                return $query->whereHas('category', function ($q) use ($category_id) {
-                    return $q->whereId($category_id)->orWhere('parent_id', $category_id);
-                });
+                return $query->whereRaw("JSON_CONTAINS(category_ids, '{\"id\": \"".$category_id."\"}')");
             })
             ->when($request['search'], function ($query) use ($key) {
                 return $query->where(function ($q) use ($key) {
@@ -2214,13 +2213,14 @@ class VoucherController extends Controller
                     }
                 });
             })
-            ->orderByRaw("FIELD(name, ?) DESC", [$request['name']])
+            ->when($type != 'all', function ($query) use ($type) {
+                return $query->where('type', $type);
+            })
             ->whereNotNull('type')
             ->where('is_approved', 1)
-            ->wherein('type', ['food','product'])
-            ->type($type)
-            // ->latest()->paginate(config('default_pagination'));
-            ->inRandomOrder()->limit(12)->get();
+            ->whereIn('type', ['Food', 'Product'])
+            ->latest()
+            ->paginate(config('default_pagination'));
         // dd();
         $store = $store_id != 'all' ? Store::findOrFail($store_id) : null;
         $category = $category_id != 'all' ? Category::findOrFail($category_id) : null;

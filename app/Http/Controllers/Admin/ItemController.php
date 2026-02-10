@@ -1648,8 +1648,21 @@ class ItemController extends Controller
             $model = app("\\App\\Models\\TempProduct");
         }
 
-        $foods = $model->withoutGlobalScope(StoreScope::class)->where('store_id', $request->store_id)
-            ->when(isset($key), function ($q) use ($key) {
+        $store_id = $request->store_id;
+        $category_id = $request->query('category', 'all');
+        $item_type = $request->query('item_type', 'all');
+
+        $foods = $model->withoutGlobalScope(StoreScope::class)
+            ->when(is_numeric($store_id), function ($q) use ($store_id) {
+                return $q->where('store_id', $store_id);
+            })
+            ->when(is_numeric($category_id), function ($query) use ($category_id) {
+                return $query->whereRaw("JSON_CONTAINS(category_ids, '{\"id\": \"".$category_id."\"}')");
+            })
+            ->when($item_type != 'all', function ($query) use ($item_type) {
+                return $query->where('type', $item_type);
+            })
+            ->when($request->search, function ($q) use ($key) {
                 $q->where(function ($q) use ($key) {
                     foreach ($key as $value) {
                         $q->where('name', 'like', "%{$value}%");
@@ -1670,15 +1683,11 @@ class ItemController extends Controller
             })
             ->latest()->get();
 
-        // dd($request?->sub_tab,$foods,);
-
-        $store = Store::where('id', $request->store_id)->select(['name', 'zone_id'])->first();
+        $store = is_numeric($store_id) ? Store::where('id', $store_id)->select(['name', 'zone_id'])->first() : null;
         $typ = 'Item';
         if (Config::get('module.current_module_type') == 'food') {
             $typ = 'Food';
         }
-
-
 
         $taxData = Helpers::getTaxSystemType();
         $productWiseTax = $taxData['productWiseTax'];
@@ -1686,21 +1695,16 @@ class ItemController extends Controller
             'sub_tab' => $request?->sub_tab,
             'data' => $foods,
             'search' => $request['search'] ?? null,
-            'zone' => Helpers::get_zones_name($store->zone_id),
-            'store_name' => $store->name,
+            'zone' => $store ? Helpers::get_zones_name($store->zone_id) : translate('messages.all'),
+            'store_name' => $store ? $store->name : translate('messages.all'),
             'productWiseTax' => $productWiseTax
         ];
         if ($request->type == 'csv') {
             return Excel::download(new StoreItemExport($data), $typ . 'List.csv');
         }
         return Excel::download(new StoreItemExport($data), $typ . 'List.xlsx');
-
-        // if ($request->type == 'excel') {
-        //     return (new FastExcel(Helpers::export_store_item($item)))->download('Items.xlsx');
-        // } elseif ($request->type == 'csv') {
-        //     return (new FastExcel(Helpers::export_store_item($item)))->download('Items.csv');
-        // }
     }
+
 
     public function export(Request $request)
     {

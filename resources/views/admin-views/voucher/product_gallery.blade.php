@@ -25,6 +25,12 @@
                                 value="{{$z['id']}}" {{request()?->category == $z['id']?'selected':''}}>
                                 {{$z['name']}}
                             </option>
+                            @foreach(\App\Models\Category::where("parent_id" ,$z['id'])->orderBy('name')->get(['id','name']) as $sub)
+                                <option
+                                    value="{{$sub['id']}}" {{request()?->category == $sub['id']?'selected':''}}>
+                                    &nbsp;&nbsp;&nbsp;-- {{$sub['name']}}
+                                </option>
+                            @endforeach
                         @endforeach
                     </select>
                 </div>
@@ -44,11 +50,12 @@
 
             @foreach($voucherTypes as $value)
                 <option value="{{ $value }}" {{ request()->query('item_type') == $value ? 'selected' : '' }}>
-                    {{ $value }}
+                    {{ translate($value) }}
                 </option>
             @endforeach
         </select>
     </div>
+    
 </div>
 
 <script>
@@ -172,7 +179,7 @@
                         <div class="search--button-wrapper">
                             <h3 class="card-title">{{ translate('messages.items') }} <span
                                     class="badge badge-soft-dark ml-2"><span
-                                        class="total_items">{{ count($items) }}</span></span>
+                                        class="total_items">{{ $items->total() }}</span></span>
                             </h3>
 
                             <form class="search-form">
@@ -224,8 +231,9 @@
                                 </div>
                             </div>
                             <!-- End Unfold -->
-                            <a href="{{ route('admin.item.add-new') }}" class="btn btn--primary pull-right"><i
-                                    class="tio-add-circle"></i> {{ translate('messages.add_new_item') }}</a>
+                            <a data-bs-toggle="modal" data-bs-target="#myModal_product_food"  class="btn btn--primary pull-right"><i
+                                    class="tio-add-circle"></i> {{ translate('Add New Item') }}</a>
+
                         </div>
                     </div>
                     <div class="table-responsive datatable-custom">
@@ -246,6 +254,7 @@
                                         <th class="border-0">{{ translate('messages.quantity') }}</th>
                                     @endif
                                     <th class="border-0">{{ translate('messages.price') }}</th>
+                                    <th class="border-0">{{ translate('Store') }}</th>
                                       @if ($productWiseTax)
                                         <th  class="border-0 ">{{ translate('messages.Vat/Tax') }}</th>
                                     @endif
@@ -284,10 +293,16 @@
 
                                              </td>
                                             {{-- @dd($food->category_id) --}}
-                                               @php( $categories = \App\Models\Category::find($food->category_id)  )
-
                                             <td>
-                                               {{$categories->name ?? "Delete Category"}}
+                                               @if($food->category)
+                                                    {{ $food->category->name }}
+                                                    @php($parent = $food->category->parent)
+                                                    @if($parent)
+                                                        <br><small class="text-muted">({{ $parent->name }})</small>
+                                                    @endif
+                                               @else
+                                                    {{ translate('messages.category_deleted') }}
+                                               @endif
                                             </td>
 {{--
                                             <td>
@@ -305,6 +320,15 @@
                                                 </td>
                                             @endif
                                             <td>{{ \App\CentralLogics\Helpers::format_currency($food['price']) }}</td>
+                                            <td>
+                                                @if($food->store)
+                                                    <a href="{{ route('admin.store.view', $food->store_id) }}" class="text--title text-hover-primary">
+                                                        {{ $food->store->name }}
+                                                    </a>
+                                                @else
+                                                    {{ translate('messages.store_deleted') }}
+                                                @endif
+                                            </td>
                                             @if ($productWiseTax)
                                             <td>
                                                 <span class="d-block font-size-sm text-body">
@@ -356,6 +380,12 @@
                             </tbody>
                         </table>
                     </div>
+                    @if(count($items) !== 0)
+                    <hr>
+                    <div class="page-area px-4 pb-3">
+                        {!! $items->links() !!}
+                    </div>
+                    @endif
                     @if (count($items) === 0)
                         <div class="empty--data">
                             <img src="{{ asset('/public/assets/admin/svg/illustrations/sorry.svg') }}" alt="public">
@@ -394,6 +424,52 @@
             </div>
         </div>
     </div>
+
+
+
+
+
+
+<div class="modal fade" id="myModal_product_food" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0 shadow-sm rounded-4">
+
+      <!-- Header -->
+      <div class="modal-header border-0 bg-light rounded-top-4">
+        <h5 class="modal-title fw-semibold text-dark">
+          Choose Item
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+
+      <!-- Body -->
+      <div class="modal-body text-center py-4">
+        <p class="text-muted mb-4">Select one of the following options:</p>
+        <div class="d-flex justify-content-center gap-3">
+          <a href="{{ route('admin.item.add-new', ['name' => 'Food']) }}"
+             class="btn btn-primary px-4 py-2 fw-semibold rounded-3">
+            🍔 Food
+          </a>
+          <a href="{{ route('admin.item.add-new', ['name' => 'Product']) }}"
+             class="btn btn-success px-4 py-2 fw-semibold rounded-3">
+            📦 Product
+          </a>
+        </div>
+      </div>
+
+      <!-- Footer -->
+      <div class="modal-footer border-0 text-center justify-content-center">
+        <button type="button" class="btn btn-outline-secondary px-4 py-2 rounded-3" data-bs-dismiss="modal">
+          Close
+        </button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+
+
 @endsection
 
 @push('script_2')

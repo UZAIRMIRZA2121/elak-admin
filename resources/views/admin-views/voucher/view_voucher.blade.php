@@ -427,9 +427,11 @@
 
                                         @if (!empty($images))
                                             @foreach ($images as $image)
+                                         
                                                 @if (isset($image['img']))
+                                               
                                                     <img class="avatar avatar-lg mr-2 mb-2 onerror-image custom-image-preview"
-                                                        src="{{ asset('storage/' . $image['img']) }}"
+                                                        src="{{ asset('storage/app/public/product/' . $image['img']) }}"
                                                         data-onerror-image="{{ asset('public/assets/admin/img/160x160/img2.jpg') }}"
                                                         alt="{{ $product->name }} image"
                                                         style="cursor: pointer;width:200px;height:200px">
@@ -448,7 +450,7 @@
                                 <tr>
                                     <th><i class="fas fa-folder mr-2"></i>Thumnail Image </th>
                                     <td> <img class="avatar avatar-lg mr-3 onerror-image custom-image-preview"
-                                            src="{{ $product->image ?? asset('public/assets/admin/img/160x160/img2.jpg') }}"
+                                            src="{{ asset('storage/app/public/product/' . $product->image) }}"
                                             data-onerror-image="{{ asset('public/assets/admin/img/160x160/img2.jpg') }}"
                                             alt="{{ $product->name }} image"
                                             style="cursor: pointer;width:200px;height:200px"> </td>
@@ -1193,7 +1195,7 @@
                 <div class="modal-header"
                     style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-bottom: none;">
                     <h5 class="modal-title"><i class="fas fa-edit mr-2"></i>Update Stock Quantity</h5>
-                    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                    <button type="button" class="close text-white" data-dismiss="modal" data-bs-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
@@ -1202,7 +1204,7 @@
                         @csrf
                         <div class="mt-2 rest-part w-100"></div>
                         <div class="btn--container justify-content-end mt-4">
-                            <button type="reset" data-dismiss="modal" class="btn btn-secondary"
+                            <button type="reset" data-dismiss="modal" data-bs-dismiss="modal" class="btn btn-secondary"
                                 style="border-radius: 8px;">
                                 <i class="fas fa-times mr-1"></i>{{ translate('cancel') }}
                             </button>
@@ -1220,8 +1222,8 @@
         <div class="modal-dialog modal-dialog-centered" role="document">
             <div class="modal-content" style="border-radius: 12px; border: none; overflow: hidden;">
                 <div class="modal-header" style="background: #005555; color: white; border-bottom: none;">
-                    <h5 class="modal-title" id="imageViewModalLabel">{{ translate('Voucher Image') }}</h5>
-                    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                    <h5 class="modal-title" style="color:white" id="imageViewModalLabel">{{ translate('Voucher Image') }}</h5>
+                    <button type="button" class="close text-white" data-dismiss="modal" data-bs-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
