@@ -39,6 +39,8 @@ class OrderLogic
     }
     public static function create_transaction($order, $received_by=false, $status = null)
     {
+
+    
         $type = $order->order_type;
         $dm_tips_manage_status = BusinessSetting::where('key', 'dm_tips_status')->first()->value;
         $admin_subsidy = 0;

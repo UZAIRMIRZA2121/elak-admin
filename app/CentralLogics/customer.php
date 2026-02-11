@@ -28,7 +28,7 @@ class CustomerLogic
         $debit = 0.0;
         $credit = 0.0;
         $admin_bonus = 0.0;
-
+        
         if (in_array($transaction_type, ['add_fund_by_admin', 'add_fund', 'order_refund', 'loyalty_point', 'referrer','CashBack','subscription_refund'])) {
             $credit = $amount;
             if ($transaction_type == 'add_fund') {
@@ -80,7 +80,7 @@ class CustomerLogic
     }
 
     public static function create_loyalty_point_transaction($user_id, $referance, $amount, $transaction_type)
-    {
+    {   
         $settings = array_column(BusinessSetting::whereIn('key', ['loyalty_point_status', 'loyalty_point_exchange_rate', 'loyalty_point_item_purchase_point'])->get()->toArray(), 'value', 'key');
         if ($settings['loyalty_point_status'] != 1) {
             return false;

@@ -387,11 +387,12 @@ trait PlaceNewOrder
                     ], 406);
                 }
 
-                $businessSettings = BusinessSetting::whereIn('key', ['free_delivery_over', 'admin_free_delivery_status', 'admin_free_delivery_option'])->pluck('value', 'key');
+                $businessSettings = BusinessSetting::whereIn('key', ['free_delivery_over', 'admin_free_delivery_status', 'admin_free_delivery_option', 'loyalty_point_status'])->pluck('value', 'key');
 
                 $free_delivery_over = (float) ($businessSettings['free_delivery_over'] ?? 0);
                 $admin_free_delivery_status = (int) ($businessSettings['admin_free_delivery_status'] ?? 0);
                 $admin_free_delivery_option = $businessSettings['admin_free_delivery_option'] ?? null;
+                $loyalty_point_status = $businessSettings['loyalty_point_status'] ?? null;
 
 
                 if ($admin_free_delivery_status === 1) {
@@ -611,9 +612,16 @@ trait PlaceNewOrder
                 $customer = $request->user;
                 $customer->zone_id = $order->zone_id;
                 $customer->save();
+          
+                if ($loyalty_point_status == 1) {
+                    CustomerLogic::create_loyalty_point_transaction($order->user_id, $order->id, $order->order_amount, 'order_place');
+                }
+
+  
+
+
                 if ($request->payment_method == 'wallet')
                     CustomerLogic::create_wallet_transaction($order->user_id, $order->order_amount, 'order_place', $order->id);
-
 
                 if ($request->partial_payment) {
                     if ($request->user->wallet_balance <= 0) {
