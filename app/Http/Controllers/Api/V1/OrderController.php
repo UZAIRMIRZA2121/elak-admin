@@ -90,7 +90,7 @@ class OrderController extends Controller
         }
         $user_id = $request->user ? $request->user->id : $request['guest_id'];
 
-        $paginator = Order::with(['store', 'delivery_man.rating', 'parcel_category', 'refund:order_id,admin_note,customer_note'])->withCount('details')->where(['user_id' => $user_id])->whereIn('order_status', ['confirmed','processing','handover','accepted','picked_up','pending','delivered', 'canceled', 'refund_requested', 'refund_request_canceled', 'refunded', 'failed'])
+        $paginator = Order::with(['store', 'delivery_man.rating', 'parcel_category', 'refund:order_id,admin_note,customer_note'])->withCount('details')->where(['user_id' => $user_id])->whereIn('order_status', ['confirmed','processing','handover','accepted','picked_up','pending','delivered', 'canceled', 'refund_requested', 'refund_request_canceled', 'refunded', 'failed' , 'hold'])
             ->when(isset($request->user), function ($query) {
                 $query->where('is_guest', 0);
             })
