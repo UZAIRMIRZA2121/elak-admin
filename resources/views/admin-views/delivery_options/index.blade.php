@@ -205,7 +205,7 @@
                                 {{-- Client Created At --}}
                                 <td class="text-center">
                                     <div class="d-inline-block" style="width:50px; height:50px; cursor:pointer;">
-                                        <img src="{{ asset($item->icon) }}"
+                                        <img src="{{ Str::startsWith($item->icon, 'public') ? asset($item->icon) : asset('public/' . $item->icon) }}"
                                             class="img-fluid rounded open-image-modal"
                                             alt="Client Logo"
                                             style="width:100%; height:100%; object-fit:cover;">
