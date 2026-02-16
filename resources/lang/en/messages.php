@@ -8457,4 +8457,8 @@ Smartly or Earn. ',
   'Voucher Image' => 'Voucher Image',
   'store_already_has_gift_voucher' => 'Store already has gift voucher',
   111111 => '111111',
+  'The selected ref code is invalid.' => 'The selected ref code is invalid.',
+  'The selected login type is invalid.' => 'The selected login type is invalid.',
+  'The ref code field is required.' => 'The ref code field is required.',
+  'The login type field is required.' => 'The login type field is required.',
 );
