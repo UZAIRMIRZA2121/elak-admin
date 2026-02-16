@@ -315,16 +315,40 @@ if(in_array(config('module.current_module_type'),config('module.module_type') ))
             CloseButton: true,
             ProgressBar: true
         });
-        @endforeach
+            @endforeach
+        </script>
+    @endif
+    <!-- JS Plugins Init. -->
+
+
+    @stack('script_2')
+    <script>
+        let baseUrl = '{{ url('/') }}';
+
+        $(window).on('load', function () {
+            if (typeof HSNavbarVerticalAside !== 'undefined') {
+                $('.js-navbar-vertical-aside-toggle-invoker').click(function () {
+                    $('.js-navbar-vertical-aside').toggleClass('show-sidebar');
+                });
+            
+                // Initialize the sidebar
+                $('.js-navbar-vertical-aside').each(function () {
+                    var sidebar = new HSNavbarVerticalAside($(this)).init();
+                });
+            } else {
+                // Fallback if HSNavbarVerticalAside is not loaded
+                $('.js-navbar-vertical-aside-toggle-invoker').click(function () {
+                     $('.js-navbar-vertical-aside').toggleClass('show-sidebar');
+                });
+            }
+
+            if (typeof HSUnfold !== 'undefined') {
+                $(".js-hs-unfold-invoker-manual").each(function () {
+                    const unfold = new HSUnfold($(this)).init();
+                });
+            }
+        });
     </script>
-@endif
-<!-- JS Plugins Init. -->
-
-
-@stack('script_2')
-<script>
-    let baseUrl = '{{ url('/') }}';
-</script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
 <script src="{{asset('public/assets/admin/js/view-pages/common.js')}}"></script>
 <script src="{{asset('public/assets/admin/js/keyword-highlighted.js')}}"></script>
@@ -505,7 +529,7 @@ if(in_array(config('module.current_module_type'),config('module.module_type') ))
                         status: status,
                     },
                     success: function() {
-                        alert(ok);
+                        // alert('ok');
                     },
 
                 });

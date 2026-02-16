@@ -125,7 +125,7 @@ class ClientSideController extends Controller
             }
 
             $file->move($destination, $imageName);
-            $client->logo = 'uploads/clients/logos/' . $imageName; // save path in DB
+            $client->logo = 'public/uploads/clients/logos/' . $imageName; // save path in DB
         }
 
         //  Cover Upload
@@ -140,7 +140,7 @@ class ClientSideController extends Controller
             }
 
             $file->move($destination, $imageName);
-            $client->cover = 'uploads/clients/covers/' . $imageName;
+            $client->cover = 'public/uploads/clients/covers/' . $imageName;
         }
 
 
@@ -183,8 +183,8 @@ class ClientSideController extends Controller
 
         //  Logo Upload
         if ($request->hasFile('logo_image')) {
-            if ($client->logo && file_exists(public_path($client->logo))) {
-                unlink(public_path($client->logo)); // old delete
+            if ($client->logo && file_exists(base_path($client->logo))) {
+                unlink(base_path($client->logo)); // old delete
             }
             $file = $request->file('logo_image');
             $extension = $file->getClientOriginalExtension();
@@ -196,13 +196,13 @@ class ClientSideController extends Controller
             }
 
             $file->move($destination, $imageName);
-            $client->logo = 'uploads/clients/logos/' . $imageName;
+            $client->logo = 'public/uploads/clients/logos/' . $imageName;
         }
 
         //  Cover Upload
         if ($request->hasFile('cover_image')) {
-            if ($client->cover && file_exists(public_path($client->cover))) {
-                unlink(public_path($client->cover));
+            if ($client->cover && file_exists(base_path($client->cover))) {
+                unlink(base_path($client->cover));
             }
             $file = $request->file('cover_image');
             $extension = $file->getClientOriginalExtension();
@@ -214,7 +214,7 @@ class ClientSideController extends Controller
             }
 
             $file->move($destination, $imageName);
-            $client->cover = 'uploads/clients/covers/' . $imageName;
+            $client->cover = 'public/uploads/clients/covers/' . $imageName;
         }
 
         $client->save();
@@ -228,13 +228,13 @@ class ClientSideController extends Controller
         $client = Client::findOrFail($id);
 
         //  Delete Logo
-        if ($client->logo && file_exists(public_path($client->logo))) {
-            unlink(public_path($client->logo));
+        if ($client->logo && file_exists(base_path($client->logo))) {
+            unlink(base_path($client->logo));
         }
 
         //  Delete Cover
-        if ($client->cover && file_exists(public_path($client->cover))) {
-            unlink(public_path($client->cover));
+        if ($client->cover && file_exists(base_path($client->cover))) {
+            unlink(base_path($client->cover));
         }
 
         //  Delete Avatar/Profile

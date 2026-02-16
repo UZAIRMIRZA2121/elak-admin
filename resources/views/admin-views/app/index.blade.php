@@ -211,7 +211,7 @@
                                         </td>
                                         <td class="text-center">
                                             <div class="d-inline-block" style="width:50px; height:50px; cursor:pointer;">
-                                                <img src="{{ asset($App->app_logo) }}"
+                                                <img src="{{ Str::startsWith($App->app_logo, 'public') ? asset($App->app_logo) : asset('public/' . $App->app_logo) }}"
                                                     class="img-fluid rounded open-image-modal" alt="Client Logo"
                                                     style="width:100%; height:100%; object-fit:cover;">
                                             </div>
@@ -230,7 +230,7 @@
 
                                         <td class="text-center">
                                             <div class="d-inline-block" style="width:50px; height:50px; cursor:pointer;">
-                                                <img src="{{ asset($App->banner_image) }}"
+                                                <img src="{{ Str::startsWith($App->banner_image, 'public') ? asset($App->banner_image) : asset('public/' . $App->banner_image) }}"
                                                     class="img-fluid rounded open-image-modal" alt="Client Logo"
                                                     style="width:100%; height:100%; object-fit:cover;">
                                             </div>

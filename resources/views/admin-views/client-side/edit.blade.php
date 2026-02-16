@@ -126,7 +126,7 @@
                                             {{-- Agar client ka logo already hai to niche show kare --}}
                                             @if(!empty($client->logo))
                                                 <div class="mt-2">
-                                                    <img src="{{ asset($client->logo) }}"
+                                                    <img src="{{ Str::startsWith($client->logo, 'public') ? asset($client->logo) : asset('public/' . $client->logo) }}"
                                                         alt="Client Logo"
                                                         class="img-thumbnail"
                                                         style="max-width: 120px; height:auto;">
@@ -143,8 +143,8 @@
                                                 {{-- Agar client ka logo already hai to niche show kare --}}
                                             @if(!empty($client->cover))
                                                 <div class="mt-2">
-                                                    <img src="{{ asset($client->cover) }}"
-                                                        alt="Client Logo"
+                                                    <img src="{{ Str::startsWith($client->cover, 'public') ? asset($client->cover) : asset('public/' . $client->cover) }}"
+                                                        alt="Client Cover"
                                                         class="img-thumbnail"
                                                         style="max-width: 120px; height:auto;">
                                                 </div>

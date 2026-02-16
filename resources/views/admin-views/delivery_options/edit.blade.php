@@ -110,7 +110,7 @@
                                             {{-- Agar client ka logo already hai to niche show kare --}}
                                             @if(!empty($DeliveryOption->icon))
                                                 <div class="mt-2">
-                                                    <img src="{{ asset($DeliveryOption->icon) }}"
+                                                    <img src="{{ Str::startsWith($DeliveryOption->icon, 'public') ? asset($DeliveryOption->icon) : asset('public/' . $DeliveryOption->icon) }}"
                                                         alt="Client Logo"
                                                         class="img-thumbnail"
                                                         style="max-width: 120px; height:auto;">

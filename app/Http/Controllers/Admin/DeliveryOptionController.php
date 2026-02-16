@@ -57,7 +57,7 @@ class DeliveryOptionController extends Controller
             }
 
             $file->move($destination, $imageName);
-            $DeliveryOption->icon = 'uploads/DeliveryOption/' . $imageName; // save path in DB
+            $DeliveryOption->icon = 'public/uploads/DeliveryOption/' . $imageName; // save path in DB
         }
 
         $DeliveryOption->save();
@@ -87,8 +87,8 @@ class DeliveryOptionController extends Controller
         $DeliveryOption->sub_title = $request->sub_title;
             //  icon Upload
     if ($request->hasFile('icon')) {
-        if ($DeliveryOption->icon && file_exists(public_path($DeliveryOption->icon))) {
-            unlink(public_path($DeliveryOption->icon)); // old delete
+        if ($DeliveryOption->icon && file_exists(base_path($DeliveryOption->icon))) {
+            unlink(base_path($DeliveryOption->icon)); // old delete
         }
         $file = $request->file('icon');
         $extension = $file->getClientOriginalExtension();
@@ -100,7 +100,7 @@ class DeliveryOptionController extends Controller
         }
 
         $file->move($destination, $imageName);
-        $DeliveryOption->icon = 'uploads/DeliveryOption/' . $imageName;
+        $DeliveryOption->icon = 'public/uploads/DeliveryOption/' . $imageName;
     }
 
         $DeliveryOption->save();
@@ -113,8 +113,8 @@ class DeliveryOptionController extends Controller
     {
         $DeliveryOption = DeliveryOption::findOrFail($id);
           //  Delete Logo
-        if ($DeliveryOption->icon && file_exists(public_path($DeliveryOption->icon))) {
-            unlink(public_path($DeliveryOption->icon));
+        if ($DeliveryOption->icon && file_exists(base_path($DeliveryOption->icon))) {
+            unlink(base_path($DeliveryOption->icon));
         }
         $DeliveryOption->delete();
 

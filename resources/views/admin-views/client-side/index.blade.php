@@ -253,7 +253,7 @@
                                         {{-- Client Created At --}}
                                         <td class="text-center">
                                             <div class="d-inline-block" style="width:50px; height:50px; cursor:pointer;">
-                                                <img src="{{ asset($client->logo) }}"
+                                                <img src="{{ Str::startsWith($client->logo, 'public') ? asset($client->logo) : asset('public/' . $client->logo) }}"
                                                     class="img-fluid rounded open-image-modal" alt="Client Logo"
                                                     style="width:100%; height:100%; object-fit:cover;">
                                             </div>
@@ -261,7 +261,7 @@
 
                                         <td class="text-center">
                                             <div class="d-inline-block" style="width:50px; height:50px; cursor:pointer;">
-                                                <img src="{{ asset($client->cover) }}"
+                                                <img src="{{ Str::startsWith($client->cover, 'public') ? asset($client->cover) : asset('public/' . $client->cover) }}"
                                                     class="img-fluid rounded open-image-modal" alt="Client Logo"
                                                     style="width:100%; height:100%; object-fit:cover;">
                                             </div>

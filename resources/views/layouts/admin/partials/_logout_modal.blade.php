@@ -1,8 +1,8 @@
    <li class="__sidebar-hs-unfold px-2" id="tourb-9">
                     <div class="hs-unfold w-100">
-                        <a class="js-hs-unfold-invoker navbar-dropdown-account-wrapper" href="javascript:;"
+                        <a class="js-hs-unfold-invoker-manual navbar-dropdown-account-wrapper" href="javascript:;"
                             data-hs-unfold-options='{
-                                    "target": "#accountNavbarDropdown",
+                                    "target": "#adminLogoutDropdown",
                                     "type": "css-animation"
                                 }'>
                             <div class="cmn--media right-dropdown-icon d-flex align-items-center">
@@ -24,7 +24,7 @@
                             </div>
                         </a>
 
-                        <div id="accountNavbarDropdown"
+                        <div id="adminLogoutDropdown"
                                 class="hs-unfold-content dropdown-unfold dropdown-menu dropdown-menu-right navbar-dropdown-menu navbar-dropdown-account min--240">
                             <div class="dropdown-item-text">
                                 <div class="media align-items-center">
