@@ -63,7 +63,7 @@ return [
 
     'customer' => [
         'driver' => 'session',
-        'provider' => 'users',
+        'provider' => 'clients',
     ],
 
     'delivery_men' => [

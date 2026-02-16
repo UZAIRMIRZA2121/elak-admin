@@ -27,7 +27,7 @@ class ProductLogic
             ->first();
     }
 
-    public static function get_latest_products($zone_id, $limit, $offset, $store_id = null, $category_id = null, $type, $min = false, $max = false, $product_id = null, $filter = null, $rating_count = null)
+    public static function get_latest_products($zone_id, $limit, $offset, $store_id = null, $category_id = null, $type = 'all', $min = false, $max = false, $product_id = null, $filter = null, $rating_count = null)
     {
         // info($filter);
 

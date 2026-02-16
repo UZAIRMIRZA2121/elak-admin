@@ -221,25 +221,30 @@ function HSDemo() {
       });
     });
   });
-  document.getElementById('js-builder-preview').addEventListener('click', function () {
-    location.reload();
+  if (document.getElementById('js-builder-preview')) {
+    document.getElementById('js-builder-preview').addEventListener('click', function () {
+      location.reload();
 
-    if (skin) {
-      window.localStorage.setItem('hs-builder-skin', skin);
-    }
+      if (skin) {
+        window.localStorage.setItem('hs-builder-skin', skin);
+      }
 
-    if (sidebarMode) {
-      window.localStorage.setItem('hs-builder-sidebar-mode', sidebarMode);
-    }
+      if (sidebarMode) {
+        window.localStorage.setItem('hs-builder-sidebar-mode', sidebarMode);
+      }
 
-    window.localStorage.setItem('hs-builder-header-mode', headerMode);
-  });
-  document.getElementById('js-builder-reset').addEventListener('click', function () {
-    window.localStorage.removeItem('hs-builder-skin');
-    window.localStorage.removeItem('hs-builder-sidebar-mode');
-    window.localStorage.removeItem('hs-builder-header-mode');
-    location.reload();
-  });
+      window.localStorage.setItem('hs-builder-header-mode', headerMode);
+    });
+  }
+
+  if (document.getElementById('js-builder-reset')) {
+    document.getElementById('js-builder-reset').addEventListener('click', function () {
+      window.localStorage.removeItem('hs-builder-skin');
+      window.localStorage.removeItem('hs-builder-sidebar-mode');
+      window.localStorage.removeItem('hs-builder-header-mode');
+      location.reload();
+    });
+  }
 
   document.getElementById("headerMain").parentNode.removeChild(document.getElementById("headerMain"));
   document.getElementById("headerFluid").parentNode.removeChild(document.getElementById("headerFluid"));
