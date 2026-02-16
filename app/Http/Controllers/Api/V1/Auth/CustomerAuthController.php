@@ -651,7 +651,7 @@ class CustomerAuthController extends Controller
     public function login(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'login_type' => 'required|in:manual,otp,social',
+            'login_type' => 'required|in:manual,otp,social,ref',
         ]);
 
         if ($validator->fails()) {
@@ -668,6 +668,28 @@ class CustomerAuthController extends Controller
             'email_verification_status',
             'phone_verification_status'
         ])->get(['key', 'value'])->toArray(), 'value', 'key');
+
+        if ($request->login_type == 'ref') {
+
+            $validator = Validator::make($request->all(), [
+                'ref_code' => 'required'
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'errors' => Helpers::error_processor($validator)
+                ], 403);
+            }
+
+            $request_data = [
+                'ref_code' => $request->ref_code,
+                'guest_id' => $request->guest_id ?? null,
+            ];
+
+            return $this->ref_code_login($request_data);
+        }
+
+
 
         if ($request->login_type == 'manual') {
             $validator = Validator::make($request->all(), [
@@ -837,6 +859,201 @@ class CustomerAuthController extends Controller
             'errors' => $errors
         ], 401);
 
+    }
+
+    public function refCodeLogin(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'ref_code' => 'required|exists:users,ref_code',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'errors' => Helpers::error_processor($validator)
+            ], 403);
+        }
+
+        try {
+
+            $user = User::with([
+                'client.segment',
+                'client.app.banners',
+                'client.app.themes.colorCodes'
+            ])->where('ref_code', $request->ref_code)->first();
+
+            if (!$user) {
+                $errors = [];
+                array_push($errors, [
+                    'code' => 'auth-001',
+                    'message' => translate('messages.User_Not_Found!!!')
+                ]);
+
+                return response()->json(['errors' => $errors], 401);
+            }
+
+            // Optional status check
+            if ($user->status != 1) {
+                return response()->json([
+                    'errors' => [
+                        [
+                            'code' => 'auth-002',
+                            'message' => 'User account is inactive'
+                        ]
+                    ]
+                ], 403);
+            }
+
+            // ✅ Passport Token
+            $token = $user->createToken('authToken')->accessToken;
+
+            return response()->json([
+                'token' => $token,
+                'is_phone_verified' => $user->is_phone_verified ?? 0,
+                'is_email_verified' => $user->is_email_verified ?? 0,
+                'is_personal_info' => $user->is_personal_info ?? 0,
+                'is_exist_user' => null,
+                'login_type' => 'ref',
+                'email' => $user->email,
+                'client' => $user->client
+            ], 200);
+
+        } catch (\Exception $e) {
+
+            return response()->json([
+                'error' => 'Something went wrong',
+                'message' => $e->getMessage()
+            ], 500);
+        }
+    }
+    private function ref_code_login($request_data)
+    {
+        // ✅ Find user by ref_code
+        $user = User::where('ref_code', $request_data['ref_code'])->first();
+
+        if (!$user) {
+            return response()->json([
+                'errors' => [
+                    [
+                        'code' => 'auth-001',
+                        'message' => translate('User_Not_Found')
+                    ]
+                ]
+            ], 401);
+        }
+
+        // ✅ Blocked user check
+        if (!$user->status) {
+            return response()->json([
+                'errors' => [
+                    [
+                        'code' => 'auth-003',
+                        'message' => translate('messages.your_account_is_blocked')
+                    ]
+                ]
+            ], 403);
+        }
+
+        // ✅ Manually login user (NO PASSWORD CHECK)
+        auth()->loginUsingId($user->id);
+
+        // Load relations
+        $user->load(['segment', 'client.app.banners', 'client.app.themes.colorCodes']);
+
+        // Refer code check
+        $this->refer_code_check($user);
+
+        $is_personal_info = $user->f_name ? 1 : 0;
+        $user->login_medium = 'ref';
+        $user->save();
+
+        $user_email = $user->email ?? null;
+
+        // ✅ Generate Passport token
+        $token = null;
+        if ($is_personal_info) {
+            $token = $user->createToken('RestaurantCustomerAuth')->accessToken;
+
+            if (isset($request_data['guest_id'])) {
+                $this->check_guest_cart($user, $request_data['guest_id']);
+            }
+        }
+
+        // --------- APP DATA ----------
+        $appData = null;
+        $app = $user->client->app->first();
+
+        if ($app) {
+            $appData = [
+                'id' => $app->id,
+                'client_id' => $app->client_id,
+                'app_name' => $app->app_name,
+                'app_logo' => $app->app_logo,
+                'app_dec' => $app->app_dec,
+                'app_type' => $app->app_type,
+                'status' => $app->status,
+                'banner' => $app->banner,
+                'created_at' => $app->created_at,
+                'updated_at' => $app->updated_at,
+
+                'banners' => $app->banners->where('status', '1')->values(),
+
+                'themes' => $app->themes->where('status', 'active')->map(function ($theme) {
+                    return [
+                        'id' => $theme->id,
+                        'name' => $theme->name,
+                        'status' => $theme->status,
+                        'start_date' => $theme->start_date,
+                        'end_date' => $theme->end_date,
+                        'colorCodes' => $theme->colorCodes
+                            ->where('status', 'active')
+                            ->values()
+                            ->map(function ($code) {
+                                return [
+                                    'id' => $code->id,
+                                    'color_name' => $code->color_name,
+                                    'color_code' => $code->color_code,
+                                    'color_gradient' => $code->color_gradient,
+                                    'color_type' => $code->color_type,
+                                    'status' => $code->status,
+                                    'created_at' => $code->created_at,
+                                    'updated_at' => $code->updated_at,
+                                ];
+                            }),
+                    ];
+                })->values(),
+            ];
+        }
+
+        // --------- CLIENT DATA ----------
+        $clientData = null;
+        if ($user->client) {
+
+            $clientData = [
+                'id' => $user->client->id,
+                'name' => $user->client->name,
+                'email' => $user->client->email,
+                'logo' => $user->client->logo,
+                'cover' => $user->client->cover,
+                'type' => $user->client->type,
+                'status' => $user->client->status,
+                'created_at' => $user->client->created_at,
+                'updated_at' => $user->client->updated_at,
+                'segment' => $user->segment,
+                'app' => $appData,
+            ];
+        }
+
+        // ✅ FINAL RESPONSE (exact same structure)
+        return response()->json([
+            'token' => $token,
+            'is_phone_verified' => 1,
+            'is_email_verified' => 1,
+            'is_personal_info' => $is_personal_info,
+            'is_exist_user' => null,
+            'login_type' => 'ref',
+            'email' => $user_email,
+            'client' => $clientData,
+        ], 200);
     }
 
     private function manual_login($request_data)
