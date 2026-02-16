@@ -107,7 +107,8 @@
                                         {{-- Agar client ka logo already hai to niche show kare --}}
                                         @if (!empty($App->app_logo))
                                             <div class="mt-2">
-                                                <img src="{{ asset($App->app_logo) }}" alt="Client Logo"
+                                                <img src="{{ Str::startsWith($App->app_logo, 'public') ? asset($App->app_logo) : asset('public/' . $App->app_logo) }}"
+                                                    alt="Client Logo" title="App Logo"
                                                     classs="img-thumbnail" style="max-width: 120px; height:auto;">
                                             </div>
                                         @endif

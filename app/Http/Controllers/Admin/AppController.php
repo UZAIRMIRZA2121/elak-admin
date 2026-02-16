@@ -81,7 +81,7 @@ class AppController extends Controller
             }
 
             $file->move($destination, $imageName);
-            $app->app_logo = 'uploads/app/logos/' . $imageName;
+            $app->app_logo = 'public/uploads/app/logos/' . $imageName;
         }
 
         $app->save();
@@ -141,8 +141,8 @@ class AppController extends Controller
         if ($request->hasFile('logo_image')) {
 
             // delete old image
-            if ($app->app_logo && file_exists(public_path($app->app_logo))) {
-                unlink(public_path($app->app_logo));
+            if ($app->app_logo && file_exists(base_path($app->app_logo))) {
+                unlink(base_path($app->app_logo));
             }
 
             $file = $request->file('logo_image');
@@ -155,7 +155,7 @@ class AppController extends Controller
             }
 
             $file->move($destination, $imageName);
-            $app->app_logo = 'uploads/app/logos/' . $imageName;
+            $app->app_logo = 'public/uploads/app/logos/' . $imageName;
         }
 
         $app->save();
@@ -168,8 +168,8 @@ class AppController extends Controller
     {
         $App = App::findOrFail($id);
         //  Delete Logo
-        if ($App->app_logo && file_exists(public_path($App->app_logo))) {
-            unlink(public_path($App->app_logo));
+        if ($App->app_logo && file_exists(base_path($App->app_logo))) {
+            unlink(base_path($App->app_logo));
         }
         $App->delete();
 
