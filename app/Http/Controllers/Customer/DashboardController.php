@@ -49,8 +49,8 @@ class DashboardController extends Controller
         $client = \App\Models\Client::find(auth('customer')->id());
 
         if ($request->hasFile('logo')) {
-            if ($client->logo && file_exists(public_path($client->logo))) {
-                unlink(public_path($client->logo));
+            if ($client->logo && file_exists(base_path($client->logo))) {
+                unlink(base_path($client->logo));
             }
             $file = $request->file('logo');
             $extension = $file->getClientOriginalExtension();
@@ -62,14 +62,14 @@ class DashboardController extends Controller
             }
 
             $file->move($destination, $imageName);
-            $image_name = 'uploads/clients/logos/' . $imageName;
+            $image_name = 'public/uploads/clients/logos/' . $imageName;
         } else {
             $image_name = $client->logo;
         }
 
         if ($request->hasFile('cover')) {
-            if ($client->cover && file_exists(public_path($client->cover))) {
-                unlink(public_path($client->cover));
+            if ($client->cover && file_exists(base_path($client->cover))) {
+                unlink(base_path($client->cover));
             }
             $file = $request->file('cover');
             $extension = $file->getClientOriginalExtension();
@@ -81,7 +81,7 @@ class DashboardController extends Controller
             }
 
             $file->move($destination, $coverName);
-            $cover_name = 'uploads/clients/covers/' . $coverName;
+            $cover_name = 'public/uploads/clients/covers/' . $coverName;
         } else {
             $cover_name = $client->cover;
         }
