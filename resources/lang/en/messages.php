@@ -8456,13 +8456,11 @@ Smartly or Earn. ',
   'failed_to_add_voucher' => 'Failed to add voucher',
   'Voucher Image' => 'Voucher Image',
   'store_already_has_gift_voucher' => 'Store already has gift voucher',
-  111111 => '111111',
-<<<<<<< HEAD
+
   'The selected ref code is invalid.' => 'The selected ref code is invalid.',
   'The selected login type is invalid.' => 'The selected login type is invalid.',
   'The ref code field is required.' => 'The ref code field is required.',
   'The login type field is required.' => 'The login type field is required.',
-=======
   'sign_in' => 'Sign in',
   'customer_sign_in' => 'Customer sign in',
   'customer_login' => 'Customer login',
@@ -8475,5 +8473,4 @@ Smartly or Earn. ',
   'old_password' => 'Old password',
   'change_cover' => 'Change cover',
   'name_is_required' => 'Name is required',
->>>>>>> 2bcb4b9b3801f4b030c6bec120e5b2b892df1181
 );
