@@ -657,7 +657,7 @@ class CustomerAuthController extends Controller
         if ($validator->fails()) {
             return response()->json(['errors' => Helpers::error_processor($validator)], 403);
         }
-
+       
         $login_settings = array_column(BusinessSetting::whereIn('key', [
             'manual_login_status',
             'otp_login_status',
@@ -668,7 +668,7 @@ class CustomerAuthController extends Controller
             'email_verification_status',
             'phone_verification_status'
         ])->get(['key', 'value'])->toArray(), 'value', 'key');
-
+ 
         if ($request->login_type == 'ref') {
 
             $validator = Validator::make($request->all(), [
@@ -1051,6 +1051,8 @@ class CustomerAuthController extends Controller
             'is_personal_info' => $is_personal_info,
             'is_exist_user' => null,
             'login_type' => 'ref',
+            'username' => $user->username ?? null,
+            'phone' => $user->phone ?? null,
             'email' => $user_email,
             'client' => $clientData,
         ], 200);
