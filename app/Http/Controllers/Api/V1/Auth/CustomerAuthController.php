@@ -657,7 +657,7 @@ class CustomerAuthController extends Controller
         if ($validator->fails()) {
             return response()->json(['errors' => Helpers::error_processor($validator)], 403);
         }
-       
+
         $login_settings = array_column(BusinessSetting::whereIn('key', [
             'manual_login_status',
             'otp_login_status',
@@ -668,7 +668,7 @@ class CustomerAuthController extends Controller
             'email_verification_status',
             'phone_verification_status'
         ])->get(['key', 'value'])->toArray(), 'value', 'key');
- 
+
         if ($request->login_type == 'ref') {
 
             $validator = Validator::make($request->all(), [
@@ -964,6 +964,12 @@ class CustomerAuthController extends Controller
 
         $is_personal_info = $user->f_name ? 1 : 0;
         $user->login_medium = 'ref';
+
+        if (is_null($user->activated_at)) {
+            $user->activated_at = Carbon::now();
+            $user->is_active = 0;
+        }
+
         $user->save();
 
         $user_email = $user->email ?? null;
@@ -1046,14 +1052,17 @@ class CustomerAuthController extends Controller
         // ✅ FINAL RESPONSE (exact same structure)
         return response()->json([
             'token' => $token,
-            'is_phone_verified' => 1,
-            'is_email_verified' => 1,
+            'is_phone_verified' => $user->phone_verified ?? 0,
+            'is_email_verified' => $user->email_verified ?? 0,
             'is_personal_info' => $is_personal_info,
-            'is_exist_user' => null,
+            'is_exist_user' => $is_exist_user = $this->exist_user($user),
+            'is_active' => $user->is_active ?? 0,
+            'activated_at' => $user->activated_at ?? null,
             'login_type' => 'ref',
             'username' => $user->username ?? null,
             'phone' => $user->phone ?? null,
             'email' => $user_email,
+
             'client' => $clientData,
         ], 200);
     }
@@ -1468,7 +1477,7 @@ class CustomerAuthController extends Controller
     {
         $rules = [
             'name' => 'required',
-            'login_type' => 'required|in:otp,social,manual',
+            'login_type' => 'required|in:otp,social,manual,ref',
             'phone' => 'required|min:9|max:14',
             'email' => 'required|email',
         ];
@@ -1477,7 +1486,7 @@ class CustomerAuthController extends Controller
             $rules['phone'] .= '|unique:users,phone';
         }
 
-        if ($request->login_type == 'otp' || $request->login_type == 'manual') {
+        if ($request->login_type == 'otp' || $request->login_type == 'manual' || $request->login_type == 'ref') {
             $rules['email'] .= '|unique:users,email';
         }
 
@@ -1486,12 +1495,13 @@ class CustomerAuthController extends Controller
         if ($validator->fails()) {
             return response()->json(['errors' => Helpers::error_processor($validator)], 403);
         }
-
+ 
         $ref_by = null;
         $name = $request->name;
         $nameParts = explode(' ', $name, 2);
         $firstName = $nameParts[0];
         $lastName = $nameParts[1] ?? '';
+
         //Save point to refeer
         if ($request->ref_code) {
             $ref_status = BusinessSetting::where('key', 'ref_earning_status')->first()->value;
@@ -1526,8 +1536,6 @@ class CustomerAuthController extends Controller
                     'updated_at' => now()
                 ]);
             }
-
-
             $ref_by = $referar_user->id;
         }
 
