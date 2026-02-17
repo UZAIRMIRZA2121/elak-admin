@@ -686,6 +686,7 @@ class CustomerAuthController extends Controller
                 'guest_id' => $request->guest_id ?? null,
             ];
 
+
             return $this->ref_code_login($request_data);
         }
 
@@ -941,17 +942,7 @@ class CustomerAuthController extends Controller
             ], 401);
         }
 
-        // ✅ Blocked user check
-        if (!$user->status) {
-            return response()->json([
-                'errors' => [
-                    [
-                        'code' => 'auth-003',
-                        'message' => translate('messages.your_account_is_blocked')
-                    ]
-                ]
-            ], 403);
-        }
+ 
 
         // ✅ Manually login user (NO PASSWORD CHECK)
         auth()->loginUsingId($user->id);
@@ -964,6 +955,7 @@ class CustomerAuthController extends Controller
 
         $is_personal_info = $user->f_name ? 1 : 0;
         $user->login_medium = 'ref';
+        $user->status = 1;
 
         if (is_null($user->activated_at)) {
             $user->activated_at = Carbon::now();
@@ -976,14 +968,13 @@ class CustomerAuthController extends Controller
 
         // ✅ Generate Passport token
         $token = null;
-        if ($is_personal_info) {
+  
             $token = $user->createToken('RestaurantCustomerAuth')->accessToken;
 
             if (isset($request_data['guest_id'])) {
                 $this->check_guest_cart($user, $request_data['guest_id']);
             }
-        }
-
+     
         // --------- APP DATA ----------
         $appData = null;
         $app = $user->client->app->first();
