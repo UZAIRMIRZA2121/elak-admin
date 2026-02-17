@@ -59,7 +59,7 @@
                                                 ({{ translate('messages.Default') }})
                                             </label>
                                             <input type="text" name="name[]" id="default_name"
-                                                class="form-control" placeholder="{{ translate('messages.'.$title.'_name') }}" value="{{$shop->getRawOriginal('name')}}"
+                                                class="form-control" readonly placeholder="{{ translate('messages.'.$title.'_name') }}" value="{{$shop->getRawOriginal('name')}}"
 
                                                  >
                                         </div>
@@ -67,24 +67,24 @@
                                         <div class="form-group mb-0">
                                             <label class="input-label"
                                                 for="exampleFormControlInput1">{{ translate('messages.address') }} ({{ translate('messages.default') }})</label>
-                                            <textarea type="text" name="address[]" placeholder="{{translate('messages.'.$title)}}" class="form-control min-h-90px ckeditor">{{$shop->getRawOriginal('address')}}</textarea>
+                                            <textarea type="text" name="address[]"  readonly placeholder="{{translate('messages.'.$title)}}" class="form-control min-h-90px ckeditor">{{$shop->getRawOriginal('address')}}</textarea>
                                         </div>
                                     </div>
                                         @foreach (json_decode($language) as $lang)
-                                        <?php
-                                            if(count($shop['translations'])){
-                                                $translate = [];
-                                                foreach($shop['translations'] as $t)
-                                                {
-                                                    if($t->locale == $lang && $t->key=="name"){
-                                                        $translate[$lang]['name'] = $t->value;
+                                                <?php
+                                                    if(count($shop['translations'])){
+                                                        $translate = [];
+                                                        foreach($shop['translations'] as $t)
+                                                        {
+                                                            if($t->locale == $lang && $t->key=="name"){
+                                                                $translate[$lang]['name'] = $t->value;
+                                                            }
+                                                            if($t->locale == $lang && $t->key=="address"){
+                                                                $translate[$lang]['address'] = $t->value;
+                                                            }
+                                                        }
                                                     }
-                                                    if($t->locale == $lang && $t->key=="address"){
-                                                        $translate[$lang]['address'] = $t->value;
-                                                    }
-                                                }
-                                            }
-                                        ?>
+                                                ?>
                                             <div class="d-none lang_form"
                                                 id="{{ $lang }}-form">
                                                 <div class="form-group">
@@ -92,7 +92,7 @@
                                                         for="{{ $lang }}_name">{{ translate('messages.name') }}
                                                         ({{ strtoupper($lang) }})
                                                     </label>
-                                                    <input type="text" name="name[]" id="{{ $lang }}_name"
+                                                    <input type="text" name="name[]" id="{{ $lang }}_name" readonly
                                                         class="form-control" value="{{ $translate[$lang]['name']??'' }}" placeholder="{{ translate('messages.store_name') }}"
                                                          >
                                                 </div>
@@ -100,7 +100,7 @@
                                                 <div class="form-group mb-0">
                                                     <label class="input-label"
                                                         for="exampleFormControlInput1">{{ translate('messages.address') }} ({{ strtoupper($lang) }})</label>
-                                                    <textarea type="text" name="address[]" placeholder="{{translate('messages.store')}}" class="form-control min-h-90px ckeditor">{{ $translate[$lang]['address']??'' }}</textarea>
+                                                    <textarea type="text" name="address[]" readonly placeholder="{{translate('messages.store')}}" class="form-control min-h-90px ckeditor">{{ $translate[$lang]['address']??'' }}</textarea>
                                                 </div>
                                             </div>
                                         @endforeach
@@ -109,7 +109,7 @@
                                             <div class="form-group">
                                                 <label class="input-label"
                                                     for="exampleFormControlInput1">{{ translate('messages.name') }} ({{ translate('messages.default') }})</label>
-                                                <input type="text" name="name[]" class="form-control"
+                                                <input type="text" name="name[]"  readonly class="form-control"
                                                     placeholder="{{ translate('messages.store_name') }}" required>
                                             </div>
                                             <input type="hidden" name="lang[]" value="default">
@@ -117,7 +117,7 @@
                                                 <label class="input-label"
                                                     for="exampleFormControlInput1">{{ translate('messages.address') }}
                                                 </label>
-                                                <textarea type="text" name="address[]" placeholder="{{translate('messages.store')}}" class="form-control min-h-90px ckeditor"></textarea>
+                                                <textarea type="text" name="address[]" readonly placeholder="{{translate('messages.store')}}" class="form-control min-h-90px ckeditor"></textarea>
                                             </div>
                                         </div>
                                     @endif
@@ -128,7 +128,7 @@
                                     </div> --}}
                                     <div class="form-group mt-2">
                                         <label for="name">{{translate('messages.contact_number')}}<span class="text-danger">*</span></label>
-                                        <input type="text" name="contact" value="{{$shop->phone}}" class="form-control" id="name"
+                                        <input type="text" name="contact" value="{{$shop->phone}}" readonly class="form-control" id="name"
                                                 required>
                                     </div>
                                 </div>

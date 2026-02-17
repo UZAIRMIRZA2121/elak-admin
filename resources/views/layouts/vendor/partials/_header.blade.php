@@ -71,7 +71,7 @@
                             </div>
                         </div>
                     </li>
-                    <li class="nav-item d-none d-sm-inline-block mr-4">
+                    {{-- <li class="nav-item d-none d-sm-inline-block mr-4">
                         <!-- Notification -->
                         <div class="hs-unfold">
                             <a class="js-hs-unfold-invoker btn btn-icon btn-soft-secondary rounded-circle"
@@ -88,7 +88,7 @@
                             </a>
                         </div>
                         <!-- End Notification -->
-                    </li>
+                    </li> --}}
                     <li class="nav-item d-none d-sm-inline-block mr-4">
                         <div class="hs-unfold d-flex gap-2">
                             <!-- Scan QR -->

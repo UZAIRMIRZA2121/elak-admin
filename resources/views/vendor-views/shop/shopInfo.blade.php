@@ -74,7 +74,7 @@
             </div>
         </div>
     </div>
-    <div class="card border-0 mt-2">
+    {{-- <div class="card border-0 mt-2">
         <div class="card-header">
             <h5 class="card-title toggle-switch toggle-switch-sm d-flex justify-content-between">
                 <span class="card-header-icon mr-1"><i class="tio-dashboard"></i></span>
@@ -110,6 +110,6 @@
                 </div>
             </form>
         </div>
-    </div>
+    </div> --}}
 </div>
 @endsection

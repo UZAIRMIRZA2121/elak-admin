@@ -58,14 +58,14 @@
                     </li>
                     <!-- End Dashboards -->
                     @if (\App\CentralLogics\Helpers::employee_module_permission_check('pos'))
-                        <li
+                        {{-- <li
                             class="navbar-vertical-aside-has-menu {{ Request::is('vendor-panel/pos') ? 'active' : '' }}">
                             <a class="js-navbar-vertical-aside-menu-link nav-link  "
                                 href="{{ route('vendor.pos.index') }}" title="{{ translate('messages.pos') }}">
                                 <i class="tio-shopping-basket-outlined nav-icon"></i>
                                 <span class="text-truncate">{{ translate('messages.pos') }}</span>
                             </a>
-                        </li>
+                        </li> --}}
                     @endif
                     @if (\App\CentralLogics\Helpers::employee_module_permission_check('order'))
                         <li class="nav-item">
@@ -304,13 +304,13 @@
                             </a>
                             <ul class="js-navbar-vertical-aside-submenu nav nav-sub"
                                 style="display: {{ Request::is('vendor-panel/item*') ? 'block' : 'none' }}">
-                                <li class="nav-item {{ Request::is('vendor-panel/item/add-new') ? 'active' : '' }}">
+                                {{-- <li class="nav-item {{ Request::is('vendor-panel/item/add-new') ? 'active' : '' }}">
                                     <a class="nav-link " href="{{ route('vendor.item.add-new') }}"
                                         title="{{ translate('messages.add_new_item') }}">
                                         <span class="tio-circle nav-indicator-icon"></span>
                                         <span class="text-truncate">{{ translate('messages.add_new') }}</span>
                                     </a>
-                                </li>
+                                </li> --}}
                                 <li class="nav-item {{ Request::is('vendor-panel/item/list') ? 'active' : '' }}">
                                     <a class="nav-link " href="{{ route('vendor.item.list') }}"
                                         title="{{ translate('messages.items_list') }}">
@@ -318,7 +318,7 @@
                                         <span class="text-truncate">{{ translate('messages.list') }}</span>
                                     </a>
                                 </li>
-
+{{-- 
                                 @if (\App\CentralLogics\Helpers::get_mail_status('product_approval'))
                                     <li
                                         class="nav-item {{ Request::is('vendor-panel/item/pending/item/list') || Request::is('vendor-panel/item/requested/item/view/*') ? 'active' : '' }}">
@@ -372,7 +372,7 @@
                                                 class="text-truncate text-capitalize">{{ translate('messages.bulk_export') }}</span>
                                         </a>
                                     </li>
-                                @endif
+                                @endif --}}
                             </ul>
                         </li>
                         <!-- End Food -->
@@ -548,7 +548,7 @@
                     @endif
 
                     <!-- DeliveryMan -->
-                    @if (
+                    {{-- @if (
                         \App\CentralLogics\Helpers::employee_module_permission_check('deliveryman') || App\CentralLogics\Helpers::employee_module_permission_check('deliveryman_list'))
                         <li class="nav-item">
                             <small class="nav-subtitle"
@@ -583,7 +583,7 @@
                                 </span>
                             </a>
                         </li>
-                    @endif
+                    @endif --}}
                     <!-- End DeliveryMan -->
 
 
