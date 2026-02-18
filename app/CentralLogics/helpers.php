@@ -3603,7 +3603,9 @@ public static function order_details_data_formatting($data)
             'store_employee_login_url',
             'store_login_url',
             'admin_employee_login_url',
-            'admin_login_url'
+            'admin_login_url',
+            'client_login_url',
+            'client_employee_login_url'
         ])->pluck('key', 'value')->toArray();
 
         return array_search($type, $data);

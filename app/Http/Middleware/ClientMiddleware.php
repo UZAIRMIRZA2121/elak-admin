@@ -18,8 +18,7 @@ class ClientMiddleware
      */
     public function handle(Request $request, Closure $next): Response
     {
-
-     if (Auth::guard('client')->check()) {
+        if (Auth::guard('client')->check()) {
             if (!auth('client')->user()->status) {
                 auth()->guard('client')->logout();
                 return redirect()->route('home');
@@ -29,34 +28,15 @@ class ClientMiddleware
                 auth()->guard('client')->logout();
                 session()->invalidate();
                 session()->regenerateToken();
-                $user_link = Helpers::get_login_url('store_login_url');
+                $user_link = Helpers::get_login_url('client_login_url');
                 return redirect()->route('login', [$user_link])
                     ->withErrors(['Your session has expired. Please log in again.']);
             }
 
-            return $next($request);
-        } else if (Auth::guard('client_employee')->check()) {
-            if (Auth::guard('client_employee')->user()->is_logged_in == 0) {
-                auth()->guard('client_employee')->logout();
-                return redirect()->route('home');
-            }
-            if (!auth('client_employee')->user()->store->status) {
-                auth()->guard('client_employee')->logout();
-                return redirect()->route('home');
-            }
-
-            if (session('login_remember_token') !== Auth::guard('client_employee')->user()?->login_remember_token) {
-                auth()->guard('client_employee')->logout();
-                session()->invalidate();
-                session()->regenerateToken();
-                $user_link = Helpers::get_login_url('store_employee_login_url');
-                return redirect()->route('login', [$user_link])
-                    ->withErrors(['Your session has expired. Please log in again.']);
-            }
             return $next($request);
         }
-        return redirect()->route('home');
 
-        // return $next($request);
+        $user_link = Helpers::get_login_url('client_login_url');
+        return redirect()->route('login', [$user_link]);
     }
 }
