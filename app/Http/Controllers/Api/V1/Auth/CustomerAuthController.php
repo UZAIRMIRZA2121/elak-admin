@@ -686,6 +686,7 @@ class CustomerAuthController extends Controller
                 'guest_id' => $request->guest_id ?? null,
             ];
 
+
             return $this->ref_code_login($request_data);
         }
 
@@ -941,17 +942,7 @@ class CustomerAuthController extends Controller
             ], 401);
         }
 
-        // ✅ Blocked user check
-        if (!$user->status) {
-            return response()->json([
-                'errors' => [
-                    [
-                        'code' => 'auth-003',
-                        'message' => translate('messages.your_account_is_blocked')
-                    ]
-                ]
-            ], 403);
-        }
+ 
 
         // ✅ Manually login user (NO PASSWORD CHECK)
         auth()->loginUsingId($user->id);
@@ -964,20 +955,26 @@ class CustomerAuthController extends Controller
 
         $is_personal_info = $user->f_name ? 1 : 0;
         $user->login_medium = 'ref';
+        $user->status = 1;
+
+        if (is_null($user->activated_at)) {
+            $user->activated_at = Carbon::now();
+            $user->is_active = 0;
+        }
+
         $user->save();
 
         $user_email = $user->email ?? null;
 
         // ✅ Generate Passport token
         $token = null;
-        if ($is_personal_info) {
+  
             $token = $user->createToken('RestaurantCustomerAuth')->accessToken;
 
             if (isset($request_data['guest_id'])) {
                 $this->check_guest_cart($user, $request_data['guest_id']);
             }
-        }
-
+     
         // --------- APP DATA ----------
         $appData = null;
         $app = $user->client->app->first();
@@ -1046,12 +1043,17 @@ class CustomerAuthController extends Controller
         // ✅ FINAL RESPONSE (exact same structure)
         return response()->json([
             'token' => $token,
-            'is_phone_verified' => 1,
-            'is_email_verified' => 1,
+            'is_phone_verified' => $user->phone_verified ?? 0,
+            'is_email_verified' => $user->email_verified ?? 0,
             'is_personal_info' => $is_personal_info,
-            'is_exist_user' => null,
+            'is_exist_user' => $is_exist_user = $this->exist_user($user),
+            'is_active' => $user->is_active ?? 0,
+            'activated_at' => $user->activated_at ?? null,
             'login_type' => 'ref',
+            'username' => $user->username ?? null,
+            'phone' => $user->phone ?? null,
             'email' => $user_email,
+
             'client' => $clientData,
         ], 200);
     }
@@ -1466,7 +1468,7 @@ class CustomerAuthController extends Controller
     {
         $rules = [
             'name' => 'required',
-            'login_type' => 'required|in:otp,social,manual',
+            'login_type' => 'required|in:otp,social,manual,ref',
             'phone' => 'required|min:9|max:14',
             'email' => 'required|email',
         ];
@@ -1475,7 +1477,7 @@ class CustomerAuthController extends Controller
             $rules['phone'] .= '|unique:users,phone';
         }
 
-        if ($request->login_type == 'otp' || $request->login_type == 'manual') {
+        if ($request->login_type == 'otp' || $request->login_type == 'manual' || $request->login_type == 'ref') {
             $rules['email'] .= '|unique:users,email';
         }
 
@@ -1484,12 +1486,13 @@ class CustomerAuthController extends Controller
         if ($validator->fails()) {
             return response()->json(['errors' => Helpers::error_processor($validator)], 403);
         }
-
+ 
         $ref_by = null;
         $name = $request->name;
         $nameParts = explode(' ', $name, 2);
         $firstName = $nameParts[0];
         $lastName = $nameParts[1] ?? '';
+
         //Save point to refeer
         if ($request->ref_code) {
             $ref_status = BusinessSetting::where('key', 'ref_earning_status')->first()->value;
@@ -1524,8 +1527,6 @@ class CustomerAuthController extends Controller
                     'updated_at' => now()
                 ]);
             }
-
-
             $ref_by = $referar_user->id;
         }
 
