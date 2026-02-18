@@ -19,6 +19,9 @@ class AdminMiddleware
         } elseif (Auth::guard('customer')->check()) {
             Toastr::error("unauthorized Access");
             return redirect()->route('customer.dashboard');
+        } elseif (Auth::guard('client')->check()) {
+            Toastr::error("unauthorized Access");
+            return redirect()->route('client.dashboard');
         }
         return redirect()->route('admin.auth.login');
     }

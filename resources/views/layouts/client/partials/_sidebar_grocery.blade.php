@@ -73,6 +73,12 @@
                         <span class="text-truncate"> Notification</span>
                     </a>
                 </li>
+                   <li class="navbar-vertical-aside-has-menu ">
+                    <a class="js-navbar-vertical-aside-menu-link nav-link" href="{{route('all_user.voucher_list')}}" title="">
+                         <span class="tio-calendar-note nav-icon"></span>
+                        <span class="text-truncate"> Voucher List</span>
+                    </a>
+                </li>
 
                 <!-- End 4.	Client Users Segments -->
 

@@ -10,5 +10,6 @@ Route::group(['middleware' => ['client', 'current-module', 'actch:client_panel']
     Route::group(['prefix' => 'client', 'as' => 'all_user.'], function () {
         Route::get('user', [UserAllDataController::class, 'index'])->name('user_data');
         Route::get('notification', [UserAllDataController::class, 'notification_show'])->name('notification');
+        Route::get('voucher-list', [UserAllDataController::class, 'voucher_list'])->name('voucher_list');
     });
 });
