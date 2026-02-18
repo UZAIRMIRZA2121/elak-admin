@@ -8474,12 +8474,10 @@ Smartly or Earn. ',
   'name_is_required' => 'Name is required',
   'You_need_to_add_announcement_message_first' => 'You need to add announcement message first',
   'edit_Store' => 'Edit Store',
-<<<<<<< HEAD
   'The phone must be at least 9 characters.' => 'The phone must be at least 9 characters.',
   111111 => '111111',
   'User_Not_Found' => 'User Not Found',
   'your_account_is_blocked' => 'Your account is blocked',
-=======
   'start' => 'Start',
   'words.unlock' => 'Words.unlock',
   'Redeems' => 'Redeems',
@@ -8511,5 +8509,4 @@ Smartly or Earn. ',
   'Select Group' => 'Select Group',
   'No Description' => 'No Description',
   'CUSTOMER USERS' => 'CUSTOMER USERS',
->>>>>>> 7a1fbed (update)
 );
