@@ -80,7 +80,7 @@
                                 <td>{{ $user->loyalty_point ?? 0 }}</td>
                                 <td>{{ $user->wallet_balance ?? 0 }}</td>
                                 <td>{{ ($user->loyalty_point ?? 0) + ($user->wallet_balance ?? 0) }}</td>
-                                <td>{{ $user->zone ? $user->zone->name : '-' }}</td>
+                                <td>{{ $user->last_active_city ?? '-' }}</td>
                                 <td>{{ $user->updated_at ? $user->updated_at->format('Y-m-d') : '-' }}</td>
                                 <td>
                                     <div class="btn--container justify-content-center">
