@@ -96,10 +96,11 @@ trait ActivationClass
         $config = $this->getAddonsConfig();
         $cacheKey = $this->getSystemAddonCacheKey(app: $app);
 
-        if (isset($config[$app]) && (!isset($config[$app]['active']) || $config[$app]['active'] == 0)) {
-            Cache::forget($cacheKey);
-            return false;
-        } else {
+        if (isset($config[$app])) {
+            if (!isset($config[$app]['active']) || $config[$app]['active'] == 0) {
+                Cache::forget($cacheKey);
+                return false;
+            }
             $appConfig = $config[$app];
             return Cache::remember($cacheKey, $this->getCacheTimeoutByDays(days: 1), function () use ($app, $appConfig) {
                 $response = $this->getRequestConfig(username: $appConfig['username'], purchaseKey: $appConfig['purchase_key'], softwareId: $appConfig['software_id'], softwareType: $appConfig['software_type'] ?? base64_decode('cHJvZHVjdA=='));
@@ -107,6 +108,8 @@ trait ActivationClass
                 return (bool)$response['active'];
             });
         }
+
+        return true;
     }
 
     public function updateActivationConfig($app, $response): void

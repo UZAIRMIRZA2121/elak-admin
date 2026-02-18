@@ -21,7 +21,7 @@ class ActivationCheckMiddleware
      */
     public function handle(Request $request, Closure $next, $area = null): mixed
     {
-        $response = $this->checkActivationCache(app: $area);
+        // $response = $this->checkActivationCache(app: $area);
         $response = true;
 
         if (!$response) {
