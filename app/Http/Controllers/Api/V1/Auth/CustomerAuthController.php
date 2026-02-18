@@ -30,6 +30,7 @@ use Modules\Rental\Entities\RentalCartUserData;
 
 class CustomerAuthController extends Controller
 {
+
     public function verify_phone_or_email(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -607,7 +608,6 @@ class CustomerAuthController extends Controller
                     'updated_at' => now(),
                 ]
             );
-
             try {
                 $mailResponse = null;
                 $mail_status = Helpers::get_mail_status('registration_otp_mail_status_user');
@@ -669,6 +669,7 @@ class CustomerAuthController extends Controller
             'phone_verification_status'
         ])->get(['key', 'value'])->toArray(), 'value', 'key');
 
+
         if ($request->login_type == 'ref') {
 
             $validator = Validator::make($request->all(), [
@@ -682,6 +683,7 @@ class CustomerAuthController extends Controller
             }
 
             $request_data = [
+                'request' => $request->all(),
                 'ref_code' => $request->ref_code,
                 'guest_id' => $request->guest_id ?? null,
             ];
@@ -689,9 +691,6 @@ class CustomerAuthController extends Controller
 
             return $this->ref_code_login($request_data);
         }
-
-
-
         if ($request->login_type == 'manual') {
             $validator = Validator::make($request->all(), [
                 'email_or_phone' => 'required',
@@ -942,7 +941,7 @@ class CustomerAuthController extends Controller
             ], 401);
         }
 
- 
+
 
         // ✅ Manually login user (NO PASSWORD CHECK)
         auth()->loginUsingId($user->id);
@@ -956,6 +955,8 @@ class CustomerAuthController extends Controller
         $is_personal_info = $user->f_name ? 1 : 0;
         $user->login_medium = 'ref';
         $user->status = 1;
+        $city = $this->getCityFromLatLng($request_data['request']['latitude'], $request_data['request']['longitude']);
+        $user->last_active_city = $city;
 
         if (is_null($user->activated_at)) {
             $user->activated_at = Carbon::now();
@@ -968,13 +969,13 @@ class CustomerAuthController extends Controller
 
         // ✅ Generate Passport token
         $token = null;
-  
-            $token = $user->createToken('RestaurantCustomerAuth')->accessToken;
 
-            if (isset($request_data['guest_id'])) {
-                $this->check_guest_cart($user, $request_data['guest_id']);
-            }
-     
+        $token = $user->createToken('RestaurantCustomerAuth')->accessToken;
+
+        if (isset($request_data['guest_id'])) {
+            $this->check_guest_cart($user, $request_data['guest_id']);
+        }
+
         // --------- APP DATA ----------
         $appData = null;
         $app = $user->client->app->first();
@@ -1020,11 +1021,9 @@ class CustomerAuthController extends Controller
                 })->values(),
             ];
         }
-
         // --------- CLIENT DATA ----------
         $clientData = null;
         if ($user->client) {
-
             $clientData = [
                 'id' => $user->client->id,
                 'name' => $user->client->name,
@@ -1039,7 +1038,6 @@ class CustomerAuthController extends Controller
                 'app' => $appData,
             ];
         }
-
         // ✅ FINAL RESPONSE (exact same structure)
         return response()->json([
             'token' => $token,
@@ -1057,7 +1055,6 @@ class CustomerAuthController extends Controller
             'client' => $clientData,
         ], 200);
     }
-
     private function manual_login($request_data)
     {
         // Determine credentials based on field type
@@ -1099,6 +1096,9 @@ class CustomerAuthController extends Controller
 
         $is_personal_info = $user->f_name ? 1 : 0;
         $user->login_medium = 'manual';
+        $city = $this->getCityFromLatLng($request_data['request']['latitude'], $request_data['request']['longitude']);
+        $user->last_active_city = $city;
+
         $user->save();
 
         $user_email = $user->email ?? null;
@@ -1486,7 +1486,7 @@ class CustomerAuthController extends Controller
         if ($validator->fails()) {
             return response()->json(['errors' => Helpers::error_processor($validator)], 403);
         }
- 
+
         $ref_by = null;
         $name = $request->name;
         $nameParts = explode(' ', $name, 2);
@@ -1677,6 +1677,45 @@ class CustomerAuthController extends Controller
         return response()->json([
             'errors' => $errors
         ], 403);
+    }
+    private function getCityFromLatLng($latitude, $longitude)
+    {
+        try {
+            $response = Http::timeout(10)
+                ->withHeaders([
+                    'User-Agent' => 'LaravelApp'
+                ])
+                ->get('https://nominatim.openstreetmap.org/reverse', [
+                    'format' => 'json',
+                    'lat' => $latitude,
+                    'lon' => $longitude,
+                    'addressdetails' => 1,
+                    'accept-language' => 'en' // 👈 force English
+                ]);
+
+            if ($response->successful()) {
+                $data = $response->json();
+
+                $city = $data['address']['city']
+                    ?? $data['address']['town']
+                    ?? $data['address']['village']
+                    ?? $data['address']['district']
+                    ?? null;
+
+                // Remove "District " if exists
+                if ($city) {
+                    $city = str_replace('District ', '', $city);
+                }
+
+                return $city;
+            }
+
+            return null;
+
+        } catch (\Exception $e) {
+            \Log::error('Reverse Geocoding Error: ' . $e->getMessage());
+            return null;
+        }
     }
 
 }

@@ -27,6 +27,7 @@ class User extends Authenticatable
         'ref_by',
         'is_active',
         'client_id',
+        'last_active_city',
     ];
 
     /**

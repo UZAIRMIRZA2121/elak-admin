@@ -90,7 +90,7 @@ Route::group(['namespace' => 'Api\V1', 'middleware' => 'localization'], function
     Route::group(['prefix' => 'auth', 'namespace' => 'Auth'], function () {
         Route::post('sign-up', 'CustomerAuthController@register');
         Route::post('login', 'CustomerAuthController@login');
-        Route::post('ref-login', 'CustomerAuthController@refCodeLogin');
+    
         Route::post('external-login', 'CustomerAuthController@customerLoginFromDrivemond');
         Route::post('verify-phone', 'CustomerAuthController@verify_phone_or_email');
         Route::post('update-info', 'CustomerAuthController@update_info');
