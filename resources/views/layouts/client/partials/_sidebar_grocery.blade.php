@@ -61,19 +61,19 @@
                     </li>
 
 
-                   <li class="navbar-vertical-aside-has-menu ">
+                   <li class="navbar-vertical-aside-has-menu {{ Request::routeIs('all_user.user_*') || Request::routeIs('all_user.user_data') ? 'show active' : '' }}">
                     <a class="js-navbar-vertical-aside-menu-link nav-link" href="{{route('all_user.user_data')}}" title="">
                          <span class="tio-calendar-note nav-icon"></span>
                         <span class="text-truncate"> User Management</span>
                     </a>
                 </li>
-                   <li class="navbar-vertical-aside-has-menu ">
+                   <li class="navbar-vertical-aside-has-menu {{ Request::routeIs('all_user.notification') ? 'show active' : '' }}">
                     <a class="js-navbar-vertical-aside-menu-link nav-link" href="{{route('all_user.notification')}}" title="">
                          <span class="tio-calendar-note nav-icon"></span>
                         <span class="text-truncate"> Notification</span>
                     </a>
                 </li>
-                   <li class="navbar-vertical-aside-has-menu ">
+                   <li class="navbar-vertical-aside-has-menu {{ Request::routeIs('all_user.voucher_list') ? 'show active' : '' }}">
                     <a class="js-navbar-vertical-aside-menu-link nav-link" href="{{route('all_user.voucher_list')}}" title="">
                          <span class="tio-calendar-note nav-icon"></span>
                         <span class="text-truncate"> Voucher List</span>
