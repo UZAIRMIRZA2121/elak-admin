@@ -92,6 +92,10 @@ class User extends Authenticatable
     {
         return $this->hasMany(Order::class)->where('is_guest', 0);
     }
+    public function all_orders()
+    {
+        return $this->hasMany(Order::class);
+    }
     public function trips()
     {
         return $this->hasMany(Trips::class)->where('is_guest', 0);

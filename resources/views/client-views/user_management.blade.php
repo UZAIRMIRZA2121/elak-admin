@@ -84,8 +84,8 @@
                                 <td>{{ $user->updated_at ? $user->updated_at->format('Y-m-d') : '-' }}</td>
                                 <td>
                                     <div class="btn--container justify-content-center">
-                                        <button class="btn btn-sm btn-outline-primary">{{ translate('messages.Amendment') }}</button>
-                                        <button class="btn btn-sm btn-outline-info">{{ translate('messages.Redeems') }} (0)</button>
+                                        <a href="{{ route('all_user.user_edit', [$user->id]) }}" class="btn btn-sm btn-outline-primary">{{ translate('messages.Amendment') }}</a>
+                                        <a href="{{ route('all_user.voucher_list', ['user_id' => $user->id]) }}" class="btn btn-sm btn-outline-info">{{ translate('messages.Redeems') }} ({{ $user->all_orders_count }})</a>
                                         <button class="btn btn-sm btn-outline-success"><i class="tio-lock-opened"></i> {{ translate('messages.words.unlock') }}</button>
                                         <button class="btn btn-sm btn-outline-danger"><i class="tio-delete"></i> {{ translate('messages.delete') }}</button>
                                     </div>

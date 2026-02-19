@@ -18,6 +18,7 @@ use App\Models\OrderTransaction;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Config;
+use Brian2694\Toastr\Facades\Toastr;
 
 class UserAllDataController extends Controller
 {
@@ -28,7 +29,8 @@ class UserAllDataController extends Controller
         $search = $request['search'];
         $client_id = auth('client')->id();
 
-        $users = User::where('client_id', $client_id)
+        $users = User::withCount('all_orders')
+            ->where('client_id', $client_id)
             ->when(isset($search), function ($query) use ($search) {
                 $keys = explode(' ', $search);
                 foreach ($keys as $key) {
@@ -60,11 +62,15 @@ class UserAllDataController extends Controller
         $search = $request['search'];
         $store_name = $request['store_name'];
         $zone_id = $request['zone_id'];
+        $user_id = $request['user_id'];
         $client_id = auth('client')->id();
 
         $userIds = User::where('client_id', $client_id)->pluck('id');
         $orders = Order::with(['customer.segment', 'store', 'zone'])
             ->whereIn('user_id', $userIds)
+            ->when(isset($user_id), function ($query) use ($user_id) {
+                $query->where('user_id', $user_id);
+            })
             ->when(isset($search), function ($query) use ($search) {
                 $query->whereHas('customer', function ($q) use ($search) {
                     $q->where('f_name', 'LIKE', '%' . $search . '%')
@@ -86,5 +92,48 @@ class UserAllDataController extends Controller
         $zones = \App\Models\Zone::active()->get();
 
         return view('client-views.voucher_list', compact('orders', 'search', 'zones', 'store_name', 'zone_id'));
+    }
+
+    public function edit($id)
+    {
+        $client_id = auth('client')->id();
+        $user = User::where(['id' => $id, 'client_id' => $client_id])->first();
+        if (!$user) {
+            Toastr::error(translate('messages.user_not_found'));
+            return back();
+        }
+        return view('client-views.user_edit', compact('user'));
+    }
+
+    public function update(Request $request, $id)
+    {
+        $request->validate([
+            'f_name' => 'required',
+            'l_name' => 'required',
+            'username' => 'required|unique:users,username,' . $id,
+            'password' => 'nullable|min:6',
+        ], [
+            'f_name.required' => translate('messages.first_name_is_required'),
+            'l_name.required' => translate('messages.last_name_is_required'),
+        ]);
+
+        $client_id = auth('client')->id(); 
+        $user = User::where(['id' => $id, 'client_id' => $client_id])->first();
+        
+        if (!$user) {
+            Toastr::error(translate('messages.user_not_found'));
+            return back();
+        }
+
+        $user->f_name = $request->f_name;
+        $user->l_name = $request->l_name;
+        $user->username = $request->username;
+        if ($request->password) {
+            $user->password = bcrypt($request->password);
+        }
+        $user->save();
+
+        Toastr::success(translate('messages.user_updated_successfully'));
+        return redirect()->route('all_user.user_data');
     }
 }
