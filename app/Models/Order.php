@@ -16,11 +16,11 @@ class Order extends Model
 
     protected $casts = [
         'order_amount' => 'float',
-        
+
         // New columns immediately after order_amount
         'total_order_amount' => 'float', // total amount including all fees/discounts
         'offer_type' => 'string',        // offer type, e.g., 'direct discount', 'voucher', etc.
-
+        'discount_amount' => 'float',
         'coupon_discount_amount' => 'float',
         'total_tax_amount' => 'float',
         'store_discount_amount' => 'float',

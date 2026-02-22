@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Models\Cart;
 use App\Models\Item;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use App\CentralLogics\Helpers;
 use App\Http\Controllers\Controller;
@@ -16,10 +17,10 @@ class CartController extends Controller
 
     public function status_cart(Request $request)
     {
-            $validator = Validator::make(
+        $validator = Validator::make(
             $request->all(),
             [
-                'cart_id'     => 'required',
+                'cart_id' => 'required',
                 'status' => 'required|in:pending,approved,rejected,status_cart',
             ],
             [
@@ -104,7 +105,37 @@ class CartController extends Controller
                 ]
             ], 403);
         }
+        if ($item->voucher_ids === 'Flat discount') {
+            $config = json_decode($item->discount_configuration, true); // Decode JSON to array
 
+            $price = $request->price;
+            $selectedTier = null;
+
+            // Loop through config to find matching tier
+            foreach ($config as $row) {
+                if ($price >= $row['min_amount'] && $price <= $row['max_amount']) {
+                    $selectedTier = $row;
+                    break;
+                }
+            }
+
+            // Check if a tier was found
+            if ($selectedTier) {
+                // Price is valid, continue processing
+                // Example: calculate bonus
+                $bonus = ($price * $selectedTier['bonus_percentage']) / 100;
+                $totalPaid = $price + $bonus;
+
+                // Continue your logic
+                // dd($selectedTier, $bonus, $totalPaid);
+            } else {
+                // Price does not fall in any tier, return error
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'The price does not qualify for any discount tier for this voucher.'
+                ], 400);
+            }
+        }
 
         $cart = new Cart();
         $cart->cart_group = $request->cart_group; // ✅ new column
@@ -142,21 +173,41 @@ class CartController extends Controller
                 return $data;
             });
 
+
         if ($cart->status === 'pending') {
 
-            $maxWait = 120; // seconds (2 minutes)
-            $interval = 5;  // check every 5 seconds
+            // Time limit = 5 minutes
+            $expireTime = Carbon::parse($cart->created_at)->addMinutes(5);
+            $now = Carbon::now();
+
+            // ✅ If already expired → auto mark not responded
+            if ($now->greaterThanOrEqualTo($expireTime)) {
+
+                $cart->status = 'not_responded';
+                $cart->save();
+
+                return response()->json([
+                    'cart_id' => $cart->id,
+                    'status' => 'not_responded',
+                    'message' => 'Vendor did not respond in time'
+                ], 408);
+            }
+
+            // ✅ Otherwise wait until expire or vendor response
+            $maxWait = $expireTime->diffInSeconds($now);
+            $interval = 5;
             $elapsed = 0;
 
             while ($elapsed < $maxWait) {
+
                 sleep($interval);
                 $elapsed += $interval;
 
-                // Reload cart status
                 $cart->refresh();
 
-                // Vendor responded (approved / rejected)
+                // Vendor responded
                 if ($cart->status !== 'pending') {
+
                     return response()->json([
                         'cart_id' => $cart->id,
                         'status' => $cart->status,
@@ -165,7 +216,7 @@ class CartController extends Controller
                 }
             }
 
-            // ⛔ Vendor did NOT respond in time → update status
+            // ✅ Time finished → auto update
             $cart->status = 'not_responded';
             $cart->save();
 
@@ -173,7 +224,7 @@ class CartController extends Controller
                 'cart_id' => $cart->id,
                 'status' => 'not_responded',
                 'message' => 'Vendor did not respond in time'
-            ], 408); // 408 = Request Timeout
+            ], 408);
         }
         return response()->json($carts, 200);
 

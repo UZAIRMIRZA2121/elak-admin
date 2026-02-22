@@ -318,7 +318,7 @@ trait PlaceNewOrder
 
                     $order_details = $this->makeOrderDetails($carts, $request, $order, $store);
                     $order_status = $order_details['status'] ?? $order_status;
-
+                    
                     if (data_get($order_details, 'status_code') === 403) {
                         DB::rollBack();
                         return response()->json([
@@ -1093,7 +1093,7 @@ trait PlaceNewOrder
         $product_data = [];
         $order_details = [];
         $discount_type = '';
-        $status = '';
+        $status = 'pending';
         $discount_on_product_by = 'vendor';
         foreach ($carts as $c) {
             $variations = [];
@@ -1105,7 +1105,7 @@ trait PlaceNewOrder
                 $product = Item::with('module')->active()->find($c['item_id']);
             }
             if ($product) {
-                if ($product->type == 'voucher' || $product->voucher_ids == 'In-Store') {
+              if ($product->type == 'voucher' && $product->voucher_ids == 'In-Store'   ) {
                     $status = 'hold';
 
                 }

@@ -835,16 +835,20 @@ class OrderController extends Controller
                 'name' => $cart->user->f_name . ' ' . $cart->user->l_name,
                 'phone' => $cart->user->phone
             ];
+     
 
         return response()->json([
             'success' => true,
+
             'cart' => [
                 'id' => $cart->id,
-                'item' => ucwords($cart->item->name),
                 'quantity' => $cart->quantity,
                 'total' => $cart->price * $cart->quantity,
-                'status' => $cart->status
+                'status' => $cart->status,
+                'created' => $cart->created_at
             ],
+
+            'item' => $cart->item,
             'user' => $user
         ]);
     }

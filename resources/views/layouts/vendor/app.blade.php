@@ -226,41 +226,93 @@ $moduleType = $store?->module?->module_type;
         </div>
 
 
- 
-            <div class="modal fade" id="newCartModal">
-                <div class="modal-dialog modal-dialog-centered" role="document">
-                    <div class="modal-content">
 
-                        <div class="modal-header">
-                            <h5 class="modal-title">New Flat Voucher Notification</h5>
-                            <button type="button" class="close" data-dismiss="modal">&times;</button>
+        <div class="modal fade" id="newCartModal">
+            <div class="modal-dialog modal-dialog-centered" role="document">
+                <div class="modal-content">
+
+                    <!-- Header -->
+                    <div class="modal-header text-center">
+                        <h5 class="modal-title w-100">
+                            🔔 NEW DISCOUNT REQUEST
+                        </h5>
+                        <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    </div>
+
+                    <!-- Body -->
+                    <div class="modal-body" id="new-cart-content">
+
+                        <div style="border-top:1px dashed #ccc;border-bottom:1px dashed #ccc;padding:15px 0;">
+
+                            <p>
+                                <strong>CUSTOMER:</strong>
+                                <span id="nc-customer"></span>
+                            </p>
+
+                            <p>
+                                <strong>VOUCHER ID:</strong>
+                                <span id="nc-item">#FLAT-990 (Flat 10% Off)</span>
+                            </p>
+
                         </div>
 
-                        <div class="modal-body" id="new-cart-content">
-                            <div class="text-center">
-                                <i class="tio-shopping-cart-outlined" style="font-size: 50px;"></i>
-                                <h4 class="mt-3" id="new-cart-message">You have a new order, check please.</h4>
-                                <hr>
-                                <p><strong>Customer:</strong> <span id="nc-customer"></span></p>
-                                <p><strong>Phone:</strong> <span id="nc-phone"></span></p>
-                                <p><strong>Item:</strong> <span id="nc-item"></span></p>
-                                <p><strong>Quantity:</strong> <span id="nc-qty"></span></p>
-                                <p><strong>Total:</strong> <span id="nc-total"></span></p>
-                            </div>
-                        </div>
 
-                        <div class="modal-footer justify-content-center">
-                            <a href="javascript:void(0)" class="btn btn-success" id="nc-approve">
-                                Approve
-                            </a>
-                            <a href="javascript:void(0)" class="btn btn-danger" id="nc-reject">
-                                Reject
-                            </a>
-                        </div>
+                        <br>
+
+                        <!-- Billing Summary -->
+                        <h6><strong>BILLING SUMMARY:</strong></h6>
+
+
+
+                        <p>
+                            <strong>Total Bill: {{ $currency = config('currency') }}</strong>
+                            <span id="nc-total"></span>
+                        </p>
+
+                        <p>
+                            <strong>Discount Type:</strong>
+                            <span id="nc-item-discount-type">Instant Discount</span>
+                        </p>
+
+                        <p>
+                            <strong>Selected Configuration:</strong>
+                            <span id="nc-item-discount-configuration">$200 - $999 (10% Bonus)</span>
+                        </p>
+
+                        <p>
+                            <strong>Discount / Wallet:</strong>
+                            <span id="nc-bonus"></span>
+                        </p>
+
+
+
+                        <hr>
+
+                        <h5 class="text-center">
+                            💰 CUSTOMER WILL PAY: {{ $currency = config('currency') }}
+                            <strong id="nc-pay"></strong>
+                        </h5>
+
+                        <hr>
+
+                        <p class="text-center">
+                            ⏳ AUTO-REJECT IN:
+                            <strong id="nc-countdown">04:52</strong>
+                        </p>
 
                     </div>
+                    <div class="modal-footer justify-content-center">
+                        <a href="javascript:void(0)" class="btn btn-success" id="nc-approve">
+                            Approve
+                        </a>
+                        <a href="javascript:void(0)" class="btn btn-danger" id="nc-reject">
+                            Reject
+                        </a>
+                    </div>
+
                 </div>
             </div>
+        </div>
 
 
 
@@ -286,7 +338,7 @@ $moduleType = $store?->module?->module_type;
     {!! Toastr::message() !!}
     <script src="{{ asset('public/assets/admin/intltelinput/js/intlTelInput.min.js') }}"></script>
 
- 
+
 
     @if ($errors->any())
         <script>
@@ -940,9 +992,7 @@ $moduleType = $store?->module?->module_type;
         }
     </script>
 
-
-
-   <script>
+    <script>
         function checkNewCart() {
             $.ajax({
                 url: "{{ route('vendor.flate.order.check-new') }}",
@@ -952,41 +1002,113 @@ $moduleType = $store?->module?->module_type;
 
                         const cart = response.cart;
                         const user = response.user;
+                        const item = response.item;
 
-                        // Fill modal content
+                        // Parse discount configuration
+                        let config = JSON.parse(item.discount_configuration);
+
+                        // Ensure totalBill is a number
+                        let totalBill = Number(cart.total);
+
+                        let selectedTier = '';
+                        let bonusAmount = 0;
+                        let tierFound = false;
+
+                        // Check which tier the customer falls into
+                        config.forEach(function(row) {
+                            let min = Number(row.min_amount);
+                            let max = Number(row.max_amount);
+                            let bonusPercentage = Number(row.bonus_percentage);
+
+                            if (totalBill >= min && totalBill <= max) {
+                                selectedTier = `$${min} - $${max} (${bonusPercentage}% Bonus)`;
+                                bonusAmount = (totalBill * bonusPercentage) / 100;
+                                tierFound = true;
+                            }
+                        });
+
+                        if (!tierFound) {
+                            alert("This order does not qualify for any discount tier.");
+                            return;
+                        }
+
+                        let finalPay = totalBill;
+                        let walletAmount = 0;
+
+                        if (item.discount_type === 'direct_discount') {
+                            finalPay = totalBill - bonusAmount;
+                        } else {
+                            walletAmount = bonusAmount;
+                            finalPay = totalBill;
+                        }
+                        console.log("Cart :", cart);
+                        console.log("Selected Tier:", selectedTier);
+                     
+                        // Update modal content
+                        $('#nc-item-discount-configuration').text(selectedTier);
                         $('#nc-customer').text(user.name);
                         $('#nc-phone').text(user.phone);
-                        $('#nc-item').text(cart.item);
+                        $('#nc-item').text(item.name);
+                        $('#nc-item-discount-type').text(item.discount_type);
                         $('#nc-qty').text(cart.quantity);
-                        $('#nc-total').text(cart.total);
+                        $('#nc-total').text(`$${totalBill.toFixed(2)}`);
+                        $('#nc-bonus').text(`$${bonusAmount.toFixed(2)}`);
+                        $('#nc-pay').text(`$${finalPay.toFixed(2)}`);
 
-                        // Generate URLs dynamically
                         let approveUrl =
                             "{{ route('vendor.flate.order.update-status', ['id' => ':id', 'status' => 'approved']) }}";
                         let rejectUrl =
                             "{{ route('vendor.flate.order.update-status', ['id' => ':id', 'status' => 'rejected']) }}";
-
                         approveUrl = approveUrl.replace(':id', cart.id);
                         rejectUrl = rejectUrl.replace(':id', cart.id);
 
-                        // Set URLs on buttons
                         $('#nc-approve').attr('href', approveUrl);
                         $('#nc-reject').attr('href', rejectUrl);
 
-                        // Show modal
                         $('#newCartModal').modal('show');
+
+                        // Countdown Timer
+                   // Suppose cart.created_at is a Unix timestamp (seconds)
+const cartCreatedRaw = cart.created; 
+
+console.log("Raw cart created time:", cartCreatedRaw);
+
+// Convert to JS Date
+// If timestamp is in seconds, multiply by 1000
+const cartCreated = new Date(cartCreatedRaw * 1000);
+
+// 5 minutes expiry
+const expireTime = new Date(cartCreated.getTime() + 5 * 60 * 1000);
+
+const countdownInterval = setInterval(function() {
+    const now = new Date();
+    let diff = Math.floor((expireTime - now) / 1000); // seconds left
+
+    if (diff <= 0) {
+        clearInterval(countdownInterval);
+        $('#nc-countdown').text("00:00");
+        // Auto reject
+        window.location.href = rejectUrl; 
+        return;
+    }
+
+    let minutes = Math.floor(diff / 60);
+    let seconds = diff % 60;
+
+    $('#nc-countdown').text(
+        `${minutes.toString().padStart(2,'0')}:${seconds.toString().padStart(2,'0')}`
+    );
+
+}, 1000);
+
                     }
                 }
             });
-
         }
 
-        // Auto-check every 5-10 seconds
-        setInterval(checkNewCart, 1000); // 10 seconds
-
+        // Auto-check every 3 seconds
+        setInterval(checkNewCart, 3000);
     </script>
-
-
 </body>
 
 </html>
