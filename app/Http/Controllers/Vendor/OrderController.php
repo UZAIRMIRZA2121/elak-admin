@@ -88,7 +88,7 @@ class OrderController extends Controller
             ->paginate(config('default_pagination'));
 
         $voucher_types = VoucherType::where('status', 'active')->get();
-
+        
         return view('vendor-views.order.list', compact('orders', 'status', 'voucher_types'));
     }
 
@@ -793,6 +793,9 @@ class OrderController extends Controller
             })
             ->with('item') // eager load item for performance
             ->get();
+
+
+            
         // dd( $orders , $store_id);
         // 3️⃣ Pass to view
         return view('vendor-views.flat-order.list', compact('orders', 'status'));
@@ -843,7 +846,7 @@ class OrderController extends Controller
             'cart' => [
                 'id' => $cart->id,
                 'quantity' => $cart->quantity,
-                'total' => $cart->price * $cart->quantity,
+                'total_price' => $cart->total_price * $cart->quantity,
                 'status' => $cart->status,
                 'created' => $cart->created_at
             ],

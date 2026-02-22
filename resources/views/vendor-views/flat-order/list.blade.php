@@ -207,12 +207,16 @@
                 }'>
                     <thead class="thead-light">
                         <tr>
-                            <th class="border-0">{{ translate('messages.#') }}</th>
+                            {{-- <th class="border-0">{{ translate('messages.#') }}</th> --}}
                             {{-- <th class="border-0 table-column-pl-0">{{ translate('messages.cart_id') }}</th> --}}
+                            <th class="border-0">{{ translate('messages.voucher') }}</th>
+
                             <th class="border-0">{{ translate('messages.date') }}</th>
                             <th class="border-0">{{ translate('messages.customer_information') }}</th>
-                            <th class="border-0">{{ translate('messages.voucher') }}</th>
+                            <th class="border-0">{{ translate('messages.type') }}</th>
                             <th class="border-0">{{ translate('messages.total_amount') }}</th>
+                            <th class="border-0">{{ translate('messages.discount_amount') }}</th>
+                            <th class="border-0">{{ translate('messages.amount_paid') }}</th>
                             <th class="border-0 text-center">{{ translate('messages.status') }}</th>
                             <th class="border-0 text-center">{{ translate('messages.actions') }}</th>
                         </tr>
@@ -221,12 +225,14 @@
                     <tbody id="set-rows">
                         @foreach ($orders as $key => $cart)
                             <tr class="status-{{ $cart->status }} class-all">
-                                <td>{{ $key + 1 }}</td>
+                                {{-- <td>{{ $key + 1 }}</td> --}}
 
                                 {{-- <td class="table-column-pl-0">
                                     <a href="#">{{ $cart->id }}</a>
                                 </td> --}}
-
+                            <td>
+                                    {!! wordwrap(ucwords($cart->item->name), 10, "<br>", true) !!}
+                                </td>
                                 <td>
                                     <div>{{ \Carbon\Carbon::parse($cart->created_at)->format('d M Y') }}</div>
                                     <div class="d-block text-uppercase">
@@ -247,18 +253,19 @@
                                             class="badge badge-danger">{{ translate('messages.invalid_customer_data') }}</label>
                                     @endif
                                 </td>
-                                <td>
-
-                                    {{ ucwords($cart->item->name) }}
 
 
-                                </td>
 
+                                <td> Instant Discount</td>
+
+                                <td>    {{ \App\CentralLogics\Helpers::format_currency($cart->total_price) }}</td>
+                                <td>   {{ \App\CentralLogics\Helpers::format_currency($cart->discount_amount) }} </td>
                                 <td>
                                     <div class="text-right mw--85px">
-                                        {{ \App\CentralLogics\Helpers::format_currency($cart->price * $cart->quantity) }}
+                                        {{ \App\CentralLogics\Helpers::format_currency($cart->price) }}
                                     </div>
                                 </td>
+
 
                                 <td class="text-capitalize text-center">
                                     @if ($cart->status == 'pending')
@@ -273,30 +280,31 @@
                                 </td>
 
                                 <td>
-                                    <div class="btn--container justify-content-center">
-                              
-                                        <!-- View -->
-                                        {{-- <a class="btn btn-sm btn--warning btn-outline-warning action-btn"
-                                            href="{{ route('vendor.flate.order.list', ['status' => 'all']) }}">
-                                            <i class="tio-visible-outlined"></i>
+                                    @if($cart->status == 'pending')
+                                        <div class="btn--container justify-content-center">
 
-                                        </a> --}}
+                                            <!-- View -->
+                                            {{-- <a class="btn btn-sm btn--warning btn-outline-warning action-btn"
+                                                href="{{ route('vendor.flate.order.list', ['status' => 'all']) }}">
+                                                <i class="tio-visible-outlined"></i>
 
-                                        <!-- Approve -->
-                                        <a class="btn btn-sm btn--primary btn-outline-primary action-btn"
-                                            href="{{ route('vendor.flate.order.update-status', ['id' => $cart->id, 'status' => 'approved']) }}">
-                                            <i class="tio-done"></i>
+                                            </a> --}}
 
 
-                                        </a>
+                                            <!-- Approve -->
+                                            <a class="btn btn-sm btn--primary btn-outline-primary action-btn"
+                                                href="{{ route('vendor.flate.order.update-status', ['id' => $cart->id, 'status' => 'approved']) }}">
+                                                <i class="tio-done"></i>
+                                            </a>
 
-                                        <!-- Reject -->
-                                        <a class="btn btn-sm btn--danger btn-outline-danger action-btn"
-                                            href="{{ route('vendor.flate.order.update-status', ['id' => $cart->id, 'status' => 'rejected']) }}">
-                                            <i class="tio-clear-circle"></i>
-                                        </a>
+                                            <!-- Reject -->
+                                            <a class="btn btn-sm btn--danger btn-outline-danger action-btn"
+                                                href="{{ route('vendor.flate.order.update-status', ['id' => $cart->id, 'status' => 'rejected']) }}">
+                                                <i class="tio-clear-circle"></i>
+                                            </a>
 
-                                    </div>
+                                        </div>
+                                    @endif
                                 </td>
 
                             </tr>

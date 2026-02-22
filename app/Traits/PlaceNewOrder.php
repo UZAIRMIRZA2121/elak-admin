@@ -48,7 +48,7 @@ trait PlaceNewOrder
         $validator = Validator::make($request->all(), [
             'order_amount' => 'required',
             'payment_method' => 'required|in:cash_on_delivery,digital_payment,wallet,offline_payment',
-            'order_type' => 'required|in:take_away,delivery,parcel',
+            'order_type' => 'nullable|in:take_away,delivery,parcel,flat',
             'store_id' => ':order_type,parcel',
             'distance' => 'required_unless:order_type,take_away',
             'address' => 'required_unless:order_type,take_away',
@@ -512,11 +512,14 @@ trait PlaceNewOrder
             $order->order_amount = $request['order_amount'] ?? 0;
             $order->order_status = $order_status;
             $order->voucher_type = $carts[0]['type'] ?? null;
+            $order->order_type = $request['order_type'] ?? $carts[0]['type'] ?? null ;
 
 
             $order->offer_type = $carts[0]['offer_type'] ?? null;
             $order->total_order_amount = $carts[0]['total_price'] ?? null;
             $order->discount_amount = $carts[0]['discount_amount'] ?? null;
+
+
             $order->save();
             // dd($order);
 

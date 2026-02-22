@@ -161,7 +161,7 @@ class CartController extends Controller
 
 //         dd($result);
 
-
+        
         $cart->price = $request->price;
         $cart->total_price = $request->total_price ?? null;
         $cart->offer_type = $request->offer_type ?? null;

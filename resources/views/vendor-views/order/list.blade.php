@@ -337,15 +337,22 @@
                                             {{ str_replace('_', ' ', $order['order_status']) }}
                                         </span>
                                     @endif
+                               
                                     @if ($order['order_type'] == 'take_away')
                                         <div class="text-info mt-1">
                                             {{ translate('messages.take_away') }}
+                                        </div>
+                                    @elseif ($order['order_type'] == 'Flat discount')
+                                         <div class="text-info mt-1">
+                                            {{ translate('messages.flat_discount') }}
                                         </div>
                                     @else
                                         <div class="text-title mt-1">
                                             {{ translate('messages.home Delivery') }}
                                         </div>
                                     @endif
+
+
                                 </td>
                                 <td>
                                     <div class="btn--container justify-content-center">

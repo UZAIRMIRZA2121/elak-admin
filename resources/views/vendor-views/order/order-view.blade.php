@@ -14,21 +14,7 @@
     ?>
     <?php
     
-    function arrayToString($value)
-    {
-        // If this is a variation array
-        if (is_array($value) && isset($value['name'], $value['values'][0])) {
-            $label = $value['values'][0]['label'] ?? '';
-            return $value['name'] . ' : ' . $label;
-        }
-    
-        // Recursive fallback (for nested arrays)
-        if (is_array($value)) {
-            return implode(', ', array_map('arrayToString', $value));
-        }
-    
-        return $value;
-    }
+  
     
     ?>
 
@@ -342,15 +328,11 @@
                                                                 <strong
                                                                     class="line--limit-1">{{ Str::limit($detail->item['name'], 25, '...') }}</strong>
                                                                 <span class="badge bg-warning">
-                                                                    {{ $product->type == 'voucher' ? 'voucher' : 'Item' }}
+                                                                   
                                                                 </span>
                                                                 <h6>
                                                                     {{ $detail['quantity'] }}
-                                                                    @if ($product->type == 'voucher')
-                                                                        x
-                                                                        {{ \App\CentralLogics\Helpers::format_currency($detail['price']) }}
-                                                                    @endif
-
+                                                                
                                                                 </h6>
                                                                 @if ($order->store && $order->store->module->module_type == 'food')
                                                                     @if (isset($detail['variation']) ? json_decode($detail['variation'], true) : [])

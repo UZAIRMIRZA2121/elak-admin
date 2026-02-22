@@ -227,7 +227,7 @@ $moduleType = $store?->module?->module_type;
 
 
 
-        <div class="modal fade" id="newCartModal">
+        <div class="modal fade d" id="newCartModal">
             <div class="modal-dialog modal-dialog-centered" role="document">
                 <div class="modal-content">
 
@@ -271,7 +271,7 @@ $moduleType = $store?->module?->module_type;
 
                         <p>
                             <strong>Discount Type:</strong>
-                            <span id="nc-item-discount-type">Instant Discount</span>
+                            <span id="">Instant Discount</span>
                         </p>
 
                         <p>
@@ -360,6 +360,7 @@ $moduleType = $store?->module?->module_type;
     <script src="{{ asset('public/assets/admin/js/keyword-highlighted.js') }}"></script>
 
     <script>
+        
         var audio = document.getElementById("myAudio");
 
         function playAudio() {
@@ -378,7 +379,9 @@ $moduleType = $store?->module?->module_type;
 
 
 
+
         $(document).on('ready', function() {
+              
             // $('body').css('overflow','')
             $(".direction-toggle").on("click", function() {
                 if ($('html').hasClass('active')) {
@@ -549,14 +552,17 @@ $moduleType = $store?->module?->module_type;
                 }
             })
         }
+    
         @php($order_notification_type = \App\Models\BusinessSetting::where('key', 'order_notification_type')->first())
         @php($order_notification_type = $order_notification_type ? $order_notification_type->value : 'firebase')
         let order_type = 'all';
         let is_trip = false;
 
         messaging.onMessage(function(payload) {
-
+         
             if (payload.data.order_id && payload.data.type === 'new_order') {
+               
+          
                 @if (\App\CentralLogics\Helpers::employee_module_permission_check('order') && $order_notification_type == 'firebase')
                     order_type = payload.data.order_type
                     if (order_type === 'trip') {
@@ -588,8 +594,9 @@ $moduleType = $store?->module?->module_type;
                 }
             }
         });
-
-        @if (\App\CentralLogics\Helpers::employee_module_permission_check('order') && $order_notification_type == 'manual')
+   
+    
+        @if ( $order_notification_type == 'manual')
             setInterval(function() {
                 $.get({
                     url: '{{ route('vendor.get-store-data') }}',
@@ -1008,7 +1015,7 @@ $moduleType = $store?->module?->module_type;
                         let config = JSON.parse(item.discount_configuration);
 
                         // Ensure totalBill is a number
-                        let totalBill = Number(cart.total);
+                        let totalBill = Number(cart.total_price);
 
                         let selectedTier = '';
                         let bonusAmount = 0;
@@ -1049,7 +1056,7 @@ $moduleType = $store?->module?->module_type;
                         $('#nc-customer').text(user.name);
                         $('#nc-phone').text(user.phone);
                         $('#nc-item').text(item.name);
-                        $('#nc-item-discount-type').text(item.discount_type);
+                        // $('#nc-item-discount-type').text(item.discount_type);
                         $('#nc-qty').text(cart.quantity);
                         $('#nc-total').text(`$${totalBill.toFixed(2)}`);
                         $('#nc-bonus').text(`$${bonusAmount.toFixed(2)}`);
