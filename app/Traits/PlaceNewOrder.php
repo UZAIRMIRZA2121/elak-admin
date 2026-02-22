@@ -43,9 +43,7 @@ trait PlaceNewOrder
     public function new_place_order(Request $request, $is_prescription = false)
     {
 
-        $result = calculate_discount(2000, 'cash back', 10);
 
-        dd($result);
 
         $validator = Validator::make($request->all(), [
             'order_amount' => 'required',
@@ -186,6 +184,7 @@ trait PlaceNewOrder
             $order = new Order();
             $order->id = $lastId + 1;
             $order->qr_code = $qr_code;
+
 
             $order_status = 'pending';
             if (($request->partial_payment && $request->payment_method != 'offline_payment') || $request->payment_method == 'wallet') {
@@ -514,6 +513,10 @@ trait PlaceNewOrder
             $order->order_status = $order_status;
             $order->voucher_type = $carts[0]['type'] ?? null;
 
+
+            $order->offer_type = $carts[0]['offer_type'] ?? null;
+            $order->total_order_amount = $carts[0]['total_price'] ?? null;
+            $order->discount_amount = $carts[0]['discount_amount'] ?? null;
             $order->save();
             // dd($order);
 

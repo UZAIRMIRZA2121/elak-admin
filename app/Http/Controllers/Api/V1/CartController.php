@@ -150,13 +150,19 @@ class CartController extends Controller
         $cart->add_on_ids = isset($request->add_on_ids) ? json_encode($request->add_on_ids) : json_encode([]);
         $cart->add_on_qtys = isset($request->add_on_qtys) ? json_encode($request->add_on_qtys) : json_encode([]);
         $cart->item_type = $request->model;
-        $cart->price = $request->price;
+      
         $cart->quantity = $request->quantity;
         $cart->variation = isset($request->variation) ? json_encode($request->variation) : json_encode([]);
         $cart->status = ($item->voucher_ids === 'Flat discount') ? 'pending' : null;
         $cart->type = $item->voucher_ids ?? null;
         $cart->gift_details = $request->gift_details ?? null;
 
+//   $result = calculate_discount(2000, , 10);
+
+//         dd($result);
+
+
+        $cart->price = $request->price;
         $cart->total_price = $request->total_price ?? null;
         $cart->offer_type = $request->offer_type ?? null;
         $cart->discount_amount = $request->discount_amount ?? null;
