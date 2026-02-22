@@ -42,6 +42,11 @@ trait PlaceNewOrder
 
     public function new_place_order(Request $request, $is_prescription = false)
     {
+
+        $result = calculate_discount(2000, 'cash back', 10);
+
+        dd($result);
+
         $validator = Validator::make($request->all(), [
             'order_amount' => 'required',
             'payment_method' => 'required|in:cash_on_delivery,digital_payment,wallet,offline_payment',
@@ -318,7 +323,7 @@ trait PlaceNewOrder
 
                     $order_details = $this->makeOrderDetails($carts, $request, $order, $store);
                     $order_status = $order_details['status'] ?? $order_status;
-                    
+
                     if (data_get($order_details, 'status_code') === 403) {
                         DB::rollBack();
                         return response()->json([
@@ -612,12 +617,12 @@ trait PlaceNewOrder
                 $customer = $request->user;
                 $customer->zone_id = $order->zone_id;
                 $customer->save();
-          
+
                 if ($loyalty_point_status == 1) {
                     CustomerLogic::create_loyalty_point_transaction($order->user_id, $order->id, $order->order_amount, 'order_place');
                 }
 
-  
+
 
 
                 if ($request->payment_method == 'wallet')
@@ -1105,7 +1110,7 @@ trait PlaceNewOrder
                 $product = Item::with('module')->active()->find($c['item_id']);
             }
             if ($product) {
-              if ($product->type == 'voucher' && $product->voucher_ids == 'In-Store'   ) {
+                if ($product->type == 'voucher' && $product->voucher_ids == 'In-Store') {
                     $status = 'hold';
 
                 }

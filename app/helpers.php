@@ -17,14 +17,14 @@ use App\Models\SubscriptionBillingAndRefundHistory;
 use Brian2694\Toastr\Facades\Toastr;
 use Modules\Rental\Entities\Trips;
 
-if (! function_exists('translate')) {
+if (!function_exists('translate')) {
     function translate($key, $replace = [])
     {
-        if(strpos($key, 'validation.') === 0 || strpos($key, 'passwords.') === 0 || strpos($key, 'pagination.') === 0 || strpos($key, 'order_texts.') === 0) {
+        if (strpos($key, 'validation.') === 0 || strpos($key, 'passwords.') === 0 || strpos($key, 'pagination.') === 0 || strpos($key, 'order_texts.') === 0) {
             return trans($key, $replace);
         }
 
-        $key = strpos($key, 'messages.') === 0?substr($key,9):$key;
+        $key = strpos($key, 'messages.') === 0 ? substr($key, 9) : $key;
         $local = app()->getLocale();
         try {
             $lang_array = include(base_path('resources/lang/' . $local . '/messages.php'));
@@ -47,17 +47,19 @@ if (! function_exists('translate')) {
     }
 }
 
-if (! function_exists('collect_cash_fail')) {
-    function collect_cash_fail($data){
+if (!function_exists('collect_cash_fail')) {
+    function collect_cash_fail($data)
+    {
         return 0;
     }
 }
-if (! function_exists('collect_cash_success')) {
-    function collect_cash_success($data){
+if (!function_exists('collect_cash_success')) {
+    function collect_cash_success($data)
+    {
 
         try {
             $account_transaction = new AccountTransaction();
-            if($data->attribute === 'store_collect_cash_payments'){
+            if ($data->attribute === 'store_collect_cash_payments') {
                 $store = Store::where('vendor_id', $data->attribute_id)->first();
                 $store->status = 1;
                 $store->save();
@@ -66,8 +68,7 @@ if (! function_exists('collect_cash_success')) {
                 $account_transaction->from_type = 'store';
                 $account_transaction->from_id = $store?->vendor?->id;
                 $account_transaction->created_by = 'store';
-            }
-            elseif($data->attribute === 'deliveryman_collect_cash_payments'){
+            } elseif ($data->attribute === 'deliveryman_collect_cash_payments') {
                 $user_data = DeliveryMan::findOrFail($data->attribute_id);
                 $user_data->status = 1;
                 $user_data->save();
@@ -75,8 +76,7 @@ if (! function_exists('collect_cash_success')) {
                 $account_transaction->from_type = 'deliveryman';
                 $account_transaction->from_id = $user_data->id;
                 $account_transaction->created_by = 'deliveryman';
-            }
-            else{
+            } else {
                 return 0;
             }
             $account_transaction->method = $data->payment_method;
@@ -87,7 +87,7 @@ if (! function_exists('collect_cash_success')) {
             DB::beginTransaction();
             $account_transaction->save();
             $user_data?->wallet?->decrement('collected_cash', $account_transaction->amount);
-            AdminWallet::where('admin_id', Admin::where('role_id', 1)->first()->id)->increment('digital_received',  $account_transaction->amount );
+            AdminWallet::where('admin_id', Admin::where('role_id', 1)->first()->id)->increment('digital_received', $account_transaction->amount);
 
             DB::commit();
 
@@ -100,8 +100,8 @@ if (! function_exists('collect_cash_success')) {
 
 
         try {
-            if($data->attribute == 'deliveryman_collect_cash_payments' && config('mail.status') &&  Helpers::getNotificationStatusData('deliveryman','deliveryman_collect_cash','mail_status') && Helpers::get_mail_status('cash_collect_mail_status_dm') == 1 ){
-                Mail::to($user_data['email'])->send(new \App\Mail\CollectCashMail($account_transaction,$user_data['f_name']));
+            if ($data->attribute == 'deliveryman_collect_cash_payments' && config('mail.status') && Helpers::getNotificationStatusData('deliveryman', 'deliveryman_collect_cash', 'mail_status') && Helpers::get_mail_status('cash_collect_mail_status_dm') == 1) {
+                Mail::to($user_data['email'])->send(new \App\Mail\CollectCashMail($account_transaction, $user_data['f_name']));
             }
         } catch (\Exception $exception) {
             info($exception->getMessage());
@@ -112,39 +112,40 @@ if (! function_exists('collect_cash_success')) {
 
 
 
-if (! function_exists('order_place')) {
-    function order_place($data) {
+if (!function_exists('order_place')) {
+    function order_place($data)
+    {
         $order = Order::find($data->attribute_id);
-        $order->order_status='confirmed';
-        if($order->payment_method != 'partial_payment'){
-            $order->payment_method=$data->payment_method;
+        $order->order_status = 'confirmed';
+        if ($order->payment_method != 'partial_payment') {
+            $order->payment_method = $data->payment_method;
         }
         // $order->transaction_reference=$data->transaction_ref;
-        $order->payment_status='paid';
-        $order->confirmed=now();
+        $order->payment_status = 'paid';
+        $order->confirmed = now();
         $order->save();
 
 
 
-        if( $order?->store?->is_valid_subscription == 1 && $order?->store?->store_sub?->max_order != "unlimited" && $order?->store?->store_sub?->max_order > 0){
-            $order?->store?->store_sub?->decrement('max_order' , 1);
+        if ($order?->store?->is_valid_subscription == 1 && $order?->store?->store_sub?->max_order != "unlimited" && $order?->store?->store_sub?->max_order > 0) {
+            $order?->store?->store_sub?->decrement('max_order', 1);
         }
 
 
-        OrderLogic::update_unpaid_order_payment(order_id:$order->id, payment_method:$data->payment_method);
+        OrderLogic::update_unpaid_order_payment(order_id: $order->id, payment_method: $data->payment_method);
         try {
             Helpers::send_order_notification($order);
             $address = json_decode($order->delivery_address, true);
 
 
-            if(Helpers::getNotificationStatusData('customer','customer_delivery_verification','mail_status')  && Helpers::get_mail_status('order_verification_mail_status_user') == 1 && config('mail.status')){
+            if (Helpers::getNotificationStatusData('customer', 'customer_delivery_verification', 'mail_status') && Helpers::get_mail_status('order_verification_mail_status_user') == 1 && config('mail.status')) {
 
-                if ( config('order_delivery_verification') == 1  && $order->is_guest == 0) {
-                    Mail::to($order->customer->email)->send(new OrderVerificationMail($order->otp,$order->customer->f_name));
+                if (config('order_delivery_verification') == 1 && $order->is_guest == 0) {
+                    Mail::to($order->customer->email)->send(new OrderVerificationMail($order->otp, $order->customer->f_name));
                 }
 
-                if ($order->is_guest == 1   && isset($address['contact_person_email'])) {
-                    Mail::to($address['contact_person_email'])->send(new OrderVerificationMail($order->otp,$order?->customer?->f_name));
+                if ($order->is_guest == 1 && isset($address['contact_person_email'])) {
+                    Mail::to($address['contact_person_email'])->send(new OrderVerificationMail($order->otp, $order?->customer?->f_name));
                 }
             }
         } catch (\Exception $e) {
@@ -155,39 +156,41 @@ if (! function_exists('order_place')) {
 
 }
 
-if (! function_exists('trip_payment_success')) {
-    function trip_payment_success($data) {
+if (!function_exists('trip_payment_success')) {
+    function trip_payment_success($data)
+    {
         $trip = Trips::find($data->attribute_id);
-        if($trip->payment_method != 'partial_payment'){
-            $trip->payment_method=$data->payment_method;
+        if ($trip->payment_method != 'partial_payment') {
+            $trip->payment_method = $data->payment_method;
         }
-        $trip->transaction_reference=$data->transaction_ref;
-        $trip->payment_status='paid';
+        $trip->transaction_reference = $data->transaction_ref;
+        $trip->payment_status = 'paid';
         $trip->save();
 
-        if( $trip?->provider?->is_valid_subscription == 1 && $trip?->provider?->store_sub?->max_order != "unlimited" && $trip?->provider?->store_sub?->max_order > 0){
-            $trip?->provider?->store_sub?->decrement('max_order' , 1);
+        if ($trip?->provider?->is_valid_subscription == 1 && $trip?->provider?->store_sub?->max_order != "unlimited" && $trip?->provider?->store_sub?->max_order > 0) {
+            $trip?->provider?->store_sub?->decrement('max_order', 1);
         }
 
         if ($trip->trip_status == 'completed' && $trip->payment_status == 'paid' && !$trip->trip_transaction) {
             Helpers::createTransactionForTrip($trip, 'admin');
         }
         Helpers::sendTripPaymentNotificationCustomerMain($trip);
-        OrderLogic::update_unpaid_trip_payment(trip_id:$trip->id, payment_method:$data->payment_method);
+        OrderLogic::update_unpaid_trip_payment(trip_id: $trip->id, payment_method: $data->payment_method);
     }
 
 }
 
 
 
-if (! function_exists('trip_payment_fail')) {
-    function trip_payment_fail($data) {
+if (!function_exists('trip_payment_fail')) {
+    function trip_payment_fail($data)
+    {
         $trip = Trips::find($data->attribute_id);
-        $trip->trip_status='payment_failed';
-        if($trip->payment_method != 'partial_payment'){
-            $trip->payment_method=$data->payment_method;
+        $trip->trip_status = 'payment_failed';
+        if ($trip->payment_method != 'partial_payment') {
+            $trip->payment_method = $data->payment_method;
         }
-        $trip->payment_failed=now();
+        $trip->payment_failed = now();
         $trip->save();
         return true;
     }
@@ -195,46 +198,47 @@ if (! function_exists('trip_payment_fail')) {
 
 
 
-if (! function_exists('order_failed')) {
-    function order_failed($data) {
+if (!function_exists('order_failed')) {
+    function order_failed($data)
+    {
         $order = Order::find($data->attribute_id);
-        $order->order_status='failed';
-        if($order->payment_method != 'partial_payment'){
-            $order->payment_method=$data->payment_method;
+        $order->order_status = 'failed';
+        if ($order->payment_method != 'partial_payment') {
+            $order->payment_method = $data->payment_method;
         }
-        $order->failed=now();
+        $order->failed = now();
         $order->save();
     }
 }
 
-if (! function_exists('wallet_success')) {
-    function wallet_success($data) {
+if (!function_exists('wallet_success')) {
+    function wallet_success($data)
+    {
         $order = WalletPayment::find($data->attribute_id);
-        $order->payment_method=$data->payment_method;
+        $order->payment_method = $data->payment_method;
         // $order->transaction_reference=$data->transaction_ref;
-        $order->payment_status='success';
+        $order->payment_status = 'success';
         $order->save();
-        $wallet_transaction = CustomerLogic::create_wallet_transaction($data->payer_id, $data->payment_amount, 'add_fund',$data->payment_method);
-        if($wallet_transaction)
-        {
-            try{
+        $wallet_transaction = CustomerLogic::create_wallet_transaction($data->payer_id, $data->payment_amount, 'add_fund', $data->payment_method);
+        if ($wallet_transaction) {
+            try {
                 Helpers::add_fund_push_notification($data->payer_id);
-                if(config('mail.status') && Helpers::get_mail_status('add_fund_mail_status_user') == '1' &&  Helpers::getNotificationStatusData('customer','customer_add_fund_to_wallet','mail_status')) {
+                if (config('mail.status') && Helpers::get_mail_status('add_fund_mail_status_user') == '1' && Helpers::getNotificationStatusData('customer', 'customer_add_fund_to_wallet', 'mail_status')) {
                     Mail::to($wallet_transaction->user->email)->send(new \App\Mail\AddFundToWallet($wallet_transaction));
                 }
-            }catch(\Exception $ex)
-            {
+            } catch (\Exception $ex) {
                 info($ex->getMessage());
             }
         }
     }
 }
 
-if (! function_exists('wallet_success')) {
-    function wallet_failed($data) {
+if (!function_exists('wallet_success')) {
+    function wallet_failed($data)
+    {
         $order = WalletPayment::find($data->attribute_id);
-        $order->payment_status='failed';
-        $order->payment_method=$data->payment_method;
+        $order->payment_status = 'failed';
+        $order->payment_method = $data->payment_method;
         $order->save();
     }
 }
@@ -268,33 +272,74 @@ if (!function_exists('config_settings')) {
     }
 
 
-    if (! function_exists('sub_success')) {
-        function sub_success($data){
-            $type='renew';
-            if($data->attribute == 'store_subscription_payment'){
-                $type='new_plan';
-                }
-                elseif($data->attribute == 'store_subscription_new_join'){
-                    $type='new_join';
-                }
+    if (!function_exists('sub_success')) {
+        function sub_success($data)
+        {
+            $type = 'renew';
+            if ($data->attribute == 'store_subscription_payment') {
+                $type = 'new_plan';
+            } elseif ($data->attribute == 'store_subscription_new_join') {
+                $type = 'new_join';
+            }
 
-                $pending_bill= SubscriptionBillingAndRefundHistory::where(['store_id'=>$data->payer_id,
-                'transaction_type'=>'pending_bill', 'is_success' =>0])?->sum('amount')?? 0;
-                Helpers::subscription_plan_chosen(store_id:$data->payer_id,package_id:$data->attribute_id,payment_method:$data->payment_method,discount:0,pending_bill:$pending_bill,reference:$data->attribute,type: $type);
-                if($type !== 'new_join'){
-                    Toastr::success(  $type == 'renew' ?  translate('Subscription_Package_Renewed_Successfully.'): translate('Subscription_Package_Shifted_Successfully.')  );
-                }
+            $pending_bill = SubscriptionBillingAndRefundHistory::where([
+                'store_id' => $data->payer_id,
+                'transaction_type' => 'pending_bill',
+                'is_success' => 0
+            ])?->sum('amount') ?? 0;
+            Helpers::subscription_plan_chosen(store_id: $data->payer_id, package_id: $data->attribute_id, payment_method: $data->payment_method, discount: 0, pending_bill: $pending_bill, reference: $data->attribute, type: $type);
+            if ($type !== 'new_join') {
+                Toastr::success($type == 'renew' ? translate('Subscription_Package_Renewed_Successfully.') : translate('Subscription_Package_Shifted_Successfully.'));
+            }
 
             return true;
         }
     }
 
-    if (! function_exists('sub_fail')) {
-        function sub_fail($data){
+    if (!function_exists('sub_fail')) {
+        function sub_fail($data)
+        {
             return true;
         }
     }
 
 
+
+    if (!function_exists('calculate_discount')) {
+
+        function calculate_discount($total_price, $offer_type, $discount)
+        {
+          
+            $total_price = floatval($total_price);
+            $discount = floatval($discount);
+
+            // Calculate discount amount
+            $discount_amount = ($total_price * $discount) / 100;
+
+            // Default values
+            $final_price = $total_price;
+
+            // Direct Discount
+            if ($offer_type == 'direct_discount') {
+
+                $final_price = $total_price - $discount_amount;
+
+            }
+
+            // Cashback (price remains same)
+            if ($offer_type == 'cash back') {
+
+                $final_price = $total_price;
+
+            }
+
+            return [
+                'total_price' => round($total_price, 2),
+                'discount_amount' => round($discount_amount, 2),
+                'final_price' => round($final_price, 2),
+            ];
+        }
+
+    }
 
 }

@@ -36,13 +36,18 @@ class Cart extends Model
         'status',
         'type',
         'gift_details',
+
+        // New Fields
+        'total_price',
+        'offer_type',
+        'discount_amount'
     ];
 
     public function item()
     {
         return $this->morphTo();
     }
-       /**
+    /**
      * Relationship to the User (customer)
      */
     public function user()

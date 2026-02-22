@@ -74,6 +74,9 @@ class CartController extends Controller
             'cart_group' => 'required|string',
             'model' => 'required|string|in:Item,ItemCampaign',
             'price' => 'required|numeric',
+            'total_price' => 'nullable|numeric',
+            'offer_type' => 'nullable',
+            'discount_amount' => 'nullable|numeric',
             'quantity' => 'required|integer|min:1',
         ]);
 
@@ -153,6 +156,11 @@ class CartController extends Controller
         $cart->status = ($item->voucher_ids === 'Flat discount') ? 'pending' : null;
         $cart->type = $item->voucher_ids ?? null;
         $cart->gift_details = $request->gift_details ?? null;
+
+        $cart->total_price = $request->total_price ?? null;
+        $cart->offer_type = $request->offer_type ?? null;
+        $cart->discount_amount = $request->discount_amount ?? null;
+
         $cart->save();
 
         $item->carts()->save($cart);
