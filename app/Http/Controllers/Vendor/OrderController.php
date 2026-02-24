@@ -88,7 +88,7 @@ class OrderController extends Controller
             ->paginate(config('default_pagination'));
 
         $voucher_types = VoucherType::where('status', 'active')->get();
-        
+
         return view('vendor-views.order.list', compact('orders', 'status', 'voucher_types'));
     }
 
@@ -795,7 +795,7 @@ class OrderController extends Controller
             ->get();
 
 
-            
+
         // dd( $orders , $store_id);
         // 3️⃣ Pass to view
         return view('vendor-views.flat-order.list', compact('orders', 'status'));
@@ -805,15 +805,36 @@ class OrderController extends Controller
         $allowedStatus = ['approved', 'rejected'];
 
         if (!in_array($status, $allowedStatus)) {
-            return redirect()->back()->with('error', 'Invalid status');
+            return redirect()->back()
+                ->with('error', 'Invalid status');
         }
 
         $cart = Cart::findOrFail($id);
 
+
+        /*
+        If Rejected → Delete Cart
+        */
+
+        if ($status == 'rejected') {
+
+            $cart->delete();
+
+            return redirect()->back()
+                ->with('success', 'Cart rejected and deleted successfully');
+        }
+
+
+        /*
+        If Approved → Update Status
+        */
+
         $cart->status = $status;
         $cart->save();
 
-        return redirect()->back()->with('success', 'Cart status updated successfully');
+
+        return redirect()->back()
+            ->with('success', 'Cart approved successfully');
     }
     // Check for new cart
     public function checkNewCart()
@@ -838,7 +859,7 @@ class OrderController extends Controller
                 'name' => $cart->user->f_name . ' ' . $cart->user->l_name,
                 'phone' => $cart->user->phone
             ];
-     
+
 
         return response()->json([
             'success' => true,
@@ -848,7 +869,7 @@ class OrderController extends Controller
                 'quantity' => $cart->quantity,
                 'total_price' => $cart->total_price * $cart->quantity,
                 'status' => $cart->status,
-                'created' => $cart->created_at
+                'created' => strtotime($cart->created_at)
             ],
 
             'item' => $cart->item,

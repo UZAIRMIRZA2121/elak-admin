@@ -297,7 +297,7 @@ $moduleType = $store?->module?->module_type;
 
                         <p class="text-center">
                             ⏳ AUTO-REJECT IN:
-                            <strong id="nc-countdown">04:52</strong>
+                            <strong id="nc-countdown">--:--</strong>
                         </p>
 
                     </div>
@@ -360,7 +360,6 @@ $moduleType = $store?->module?->module_type;
     <script src="{{ asset('public/assets/admin/js/keyword-highlighted.js') }}"></script>
 
     <script>
-        
         var audio = document.getElementById("myAudio");
 
         function playAudio() {
@@ -381,7 +380,7 @@ $moduleType = $store?->module?->module_type;
 
 
         $(document).on('ready', function() {
-              
+
             // $('body').css('overflow','')
             $(".direction-toggle").on("click", function() {
                 if ($('html').hasClass('active')) {
@@ -552,17 +551,17 @@ $moduleType = $store?->module?->module_type;
                 }
             })
         }
-    
+
         @php($order_notification_type = \App\Models\BusinessSetting::where('key', 'order_notification_type')->first())
         @php($order_notification_type = $order_notification_type ? $order_notification_type->value : 'firebase')
         let order_type = 'all';
         let is_trip = false;
 
         messaging.onMessage(function(payload) {
-         
+
             if (payload.data.order_id && payload.data.type === 'new_order') {
-               
-          
+
+
                 @if (\App\CentralLogics\Helpers::employee_module_permission_check('order') && $order_notification_type == 'firebase')
                     order_type = payload.data.order_type
                     if (order_type === 'trip') {
@@ -594,9 +593,9 @@ $moduleType = $store?->module?->module_type;
                 }
             }
         });
-   
-    
-        @if ( $order_notification_type == 'manual')
+
+
+        @if ($order_notification_type == 'manual')
             setInterval(function() {
                 $.get({
                     url: '{{ route('vendor.get-store-data') }}',
@@ -1000,116 +999,326 @@ $moduleType = $store?->module?->module_type;
     </script>
 
     <script>
-        function checkNewCart() {
-            $.ajax({
-                url: "{{ route('vendor.flate.order.check-new') }}",
-                method: "GET",
-                success: function(response) {
-                    if (response.success && response.cart) {
+        let countdownInterval = null;
+        let currentCartId = null;
 
-                        const cart = response.cart;
-                        const user = response.user;
-                        const item = response.item;
+        function startCountdown(cart, rejectUrl) {
 
-                        // Parse discount configuration
-                        let config = JSON.parse(item.discount_configuration);
+            // Stop previous timer
+            if (countdownInterval) {
+                clearInterval(countdownInterval);
+            }
 
-                        // Ensure totalBill is a number
-                        let totalBill = Number(cart.total_price);
 
-                        let selectedTier = '';
-                        let bonusAmount = 0;
-                        let tierFound = false;
+            /*
+            Detect Date Format Safely
+            */
 
-                        // Check which tier the customer falls into
-                        config.forEach(function(row) {
-                            let min = Number(row.min_amount);
-                            let max = Number(row.max_amount);
-                            let bonusPercentage = Number(row.bonus_percentage);
+            let createdValue =
+                cart.created ??
+                cart.created_at ??
+                null;
 
-                            if (totalBill >= min && totalBill <= max) {
-                                selectedTier = `$${min} - $${max} (${bonusPercentage}% Bonus)`;
-                                bonusAmount = (totalBill * bonusPercentage) / 100;
-                                tierFound = true;
-                            }
-                        });
 
-                        if (!tierFound) {
-                            alert("This order does not qualify for any discount tier.");
-                            return;
-                        }
+            if (!createdValue) {
 
-                        let finalPay = totalBill;
-                        let walletAmount = 0;
+                $('#nc-countdown').text("05:00");
+                return;
+            }
 
-                        finalPay = totalBill - bonusAmount;
-                      
-                        console.log("Cart :", cart);
-                        console.log("Selected Tier:", selectedTier);
-                     
-                        // Update modal content
-                        $('#nc-item-discount-configuration').text(selectedTier);
-                        $('#nc-customer').text(user.name);
-                        $('#nc-phone').text(user.phone);
-                        $('#nc-item').text(item.name);
-                        // $('#nc-item-discount-type').text(item.discount_type);
-                        $('#nc-qty').text(cart.quantity);
-                        $('#nc-total').text(`$${totalBill.toFixed(2)}`);
-                        $('#nc-bonus').text(`$${bonusAmount.toFixed(2)}`);
-                        $('#nc-pay').text(`$${finalPay.toFixed(2)}`);
 
-                        let approveUrl =
-                            "{{ route('vendor.flate.order.update-status', ['id' => ':id', 'status' => 'approved']) }}";
-                        let rejectUrl =
-                            "{{ route('vendor.flate.order.update-status', ['id' => ':id', 'status' => 'rejected']) }}";
-                        approveUrl = approveUrl.replace(':id', cart.id);
-                        rejectUrl = rejectUrl.replace(':id', cart.id);
+            let cartCreated;
 
-                        $('#nc-approve').attr('href', approveUrl);
-                        $('#nc-reject').attr('href', rejectUrl);
 
-                        $('#newCartModal').modal('show');
+            /*
+            Timestamp or Datetime
+            */
 
-                        // Countdown Timer
-                   // Suppose cart.created_at is a Unix timestamp (seconds)
-const cartCreatedRaw = cart.created; 
+            if (!isNaN(createdValue)) {
+                cartCreated =
+                    new Date(createdValue * 1000);
+            } else {
+                cartCreated =
+                    new Date(createdValue);
+            }
 
-console.log("Raw cart created time:", cartCreatedRaw);
 
-// Convert to JS Date
-// If timestamp is in seconds, multiply by 1000
-const cartCreated = new Date(cartCreatedRaw * 1000);
+            /*
+            Invalid Date Fix
+            */
 
-// 5 minutes expiry
-const expireTime = new Date(cartCreated.getTime() + 5 * 60 * 1000);
+            if (isNaN(cartCreated.getTime())) {
+                $('#nc-countdown').text("05:00");
+                return;
+            }
 
-const countdownInterval = setInterval(function() {
-    const now = new Date();
-    let diff = Math.floor((expireTime - now) / 1000); // seconds left
 
-    if (diff <= 0) {
-        clearInterval(countdownInterval);
-        $('#nc-countdown').text("00:00");
-        // Auto reject
-        window.location.href = rejectUrl; 
-        return;
-    }
 
-    let minutes = Math.floor(diff / 60);
-    let seconds = diff % 60;
+            /*
+            Expire Time
+            */
 
-    $('#nc-countdown').text(
-        `${minutes.toString().padStart(2,'0')}:${seconds.toString().padStart(2,'0')}`
-    );
+            const expireTime =
+                new Date(cartCreated.getTime() + 5 * 60 * 1000);
 
-}, 1000);
 
+
+            countdownInterval =
+                setInterval(function() {
+
+                    const now = new Date();
+
+                    let diff =
+                        Math.floor((expireTime - now) / 1000);
+
+
+
+                    /*
+                    AUTO REJECT
+                    */
+
+                    if (diff <= 0) {
+
+                        clearInterval(countdownInterval);
+
+                        $('#nc-countdown')
+                            .text("00:00");
+
+
+                        /*
+                        Auto Click Reject Button
+                        */
+
+                        $('#nc-reject')[0].click();
+
+                        return;
                     }
-                }
-            });
+
+
+
+                    let minutes =
+                        Math.floor(diff / 60);
+
+                    let seconds = diff % 60;
+
+
+
+                    $('#nc-countdown').text(
+
+                        minutes.toString().padStart(2, '0') +
+                        ":" +
+                        seconds.toString().padStart(2, '0')
+
+                    );
+
+
+                }, 1000);
+
         }
 
-        // Auto-check every 3 seconds
+
+        function checkNewCart() {
+
+            $.ajax({
+
+                url: "{{ route('vendor.flate.order.check-new') }}",
+
+                method: "GET",
+
+                success: function(response) {
+
+                    /*
+                    If deleted
+                    */
+
+                    if (!response.success || !response.cart) {
+
+                        $('#newCartModal').modal('hide');
+
+
+                        if (countdownInterval) {
+                            clearInterval(countdownInterval);
+                            countdownInterval = null;
+                        }
+
+                        currentCartId = null;
+
+                        return;
+                    }
+
+
+                    const cart = response.cart;
+
+                    const user = response.user;
+
+                    const item = response.item;
+
+
+                    /*
+                    Prevent reload same cart
+                    */
+
+                    if (currentCartId === cart.id) {
+                        return;
+                    }
+
+
+                    currentCartId = cart.id;
+
+
+
+                    /*
+                    Discount Config
+                    */
+
+                    let config =
+                        JSON.parse(item.discount_configuration);
+
+
+                    let totalBill =
+                        Number(cart.total_price);
+
+
+                    let selectedTier = '';
+
+                    let bonusAmount = 0;
+
+                    let tierFound = false;
+
+
+
+                    config.forEach(function(row) {
+
+                        let min = Number(row.min_amount);
+
+                        let max = Number(row.max_amount);
+
+                        let bonus =
+                            Number(row.bonus_percentage);
+
+
+                        if (totalBill >= min && totalBill <= max) {
+
+                            selectedTier =
+                                "$" + min + " - $" + max +
+                                " (" + bonus + "% Bonus)";
+
+
+                            bonusAmount =
+                                (totalBill * bonus) / 100;
+
+
+                            tierFound = true;
+                        }
+
+                    });
+
+
+
+                    if (!tierFound) {
+                        return;
+                    }
+
+
+                    let finalPay =
+                        totalBill - bonusAmount;
+
+
+
+                    /*
+                    Fill Modal
+                    */
+
+                    $('#nc-item-discount-configuration')
+                        .text(selectedTier);
+
+
+                    $('#nc-customer')
+                        .text(user.name);
+
+
+                    $('#nc-phone')
+                        .text(user.phone);
+
+
+                    $('#nc-item')
+                        .text(item.name);
+
+
+                    $('#nc-qty')
+                        .text(cart.quantity);
+
+
+                    $('#nc-total')
+                        .text("$" + totalBill.toFixed(2));
+
+
+                    $('#nc-bonus')
+                        .text("$" + bonusAmount.toFixed(2));
+
+
+                    $('#nc-pay')
+                        .text("$" + finalPay.toFixed(2));
+
+
+
+                    /*
+                    URLs
+                    */
+
+                    let approveUrl =
+                        "{{ route('vendor.flate.order.update-status', ['id' => ':id', 'status' => 'approved']) }}";
+
+                    let rejectUrl =
+                        "{{ route('vendor.flate.order.update-status', ['id' => ':id', 'status' => 'rejected']) }}";
+
+
+                    approveUrl =
+                        approveUrl.replace(':id', cart.id);
+
+
+                    rejectUrl =
+                        rejectUrl.replace(':id', cart.id);
+
+
+
+                    $('#nc-approve')
+                        .attr('href', approveUrl);
+
+
+                    $('#nc-reject')
+                        .attr('href', rejectUrl);
+
+
+
+                    /*
+                    Show Modal
+                    */
+
+                    $('#newCartModal')
+                        .modal('show');
+
+
+
+                    /*
+                    Start Countdown
+                    */
+
+                    startCountdown(cart, rejectUrl);
+
+
+                }
+
+            });
+
+        }
+
+
+
+        /*
+        Check Every 3 Seconds
+        */
+
         setInterval(checkNewCart, 3000);
     </script>
 </body>
