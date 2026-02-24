@@ -183,6 +183,9 @@ class OrderController extends Controller
            
             $details = Helpers::order_details_data_formatting($details);
             $details['qr_code'] = $order->qr_code;
+            $details['total_order_amount'] = $order->total_order_amount;
+            $details['offer_type'] = $order->offer_type;
+            $details['discount_amount'] = $order->discount_amount;
             $details[0]['is_guest'] = (int) $order->is_guest;
             return response()->json($details, 200);
         } else if ($order->order_type == 'parcel' || $order->prescription_order == 1) {

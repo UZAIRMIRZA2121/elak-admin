@@ -16,8 +16,14 @@
 
 
 @section('content')
+{{-- {{$order }} --}}
+@if ($order->voucher_type == 'Flat discount')
+@include('admin-views.order.partials._invoice_flat')
 
+@else
 @include('admin-views.order.partials._invoice')
+
+@endif
 
 @endsection
 
