@@ -510,11 +510,13 @@ trait PlaceNewOrder
 
 
             $order->order_amount = $request['order_amount'] ?? 0;
-            $order->order_status = $voucher_type == 'Flat discount' ? 'confirmed' : $order_status;
+
             $order->voucher_type = $carts[0]['type'] ?? null;
-            $order->order_type = $request['order_type'] ?? $carts[0]['type'] ?? null ;
+      
+            $order->order_status = $order->voucher_type === 'Flat discount' ? 'confirmed' : $order_status;
+            $order->order_type = $request['order_type'] ?? $carts[0]['type'] ?? null;
 
-
+  
             $order->offer_type = $carts[0]['offer_type'] ?? null;
             $order->total_order_amount = $carts[0]['total_price'] ?? null;
             $order->discount_amount = $carts[0]['discount_amount'] ?? null;
