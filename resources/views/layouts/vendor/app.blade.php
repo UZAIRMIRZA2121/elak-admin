@@ -1042,12 +1042,8 @@ $moduleType = $store?->module?->module_type;
                         let finalPay = totalBill;
                         let walletAmount = 0;
 
-                        if (item.discount_type === 'direct_discount') {
-                            finalPay = totalBill - bonusAmount;
-                        } else {
-                            walletAmount = bonusAmount;
-                            finalPay = totalBill;
-                        }
+                        finalPay = totalBill - bonusAmount;
+                      
                         console.log("Cart :", cart);
                         console.log("Selected Tier:", selectedTier);
                      
