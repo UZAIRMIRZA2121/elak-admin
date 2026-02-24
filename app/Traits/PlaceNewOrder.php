@@ -565,6 +565,7 @@ trait PlaceNewOrder
                         $itemDetails = json_decode($item['item_details'], true);
 
                         $offerType = $itemDetails['offer_type'] ?? null;
+                        $voucher_type = $itemDetails['voucher_ids'] ?? null;
                         $discountType = $itemDetails['discount_type'] ?? null;
                         $discountValue = (float) ($itemDetails['discount'] ?? 0);
 
@@ -573,9 +574,9 @@ trait PlaceNewOrder
 
                         $total_order_amount = $request->order_amount;
                         $cashbackAmount = 0;
-
+                      
                         if ($offerType === 'cash back') {
-
+                        
                             // Cashback does NOT reduce order amount
                             if ($discountType === 'percent') {
                                 $cashbackAmount = ($total_order_amount * $discountValue) / 100;
@@ -584,8 +585,13 @@ trait PlaceNewOrder
                             }
                             // safety check
                             $cashbackAmount = min($cashbackAmount, $total_order_amount);
+                         
                             if ($cashbackAmount > 0) {
                                 CustomerLogic::create_wallet_transaction($order->user_id, $cashbackAmount, 'add_fund', $order->id);
+                            }
+                            
+                             if ($voucher_type  == 'Flat discount') {
+                                CustomerLogic::create_wallet_transaction($order->user_id, $order->discount_amount, 'add_fund', $order->id);
                             }
                         }
 
