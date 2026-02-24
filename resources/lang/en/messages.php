@@ -8515,4 +8515,8 @@ Smartly or Earn. ',
   'offer_type' => 'Offer type',
   'amount_paid' => 'Amount paid',
   'flat_discount' => 'Flat discount',
+  'Flat discount' => 'Flat discount',
+  'total_price' => 'Total price',
+  'instant_discount' => 'Instant discount',
+  'total_paid_amount' => 'Total paid amount',
 );

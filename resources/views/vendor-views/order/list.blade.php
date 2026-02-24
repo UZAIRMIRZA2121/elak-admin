@@ -287,24 +287,58 @@
                                 </td>
                                 <td class="text-capitalize">
                                     {{ $order->voucher_type ?? translate('not_assigned') }}
-                                <td>
+                                </td>
+                                <td class="text-capitalize text-center">
                                     <div class="text-right mw--85px">
-                                        <div>
-                                            {{ \App\CentralLogics\Helpers::format_currency($order['order_amount']) }}
-                                        </div>
-                                        @if ($order->payment_status == 'paid')
-                                            <strong class="text-success">
-                                                {{ translate('messages.paid') }}
-                                            </strong>
-                                        @elseif($order->payment_status == 'partially_paid')
-                                            <strong class="text-success">
-                                                {{ translate('messages.partially_paid') }}
-                                            </strong>
-                                        @else
-                                            <strong class="text-danger">
-                                                {{ translate('messages.unpaid') }}
-                                            </strong>
+
+                                        @if ($order['voucher_type'] == 'Flat discount')
+                                            <!-- Flex container for label and value -->
+                                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                                <dt class="mb-0">{{ translate('messages.offer_type') }}:</dt>
+                                                <dd class="mb-0">{{ translate('messages.instant_discount') }}</dd>
+                                            </div>
+
+                                            <!-- Order amount -->
+                                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                                <dt class="mb-0">{{ translate('messages.total_order_amount') }}:</dt>
+                                                <dd class="mb-0">
+                                                    {{ \App\CentralLogics\Helpers::format_currency($order['total_order_amount']) }}
+                                                </dd>
+                                            </div>
+                                            <!-- Order amount -->
+                                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                                <dt class="mb-0">{{ translate('messages.discount') }}:</dt>
+                                                <dd class="mb-0">
+                                                    -{{ \App\CentralLogics\Helpers::format_currency($order['discount_amount']) }}
+                                                </dd>
+                                            </div>
                                         @endif
+
+
+                                        <!-- Order amount -->
+                                        <div class="d-flex justify-content-between align-items-center mb-1">
+                                            <dt class="mb-0">{{ translate('messages.order_amount') }}:</dt>
+                                            <dd class="mb-0">
+                                                {{ \App\CentralLogics\Helpers::format_currency($order['order_amount']) }}
+                                            </dd>
+                                        </div>
+
+                                        <!-- Payment status -->
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <dt class="mb-0">{{ translate('messages.payment_status') }}:</dt>
+                                            <dd class="mb-0">
+                                                @if ($order->payment_status == 'paid')
+                                                    <strong class="text-success">{{ translate('messages.paid') }}</strong>
+                                                @elseif($order->payment_status == 'partially_paid')
+                                                    <strong
+                                                        class="text-success">{{ translate('messages.partially_paid') }}</strong>
+                                                @else
+                                                    <strong
+                                                        class="text-danger">{{ translate('messages.unpaid') }}</strong>
+                                                @endif
+                                            </dd>
+                                        </div>
+
                                     </div>
                                 </td>
                                 <td class="text-capitalize text-center">
@@ -337,13 +371,13 @@
                                             {{ str_replace('_', ' ', $order['order_status']) }}
                                         </span>
                                     @endif
-                               
+
                                     @if ($order['order_type'] == 'take_away')
                                         <div class="text-info mt-1">
                                             {{ translate('messages.take_away') }}
                                         </div>
                                     @elseif ($order['order_type'] == 'Flat discount')
-                                         <div class="text-info mt-1">
+                                        <div class="text-info mt-1">
                                             {{ translate('messages.flat_discount') }}
                                         </div>
                                     @else

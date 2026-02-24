@@ -114,7 +114,7 @@
                             <tr class="border-0">
                                 <th>{{ translate('messages.desc') }}</th>
                                 <th class="w-10p"></th>
-                                <th>{{ translate('messages.price') }}</th>
+                               
                             </tr>
                         </thead>
 
@@ -139,86 +139,11 @@
                                     @php($item = json_decode($detail->item_details, true))
                                     <tr>
                                         <td class="text-break">
-                                            {{ $item['name'] }} <br>
-                                            @if ($order->store && $order->store->module->module_type == 'food')
-                                                @if (count(json_decode($detail['variation'], true)) > 0)
-                                                    <strong><u>{{ translate('messages.variation') }} : </u></strong>
-                                                    @foreach (json_decode($detail['variation'], true) as $variation)
-                                                        @if (isset($variation['name']) && isset($variation['values']))
-                                                            <span class="d-block text-capitalize">
-                                                                <strong>{{ $variation['name'] }} - </strong>
-                                                            </span>
-                                                            @foreach ($variation['values'] as $value)
-                                                                <span class="d-block text-capitalize">
-                                                                    &nbsp; &nbsp; {{ $value['label'] }} :
-                                                                    <strong>{{ \App\CentralLogics\Helpers::format_currency($value['optionPrice']) }}</strong>
-                                                                </span>
-                                                            @endforeach
-                                                        @else
-                                                            @if (isset(json_decode($detail['variation'], true)[0]))
-                                                                @foreach (json_decode($detail['variation'], true)[0] as $key1 => $variation)
-                                                                    <div class="font-size-sm text-body">
-                                                                        <span>{{ $key1 }} : </span>
-                                                                        <span
-                                                                            class="font-weight-bold">{{ $variation }}</span>
-                                                                    </div>
-                                                                @endforeach
-                                                            @endif
-                                                            @break
-                                                        @endif
-                                                    @endforeach
-                                                @endif
-                                            @else
-                                   <?php
-                                        $variations = json_decode($detail['variation'], true);
-                                    ?>
-
-                                    @if (!empty($variations))
-                                        <strong><u>{{ translate('messages.variation') }} :</u></strong>
-
-                                        @foreach ($variations as $variation)
-                                            <div class="font-size-sm text-body">
-                                                <span>{{ ucfirst($variation['name']) }} : </span>
-                                                <span class="font-weight-bold">
-                                                    {{ $variation['values'][0]['label'] ?? '' }}
-                                                </span>
-                                            </div>
-                                        @endforeach
-                                    @endif
-
-                                            @endif
-                                            <div class="addons">
-                                                @foreach (json_decode($detail['add_ons'], true) as $key2 => $addon)
-                                                    @if ($key2 == 0)
-                                                        <strong><u>{{ translate('messages.addons') }} :
-                                                            </u></strong>
-                                                    @endif
-                                                    <div>
-                                                        <span class="text-break">{{ $addon['name'] }} : </span>
-                                                        <span class="font-weight-bold">
-                                                            {{ $addon['quantity'] }} x
-                                                            {{ \App\CentralLogics\Helpers::format_currency($addon['price']) }}
-                                                        </span>
-                                                    </div>
-                                                    @php($add_ons_cost += $addon['price'] * $addon['quantity'])
-                                                @endforeach
-                                            </div>
-                                            @if (count(json_decode($detail['variation'], true)) <= 0)
-                                                <div class="price">
-                                                    {{ \App\CentralLogics\Helpers::format_currency($detail->price) }}
-                                                </div>
-                                            @endif
+                                            <h3>  #{{ $item['name'] }} </h3> 
                                         </td>
-                                        <td class="text-center">
-                                            {{ $detail['quantity'] }}
-                                        </td>
-                                        <td class="w-28p">
-                                            @php($amount = $detail['price'] * $detail['quantity'])
-                                            {{ \App\CentralLogics\Helpers::format_currency($amount) }}
-                                        </td>
+                                       
                                     </tr>
-                                    @php($sub_total += $amount)
-                                    @php($total_tax += $detail['tax_amount'] * $detail['quantity'])
+                    
                                 @endforeach
                             @endif
 

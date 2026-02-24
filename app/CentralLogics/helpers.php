@@ -1416,17 +1416,24 @@ public static function order_details_data_formatting($data)
 
 
 
-    public static function format_currency($value)
-    {
-        if (!config('currency_symbol_position')) {
-            $currency_symbol_position = BusinessSetting::where(['key' => 'currency_symbol_position'])->first()?->value;
-            Config::set('currency_symbol_position', $currency_symbol_position);
-        } else {
-            $currency_symbol_position = config('currency_symbol_position');
-        }
-
-        return $currency_symbol_position == 'right' ? number_format($value, config('round_up_to_digit')) . ' ' . self::currency_symbol() : self::currency_symbol() . ' ' . number_format($value, config('round_up_to_digit'));
+public static function format_currency($value)
+{
+    // Get currency symbol position
+    if (!config('currency_symbol_position')) {
+        $currency_symbol_position = BusinessSetting::where(['key' => 'currency_symbol_position'])
+            ->first()?->value;
+        Config::set('currency_symbol_position', $currency_symbol_position);
+    } else {
+        $currency_symbol_position = config('currency_symbol_position');
     }
+
+    // Format value with 2 decimal places
+    $formattedValue = number_format((float)$value, 2, '.', '');
+
+    return $currency_symbol_position == 'right'
+        ? $formattedValue . ' ' . self::currency_symbol()
+        : self::currency_symbol() . ' ' . $formattedValue;
+}
 
     public static function sendNotificationToHttp(array|null $data)
     {

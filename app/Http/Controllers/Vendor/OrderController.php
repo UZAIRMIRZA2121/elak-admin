@@ -190,6 +190,7 @@ class OrderController extends Controller
 
     public function details(Request $request, $id)
     {
+
         $order = Order::with([
             'details',
             'offline_payments',
@@ -202,7 +203,14 @@ class OrderController extends Controller
         ])->where(['id' => $id, 'store_id' => Helpers::get_store_id()])->first();
         if (isset($order)) {
             $reasons = OrderCancelReason::where('status', 1)->where('user_type', 'store')->get();
-            return view('vendor-views.order.order-view', compact('order', 'reasons'));
+            if ($order->voucher_type == 'Flat discount') {
+                return view('vendor-views.order.order-view-flat', compact('order', 'reasons'));
+
+            } else {
+                return view('vendor-views.order.order-view', compact('order', 'reasons'));
+            }
+
+
         } else {
             Toastr::info('No more orders!');
             return back();
