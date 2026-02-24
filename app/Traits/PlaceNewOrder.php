@@ -510,7 +510,7 @@ trait PlaceNewOrder
 
 
             $order->order_amount = $request['order_amount'] ?? 0;
-            $order->order_status = $order_status;
+            $order->order_status = $voucher_type == 'Flat discount' ? 'confirmed' : $order_status;
             $order->voucher_type = $carts[0]['type'] ?? null;
             $order->order_type = $request['order_type'] ?? $carts[0]['type'] ?? null ;
 
