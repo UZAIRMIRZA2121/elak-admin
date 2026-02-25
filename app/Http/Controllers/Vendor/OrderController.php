@@ -205,7 +205,8 @@ class OrderController extends Controller
             $reasons = OrderCancelReason::where('status', 1)->where('user_type', 'store')->get();
             if ($order->voucher_type == 'Flat discount') {
                 return view('vendor-views.order.order-view-flat', compact('order', 'reasons'));
-
+            }else if ($order->voucher_type == 'In-Store') {
+                return view('vendor-views.order.order-view-in-store', compact('order', 'reasons'));
             } else {
                 return view('vendor-views.order.order-view', compact('order', 'reasons'));
             }

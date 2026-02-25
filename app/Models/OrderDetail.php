@@ -13,6 +13,8 @@ class OrderDetail extends Model
 
     protected $casts = [
         'price' => 'float',
+        'total_price' => 'float',   // ✅ NEW
+        'is_paid' => 'boolean',     // ✅ NEW
         'discount_on_item' => 'float',
         'total_add_on_price' => 'float',
         'tax_amount' => 'float',
@@ -25,6 +27,8 @@ class OrderDetail extends Model
     ];
     protected $fillable = [
         'gift_details',
+        'total_price',  // ✅ NEW
+        'is_paid'       // ✅ NEW
     ];
 
 
@@ -43,10 +47,10 @@ class OrderDetail extends Model
         return $this->belongsTo(Item::class, 'item_id');
     }
     public function voucher()
-{
-    return $this->belongsTo(Item::class, 'item_id')
-                ->where('type', 'voucher');
-}
+    {
+        return $this->belongsTo(Item::class, 'item_id')
+            ->where('type', 'voucher');
+    }
     public function campaign()
     {
         return $this->belongsTo(ItemCampaign::class, 'item_campaign_id');

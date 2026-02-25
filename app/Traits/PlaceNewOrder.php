@@ -545,6 +545,8 @@ trait PlaceNewOrder
                 foreach ($order_details as $key => $item) {
                     $order_details[$key]['order_id'] = $order->id;
 
+                    $order_details[$key]['total_price'] = $item['price'] * $item['quantity'];
+                    $order_details[$key]['is_paid'] = 0;
                     $order_details[$key]['gift_details'] = json_encode($gift_details); // store as array
 
                     if ($item['item_id']) {
@@ -574,6 +576,8 @@ trait PlaceNewOrder
 
                         $total_order_amount = $request->order_amount;
                         $cashbackAmount = 0;
+
+
                       
                         if ($offerType === 'cash back') {
                         
@@ -1114,6 +1118,7 @@ trait PlaceNewOrder
         $discount_type = '';
         $status = 'pending';
         $discount_on_product_by = 'vendor';
+
         foreach ($carts as $c) {
             $variations = [];
             $isCampaign = false;
@@ -1128,6 +1133,11 @@ trait PlaceNewOrder
                     $status = 'hold';
 
                 }
+
+
+
+
+
 
 
 
@@ -1216,7 +1226,7 @@ trait PlaceNewOrder
                     'item_details' => json_encode($product),
                     'quantity' => $c['quantity'],
                     'price' => round($price, config('round_up_to_digit')),
-
+                    'total_price' => round($c->total_price , config('round_up_to_digit')),
                     'category_id' => collect(is_string($product->category_ids) ? json_decode($product->category_ids, true) : $product->category_ids)->firstWhere('position', 1)['id'] ?? null,
                     // 'tax_amount' => round(Helpers::tax_calculate($product, $price), config('round_up_to_digit')),
                     'tax_amount' => 0,
@@ -1237,7 +1247,7 @@ trait PlaceNewOrder
                     'created_at' => now(),
                     'updated_at' => now()
                 ];
-
+              
 
                 $total_addon_price += $or_d['total_add_on_price'];
                 $product_price += $price * $or_d['quantity'];
@@ -1276,7 +1286,7 @@ trait PlaceNewOrder
             }
         }
 
-
+   
         return [
             'order_details' => $order_details,
             'total_addon_price' => $total_addon_price,
