@@ -19,6 +19,7 @@ class Cart extends Model
         'add_on_ids' => 'array',
         'add_on_qtys' => 'array',
         'variation' => 'array',
+        'is_paid' => 'boolean',
     ];
 
     protected $fillable = [
@@ -39,6 +40,7 @@ class Cart extends Model
 
         // New Fields
         'total_price',
+         'is_paid',
         'offer_type',
         'discount_amount'
     ];

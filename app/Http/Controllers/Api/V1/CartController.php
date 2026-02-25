@@ -163,6 +163,8 @@ class CartController extends Controller
 
         
         $cart->price = $request->price;
+        $cart->is_paid = $request->price > 0 ? 1 : 0; // Mark as paid if price is greater than 0, otherwise not paid
+
         $cart->total_price = $request->total_price ?? null;
         $cart->offer_type = $request->offer_type ?? null;
         $cart->discount_amount = $request->discount_amount ?? null;
