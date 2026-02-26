@@ -25,6 +25,7 @@ use Illuminate\Support\Facades\DB;
 use App\CentralLogics\ProductLogic;
 use App\Mail\OrderVerificationMail;
 use App\CentralLogics\CustomerLogic;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
@@ -43,7 +44,7 @@ trait PlaceNewOrder
     public function new_place_order(Request $request, $is_prescription = false)
     {
 
-        log::info('New Place Order Request', ['request' => $request->all(), 'is_prescription' => $is_prescription]);
+        Log::info('New Place Order Request', ['request' => $request->all(), 'is_prescription' => $is_prescription]);
 
         $validator = Validator::make($request->all(), [
             'order_amount' => 'required',
