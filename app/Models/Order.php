@@ -50,6 +50,7 @@ class Order extends Model
         'cutlery' => 'boolean',
         'is_guest' => 'boolean',
         'ref_bonus_amount' => 'float',
+            'gift_details' => 'array',
     ];
 
     protected $appends = ['module_type', 'order_attachment_full_url', 'order_proof_full_url'];

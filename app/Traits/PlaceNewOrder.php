@@ -520,33 +520,16 @@ trait PlaceNewOrder
             $order->offer_type = $carts[0]['offer_type'] ?? null;
             $order->total_order_amount = $carts[0]['total_price'] ?? null;
             $order->discount_amount = $carts[0]['discount_amount'] ?? null;
-
-
+              
+            $order->gift_details = json_encode($request->gift_details ?? null);
             $order->save();
             // dd($order);
 
-            $gift_details = null;
-
-            // Check if gift_details exists in request
-            if ($request->has('gift_details') && !empty($request->gift_details)) {
-                $gift_details = is_string($request->gift_details)
-                    ? json_decode($request->gift_details, true) // decode if JSON string
-                    : $request->gift_details;                  // use array if already array
-            } elseif (!empty($carts) && isset($carts[0]['gift_details'])) {
-                $gift_details = is_string($carts[0]['gift_details'])
-                    ? json_decode($carts[0]['gift_details'], true)
-                    : $carts[0]['gift_details'];
-            }
-
-
-
+        
             if ($request->order_type !== 'parcel') {
                 $taxMapCollection = collect($taxMap);
                 foreach ($order_details as $key => $item) {
                     $order_details[$key]['order_id'] = $order->id;
-
-                    $order_details[$key]['gift_details'] = json_encode($gift_details); // store as array
-
                     if ($item['item_id']) {
                         $item_id = $item['item_id'];
                     } else {
