@@ -1,35 +1,37 @@
 @extends('layouts.vendor.app')
 
-@section('title','')
+@section('title', '')
 
 @push('css_or_js')
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
     <style type="text/css" media="print">
         @page {
-            size: auto;   /* auto is the initial value */
-            margin: 0;  /* this affects the margin in the printer settings */
+            size: auto;
+            /* auto is the initial value */
+            margin: 0;
+            /* this affects the margin in the printer settings */
         }
-
     </style>
 @endpush
 
 
 @section('content')
-{{-- {{$order }} --}}
-@if ($order->voucher_type == 'Flat discount')
-@include('admin-views.order.partials._invoice_flat')
-
-@else
-@include('admin-views.order.partials._invoice')
-
-@endif
+  
+    @if ($order->voucher_type == 'Flat discount')
+        @include('admin-views.order.partials._invoice_flat')
+    @elseif ($order->voucher_type == 'In-Store')
+        @include('admin-views.order.partials._invoice_in_store')
+    @else
+        @include('admin-views.order.partials._invoice')
+    @endif
 
 @endsection
 
 @push('script')
     <script>
         "use strict";
+
         function printDiv(divName) {
             let printContents = document.getElementById(divName).innerHTML;
             let originalContents = document.body.innerHTML;
@@ -39,4 +41,3 @@
         }
     </script>
 @endpush
-

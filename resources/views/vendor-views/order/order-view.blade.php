@@ -332,7 +332,6 @@
                                                                 </span>
                                                                 <h6>
                                                                     {{ $detail['quantity'] }}
-                                                                
                                                                 </h6>
                                                                 @if ($order->store && $order->store->module->module_type == 'food')
                                                                     @if (isset($detail['variation']) ? json_decode($detail['variation'], true) : [])

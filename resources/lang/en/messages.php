@@ -8519,4 +8519,5 @@ Smartly or Earn. ',
   'total_price' => 'Total price',
   'instant_discount' => 'Instant discount',
   'total_paid_amount' => 'Total paid amount',
+  'free' => 'Free',
 );
