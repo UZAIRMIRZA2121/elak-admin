@@ -43,7 +43,7 @@ trait PlaceNewOrder
     public function new_place_order(Request $request, $is_prescription = false)
     {
 
-
+        log::info('New Place Order Request', ['request' => $request->all(), 'is_prescription' => $is_prescription]);
 
         $validator = Validator::make($request->all(), [
             'order_amount' => 'required',
