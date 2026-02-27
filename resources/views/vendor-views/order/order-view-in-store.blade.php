@@ -16,6 +16,116 @@
     
     ?>
 
+    <style>
+        .coupon-card {
+            width: 600px;
+            height: 200px;
+            background-color: #f1f3f8;
+            border: 4px solid #ff9800;
+            border-radius: 30px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Creating the Ticket Notches (Cutouts) */
+        .coupon-card::before,
+        .coupon-card::after {
+            content: '';
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            background-color: #f8f9fa;
+            /* Matches page background */
+            border: 4px solid #ff9800;
+            border-radius: 50%;
+            left: 33.3%;
+            transform: translateX(-50%);
+            z-index: 10;
+        }
+
+        .coupon-card::before {
+            top: -25px;
+        }
+
+        /* Top Notch */
+        .coupon-card::after {
+            bottom: -25px;
+        }
+
+        /* Bottom Notch */
+
+        /* Left Section */
+        .coupon-left {
+            flex: 0 0 33.3%;
+            background-color: #9db2a3;
+            /* Muted green from image */
+        }
+
+        .side-label {
+            background: linear-gradient(to bottom, #ff9800, #ffc107);
+            color: white;
+            writing-mode: vertical-rl;
+            transform: rotate(180deg);
+            text-align: center;
+            padding: 10px 5px;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .image-section img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        /* Middle Section */
+        .coupon-body {
+            flex: 1;
+            padding-left: 30px;
+            border-left: 2px dashed #ff9800;
+            /* Separator line */
+        }
+
+        .title {
+            color: #0d3b66;
+            font-weight: 700;
+            font-size: 1.8rem;
+            margin: 0;
+        }
+
+        .subtitle {
+            color: #0d3b66;
+            font-weight: 600;
+            margin-top: 10px;
+        }
+
+        /* Right Section */
+        .coupon-right {
+            padding: 15px;
+            flex: 0 0 20%;
+        }
+
+        .save-badge {
+            background: linear-gradient(135deg, #ff9800 0%, #ffeb3b 100%);
+            color: white;
+            padding: 15px 10px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .save-text {
+            display: block;
+            font-size: 0.75rem;
+            font-weight: bold;
+        }
+
+        .percentage {
+            display: block;
+            font-size: 1.5rem;
+            font-weight: 800;
+        }
+    </style>
     <div class="content container-fluid">
         <!-- Page Header -->
         <div class="page-header">
@@ -159,10 +269,7 @@
 
                                     </h6>
                                 @endif
-                                <h6 class="text-capitalize">
-                                    {{ translate('messages.payment_method') }} :
-                                    {{ translate(str_replace('_', ' ', $order['payment_method'])) }}
-                                </h6>
+
                                 @if ($order['transaction_reference'])
                                     <h6 class="">
                                         {{ translate('messages.reference_code') }} :
@@ -172,10 +279,18 @@
                                         </button>
                                     </h6>
                                 @endif
-                                <h6 class="text-capitalize">{{ translate('messages.order_type') }}
+                                <h6 class="text-capitalize">{{ translate('messages.voucher_type') }}
                                     : <label
-                                        class="fz--10 badge m-0 badge-soft-primary">{{ translate(str_replace('_', ' ', $order['order_type'])) }}</label>
+                                        class="fz--10 badge m-0 badge-soft-primary">{{ translate(str_replace('_', ' ', $order['voucher_type'])) }}</label>
                                 </h6>
+
+                                @if ($order['voucher_type'] != 'In-Store')
+                                    <h6 class="text-capitalize">{{ translate('messages.order_type') }}
+                                        : <label
+                                            class="fz--10 badge m-0 badge-soft-primary">{{ translate(str_replace('_', ' ', $order['order_type'])) }}</label>
+                                    </h6>
+                                @endif
+
                                 <h6>
                                     {{ translate('messages.order_status') }} :
                                     @if ($order['order_status'] == 'pending')
@@ -271,6 +386,8 @@
                         <?php
                         $total_addon_price = 0;
                         $product_price = 0;
+                        $sum_free_product_price = 0;
+                        $sum_paid_product_price = 0;
                         $store_discount_amount = 0;
                         $admin_flash_discount_amount = $order['flash_admin_discount_amount'];
                         $ref_bonus_amount = $order['ref_bonus_amount'];
@@ -284,7 +401,6 @@
                             }
                         }
                         
-                      
                         $total_order_amount = 0;
                         ?>
                         <div class="table-responsive">
@@ -294,7 +410,7 @@
                                     <tr>
                                         <th class="border-0">{{ translate('messages.#') }}</th>
                                         <th class="border-0">{{ translate('messages.item_details') }}</th>
-                                        <th class="border-0">{{ translate('messages.item_details') }}</th>
+
                                         @if ($order->store->module->module_type == 'food')
                                             <th class="border-0">{{ translate('messages.addons') }}</th>
                                         @endif
@@ -304,31 +420,47 @@
                                 <tbody>
                                     @foreach ($order->details as $key => $detail)
                                         @if (isset($detail->item_id))
+
+
                                             @if ($detail->item->type == 'voucher')
-                                                <div class="media media--sm m-5">
-                                                    <a class="avatar avatar-xl mr-3"
-                                                        href="{{ route('vendor.item.view', $detail->item['id']) }}">
-                                                        <img class="img-fluid rounded onerror-image"
-                                                            src="{{ $product->image_full_url ?? asset('public/assets/admin/img/160x160/img2.jpg') }}"
-                                                            data-onerror-image="{{ asset('public/assets/admin/img/160x160/img2.jpg') }}"
-                                                            alt="Image Description">
-                                                    </a>
-                                                    <div class="media-body">
-                                                        <div>
-                                                            <h3 class="line--limit-1">
-                                                                #{{ Str::limit($detail->item['name'], 25, '...') }}</h3>
+                                                @php($product = \App\Models\Item::where(['id' => $detail->item['id']])->first())
+
+
+                                                <div class="coupon-card d-flex align-items-stretch d-block m-auto ">
+                                                   <div class="coupon-left d-flex">
+    <div class="side-label">{{ $order['voucher_type'] }}</div>
+
+    <div class="image-section">
+        <img 
+            src="{{ $product->image_full_url ?? asset('public/assets/admin/img/160x160/img2.jpg') }}"
+            data-image="{{ $product->image_full_url ?? asset('public/assets/admin/img/160x160/img2.jpg') }}"
+            class="img-fluid preview-image"
+            style="cursor:pointer;"
+            alt="Product Image">
+    </div>
+</div>
+
+
+                                                    <div class="coupon-body d-flex flex-column justify-content-center">
+                                                        <h2 class="title"> #
+                                                            {{ Str::limit($detail->item['name'], 25, '...') }} </h2>
+                                                        <p class="subtitle">
+                                                            {{ Str::limit($detail->item['description'], 25, '...') }}</p>
+                                                    </div>
+
+                                                    <div class="coupon-right d-flex flex-column justify-content-between ">
+                                                        <div class="save-badge">
+                                                            <span class="save-text">SAVE</span>
+                                                            <span class="percentage">20%</span>
                                                         </div>
-                                                        <div>
-                                                            <p class="line--limit-1">
-                                                                {{ Str::limit($detail->item['description'], 25, '...') }}
-                                                            </p>
-                                                        </div>
+
                                                     </div>
                                                 </div>
                                             @endif
                                             @if ($detail->item->type != 'voucher')
                                                 @php($detail->item = json_decode($detail->item_details, true))
                                                 @php($product = \App\Models\Item::where(['id' => $detail->item['id']])->first())
+
                                                 <!-- Media -->
                                                 <tr>
                                                     <td>
@@ -349,9 +481,9 @@
                                                                 <div>
                                                                     <strong
                                                                         class="line--limit-1">{{ Str::limit($detail->item['name'], 25, '...') }}</strong>
-                                                                    <h6>
+                                                                    {{-- <h6>
                                                                         {{ $detail['quantity'] }}
-                                                                    </h6>
+                                                                    </h6> --}}
                                                                     @if ($order->store && $order->store->module->module_type == 'food')
                                                                         @if (isset($detail['variation']) ? json_decode($detail['variation'], true) : [])
                                                                             @foreach (json_decode($detail['variation'], true) as $variation)
@@ -413,36 +545,16 @@
                                                             </div>
                                                         </div>
                                                     </td>
-                                                    @if ($order->store->module->module_type == 'food' || $order->store->module->module_type == 'voucher')
-                                                        <td>
-                                                            <div>
-                                                                @foreach (json_decode($detail['add_ons'], true) as $key2 => $addon)
-                                                                    @if ($key2 == 0)
-                                                                        <strong><u>{{ translate('messages.addons') }} :
-                                                                            </u></strong>
-                                                                    @endif
-                                                                    <div class="font-size-sm text-body">
-                                                                        <span>{{ Str::limit($addon['name'], 25, '...') }} :
-                                                                        </span>
-                                                                        <span class="font-weight-bold">
-                                                                            {{ $addon['quantity'] }} x
-                                                                            {{ \App\CentralLogics\Helpers::format_currency($addon['price']) }}
-                                                                        </span>
-                                                                    </div>
-                                                                    @php($total_addon_price += $addon['price'] * $addon['quantity'])
-                                                                @endforeach
-                                                            </div>
-                                                        </td>
-                                                    @endif
                                                     <td>
                                                         <div class="text-right   ">
                                                             {{-- @php($amount = $detail['price'] * $detail['quantity']) --}}
                                                             @php($amount = $detail['is_paid'] == 1 ? $detail['total_price'] * $detail['quantity'] : 0)
                                                             @php($total_order_amount += $detail['total_price'])
-          
+
 
                                                             <h6>
                                                                 @if ($detail['is_paid'] == 0)
+                                                                    @php($sum_free_product_price += $detail['total_price'])
                                                                     <h5>
                                                                         <del class="text-muted me-2">
                                                                             {{ \App\CentralLogics\Helpers::format_currency($detail['total_price']) }}
@@ -453,6 +565,7 @@
                                                                         {{ translate('messages.free') }}
                                                                     </span>
                                                                 @elseif ($detail['is_paid'] == 1)
+                                                                    @php($sum_paid_product_price += $detail['total_price'])
                                                                     <h5 class="text-decoration-line-through">
                                                                         {{ \App\CentralLogics\Helpers::format_currency($detail['total_price']) }}
                                                                     </h5>
@@ -462,10 +575,29 @@
                                                                     </span>
                                                                 @endif
                                                             </h6>
+                                                            <br>
+                                                            @if ($order->store->module->module_type == 'food' || $order->store->module->module_type == 'voucher')
+                                                                @foreach (json_decode($detail['add_ons'], true) as $key2 => $addon)
+                                                                    @if ($key2 == 0)
+                                                                        <strong><u>{{ translate('messages.addons') }} :
+                                                                            </u></strong>
+                                                                    @endif
+
+                                                                    <span>{{ Str::limit($addon['name'], 25, '...') }} :
+                                                                    </span>
+                                                                    <span class="font-weight-bold">
+                                                                        {{ $addon['quantity'] }} x
+                                                                        {{ \App\CentralLogics\Helpers::format_currency($addon['price']) }}
+                                                                    </span>
+
+                                                                    @php($total_addon_price += $addon['price'] * $addon['quantity'])
+                                                                @endforeach
+                                                            @endif
                                                         </div>
+
                                                     </td>
                                                 </tr>
-                                    
+
 
                                                 @php($product_price += $amount)
                                                 @php($store_discount_amount += $detail['discount_on_item'] * $detail['quantity'])
@@ -496,11 +628,13 @@
                         $store_discount_amount = $order['store_discount_amount'];
                         
                         ?>
+
                         <div class="row justify-content-md-end mb-3 mx-0 mt-4">
                             <div class="col-md-9 col-lg-8">
                                 <dl class="row text-right">
-                                    <dt class="col-6">{{ translate('messages.items_price') }}:</dt>
-                                    <dd class="col-6">{{ \App\CentralLogics\Helpers::format_currency($product_price) }}
+                                    <dt class="col-6">{{ translate('messages.voucher_value') }}:</dt>
+                                    <dd class="col-6">
+                                        {{ \App\CentralLogics\Helpers::format_currency($total_order_amount + $total_addon_price) }}
                                     </dd>
                                     @if ($order->store->module->module_type == 'food')
                                         <dt class="col-6">{{ translate('messages.addon_cost') }}:</dt>
@@ -511,23 +645,21 @@
                                         </dd>
                                     @endif
 
-                                    <dt class="col-6">{{ translate('messages.subtotal') }}
+                                    {{-- <dt class="col-6">{{ translate('messages.subtotal') }}
                                         @if ($order->tax_status == 'included' || $tax_included == 1)
                                             ({{ translate('messages.TAX_Included') }})
                                         @endif
                                         :
-                                    </dt>
+                                    </dt> --}}
 
-                                    <dd class="col-6">
-                                        @if (
-                                            $order->prescription_order == 1 &&
-                                                in_array($order['order_status'], ['pending', 'confirmed', 'processing', 'accepted']))
+                                    {{-- <dd class="col-6">
+                                        @if ($order->prescription_order == 1 && in_array($order['order_status'], ['pending', 'confirmed', 'processing', 'accepted']))
                                             <button class="btn btn-sm" type="button" data-toggle="modal"
                                                 data-target="#edit-order-amount"><i class="tio-edit"></i></button>
                                         @endif
                                         {{ \App\CentralLogics\Helpers::format_currency($product_price + $total_addon_price) }}
-                                    </dd>
-                                    <dt class="col-6">{{ translate('messages.discount') }}:</dt>
+                                    </dd> --}}
+                                    <dt class="col-6">{{ translate('messages.savings') }}:</dt>
                                     <dd class="col-6">
                                         @if (
                                             $order->prescription_order == 1 &&
@@ -536,14 +668,12 @@
                                                 data-target="#edit-discount-amount"><i class="tio-edit"></i></button>
                                         @endif
                                         -
-                                        {{ \App\CentralLogics\Helpers::format_currency($total_order_amount - ($product_price + $total_addon_price)   - $store_discount_amount - $admin_flash_discount_amount - $store_flash_discount_amount) }}
+
+                                        {{ \App\CentralLogics\Helpers::format_currency($sum_free_product_price) }}
                                     </dd>
 
 
 
-                                    {{-- <dt class="col-6">{{ translate('messages.coupon_discount') }}:</dt>
-                                    <dd class="col-6">
-                                        - {{ \App\CentralLogics\Helpers::format_currency($coupon_discount_amount) }}</dd> --}}
 
                                     @if ($ref_bonus_amount > 0)
                                         <dt class="col-6">{{ translate('messages.Referral_Discount') }}:</dt>
@@ -551,16 +681,6 @@
                                             - {{ \App\CentralLogics\Helpers::format_currency($ref_bonus_amount) }}</dd>
                                     @endif
 
-                                    {{-- @if ($order->tax_status == 'excluded' || $order->tax_status == null)
-                                        <dt class="col-sm-6">{{ translate('messages.vat/tax') }}:</dt>
-                                        <dd class="col-sm-6">
-                                            +
-                                            {{ \App\CentralLogics\Helpers::format_currency($total_tax_amount) }}
-                                        </dd>
-                                    @endif --}}
-                                    {{-- <dt class="col-6">{{ translate('messages.delivery_man_tips') }}</dt>
-                                    <dd class="col-6">
-                                        + {{ \App\CentralLogics\Helpers::format_currency($order->dm_tips) }}</dd> --}}
                                     <dt class="col-6 d-none">{{ translate('messages.delivery_fee') }}:</dt>
                                     <dd class="col-6 d-none">
                                         @php($del_c = $order['delivery_charge'])
@@ -599,7 +719,7 @@
                                         @endif
                                     @endif
 
-                                    <dt class="col-6">{{ translate('messages.total') }}:</dt>
+                                    <dt class="col-6">{{ translate('messages.amount_to_pay') }}:</dt>
                                     <dd class="col-6">
                                         {{ \App\CentralLogics\Helpers::format_currency($product_price + $del_c + $total_tax_amount + $total_addon_price + $additional_charge - $coupon_discount_amount - $store_discount_amount - $admin_flash_discount_amount - $ref_bonus_amount + $extra_packaging_amount - $store_flash_discount_amount + $order->dm_tips) }}
                                     </dd>
@@ -831,65 +951,68 @@
                     </div>
                 @endif
                 <!-- End Card -->
-
-                <!-- order proof -->
-                <div class="card mb-2 mt-2">
-                    <div class="card-header border-0 text-center pb-0">
-                        <h4 class="m-0">{{ translate('messages.delivery_proof') }} </h4>
-                        @if ($order['store']['sub_self_delivery'])
-                            <button class="btn btn-outline-primary btn-sm" data-toggle="modal"
-                                data-target=".order-proof-modal">
-                                {{ translate('messages.add') }}
-                            </button>
-                        @endif
-                    </div>
-                    @php($data = isset($order->order_proof) ? json_decode($order->order_proof, true) : 0)
-                    <div class="card-body pt-2">
-                        @if ($data)
-                            <label class="input-label" for="order_proof">{{ translate('messages.image') }} : </label>
-                            <div class="row g-3">
-                                @foreach ($data as $key => $img)
-                                    @php($img = is_array($img) ? $img : ['img' => $img, 'storage' => 'public'])
-                                    <div class="col-3">
-                                        <img class="img__aspect-1 rounded border w-100 onerror-image" data-toggle="modal"
-                                            data-target="#imagemodal{{ $key }}"
-                                            data-onerror-image="{{ asset('public/assets/admin/img/160x160/img2.jpg') }}"
-                                            src="{{ \App\CentralLogics\Helpers::get_full_url('order', $img['img'], $img['storage']) }}"
-                                            alt="image">
-                                    </div>
-                                    <div class="modal fade" id="imagemodal{{ $key }}" tabindex="-1"
-                                        role="dialog" aria-labelledby="order_proof_{{ $key }}"
-                                        aria-hidden="true">
-                                        <div class="modal-dialog">
-                                            <div class="modal-content">
-                                                <div class="modal-header">
-                                                    <h4 class="modal-title" id="order_proof_{{ $key }}">
-                                                        {{ translate('order_proof_image') }}</h4>
-                                                    <button type="button" class="close" data-dismiss="modal"><span
-                                                            aria-hidden="true">&times;</span><span
-                                                            class="sr-only">{{ translate('messages.cancel') }}</span></button>
-                                                </div>
-                                                <div class="modal-body">
-                                                    <img src="{{ \App\CentralLogics\Helpers::get_full_url('order', $img['img'], $img['storage']) }}"
-                                                        class="initial--22 w-100" alt="img">
-                                                </div>
-                                                @php($storage = $img['storage'] ?? 'public')
-                                                @php($file = $storage == 's3' ? base64_encode('order/' . $img['img']) : base64_encode('public/order/' . $img['img']))
-                                                <div class="modal-footer">
-                                                    <a class="btn btn-primary"
-                                                        href="{{ route('admin.file-manager.download', [$file, $storage]) }}"><i
-                                                            class="tio-download"></i>
-                                                        {{ translate('messages.download') }}
-                                                    </a>
+                @if ($order['voucher_type'] != 'In-Store')
+                    <!-- order proof -->
+                    <div class="card mb-2 mt-2">
+                        <div class="card-header border-0 text-center pb-0">
+                            <h4 class="m-0">{{ translate('messages.delivery_proof') }} </h4>
+                            @if ($order['store']['sub_self_delivery'])
+                                <button class="btn btn-outline-primary btn-sm" data-toggle="modal"
+                                    data-target=".order-proof-modal">
+                                    {{ translate('messages.add') }}
+                                </button>
+                            @endif
+                        </div>
+                        @php($data = isset($order->order_proof) ? json_decode($order->order_proof, true) : 0)
+                        <div class="card-body pt-2">
+                            @if ($data)
+                                <label class="input-label" for="order_proof">{{ translate('messages.image') }} :
+                                </label>
+                                <div class="row g-3">
+                                    @foreach ($data as $key => $img)
+                                        @php($img = is_array($img) ? $img : ['img' => $img, 'storage' => 'public'])
+                                        <div class="col-3">
+                                            <img class="img__aspect-1 rounded border w-100 onerror-image"
+                                                data-toggle="modal" data-target="#imagemodal{{ $key }}"
+                                                data-onerror-image="{{ asset('public/assets/admin/img/160x160/img2.jpg') }}"
+                                                src="{{ \App\CentralLogics\Helpers::get_full_url('order', $img['img'], $img['storage']) }}"
+                                                alt="image">
+                                        </div>
+                                        <div class="modal fade" id="imagemodal{{ $key }}" tabindex="-1"
+                                            role="dialog" aria-labelledby="order_proof_{{ $key }}"
+                                            aria-hidden="true">
+                                            <div class="modal-dialog">
+                                                <div class="modal-content">
+                                                    <div class="modal-header">
+                                                        <h4 class="modal-title" id="order_proof_{{ $key }}">
+                                                            {{ translate('order_proof_image') }}</h4>
+                                                        <button type="button" class="close" data-dismiss="modal"><span
+                                                                aria-hidden="true">&times;</span><span
+                                                                class="sr-only">{{ translate('messages.cancel') }}</span></button>
+                                                    </div>
+                                                    <div class="modal-body">
+                                                        <img src="{{ \App\CentralLogics\Helpers::get_full_url('order', $img['img'], $img['storage']) }}"
+                                                            class="initial--22 w-100" alt="img">
+                                                    </div>
+                                                    @php($storage = $img['storage'] ?? 'public')
+                                                    @php($file = $storage == 's3' ? base64_encode('order/' . $img['img']) : base64_encode('public/order/' . $img['img']))
+                                                    <div class="modal-footer">
+                                                        <a class="btn btn-primary"
+                                                            href="{{ route('admin.file-manager.download', [$file, $storage]) }}"><i
+                                                                class="tio-download"></i>
+                                                            {{ translate('messages.download') }}
+                                                        </a>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
-                                    </div>
-                                @endforeach
-                            </div>
-                        @endif
+                                    @endforeach
+                                </div>
+                            @endif
+                        </div>
                     </div>
-                </div>
+                @endif
+
 
                 @if ($order->voucher_type === 'Gift' && !empty($order->details[0]['gift_details']))
                     <?php $gift = $order->details[0]['gift_details']; ?>
@@ -953,6 +1076,7 @@
 
                 @endif
 
+          
 
                 <!-- Card -->
                 <div class="card">
@@ -979,21 +1103,21 @@
                                     <span
                                         class="text-body d-block text-hover-primary mb-1">{{ $order->customer['f_name'] . ' ' . $order->customer['l_name'] }}</span>
 
-                                    <span class="text--title font-semibold d-flex align-items-center">
+                                    {{-- <span class="text--title font-semibold d-flex align-items-center">
                                         <i class="tio-shopping-basket-outlined mr-2"></i>
                                         {{ $order->customer->orders_count }}
                                         {{ translate('messages.orders_delivered') }}
-                                    </span>
+                                    </span> --}}
 
                                     <span class="text--title font-semibold d-flex align-items-center">
                                         <i class="tio-call-talking-quiet mr-2"></i>
                                         {{ $order->customer['phone'] }}
                                     </span>
 
-                                    <span class="text--title font-semibold d-flex align-items-center">
+                                    {{-- <span class="text--title font-semibold d-flex align-items-center">
                                         <i class="tio-email-outlined mr-2"></i>
                                         {{ $order->customer['email'] }}
-                                    </span>
+                                    </span> --}}
 
                                 </div>
                             </div>
@@ -1002,7 +1126,7 @@
 
 
 
-                            @if ($order->delivery_address)
+                            @if ($order->delivery_address && $order['voucher_type'] != 'In-Store')
                                 @php($address = json_decode($order->delivery_address, true))
                                 <div class="d-flex justify-content-between align-items-center">
                                     <h5>{{ translate('messages.delivery_info') }}</h5>
@@ -1392,4 +1516,31 @@
             });
         });
     </script>
+
+
+
+    <!-- Image Preview Modal -->
+<div class="modal fade" id="imagePreviewModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-body text-center">
+                <img id="modalPreviewImage" src="" class="img-fluid rounded">
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const previewImages = document.querySelectorAll(".preview-image");
+    const modalImage = document.getElementById("modalPreviewImage");
+    const imageModal = new bootstrap.Modal(document.getElementById("imagePreviewModal"));
+
+    previewImages.forEach(img => {
+        img.addEventListener("click", function () {
+            modalImage.src = this.getAttribute("data-image");
+            imageModal.show();
+        });
+    });
+});
+</script>
 @endpush

@@ -1131,7 +1131,7 @@ class Helpers
 public static function order_details_data_formatting($data)
 {
     $storage = [];
-
+      
     foreach ($data as $item) {
 
         // Decode JSON fields

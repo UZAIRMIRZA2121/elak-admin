@@ -133,6 +133,8 @@
                                     $sub_total = $order['order_amount'] - $order['delivery_charge'] - $order['total_tax_amount'] - $order['dm_tips'] + $order['store_discount_amount'];
                                 }
                                 $total_order_amount = 0;
+                                $sum_free_product_price = 0;
+                                $sum_paid_product_price = 0;
                                 ?>
                                 @php($total_tax = 0)
                                 @php($total_dis_on_pro = 0)
@@ -140,10 +142,12 @@
                                 @foreach ($order->details as $detail)
                                     @php($item = json_decode($detail->item_details, true))
                                     @if ($detail->item->type == 'voucher')
+                                     <img src="{{ asset('/public/assets/admin/img/invoice-star.png') }}" alt="" class="w-100">
                                         <h5 class="d-flex">
                                             <span>{{ translate('messages.voucher') }}</span> <span>:</span>
                                             <span> #{{ Str::limit($detail->item['name'], 25, '...') }}</span>
                                         </h5>
+                                         <img src="{{ asset('/public/assets/admin/img/invoice-star.png') }}" alt="" class="w-100">
                                     @endif
                                     @if ($detail->item->type != 'voucher')
                                         <tr>
@@ -227,12 +231,14 @@
                                                 @php($total_order_amount += $detail['total_price'])
 
                                                 @if ($detail['is_paid'] == 0)
+                                                 @php($sum_free_product_price += $detail['total_price'])
                                                     <del class="text-muted me-2">
                                                         {{ \App\CentralLogics\Helpers::format_currency($detail['total_price']) }}
                                                     </del>
                                                     <br>
                                                     {{ translate('messages.free') }}
                                                 @elseif ($detail['is_paid'] == 1)
+                                                    @php($sum_paid_product_price += $detail['total_price'])
                                                     {{ \App\CentralLogics\Helpers::format_currency($detail['total_price']) }}
                                                     <br>
                                                     {{ translate('messages.paid') }}
@@ -252,23 +258,19 @@
                     <div class="checkout--info">
 
                         <dl class="row text-right">
+                         
                             @if ($order->order_type != 'parcel')
-                                <dt class="col-6">{{ translate('messages.items_price') }}:</dt>
-                                <dd class="col-6">{{ \App\CentralLogics\Helpers::format_currency($sub_total) }}
-                                <dt class="col-6">{{ translate('messages.subtotal') }}
-                                    @if ($order->tax_status == 'included')
-                                        ({{ translate('messages.TAX_Included') }})
-                                    @endif
-                                    :
-                                </dt>
-                                <dd class="col-6">
-                                    {{ \App\CentralLogics\Helpers::format_currency($sub_total + $add_ons_cost) }}</dd>
-                                <dt class="col-6">{{ translate('messages.discount') }}:</dt>
+                                <dt class="col-6">{{ translate('messages.voucher_value') }}:</dt>
+                                <dd class="col-6">{{ \App\CentralLogics\Helpers::format_currency($total_order_amount + $add_ons_cost ) }}
+
+                       
+                                <dt class="col-6">{{ translate('messages.savings') }}:</dt>
                                 <dd class="col-6">
                                     -
-                                    {{ \App\CentralLogics\Helpers::format_currency($total_order_amount - ($sub_total + $add_ons_cost) - $order['store_discount_amount'] + $order['flash_admin_discount_amount'] + $order['flash_store_discount_amount']) }}
+                      
+                                    {{ \App\CentralLogics\Helpers::format_currency($sum_free_product_price) }}
 
-                                 </dd>
+                                </dd>
 
 
 
@@ -286,7 +288,7 @@
                                     {{ \App\CentralLogics\Helpers::format_currency($order['extra_packaging_amount']) }}
                                 </dd>
                             @endif
-                            <dt class="col-6 total">{{ translate('messages.total') }}
+                            <dt class="col-6 total">{{ translate('messages.amount_to_pay') }}
                                 {{ $order->order_type == 'parcel' && $order->tax_status == 'included' ? '(' . translate('messages.TAX_Included') . ')' : '' }}
                                 :
 
@@ -294,7 +296,7 @@
                             </dt>
                             <dd class="col-6 total">
                                 {{ \App\CentralLogics\Helpers::format_currency($order->order_amount) }}</dd>
-                            @if ($order?->payments)
+                            {{-- @if ($order?->payments)
                                 @foreach ($order?->payments as $payment)
                                     @if ($payment->payment_status == 'paid')
                                         @if ($payment->payment_method == 'cash_on_delivery')
@@ -314,10 +316,10 @@
                                         {{ \App\CentralLogics\Helpers::format_currency($payment->amount) }}
                                     </dd>
                                 @endforeach
-                            @endif
+                            @endif --}}
 
                         </dl>
-                        @if ($order->payment_method != 'cash_on_delivery')
+                        {{-- @if ($order->payment_method != 'cash_on_delivery')
                             <div class="d-flex flex-row justify-content-between border-top">
                                 <span class="d-flex">
                                     <span>{{ translate('messages.Paid by') }}</span> <span>:</span>
@@ -327,7 +329,7 @@
                                 <span> <span>{{ translate('messages.change') }}</span> <span>:</span>
                                     <span>{{ abs($order->adjusment) }}</span> </span>
                             </div>
-                        @endif
+                        @endif --}}
                     </div>
                 </div>
 
