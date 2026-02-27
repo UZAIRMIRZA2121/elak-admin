@@ -187,6 +187,7 @@ class OrderController extends Controller
             $details['total_order_amount'] = $order->total_order_amount;
             $details['offer_type'] = $order->offer_type;
             $details['discount_amount'] = $order->discount_amount;
+            $details['gift_details'] = json_decode($order->gift_details, true);
             $details[0]['is_guest'] = (int) $order->is_guest;
             return response()->json($details, 200);
         } else if ($order->order_type == 'parcel' || $order->prescription_order == 1) {

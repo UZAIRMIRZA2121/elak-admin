@@ -45,7 +45,7 @@ trait PlaceNewOrder
     {
 
         Log::info('New Place Order Request', ['request' => $request->all(), 'is_prescription' => $is_prescription]);
-
+       
         $validator = Validator::make($request->all(), [
             'order_amount' => 'required',
             'payment_method' => 'required|in:cash_on_delivery,digital_payment,wallet,offline_payment',
@@ -522,10 +522,9 @@ trait PlaceNewOrder
             $order->total_order_amount = $carts[0]['total_price'] ?? null;
             $order->discount_amount = $carts[0]['discount_amount'] ?? null;
               
-            $order->gift_details = json_encode($request->gift_details ?? null);
+            $order->gift_details = $request->gift_details ?? null;
             $order->save();
-            // dd($order);
-
+       
         
             if ($request->order_type !== 'parcel') {
                 $taxMapCollection = collect($taxMap);
