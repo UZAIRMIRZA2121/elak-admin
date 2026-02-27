@@ -90,7 +90,7 @@ class OrderController extends Controller
         }
         $user_id = $request->user ? $request->user->id : $request['guest_id'];
 
-        $paginator = Order::with(['store', 'delivery_man.rating', 'parcel_category', 'refund:order_id,admin_note,customer_note'])->withCount('details')->where(['user_id' => $user_id])->whereIn('order_status', ['confirmed','processing','handover','accepted','picked_up','pending','delivered', 'canceled', 'refund_requested', 'refund_request_canceled', 'refunded', 'failed' , 'hold'])
+        $paginator = Order::with(['store', 'delivery_man.rating', 'parcel_category', 'refund:order_id,admin_note,customer_note'])->withCount('details')->where(['user_id' => $user_id])->whereIn('order_status', ['confirmed', 'processing', 'handover', 'accepted', 'picked_up', 'pending', 'delivered', 'canceled', 'refund_requested', 'refund_request_canceled', 'refunded', 'failed', 'hold'])
             ->when(isset($request->user), function ($query) {
                 $query->where('is_guest', 0);
             })
@@ -98,7 +98,7 @@ class OrderController extends Controller
             ->Notpos()->latest()->paginate($request['limit'], ['*'], 'page', $request['offset']);
         $orders = array_map(function ($data) {
 
-           
+
             $data['delivery_address'] = $data['delivery_address'] ? json_decode($data['delivery_address']) : $data['delivery_address'];
             $data['store'] = $data['store'] ? Helpers::store_data_formatting($data['store']) : $data['store'];
             $data['delivery_man'] = $data['delivery_man'] ? Helpers::deliverymen_data_formatting([$data['delivery_man']]) : $data['delivery_man'];
@@ -112,7 +112,7 @@ class OrderController extends Controller
             return $data;
         }, $paginator->items());
 
-//  dd($paginator);
+        //  dd($paginator);
 
         $data = [
             'total_size' => $paginator->total(),
@@ -166,7 +166,7 @@ class OrderController extends Controller
         if ($validator->fails()) {
             return response()->json(['errors' => Helpers::error_processor($validator)], 403);
         }
-        
+
         $user_id = $request?->user?->id;
 
         $order = Order::with('details', 'offline_payments', 'parcel_category')
@@ -176,18 +176,20 @@ class OrderController extends Controller
             ->when($request->user, function ($query) use ($user_id) {
                 return $query->where('user_id', $user_id);
             })->findOrFail($request->order_id);
-       
+
         $details = isset($order->details) ? $order->details : null;
         if ($details != null && $details->count() > 0) {
-   
-           
+
+
             $details = Helpers::order_details_data_formatting($details);
             $details['qr_code'] = $order->qr_code;
             $details['order_amount'] = $order->order_amount;
             $details['total_order_amount'] = $order->total_order_amount;
             $details['offer_type'] = $order->offer_type;
             $details['discount_amount'] = $order->discount_amount;
-            $details['gift_details'] = json_decode($order->gift_details, true);
+            $details['gift_details'] = is_string($order->gift_details)
+                ? json_decode($order->gift_details, true)
+                : ($order->gift_details ?? []);
             $details[0]['is_guest'] = (int) $order->is_guest;
             return response()->json($details, 200);
         } else if ($order->order_type == 'parcel' || $order->prescription_order == 1) {
@@ -640,8 +642,8 @@ class OrderController extends Controller
 
     public function place_order(Request $request)
     {
-        
- 
+
+
         return $this->new_place_order($request);
     }
     public function prescription_place_order(Request $request)
