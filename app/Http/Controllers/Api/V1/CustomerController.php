@@ -202,6 +202,8 @@ class CustomerController extends Controller
         $data['discount_amount_type'] = data_get($discount_data, 'discount_amount_type');
         $data['validity'] = (string)data_get($discount_data, 'validity');
 
+        $data['total_saving'] = (float) $user->orders()->sum('discount_amount');
+
         unset($data['orders']);
         return response()->json($data, 200);
     }

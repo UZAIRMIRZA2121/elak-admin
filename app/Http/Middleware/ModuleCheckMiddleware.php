@@ -46,6 +46,7 @@ class ModuleCheckMiddleware
             ], 403);
         }
         Config::set('module.current_module_data', $module);
+
         return $next($request);
     }
 }
