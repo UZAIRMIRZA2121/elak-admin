@@ -42,7 +42,7 @@ class VendorLoginController extends Controller
             'email' => $request->email,
             'password' => $request->password
         ];
-
+      
         if($vendor_type == 'owner'){
             if (auth('vendor')->attempt($data)) {
                 $token = $this->genarate_token($request['email']);

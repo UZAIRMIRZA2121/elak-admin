@@ -14,12 +14,13 @@ class VoucherController extends Controller
 
     public function shareVoucher(Request $request, $qr_code)
     {
+       
         $order = Order::where('qr_code', $qr_code)->first();
 
         if (!$order) {
             return response()->json(['message' => 'Voucher not found'], 404);
         }
-
+   
         // Assuming you have a view named 'voucher.share' to display the voucher details
         return view('voucher.share', compact('order'));
     }

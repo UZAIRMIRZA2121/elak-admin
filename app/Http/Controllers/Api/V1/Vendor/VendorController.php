@@ -31,6 +31,7 @@ use App\Models\AccountTransaction;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Config;
 use App\Library\Payment as PaymentInfo;
@@ -45,6 +46,7 @@ class VendorController extends Controller
 {
     public function get_profile(Request $request)
     {
+        Log::info('VendorController@get_profile called', ['vendor' => $request['vendor']]);
         $vendor = $request['vendor'];
         $min_amount_to_pay_store = BusinessSetting::where('key' , 'min_amount_to_pay_store')->first()->value ?? 0;
         $store = Helpers::store_data_formatting($vendor->stores[0], false);

@@ -7,12 +7,15 @@
     $firstDetail = $order->firstDetail;
     $item_details = $firstDetail ? $firstDetail->item : null;
     $gift_details = $firstDetail->gift_details ?? null;
-    $branches = ($firstDetail && $firstDetail->item) ? $firstDetail->item->branches : collect([]);
+    $branches = $firstDetail && $firstDetail->item ? $firstDetail->item->branches : collect([]);
 
     $main_branch = $item_details ? $item_details->store : null;
     $voucherSetting = $item_details ? App\Models\VoucherSetting::where('item_id', $item_details->id)->first() : null;
 
-    $termIds = ($item_details && $item_details->term_and_condition_ids) ? json_decode($item_details->term_and_condition_ids, true) : []; 
+    $termIds =
+        $item_details && $item_details->term_and_condition_ids
+            ? json_decode($item_details->term_and_condition_ids, true)
+            : [];
 
     $usage_terms = !empty($termIds) ? App\Models\UsageTermManagement::whereIn('id', $termIds)->get() : collect([]);
 @endphp
@@ -47,7 +50,8 @@
 
         .voucher-card {
             background: white;
-            /* overflow: hidden; */ /* Removing this to allow share dropdown to be visible */
+            /* overflow: hidden; */
+            /* Removing this to allow share dropdown to be visible */
             position: relative;
         }
 
@@ -92,7 +96,7 @@
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
             transition: transform 0.2s ease, background 0.2s ease;
             padding: 0;
             margin-right: -4px;
@@ -322,7 +326,7 @@
             left: 0;
             background: white;
             border-radius: 12px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
             border: 1px solid #eee;
             min-width: 220px;
             z-index: 1050;
@@ -363,11 +367,25 @@
             text-align: center;
         }
 
-        .share-item.whatsapp i { color: #25D366; }
-        .share-item.telegram i { color: #0088cc; }
-        .share-item.facebook i { color: #1877F2; }
-        .share-item.twitter i { color: #1DA1F2; }
-        .share-item.copy i { color: #1bb4c5; }
+        .share-item.whatsapp i {
+            color: #25D366;
+        }
+
+        .share-item.telegram i {
+            color: #0088cc;
+        }
+
+        .share-item.facebook i {
+            color: #1877F2;
+        }
+
+        .share-item.twitter i {
+            color: #1DA1F2;
+        }
+
+        .share-item.copy i {
+            color: #1bb4c5;
+        }
 
         .download-btn-outline {
             background: white;
@@ -568,7 +586,7 @@
                     </div>
                     <div class="gift-value-box">
                         <div class="gift-value-label">Gift Value</div>
-                        <div class="gift-value-amount"> {{ $order->order_amount }}</div>
+                        <div class="gift-value-amount">{{ \App\CentralLogics\Helpers::format_currency($order->total_order_amount) }}</div>
                     </div>
                 </div>
                 <div class="restaurant-section">
@@ -578,7 +596,9 @@
                                 // Determine logo URL
                                 $logoUrl =
                                     optional($main_branch)->logo_full_url ??
-                                    ($main_branch ? asset('storage/store/' . ($main_branch->logo ?? 'default.png')) : null);
+                                    ($main_branch
+                                        ? asset('storage/store/' . ($main_branch->logo ?? 'default.png'))
+                                        : null);
                             @endphp
 
                             @if ($logoUrl)
@@ -637,25 +657,37 @@
                             </div>
                         </div>
                     </div>
-                    
+
                     <a href="{{ route('voucher.download', $order->qr_code) }}" class="download-btn-outline">
                         <i class="bi bi-download"></i>
                         <span>Download PDF</span>
                     </a>
                 </div>
-                @if (isset($gift_details))
-                    <!-- Message Box -->
+                @if (!empty($order->gift_details))
                     <div class="message-box">
-                        <div class="message-recipient">To: {{ $gift_details['recipient_name'] }}</div>
-                        <div class="message-content">{{ $gift_details['message'] }}</div>
-                        <div class="message-sender">{{ $gift_details['sender_name'] }}</div>
+
+
+                        <div class="message-recipient">
+                            To: {{ $order->gift_details['recipient_name'] ?? '' }}
+                        </div>
+
+                        <div class="message-content">
+                            {{ $order->gift_details['message'] ?? '' }}
+                        </div>
+
+                        <div class="message-sender">
+                            From: {{ $order->gift_details['sender_name'] ?? '' }}
+                        </div>
+
+
+
                     </div>
                 @endif
                 <!-- Info Items -->
                 <!-- Info Items -->
                 <div class="info-items">
 
-                    @if ($item_details && !empty($item_details->description))
+                    @if ($items_details)
                         <div class="info-row" onclick="toggleInfo(this)">
                             <span class="info-title">Vouchers Info</span>
                             <a href="#" class="view-button" onclick="event.preventDefault()">
@@ -664,24 +696,35 @@
                         </div>
 
                         <div class="info-content">
-
                             @foreach ($items_details as $detail)
-                              @if (isset($detail->item_id) && optional($detail->item)->type !== 'voucher')
-                                <div class="media media--sm">
-                                    <div class="media-body">
-                                        <div>
-                                            <strong
-                                                class="line--limit-1">{{ Str::limit(optional($detail->item)->name ?? 'Item', 25, '...') }}</strong>
-                                             
-                                            <br>
-                                          
+                                @if (isset($detail->item_id) && optional($detail->item)->type !== 'voucher')
+                                    <div class="media media--sm">
+                                        <div class="media-body">
+                                            <div>
+                                                <strong
+                                                    class="line--limit-1">{{ Str::limit(optional($detail->item)->name ?? 'Item', 25, '...') }}</strong>
+
+                                                <br>
+
                                                 <?php
                                                 $variations = json_decode($detail['variation'], true);
                                                 ?>
-                                        
+
+                                                @foreach (json_decode($detail['add_ons'], true) as $key2 => $addon)
+                                               <div class="font-size-sm text-body">
+                                                            <span>{{ Str::limit($addon['name'], 25, '...') }} :
+                                                            </span>
+                                                            <span class="font-weight-bold">
+                                                              {{ $addon['quantity'] }} x  {{ \App\CentralLogics\Helpers::format_currency($addon['price']) }}
+                                                            </span>
+                                                        </div>
+                                                @endforeach
+
                                                 @if (!empty($variations))
                                                     {{-- <strong><u>{{ translate('messages.variation') }}
                                                             :</u></strong> --}}
+
+
 
                                                     @foreach ($variations as $variation)
                                                         <div class="font-size-sm text-body">
@@ -693,13 +736,12 @@
                                                         </div>
                                                     @endforeach
                                                 @endif
-                                       
+
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-                                  <hr>
+                                    <hr>
                                 @endif
-                              
                             @endforeach
 
                         </div>
@@ -757,7 +799,7 @@
                             @endforeach
                         </div>
                     @endisset
-                 <?php
+                    <?php
 if (isset($voucherSetting)) {
 
     $validity      = isset($voucherSetting->validity_period)
@@ -785,104 +827,103 @@ if (isset($voucherSetting)) {
         : null;
 ?>
 
-<div class="info-row" onclick="toggleInfo(this)">
-    <span class="info-title">Usage Terms</span>
-    <a href="#" class="view-button" onclick="event.preventDefault()">
-        View <i class="bi bi-chevron-down"></i>
-    </a>
-</div>
+                    <div class="info-row" onclick="toggleInfo(this)">
+                        <span class="info-title">Usage Terms</span>
+                        <a href="#" class="view-button" onclick="event.preventDefault()">
+                            View <i class="bi bi-chevron-down"></i>
+                        </a>
+                    </div>
 
-<div class="info-content space-y-4 text-sm text-gray-700">
+                    <div class="info-content space-y-4 text-sm text-gray-700">
 
-    {{-- Usage Limits --}}
-    @if (
-        isset($validity['active']) && $validity['active'] === 1 &&
-        isset($usageUser['value'], $usageUser['period']) &&
-        isset($usageStore['value'], $usageStore['period'])
-    )
-        <div>
-            <h6 class="font-semibold text-gray-900 mb-1">Usage Limits</h6>
-            <ul class="list-disc list-inside">
-                <li>
-                    Each user may redeem this voucher
-                    <strong>{{ $usageUser['value'] }}</strong>
-                    time(s) {{ strtolower($usageUser['period']) }}.
-                </li>
-                <li>
-                    This voucher may be redeemed a maximum of
-                    <strong>{{ $usageStore['value'] }}</strong>
-                    time(s) {{ strtolower($usageStore['period']) }} per store.
-                </li>
-            </ul>
-        </div>
-    @endif
+                        {{-- Usage Limits --}}
+                        @if (isset($validity['active']) &&
+                                $validity['active'] === 1 &&
+                                isset($usageUser['value'], $usageUser['period']) &&
+                                isset($usageStore['value'], $usageStore['period']))
+                            <div>
+                                <h6 class="font-semibold text-gray-900 mb-1">Usage Limits</h6>
+                                <ul class="list-disc list-inside">
+                                    <li>
+                                        Each user may redeem this voucher
+                                        <strong>{{ $usageUser['value'] }}</strong>
+                                        time(s) {{ strtolower($usageUser['period']) }}.
+                                    </li>
+                                    <li>
+                                        This voucher may be redeemed a maximum of
+                                        <strong>{{ $usageStore['value'] }}</strong>
+                                        time(s) {{ strtolower($usageStore['period']) }} per store.
+                                    </li>
+                                </ul>
+                            </div>
+                        @endif
 
-    {{-- Validity After Purchase --}}
-    @if (isset($afterPurchase['value'], $afterPurchase['period']))
-        <div>
-            <h6 class="font-semibold text-gray-900 mb-1">Validity After Purchase</h6>
-            <p>
-                The voucher must be used within
-                <strong>
-                    {{ $afterPurchase['value'] }}
-                    {{ strtolower($afterPurchase['period']) }}
-                </strong>
-                from the date of purchase.
-            </p>
-        </div>
-    @endif
+                        {{-- Validity After Purchase --}}
+                        @if (isset($afterPurchase['value'], $afterPurchase['period']))
+                            <div>
+                                <h6 class="font-semibold text-gray-900 mb-1">Validity After Purchase</h6>
+                                <p>
+                                    The voucher must be used within
+                                    <strong>
+                                        {{ $afterPurchase['value'] }}
+                                        {{ strtolower($afterPurchase['period']) }}
+                                    </strong>
+                                    from the date of purchase.
+                                </p>
+                            </div>
+                        @endif
 
-    {{-- Age Restriction --}}
-    @if (!empty($voucherSetting->age_restriction) && is_array($voucherSetting->age_restriction))
-        <div>
-            <h6 class="font-semibold text-gray-900 mb-1">Age Restriction</h6>
-            <ul class="list-disc list-inside">
-                @foreach ($voucherSetting->age_restriction as $age)
-                    @if (isset($age['text']))
-                        <li>{{ $age['text'] }}</li>
-                    @endif
-                @endforeach
-            </ul>
-        </div>
-        <hr>
-    @endif
+                        {{-- Age Restriction --}}
+                        @if (!empty($voucherSetting->age_restriction) && is_array($voucherSetting->age_restriction))
+                            <div>
+                                <h6 class="font-semibold text-gray-900 mb-1">Age Restriction</h6>
+                                <ul class="list-disc list-inside">
+                                    @foreach ($voucherSetting->age_restriction as $age)
+                                        @if (isset($age['text']))
+                                            <li>{{ $age['text'] }}</li>
+                                        @endif
+                                    @endforeach
+                                </ul>
+                            </div>
+                            <hr>
+                        @endif
 
-    {{-- Group Size Requirement --}}
-    @if (!empty($voucherSetting->group_size_requirement) && is_array($voucherSetting->group_size_requirement))
-        <div>
-            <h6 class="font-semibold text-gray-900 mb-1">Group Size Requirement</h6>
-            <ul class="list-disc list-inside">
-                @foreach ($voucherSetting->group_size_requirement as $group)
-                    @if (isset($group['text']))
-                        <li>{{ $group['text'] }}</li>
-                    @endif
-                @endforeach
-            </ul>
-        </div>
-        <hr>
-    @endif
+                        {{-- Group Size Requirement --}}
+                        @if (!empty($voucherSetting->group_size_requirement) && is_array($voucherSetting->group_size_requirement))
+                            <div>
+                                <h6 class="font-semibold text-gray-900 mb-1">Group Size Requirement</h6>
+                                <ul class="list-disc list-inside">
+                                    @foreach ($voucherSetting->group_size_requirement as $group)
+                                        @if (isset($group['text']))
+                                            <li>{{ $group['text'] }}</li>
+                                        @endif
+                                    @endforeach
+                                </ul>
+                            </div>
+                            <hr>
+                        @endif
 
-    {{-- Blackout Dates --}}
-    @if (!empty($voucherSetting->custom_blackout_dates) && is_array($voucherSetting->custom_blackout_dates))
-        <div>
-            <h6 class="font-semibold text-gray-900 mb-1">Blackout Dates</h6>
-            <ul class="list-disc list-inside">
-                @foreach ($voucherSetting->custom_blackout_dates as $date)
-                    @if (isset($date['date'], $date['description']))
-                        <li>
-                            {{ \Carbon\Carbon::parse($date['date'])->format('d M Y') }}
-                            – {{ $date['description'] }}
-                        </li>
-                    @endif
-                @endforeach
-            </ul>
-        </div>
-        <hr>
-    @endif
+                        {{-- Blackout Dates --}}
+                        @if (!empty($voucherSetting->custom_blackout_dates) && is_array($voucherSetting->custom_blackout_dates))
+                            <div>
+                                <h6 class="font-semibold text-gray-900 mb-1">Blackout Dates</h6>
+                                <ul class="list-disc list-inside">
+                                    @foreach ($voucherSetting->custom_blackout_dates as $date)
+                                        @if (isset($date['date'], $date['description']))
+                                            <li>
+                                                {{ \Carbon\Carbon::parse($date['date'])->format('d M Y') }}
+                                                – {{ $date['description'] }}
+                                            </li>
+                                        @endif
+                                    @endforeach
+                                </ul>
+                            </div>
+                            <hr>
+                        @endif
 
-</div>
+                    </div>
 
-<?php } ?>
+                    <?php } ?>
 
 
 
@@ -985,13 +1026,14 @@ if (isset($voucherSetting)) {
         }
 
         async function shareVoucher() {
-            const text = 'Check out this voucher: {{ $voucher->name ?? "Gift Voucher" }} from {{ optional($main_branch)->name ?? "our store" }}!';
+            const text =
+                'Check out this voucher: {{ $voucher->name ?? 'Gift Voucher' }} from {{ optional($main_branch)->name ?? 'our store' }}!';
             const url = window.location.href;
 
             if (navigator.share) {
                 try {
                     await navigator.share({
-                        title: '{{ $voucher->name ?? "Voucher" }}',
+                        title: '{{ $voucher->name ?? 'Voucher' }}',
                         text: text,
                         url: url,
                     });
@@ -1019,11 +1061,12 @@ if (isset($voucherSetting)) {
         });
 
         function shareTo(platform) {
-            const text = 'Check out this voucher: {{ $voucher->name ?? "Gift Voucher" }} from {{ optional($main_branch)->name ?? "our store" }}!';
+            const text =
+                'Check out this voucher: {{ $voucher->name ?? 'Gift Voucher' }} from {{ optional($main_branch)->name ?? 'our store' }}!';
             const url = window.location.href;
             let shareUrl = '';
 
-            switch(platform) {
+            switch (platform) {
                 case 'whatsapp':
                     shareUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(text + "\n" + url)}`;
                     break;
@@ -1034,7 +1077,8 @@ if (isset($voucherSetting)) {
                     shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`;
                     break;
                 case 'twitter':
-                    shareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`;
+                    shareUrl =
+                        `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`;
                     break;
                 case 'copy':
                     navigator.clipboard.writeText(url).then(() => {
