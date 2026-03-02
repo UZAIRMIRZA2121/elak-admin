@@ -26,7 +26,9 @@ class RestaurantController extends Controller
 
     public function update(Request $request)
     {
+    
         $request->validate([
+            'active' => 'nullable|in:0,1',
             'name' => 'required',
             'name.0' => 'required',
             'address' => 'nullable|max:1000',
@@ -35,17 +37,19 @@ class RestaurantController extends Controller
             'f_name.required' => translate('messages.first_name_is_required'),
             'name.0.required'=>translate('default_name_is_required'),
         ]);
+      
         $shop = Store::findOrFail(Helpers::get_store_id());
         $shop->name = $request->name[array_search('default', $request->lang)];
         $shop->address = $request->address[array_search('default', $request->lang)];
         $shop->phone = $request->contact;
+        $shop->active = $request->active ?? $shop->active;
 
         $shop->logo = $request->has('image') ? Helpers::update('store/', $shop->logo, 'png', $request->file('image')) : $shop->logo;
 
         $shop->cover_photo = $request->has('photo') ? Helpers::update('store/cover/', $shop->cover_photo, 'png', $request->file('photo')) : $shop->cover_photo;
 
         $shop->save();
-
+      
         $default_lang = str_replace('_', '-', app()->getLocale());
         foreach($request->lang as $index=>$key)
         {

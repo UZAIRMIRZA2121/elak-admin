@@ -3,78 +3,93 @@
     $title = $vendorData?->module_type == 'rental' && addon_published_status('Rental') ? 'Provider' : 'Store';
 @endphp
 @extends('layouts.vendor.app')
-@section('title',translate('messages.store_view'))
+@section('title', translate('messages.store_view'))
 @push('css_or_js')
     <!-- Custom styles for this page -->
 @endpush
 
 @section('content')
-<div class="content container-fluid">
-    <div class="page-header">
-        <div class="d-flex flex-wrap justify-content-between">
-            <h2 class="page-header-title text-capitalize my-2">
-                <img class="w--26" src="{{asset('/public/assets/admin/img/store.png')}}" alt="public">
-                <span>
-                    {{translate('messages.my_'.$title.'_info')}}
-                </span>
-            </h2>
-            <div class="my-2">
-                <a class="btn btn--primary" href="{{route('vendor.shop.edit')}}"><i class="tio-edit"></i>{{translate('messages.edit_'.$title.'_information')}}</a>
+    <div class="content container-fluid">
+        <div class="page-header">
+            <div class="d-flex flex-wrap justify-content-between">
+                <h2 class="page-header-title text-capitalize my-2">
+                    <img class="w--26" src="{{ asset('/public/assets/admin/img/store.png') }}" alt="public">
+                    <span>
+                        {{ translate('messages.my_' . $title . '_info') }}
+                    </span>
+                </h2>
+                <div class="my-2">
+                    <a class="btn btn--primary" href="{{ route('vendor.shop.edit') }}"><i
+                            class="tio-edit"></i>{{ translate('messages.edit_' . $title . '_information') }}</a>
+                </div>
             </div>
         </div>
-    </div>
-    <div class="card border-0">
-        <div class="card-body p-0">
-            @if($shop->cover_photo)
-            <div>
-                <img class="my-restaurant-img onerror-image" src="{{ $shop->cover_photo_full_url }}"
-                data-onerror-image="{{asset('public/assets/admin/img/900x400/img1.jpg')}}">
-            </div>
-            @endif
-            <div class="my-resturant--card">
-
-                @if($shop->image=='def.png')
-                <div class="my-resturant--avatar">
-                    <img class="border onerror-image"
-                    src="{{asset('public/assets/back-end')}}/img/shop.png"
-                    data-onerror-image="{{asset('public/assets/admin/img/160x160/img1.jpg')}}" alt="User Pic">
-                </div>
-                @else
-                    <div class="my-resturant--avatar onerror-image">
-                        <img src="{{ $shop->logo_full_url }}"
-                        class="border" data-onerror-image="{{asset('public/assets/admin/img/160x160/img1.jpg')}}" alt="">
+        <div class="card border-0">
+            <div class="card-body p-0">
+                @if ($shop->cover_photo)
+                    <div>
+                        <img class="my-restaurant-img onerror-image" src="{{ $shop->cover_photo_full_url }}"
+                            data-onerror-image="{{ asset('public/assets/admin/img/900x400/img1.jpg') }}">
                     </div>
                 @endif
+                <div class="my-resturant--card">
 
-                <div class="my-resturant--content">
-                    <span class="d-block mb-1 pb-1">
-                        <strong> {{translate('messages.name')}} :</strong>{{$shop->name}}
-                    </span>
-                    <span class="d-block mb-1 pb-1">
-                        <strong>{{translate('messages.phone')}} :</strong> <a href="tel:{{$shop->phone}}">{{$shop->phone}}</a>
-                    </span>
-                    <span class="d-block mb-1 pb-1">
-                        <strong>{{translate('messages.address')}} : </strong> {{$shop->address}}
-                    </span>
-                    <span class="d-block mb-1 pb-1">
-                        <strong>{{translate('messages.Business_Plan')}} : </strong> {{translate($shop->store_business_model)}}
-                    </span>
-                    <span class="d-block mb-1 pb-1">
-                        @if ($shop->store_business_model == 'commission')
+                    @if ($shop->image == 'def.png')
+                        <div class="my-resturant--avatar">
+                            <img class="border onerror-image" src="{{ asset('public/assets/back-end') }}/img/shop.png"
+                                data-onerror-image="{{ asset('public/assets/admin/img/160x160/img1.jpg') }}" alt="User Pic">
+                        </div>
+                    @else
+                        <div class="my-resturant--avatar onerror-image">
+                            <img src="{{ $shop->logo_full_url }}" class="border"
+                                data-onerror-image="{{ asset('public/assets/admin/img/160x160/img1.jpg') }}" alt="">
+                        </div>
+                    @endif
 
-                        <strong>{{translate('messages.admin_commission')}} : </strong> {{(isset($shop->comission)? $shop->comission:\App\Models\BusinessSetting::where('key','admin_commission')->first()->value)}}%
-                        @elseif(in_array($shop->store_business_model ,['subscription','unsubscribed']))
+                    <div class="my-resturant--content">
+                        <span class="d-block mb-1 pb-1">
+                            <strong> {{ translate('messages.name') }} :</strong>{{ $shop->name }}
+                        </span>
+                        <span class="d-block mb-1 pb-1">
+                            <strong>{{ translate('messages.phone') }} :</strong> <a
+                                href="tel:{{ $shop->phone }}">{{ $shop->phone }}</a>
+                        </span>
+                        <span class="d-block mb-1 pb-1">
+                            <strong>{{ translate('messages.is_active') }} :</strong>
 
-                        <strong>{{translate('Subscription_plan')}} : </strong> {{ $shop?->store_sub_update_application?->package?->package_name}}
-                        @endif
+                            @if ($shop->active)
+                                <span class="badge badge-soft-success ml-sm-3">
+                                    {{ translate('messages.open_now') }}
+                                </span>
+                            @else
+                                <span class="badge badge-soft-danger ml-sm-3">
+                                    {{ translate('messages.closed_now') }}
+                                </span>
+                            @endif
+                        </span>
+                        <span class="d-block mb-1 pb-1">
+                            <strong>{{ translate('messages.address') }} : </strong> {{ $shop->address }}
+                        </span>
+                        <span class="d-block mb-1 pb-1">
+                            <strong>{{ translate('messages.Business_Plan') }} : </strong>
+                            {{ translate($shop->store_business_model) }}
+                        </span>
+                        <span class="d-block mb-1 pb-1">
+                            @if ($shop->store_business_model == 'commission')
+                                <strong>{{ translate('messages.admin_commission') }} : </strong>
+                                {{ isset($shop->comission) ? $shop->comission : \App\Models\BusinessSetting::where('key', 'admin_commission')->first()->value }}%
+                            @elseif(in_array($shop->store_business_model, ['subscription', 'unsubscribed']))
+                                <strong>{{ translate('Subscription_plan') }} : </strong>
+                                {{ $shop?->store_sub_update_application?->package?->package_name }}
+                            @endif
 
-                    </span>
-                    
+                        </span>
+
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
-    {{-- <div class="card border-0 mt-2">
+        {{-- <div class="card border-0 mt-2">
         <div class="card-header">
             <h5 class="card-title toggle-switch toggle-switch-sm d-flex justify-content-between">
                 <span class="card-header-icon mr-1"><i class="tio-dashboard"></i></span>
@@ -111,5 +126,5 @@
             </form>
         </div>
     </div> --}}
-</div>
+    </div>
 @endsection

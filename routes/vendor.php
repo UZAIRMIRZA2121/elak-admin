@@ -141,8 +141,8 @@ Route::group(['namespace' => 'Vendor', 'as' => 'vendor.'], function () {
             Route::post('variant-combination', 'ItemController@variant_combination')->name('variant-combination');
             Route::post('store', 'ItemController@store')->name('store');
             Route::get('edit/{id}', 'ItemController@edit')->name('edit');
-              Route::get('view-voucher/{id}', 'ItemController@view_voucher')->name('view_voucher');
-   
+            Route::get('view-voucher/{id}', 'ItemController@view_voucher')->name('view_voucher');
+
             Route::post('update/{id}', 'ItemController@update')->name('update');
             Route::get('list', 'ItemController@list')->name('list');
             Route::delete('delete/{id}', 'ItemController@delete')->name('delete');
@@ -254,7 +254,6 @@ Route::group(['namespace' => 'Vendor', 'as' => 'vendor.'], function () {
 
         Route::group(['prefix' => 'order', 'as' => 'order.', 'middleware' => ['module:order']], function () {
 
-
             Route::get('list/{status}', 'OrderController@list')->name('list');
             Route::put('status-update/{id}', 'OrderController@status')->name('status-update');
             Route::post('add-to-cart', 'OrderController@add_to_cart')->name('add-to-cart');
@@ -293,7 +292,7 @@ Route::group(['namespace' => 'Vendor', 'as' => 'vendor.'], function () {
 
             Route::get('/check-new', 'OrderController@checkNewCart')->name('check-new');
 
-   
+
 
 
         });

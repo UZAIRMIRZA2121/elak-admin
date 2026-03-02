@@ -46,7 +46,9 @@ class VendorController extends Controller
 {
     public function get_profile(Request $request)
     {
+   
         Log::info('VendorController@get_profile called', ['vendor' => $request['vendor']]);
+   
         $vendor = $request['vendor'];
         $min_amount_to_pay_store = BusinessSetting::where('key' , 'min_amount_to_pay_store')->first()->value ?? 0;
         $store = Helpers::store_data_formatting($vendor->stores[0], false);
@@ -54,6 +56,7 @@ class VendorController extends Controller
         unset($store['discount']);
         $store['discount']=$discount;
         $store['schedules']=$store->schedules()->get();
+        $store['status']=1;
         $store['module']=$store->module;
         $vendor['order_count'] =$vendor->orders->where('order_type','!=','pos')->whereNotIn('order_status',['canceled','failed'])->count();
         $vendor['todays_order_count'] =$vendor->todaysorders->where('order_type','!=','pos')->whereIn('order_status', ['refunded', 'delivered'])->count();
@@ -180,6 +183,7 @@ class VendorController extends Controller
                 $out_of_stock_count=  $st?->module->module_type != 'food' ?  $items->orderby('stock')->latest()->count() : 0;
                 $vendor['out_of_stock_count'] = (int) $out_of_stock_count;
 
+$vendor['status'] = 1;
 
         return response()->json($vendor, 200);
     }
