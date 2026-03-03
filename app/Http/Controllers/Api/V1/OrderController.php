@@ -191,6 +191,11 @@ class OrderController extends Controller
                 ? json_decode($order->gift_details, true)
                 : ($order->gift_details ?? []);
             $details[0]['is_guest'] = (int) $order->is_guest;
+            $details['voucher_usage_term_and_conditions'] = $order->voucher_usage_term_and_conditions;
+            $details['voucher_term_and_conditions'] = $order->voucher_term_and_conditions;
+
+
+
             return response()->json($details, 200);
         } else if ($order->order_type == 'parcel' || $order->prescription_order == 1) {
             $order->delivery_address = json_decode($order->delivery_address, true);
