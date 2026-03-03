@@ -8531,4 +8531,5 @@ Smartly or Earn. ',
   'is_active' => 'Is active',
   'closed_now' => 'Closed now',
   'open_now' => 'Open now',
+  'add_ons' => 'Add ons',
 );

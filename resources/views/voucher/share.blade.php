@@ -6,7 +6,7 @@
 
     $firstDetail = $order->firstDetail;
     $item_details = $firstDetail ? $firstDetail->item : null;
-    $gift_details = $firstDetail->gift_details ?? null;
+
     $branches = $firstDetail && $firstDetail->item ? $firstDetail->item->branches : collect([]);
 
     $main_branch = $item_details ? $item_details->store : null;
@@ -18,7 +18,23 @@
             : [];
 
     $usage_terms = !empty($termIds) ? App\Models\UsageTermManagement::whereIn('id', $termIds)->get() : collect([]);
+
+    $gift_exist = !empty($order->gift_details) ? true : false;
+
 @endphp
+
+<?php
+$voucherSetting = $order->voucher_setting;
+
+// Decode nested JSON safely
+$usageUser = isset($voucherSetting['usage_limit_per_user']) && is_string($voucherSetting['usage_limit_per_user']) ? json_decode($voucherSetting['usage_limit_per_user'], true) : $voucherSetting['usage_limit_per_user'] ?? [];
+
+$usageStore = isset($voucherSetting['usage_limit_per_store']) && is_string($voucherSetting['usage_limit_per_store']) ? json_decode($voucherSetting['usage_limit_per_store'], true) : $voucherSetting['usage_limit_per_store'] ?? [];
+
+$afterPurchase = isset($voucherSetting['offer_validity_after_purchase']) && is_string($voucherSetting['offer_validity_after_purchase']) ? json_decode($voucherSetting['offer_validity_after_purchase'], true) : $voucherSetting['offer_validity_after_purchase'] ?? [];
+
+$validity = isset($voucherSetting['validity_period']) && is_string($voucherSetting['validity_period']) ? json_decode($voucherSetting['validity_period'], true) : $voucherSetting['validity_period'] ?? [];
+?>
 
 <!DOCTYPE html>
 <html lang="en">
@@ -29,6 +45,7 @@
     <title>Burger Bar Voucher</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         * {
             margin: 0;
@@ -564,9 +581,7 @@
             <div class="voucher-image-wrapper">
                 <div class="in-store-badge">
                     <span>{{ $order->voucher_type }}</span>
-                    <button class="badge-download-btn" onclick="downloadVoucherPDF()" title="Download PDF">
-                        <i class="bi bi-download"></i>
-                    </button>
+
                 </div>
 
                 <img class="img-fluid rounded onerror-image"
@@ -585,8 +600,15 @@
                         {{ $voucher->name ?? 'Voucher Details Unavailable' }}
                     </div>
                     <div class="gift-value-box">
-                        <div class="gift-value-label">Gift Value</div>
-                        <div class="gift-value-amount">{{ \App\CentralLogics\Helpers::format_currency($order->total_order_amount) }}</div>
+                        @if ($gift_exist)
+                            <div class="gift-value-label">Gift Value</div>
+                            <div class="gift-value-amount">
+                                {{ \App\CentralLogics\Helpers::format_currency($order->total_order_amount) }}</div>
+                        @else
+                            <div class="gift-value-label">Save</div>
+                            <div class="gift-value-amount">
+                                {{ \App\CentralLogics\Helpers::format_currency($order->discount_amount) }}</div>
+                        @endif
                     </div>
                 </div>
                 <div class="restaurant-section">
@@ -613,12 +635,56 @@
                         </div>
                         <div class="restaurant-name">{{ optional($main_branch)->name ?? 'Store N/A' }}</div>
                     </div>
+                    <div class="restaurant-right">
+
+                        <div class="restaurant-name">
+                            @if ($gift_exist)
+                                <i class="bi bi-gift" style="font-size: 30px"></i>
+                            @else
+                                <span class="text-muted "> <del>
+                                        {{ \App\CentralLogics\Helpers::format_currency($order->total_order_amount) }}</del>
+                                </span>
+                                <br>
+                                <span> {{ \App\CentralLogics\Helpers::format_currency($order->order_amount) }}</span>
+                            @endif
+
+
+                        </div>
+                    </div>
                 </div>
                 <!-- QR Code and Expiry -->
                 <div class="qr-expiry-section">
                     <div class="expiry-block">
-                        <div class="expiry-label">Expires on</div>
-                        <div class="expiry-date">Feb 7, 2026</div>
+
+                        @php
+                            use Carbon\Carbon;
+
+                            $expiryDate = null;
+                            $isExpired = false;
+
+                            if (!empty($afterPurchase['value']) && !empty($order->created_at)) {
+                                $expiry = Carbon::parse($order->created_at)->addDays((int) $afterPurchase['value']);
+
+                                $expiryDate = $expiry->format('d M Y');
+
+                                // Check if expired (today allowed)
+                                $isExpired = $expiry->isPast() && !$expiry->isToday();
+                            }
+                        @endphp
+
+
+                        @if ($expiryDate)
+                            <div class="expiry-label {{ $isExpired ? 'text-danger' : 'text-success' }}">
+                                {{ $isExpired ? 'Voucher Expired' : 'Expires On' }}
+                            </div>
+
+                            <div class="expiry-date {{ $isExpired ? 'text-danger fw-bold' : '' }}">
+                                {{ $expiryDate }}
+                            </div>
+                        @endif
+
+
+
                     </div>
                     <div class="qr-code-box">
                         @if ($order->qr_code)
@@ -634,29 +700,32 @@
                 </div>
                 <!-- Share and Download Buttons -->
                 <div class="share-download-section">
-                    <div class="share-dropdown-container">
-                        <button class="share-btn" id="shareTrigger">
-                            <i class="bi bi-share"></i>
-                            <span>Share Voucher</span>
-                        </button>
-                        <div class="share-dropdown-menu" id="shareMenu">
-                            <div class="share-item whatsapp" onclick="shareTo('whatsapp')">
-                                <i class="bi bi-whatsapp"></i> WhatsApp
-                            </div>
-                            <div class="share-item telegram" onclick="shareTo('telegram')">
-                                <i class="bi bi-telegram"></i> Telegram
-                            </div>
-                            <div class="share-item facebook" onclick="shareTo('facebook')">
-                                <i class="bi bi-facebook"></i> Facebook
-                            </div>
-                            <div class="share-item twitter" onclick="shareTo('twitter')">
-                                <i class="bi bi-twitter-x"></i> Twitter
-                            </div>
-                            <div class="share-item copy" onclick="shareTo('copy')">
-                                <i class="bi bi-link-45deg"></i> Copy Link
+                    @if (!$gift_exist)
+                        <div class="share-dropdown-container">
+                            <button class="share-btn" id="shareTrigger">
+                                <i class="bi bi-share"></i>
+                                <span>Share Voucher</span>
+                            </button>
+                            <div class="share-dropdown-menu" id="shareMenu">
+                                <div class="share-item whatsapp" onclick="shareTo('whatsapp')">
+                                    <i class="bi bi-whatsapp"></i> WhatsApp
+                                </div>
+                                <div class="share-item telegram" onclick="shareTo('telegram')">
+                                    <i class="bi bi-telegram"></i> Telegram
+                                </div>
+                                <div class="share-item facebook" onclick="shareTo('facebook')">
+                                    <i class="bi bi-facebook"></i> Facebook
+                                </div>
+                                <div class="share-item twitter" onclick="shareTo('twitter')">
+                                    <i class="bi bi-twitter-x"></i> Twitter
+                                </div>
+                                <div class="share-item copy" onclick="shareTo('copy')">
+                                    <i class="bi bi-link-45deg"></i> Copy Link
+                                </div>
                             </div>
                         </div>
-                    </div>
+                    @endif
+
 
                     <a href="{{ route('voucher.download', $order->qr_code) }}" class="download-btn-outline">
                         <i class="bi bi-download"></i>
@@ -701,36 +770,77 @@
                                     <div class="media media--sm">
                                         <div class="media-body">
                                             <div>
-                                                <strong
-                                                    class="line--limit-1">{{ Str::limit(optional($detail->item)->name ?? 'Item', 25, '...') }}</strong>
 
-                                                <br>
+                                                {{-- Top Row --}}
+                                                <div class="d-flex justify-content-between align-items-start">
 
-                                                <?php
-                                                $variations = json_decode($detail['variation'], true);
-                                                ?>
+                                                    <div>
+                                                        <strong class="line--limit-1">
+                                                            {{ Str::limit(optional($detail->item)->name ?? 'Item', 25, '...') }}
+                                                        </strong>
+                                                    </div>
+                                                    @if (!$gift_exist)
+                                                        {{-- Price Right Side --}}
+                                                        <div class="text-end">
 
-                                                @foreach (json_decode($detail['add_ons'], true) as $key2 => $addon)
-                                               <div class="font-size-sm text-body">
-                                                            <span>{{ Str::limit($addon['name'], 25, '...') }} :
-                                                            </span>
-                                                            <span class="font-weight-bold">
-                                                              {{ $addon['quantity'] }} x  {{ \App\CentralLogics\Helpers::format_currency($addon['price']) }}
-                                                            </span>
+                                                            @if ($detail->is_paid == 0)
+                                                                <h5>
+                                                                    <del class="text-muted me-2">
+                                                                        {{ \App\CentralLogics\Helpers::format_currency($detail['total_price']) }}
+                                                                    </del>
+                                                                </h5>
+
+                                                                <span class="badge bg-success ms-sm-3">
+                                                                    {{ translate('messages.free') }}
+                                                                </span>
+                                                            @elseif ($detail->is_paid == 1)
+                                                                <h5>
+                                                                    {{ \App\CentralLogics\Helpers::format_currency($detail['total_price']) }}
+                                                                </h5>
+                                                            @endif
+
+
                                                         </div>
-                                                @endforeach
+                                                    @endif
+
+                                                </div>
+
+
+                                                {{-- Addons --}}
+                                                @php
+                                                    $add_ons = json_decode($detail['add_ons'], true);
+                                                @endphp
+
+                                                @if (!empty($add_ons))
+                                                    <span>{{ translate('messages.add_ons') }} :</span>
+
+                                                    @foreach ($add_ons as $addon)
+                                                        <div class="font-size-sm text-body">
+                                                            <span>{{ Str::limit($addon['name'], 25, '...') }}</span>
+                                                        </div>
+                                                        @if (!$gift_exist)
+                                                            <span class="font-weight-bold">
+                                                                {{ $addon['quantity'] }} x
+                                                                {{ \App\CentralLogics\Helpers::format_currency($addon['price']) }}
+                                                            </span>
+                                                        @endif
+                                                    @endforeach
+                                                @endif
+
+
+                                                {{-- Variations --}}
+                                                @php
+                                                    $variations = json_decode($detail['variation'], true);
+                                                @endphp
 
                                                 @if (!empty($variations))
-                                                    {{-- <strong><u>{{ translate('messages.variation') }}
-                                                            :</u></strong> --}}
-
-
+                                                    <span>{{ translate('messages.variation') }} :</span>
 
                                                     @foreach ($variations as $variation)
                                                         <div class="font-size-sm text-body">
-                                                            <span>{{ ucfirst($variation['name'] ?? 'Variation') }} :
-                                                            </span>
-                                                            <span class="font-weight-bold">
+                                                            <span>{{ ucfirst($variation['name'] ?? 'Variation') }}
+                                                                :</span>
+                                                            <span class="fw-bold">
                                                                 {{ $variation['values'][0]['label'] ?? '' }}
                                                             </span>
                                                         </div>
@@ -740,20 +850,21 @@
                                             </div>
                                         </div>
                                     </div>
+
                                     <hr>
                                 @endif
                             @endforeach
 
                         </div>
                     @endif
-
-                    <div class="info-row" onclick="toggleInfo(this)">
-                        <span class="info-title">Redeemable at 4 outlets</span>
-                        <a href="#" class="view-button" onclick="event.preventDefault()">View <i
-                                class="bi bi-chevron-down"></i></a>
-                    </div>
-
                     @isset($branches)
+                        <div class="info-row" onclick="toggleInfo(this)">
+                            <span class="info-title">Redeemable at {{ $branches->count() }} outlets</span>
+                            <a href="#" class="view-button" onclick="event.preventDefault()">View <i
+                                    class="bi bi-chevron-down"></i></a>
+                        </div>
+
+
                         <div class="info-content">
                             @foreach ($branches as $branch)
                                 <div class="d-flex align-items-center mb-3">
@@ -799,33 +910,10 @@
                             @endforeach
                         </div>
                     @endisset
-                    <?php
-if (isset($voucherSetting)) {
 
-    $validity      = isset($voucherSetting->validity_period)
-        ? json_decode($voucherSetting->validity_period, true)
-        : null;
 
-    $days          = isset($voucherSetting->specific_days_of_week)
-        ? json_decode($voucherSetting->specific_days_of_week, true)
-        : null;
 
-    $holidays      = isset($voucherSetting->holidays_occasions)
-        ? json_decode($voucherSetting->holidays_occasions, true)
-        : null;
 
-    $usageUser     = isset($voucherSetting->usage_limit_per_user)
-        ? json_decode($voucherSetting->usage_limit_per_user, true)
-        : null;
-
-    $usageStore    = isset($voucherSetting->usage_limit_per_store)
-        ? json_decode($voucherSetting->usage_limit_per_store, true)
-        : null;
-
-    $afterPurchase = isset($voucherSetting->offer_validity_after_purchase)
-        ? json_decode($voucherSetting->offer_validity_after_purchase, true)
-        : null;
-?>
 
                     <div class="info-row" onclick="toggleInfo(this)">
                         <span class="info-title">Usage Terms</span>
@@ -837,48 +925,46 @@ if (isset($voucherSetting)) {
                     <div class="info-content space-y-4 text-sm text-gray-700">
 
                         {{-- Usage Limits --}}
-                        @if (isset($validity['active']) &&
-                                $validity['active'] === 1 &&
-                                isset($usageUser['value'], $usageUser['period']) &&
-                                isset($usageStore['value'], $usageStore['period']))
+                        @if (!empty($usageUser) && !empty($usageStore))
                             <div>
                                 <h6 class="font-semibold text-gray-900 mb-1">Usage Limits</h6>
                                 <ul class="list-disc list-inside">
                                     <li>
                                         Each user may redeem this voucher
-                                        <strong>{{ $usageUser['value'] }}</strong>
-                                        time(s) {{ strtolower($usageUser['period']) }}.
+                                        <strong>{{ $usageUser['value'] ?? 0 }}</strong>
+                                        time(s) {{ strtolower($usageUser['period'] ?? '') }}.
                                     </li>
                                     <li>
                                         This voucher may be redeemed a maximum of
-                                        <strong>{{ $usageStore['value'] }}</strong>
-                                        time(s) {{ strtolower($usageStore['period']) }} per store.
+                                        <strong>{{ $usageStore['value'] ?? 0 }}</strong>
+                                        time(s) {{ strtolower($usageStore['period'] ?? '') }} per store.
                                     </li>
                                 </ul>
                             </div>
                         @endif
 
+
                         {{-- Validity After Purchase --}}
-                        @if (isset($afterPurchase['value'], $afterPurchase['period']))
+                        @if (!empty($afterPurchase['value']))
                             <div>
                                 <h6 class="font-semibold text-gray-900 mb-1">Validity After Purchase</h6>
                                 <p>
                                     The voucher must be used within
                                     <strong>
-                                        {{ $afterPurchase['value'] }}
-                                        {{ strtolower($afterPurchase['period']) }}
+                                        {{ $afterPurchase['value'] }} Days
                                     </strong>
                                     from the date of purchase.
                                 </p>
                             </div>
                         @endif
 
+
                         {{-- Age Restriction --}}
-                        @if (!empty($voucherSetting->age_restriction) && is_array($voucherSetting->age_restriction))
+                        @if (!empty($voucherSetting['age_restriction']))
                             <div>
                                 <h6 class="font-semibold text-gray-900 mb-1">Age Restriction</h6>
                                 <ul class="list-disc list-inside">
-                                    @foreach ($voucherSetting->age_restriction as $age)
+                                    @foreach ($voucherSetting['age_restriction'] as $age)
                                         @if (isset($age['text']))
                                             <li>{{ $age['text'] }}</li>
                                         @endif
@@ -888,12 +974,13 @@ if (isset($voucherSetting)) {
                             <hr>
                         @endif
 
+
                         {{-- Group Size Requirement --}}
-                        @if (!empty($voucherSetting->group_size_requirement) && is_array($voucherSetting->group_size_requirement))
+                        @if (!empty($voucherSetting['group_size_requirement']))
                             <div>
                                 <h6 class="font-semibold text-gray-900 mb-1">Group Size Requirement</h6>
                                 <ul class="list-disc list-inside">
-                                    @foreach ($voucherSetting->group_size_requirement as $group)
+                                    @foreach ($voucherSetting['group_size_requirement'] as $group)
                                         @if (isset($group['text']))
                                             <li>{{ $group['text'] }}</li>
                                         @endif
@@ -903,16 +990,19 @@ if (isset($voucherSetting)) {
                             <hr>
                         @endif
 
+
                         {{-- Blackout Dates --}}
-                        @if (!empty($voucherSetting->custom_blackout_dates) && is_array($voucherSetting->custom_blackout_dates))
+                        @if (!empty($voucherSetting['custom_blackout_dates']))
                             <div>
                                 <h6 class="font-semibold text-gray-900 mb-1">Blackout Dates</h6>
                                 <ul class="list-disc list-inside">
-                                    @foreach ($voucherSetting->custom_blackout_dates as $date)
-                                        @if (isset($date['date'], $date['description']))
+                                    @foreach ($voucherSetting['custom_blackout_dates'] as $date)
+                                        @if (isset($date['date']))
                                             <li>
                                                 {{ \Carbon\Carbon::parse($date['date'])->format('d M Y') }}
-                                                – {{ $date['description'] }}
+                                                @if (isset($date['description']))
+                                                    – {{ $date['description'] }}
+                                                @endif
                                             </li>
                                         @endif
                                     @endforeach
@@ -923,8 +1013,6 @@ if (isset($voucherSetting)) {
 
                     </div>
 
-                    <?php } ?>
-
 
 
 
@@ -933,11 +1021,55 @@ if (isset($voucherSetting)) {
                         <a href="#" class="view-button" onclick="event.preventDefault()">View <i
                                 class="bi bi-chevron-down"></i></a>
                     </div>
-                    <div class="info-content">
-                        <p>1. Visit any participating Burger Bar outlet<br>
-                            2. Show the QR code or voucher number to the cashier<br>
-                            3. Your discount will be applied automatically<br>
-                            4. Enjoy your meal!</p>
+
+                    <div class="info-content text-sm text-gray-700 space-y-3">
+
+                        @php
+                            $guides = is_string($order->voucher_usage_term_and_conditions)
+                                ? json_decode($order->voucher_usage_term_and_conditions, true)
+                                : $order->voucher_usage_term_and_conditions;
+                        @endphp
+
+                        @if (!empty($guides))
+                            <div class="space-y-4">
+                                @foreach ($guides as $guide)
+                                    <div class="border p-3 rounded">
+
+                                        {{-- Guide Title --}}
+                                        <h5 class="font-semibold text-lg">
+                                            {{ $guide['guide_title'] ?? '' }}
+                                        </h5>
+
+                                        {{-- Sections --}}
+                                        @if (!empty($guide['sections']))
+                                            @foreach ($guide['sections'] as $section)
+                                                <div class="mt-2">
+
+                                                    {{-- Section Title --}}
+                                                    @if (!empty($section['title']))
+                                                        <p class="font-medium">
+                                                            {{ $section['title'] }}
+                                                        </p>
+                                                    @endif
+
+                                                    {{-- Steps --}}
+                                                    @if (!empty($section['steps']))
+                                                        <ul class="list-disc list-inside text-sm mt-1">
+                                                            @foreach ($section['steps'] as $step)
+                                                                <li>{{ $step }}</li>
+                                                            @endforeach
+                                                        </ul>
+                                                    @endif
+
+                                                </div>
+                                            @endforeach
+                                        @endif
+
+                                    </div>
+                                @endforeach
+
+                            </div>
+                        @endif
                     </div>
                 </div>
 
