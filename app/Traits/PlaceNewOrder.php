@@ -6,6 +6,7 @@ use App\Models\Cart;
 use App\Models\CashBack;
 use App\Models\Item;
 use App\Models\User;
+use App\Models\VoucherSetting;
 use App\Models\WalletPayment;
 use App\Models\Zone;
 use App\Models\Order;
@@ -45,7 +46,7 @@ trait PlaceNewOrder
     {
 
         Log::info('New Place Order Request', ['request' => $request->all(), 'is_prescription' => $is_prescription]);
-       
+
         $validator = Validator::make($request->all(), [
             'order_amount' => 'required',
             'payment_method' => 'required|in:cash_on_delivery,digital_payment,wallet,offline_payment',
@@ -513,19 +514,42 @@ trait PlaceNewOrder
             $order->order_amount = $request['order_amount'] ?? 0;
 
             $order->voucher_type = $carts[0]['type'] ?? null;
-      
+
             $order->order_status = $order->voucher_type === 'Flat discount' ? 'confirmed' : $order_status;
             $order->order_type = $request['order_type'] ?? $carts[0]['type'] ?? null;
 
-  
+
+          
+            foreach ($carts ?? [] as $cart) {
+                if (isset($cart->item_id)) {
+                    $item = Item::find($cart->item_id);
+                    if ($item->type == 'voucher') {
+                        $voucher_details = $item;
+                        $voucher_term_and_conditions = $voucher_details->termsAndConditions()->first();
+                        $voucherSetting = VoucherSetting::where('item_id', $item->id)->first();
+
+                        $order->voucher_term_and_conditions =  $voucher_term_and_conditions ?? null;
+                        $order->voucher_usage_term_and_conditions = $voucherSetting   ?? null;
+                    
+
+                    }
+
+                }
+            }
+      
+            $order->offer_type = $carts[0]['offer_type'] ?? null;
+
+
             $order->offer_type = $carts[0]['offer_type'] ?? null;
             $order->total_order_amount = $carts[0]['total_price'] ?? null;
+
+            $order->total_order_amount = $carts[0]['total_price'] ?? null;
             $order->discount_amount = $carts[0]['discount_amount'] ?? null;
-              
+
             $order->gift_details = $request->gift_details ?? null;
             $order->save();
-       
-        
+
+
             if ($request->order_type !== 'parcel') {
                 $taxMapCollection = collect($taxMap);
                 foreach ($order_details as $key => $item) {
@@ -557,9 +581,9 @@ trait PlaceNewOrder
 
                         $total_order_amount = $request->order_amount;
                         $cashbackAmount = 0;
-                      
+
                         if ($offerType === 'cash back') {
-                        
+
                             // Cashback does NOT reduce order amount
                             if ($discountType === 'percent') {
                                 $cashbackAmount = ($total_order_amount * $discountValue) / 100;
@@ -568,12 +592,12 @@ trait PlaceNewOrder
                             }
                             // safety check
                             $cashbackAmount = min($cashbackAmount, $total_order_amount);
-                         
+
                             if ($cashbackAmount > 0) {
                                 CustomerLogic::create_wallet_transaction($order->user_id, $cashbackAmount, 'add_fund', $order->id);
                             }
-                            
-                             if ($voucher_type  == 'Flat discount') {
+
+                            if ($voucher_type == 'Flat discount') {
                                 CustomerLogic::create_wallet_transaction($order->user_id, $order->discount_amount, 'add_fund', $order->id);
                             }
                         }
@@ -1231,9 +1255,9 @@ trait PlaceNewOrder
                 $store_discount_amount += $or_d['discount_type'] != 'flash_sale' ? $or_d['discount_on_item'] * $or_d['quantity'] : 0;
                 $flash_sale_admin_discount_amount += $or_d['discount_type'] == 'flash_sale' ? $product_discount['admin_discount_amount'] * $or_d['quantity'] : 0;
                 $flash_sale_vendor_discount_amount += $or_d['discount_type'] == 'flash_sale' ? $product_discount['vendor_discount_amount'] * $or_d['quantity'] : 0;
-               
+
                 $order_details[] = $or_d;
-             
+
                 $addon_data[] = $addon_data['addons'];
             } else {
                 return [

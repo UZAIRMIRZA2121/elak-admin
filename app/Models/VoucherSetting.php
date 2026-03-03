@@ -41,7 +41,7 @@ class VoucherSetting extends Model
     /** 🔗 Relation: VoucherSetting → Item */
     public function item()
     {
-        return $this->belongsTo(Item::class, 'item_id', 'id');
+        return $this->belongsTo(Item::class, 'id', 'item_id');
     }
 
     /** 🔗 Relation: VoucherSetting → HolidayOccasions */

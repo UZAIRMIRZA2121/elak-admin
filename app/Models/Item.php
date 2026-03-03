@@ -920,6 +920,7 @@ class Item extends Model
     /**  Relation: Item → VoucherSetting */
     public function voucherSetting()
     {
+    
         return $this->hasOne(VoucherSetting::class, 'item_id', 'id');
     }
 

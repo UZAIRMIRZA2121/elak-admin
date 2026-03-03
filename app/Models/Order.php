@@ -50,7 +50,9 @@ class Order extends Model
         'cutlery' => 'boolean',
         'is_guest' => 'boolean',
         'ref_bonus_amount' => 'float',
-            'gift_details' => 'array',
+        'gift_details' => 'array',
+        'voucher_usage_term_and_conditions' => 'array',
+        'voucher_term_and_conditions' => 'array',
     ];
 
     protected $appends = ['module_type', 'order_attachment_full_url', 'order_proof_full_url'];
@@ -292,14 +294,14 @@ class Order extends Model
     }
 
 
-public function scopeStoreOrder($query)
-{
-    return $query->whereIn('order_type', [
-        'take_away',
-        'Flat discount',
-        'delivery'
-    ]);
-}
+    public function scopeStoreOrder($query)
+    {
+        return $query->whereIn('order_type', [
+            'take_away',
+            'Flat discount',
+            'delivery'
+        ]);
+    }
 
     public function scopeDmOrder($query)
     {

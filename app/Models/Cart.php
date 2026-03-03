@@ -47,8 +47,9 @@ class Cart extends Model
 
     public function item()
     {
-        return $this->morphTo();
+        return $this->belongsTo(\App\Models\Item::class, 'item_id', 'id');
     }
+
     /**
      * Relationship to the User (customer)
      */
