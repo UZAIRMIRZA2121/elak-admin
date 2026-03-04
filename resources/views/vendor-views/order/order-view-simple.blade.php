@@ -283,7 +283,7 @@
                                     : <label
                                         class="fz--10 badge m-0 badge-soft-primary">{{ translate(str_replace('_', ' ', $order['voucher_type'])) }}</label>
                                 </h6>
-                                   <h6 class="text-capitalize">{{ translate('messages.voucher_sub_type') }}
+                                  <h6 class="text-capitalize">{{ translate('messages.voucher_sub_type') }}
                                     : <label
                                         class="fz--10 badge m-0 badge-soft-primary">{{ translate(str_replace('_', ' ', $order['voucher_sub_type'])) }}</label>
                                 </h6>
@@ -432,17 +432,17 @@
 
                                                 <div class="coupon-card d-flex align-items-stretch d-block m-auto ">
                                                    <div class="coupon-left d-flex">
-    <div class="side-label">{{ $order['voucher_type'] }}</div>
+                                                        <div class="side-label">{{ $order['voucher_type'] }}</div>
 
-    <div class="image-section">
-        <img 
-            src="{{ $product->image_full_url ?? asset('public/assets/admin/img/160x160/img2.jpg') }}"
-            data-image="{{ $product->image_full_url ?? asset('public/assets/admin/img/160x160/img2.jpg') }}"
-            class="img-fluid preview-image"
-            style="cursor:pointer;"
-            alt="Product Image">
-    </div>
-</div>
+                                                        <div class="image-section">
+                                                            <img 
+                                                                src="{{ $product->image_full_url ?? asset('public/assets/admin/img/160x160/img2.jpg') }}"
+                                                                data-image="{{ $product->image_full_url ?? asset('public/assets/admin/img/160x160/img2.jpg') }}"
+                                                                class="img-fluid preview-image"
+                                                                style="cursor:pointer;"
+                                                                alt="Product Image">
+                                                        </div>
+                                                    </div>
 
 
                                                     <div class="coupon-body d-flex flex-column justify-content-center">
@@ -554,31 +554,6 @@
                                                             {{-- @php($amount = $detail['price'] * $detail['quantity']) --}}
                                                             @php($amount = $detail['is_paid'] == 1 ? $detail['total_price'] * $detail['quantity'] : 0)
                                                             @php($total_order_amount += $detail['total_price'])
-
-
-                                                            <h6>
-                                                                @if ($detail['is_paid'] == 0)
-                                                                    @php($sum_free_product_price += $detail['total_price'])
-                                                                    <h5>
-                                                                        <del class="text-muted me-2">
-                                                                            {{ \App\CentralLogics\Helpers::format_currency($detail['total_price']) }}
-                                                                        </del>
-                                                                    </h5>
-
-                                                                    <span class="badge badge-soft-success ml-sm-3">
-                                                                        {{ translate('messages.free') }}
-                                                                    </span>
-                                                                @elseif ($detail['is_paid'] == 1)
-                                                                    @php($sum_paid_product_price += $detail['total_price'])
-                                                                    <h5 class="text-decoration-line-through">
-                                                                        {{ \App\CentralLogics\Helpers::format_currency($detail['total_price']) }}
-                                                                    </h5>
-
-                                                                    <span class="badge badge-soft-primary ml-sm-3">
-                                                                        {{ translate('messages.paid') }}
-                                                                    </span>
-                                                                @endif
-                                                            </h6>
                                                             <br>
                                                             @if ($order->store->module->module_type == 'food' || $order->store->module->module_type == 'voucher')
                                                                 @foreach (json_decode($detail['add_ons'], true) as $key2 => $addon)
@@ -638,17 +613,10 @@
                                 <dl class="row text-right">
                                     <dt class="col-6">{{ translate('messages.voucher_value') }}:</dt>
                                     <dd class="col-6">
-                                        {{ \App\CentralLogics\Helpers::format_currency($total_order_amount + $total_addon_price) }}
+                                        {{ \App\CentralLogics\Helpers::format_currency($order->total_order_amount ) }}
                                     </dd>
-                                    @if ($order->store->module->module_type == 'food')
-                                        <dt class="col-6">{{ translate('messages.addon_cost') }}:</dt>
 
-                                        <dd class="col-6">
-                                            {{ \App\CentralLogics\Helpers::format_currency($total_addon_price) }}
-                                            <hr>
-                                        </dd>
-                                    @endif
-
+                                  
                                     {{-- <dt class="col-6">{{ translate('messages.subtotal') }}
                                         @if ($order->tax_status == 'included' || $tax_included == 1)
                                             ({{ translate('messages.TAX_Included') }})
@@ -673,7 +641,7 @@
                                         @endif
                                         -
 
-                                        {{ \App\CentralLogics\Helpers::format_currency($sum_free_product_price) }}
+                                        {{ \App\CentralLogics\Helpers::format_currency($order->discount_amount) }}
                                     </dd>
 
 
@@ -725,7 +693,7 @@
 
                                     <dt class="col-6">{{ translate('messages.amount_to_pay') }}:</dt>
                                     <dd class="col-6">
-                                        {{ \App\CentralLogics\Helpers::format_currency($product_price + $del_c + $total_tax_amount + $total_addon_price + $additional_charge - $coupon_discount_amount - $store_discount_amount - $admin_flash_discount_amount - $ref_bonus_amount + $extra_packaging_amount - $store_flash_discount_amount + $order->dm_tips) }}
+                                        {{ \App\CentralLogics\Helpers::format_currency($order->total_order_amount  - $order->discount_amount) }}
                                     </dd>
                                     @if ($order?->payments)
                                         @foreach ($order?->payments as $payment)

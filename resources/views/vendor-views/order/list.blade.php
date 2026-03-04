@@ -286,7 +286,12 @@
                                     @endif
                                 </td>
                                 <td class="text-capitalize">
-                                    {{ $order->voucher_type ?? translate('not_assigned') }}
+                                      <span class="fz--10 badge m-0 badge-soft-primary"> {{ $order->voucher_type ?? translate('not_assigned') }}</span>
+                                   
+                                    <br>
+                                    @if(!empty($order->voucher_sub_type))
+                                    <span class="fz--10 badge m-0 badge-soft-primary">{{ $order->voucher_sub_type  }}</span>
+                                    @endif
                                 </td>
                                 <td class="text-capitalize text-center">
                                     <div class="text-right mw--85px">

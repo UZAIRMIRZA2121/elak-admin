@@ -17,11 +17,17 @@
 
 
 @section('content')
-  
+
     @if ($order->voucher_type == 'Flat discount')
         @include('admin-views.order.partials._invoice_flat')
-    @elseif ($order->voucher_type == 'In-Store')
-        @include('admin-views.order.partials._invoice_in_store')
+    @elseif ($order->voucher_type == 'In-Store' || $order->voucher_type == 'Delivery/Pickup')
+        @if ($order->voucher_sub_type == 'bogo') 
+            @include('admin-views.order.partials._invoice_bogo')
+         @elseif ($order->voucher_sub_type == 'simple') 
+         @include('admin-views.order.partials._invoice_simple')
+        @endif
+
+   
     @else
         @include('admin-views.order.partials._invoice')
     @endif
