@@ -91,7 +91,8 @@ class CartController extends Controller
 
 
         $cart = Cart::where('item_id', $request->item_id)->where('item_type', $model)->where('user_id', $user_id)->where('is_guest', $is_guest)->where('module_id', $request->header('moduleId'))->first();
-
+    
+    
         if ($cart && json_decode($cart->variation, true) == $request->variation) {
 
             return response()->json([
@@ -150,18 +151,18 @@ class CartController extends Controller
         $cart->add_on_ids = isset($request->add_on_ids) ? json_encode($request->add_on_ids) : json_encode([]);
         $cart->add_on_qtys = isset($request->add_on_qtys) ? json_encode($request->add_on_qtys) : json_encode([]);
         $cart->item_type = $request->model;
-      
+
         $cart->quantity = $request->quantity;
         $cart->variation = isset($request->variation) ? json_encode($request->variation) : json_encode([]);
         $cart->status = ($item->voucher_ids === 'Flat discount') ? 'pending' : null;
         $cart->type = $item->voucher_ids ?? null;
         $cart->gift_details = $request->gift_details ?? null;
 
-//   $result = calculate_discount(2000, , 10);
+        //   $result = calculate_discount(2000, , 10);
 
-//         dd($result);
+        //         dd($result);
 
-        
+
         $cart->price = $request->price;
         $cart->is_paid = $request->is_paid ?? 0; // Mark as paid if price is greater than 0, otherwise not paid
 
@@ -215,6 +216,7 @@ class CartController extends Controller
             $elapsed = 0;
 
             while ($elapsed < $maxWait) {
+           
 
                 sleep($interval);
                 $elapsed += $interval;

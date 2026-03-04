@@ -208,7 +208,7 @@ class OrderController extends Controller
                 return view('vendor-views.order.order-view-flat', compact('order', 'reasons'));
             } else if ($order->voucher_type == 'In-Store' || $order->voucher_type == 'Delivery/Pickup') {
                 if ($order->voucher_sub_type == 'bogo') {
-                  
+
                     return view('vendor-views.order.order-view-bogo', compact('order', 'reasons'));
                 } else if ($order->voucher_sub_type == 'simple') {
                     return view('vendor-views.order.order-view-simple', compact('order', 'reasons'));
@@ -834,10 +834,12 @@ class OrderController extends Controller
 
         if ($status == 'rejected') {
 
-            $cart->delete();
+            $cart->status = 'rejected';
+            $cart->save();
+
 
             return redirect()->back()
-                ->with('success', 'Cart rejected and deleted successfully');
+                ->with('success', 'Cart rejected  successfully');
         }
 
 
