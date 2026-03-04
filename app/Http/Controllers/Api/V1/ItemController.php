@@ -15,6 +15,7 @@ use Illuminate\Http\Request;
 use App\CentralLogics\Helpers;
 use App\Models\BusinessSetting;
 use App\CentralLogics\StoreLogic;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use App\CentralLogics\ProductLogic;
 use App\CentralLogics\CategoryLogic;
@@ -784,7 +785,11 @@ class ItemController extends Controller
     public function get_items_by_store(Request $request, $store_id)
     {
         
-        // dd($request->hasHeader('zoneId'));
+    //    return response()->json(Auth::user());
+
+    
+
+
         if (!$request->hasHeader('zoneId')) {
             $errors = [];
             array_push($errors, ['code' => 'zoneId', 'message' => translate('messages.zone_id_required')]);

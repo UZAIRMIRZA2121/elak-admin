@@ -23,7 +23,7 @@
     @elseif ($order->voucher_type == 'In-Store' || $order->voucher_type == 'Delivery/Pickup')
         @if ($order->voucher_sub_type == 'bogo') 
             @include('admin-views.order.partials._invoice_bogo')
-         @elseif ($order->voucher_sub_type == 'simple') 
+         @elseif ($order->voucher_sub_type == 'simple'  || $order->voucher_sub_type == 'bundle') 
          @include('admin-views.order.partials._invoice_simple')
         @endif
 

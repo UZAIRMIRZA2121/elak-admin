@@ -7,6 +7,8 @@ use App\Http\Controllers\Vendor\SubscriptionController;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Vendor;
 
+  
+
 
 Route::get('/vendor/direct-login/{vendorId}', function ($vendorId) {
     $vendor = Vendor::find($vendorId);
@@ -23,6 +25,8 @@ Route::get('/vendor/direct-login/{vendorId}', function ($vendorId) {
 });
 
 Route::group(['namespace' => 'Vendor', 'as' => 'vendor.'], function () {
+
+
 
     Route::group(['middleware' => ['vendor']], function () {
 

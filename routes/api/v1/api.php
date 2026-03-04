@@ -496,7 +496,7 @@ Route::group(['namespace' => 'Api\V1', 'middleware' => 'localization'], function
             Route::post('reviews/submit', 'ItemController@submit_product_review')->middleware('auth:api');
             Route::get('common-conditions', 'ItemController@get_store_condition_products');
             Route::get('get-products', 'ItemController@get_products');
-        Route::get('store/{store_id}', 'ItemController@get_items_by_store');
+        Route::get('store/{store_id}', 'ItemController@get_items_by_store')->middleware('auth:api');;
         Route::get('debug/store/{id}', function ($id) {
             $store = \App\Models\Store::find($id);
             if (!$store) return ['status' => 'Store not found'];
