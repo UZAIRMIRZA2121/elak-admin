@@ -8532,4 +8532,6 @@ Smartly or Earn. ',
   'closed_now' => 'Closed now',
   'open_now' => 'Open now',
   'add_ons' => 'Add ons',
+  'voucher_sub_type' => 'Voucher sub type',
+  'simple' => 'Simple',
 );

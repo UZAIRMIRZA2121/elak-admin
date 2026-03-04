@@ -23,6 +23,7 @@ class AdminMiddleware
             Toastr::error("unauthorized Access");
             return redirect()->route('client.dashboard');
         }
-        return redirect()->route('admin.auth.login');
+
+        return redirect()->route('login', ['tab' => 'admin']);
     }
 }

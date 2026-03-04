@@ -506,7 +506,7 @@ trait PlaceNewOrder
 
 
 
-            if ($order_status == 'hold') {
+            if ($order_status == 'active') {
                 $order->store_id = null;
                 $order->checked = 0;
             }
@@ -515,12 +515,13 @@ trait PlaceNewOrder
 
             $order->order_amount = $request['order_amount'] ?? 0;
 
-            $order->voucher_type = $carts[0]['type'] ?? null;
+
 
             $order->order_status = $order->voucher_type === 'Flat discount' ? 'confirmed' : $order_status;
             $order->order_type = $request['order_type'] ?? $carts[0]['type'] ?? null;
 
-
+            $order->voucher_type = null;
+            $order->voucher_sub_type = null;
             foreach ($carts ?? [] as $cart) {
 
                 if (isset($cart->item_id)) {
@@ -528,7 +529,8 @@ trait PlaceNewOrder
                     $item = Item::find($cart->item_id);
 
                     if ($item && $item->type == 'voucher') {
-
+                        $order->voucher_type = $item->voucher_ids;
+                        $order->voucher_sub_type = $item->bundle_type;
                         $voucher_details = $item;
 
 
@@ -613,16 +615,16 @@ trait PlaceNewOrder
 
                         // $order->voucher_term_and_conditions = $voucherSetting ?? null;
                         $order->voucher_setting = $voucherSetting ?? null;
-                         $order->offer_type = $voucher_details->type ?? null;
+                        $order->offer_type = $voucher_details->offer_type ?? null;
                     }
                 }
             }
-        
-
-           
 
 
-      
+
+
+
+
             $order->total_order_amount = $carts[0]['total_price'] ?? null;
 
             $order->total_order_amount = $carts[0]['total_price'] ?? null;
@@ -1214,7 +1216,7 @@ trait PlaceNewOrder
             }
             if ($product) {
                 if ($product->type == 'voucher' && $product->voucher_ids == 'In-Store') {
-                    $status = 'hold';
+                    $status = 'active';
 
                 }
 

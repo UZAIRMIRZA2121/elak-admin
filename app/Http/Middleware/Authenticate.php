@@ -23,10 +23,10 @@ class Authenticate extends Middleware
             return route('home');
             // return route('admin.auth.login');
         }
-        // else if ($request->is('vendor/*'))
-        // {
-        //     return route('vendor.auth.login');
-        // }
+        else if ($request->is('vendor/*'))
+        {
+            return route('vendor.auth.login');
+        }
         else
         {
             return route('home');

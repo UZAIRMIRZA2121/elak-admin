@@ -40,6 +40,7 @@ class LoginController extends Controller
 
     public function login($login_url)
     {
+        
         $login_url = $login_url; // map kar diya
         $language = BusinessSetting::where('key', 'system_language')->first();
 
