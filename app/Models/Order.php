@@ -51,9 +51,10 @@ class Order extends Model
         'is_guest' => 'boolean',
         'ref_bonus_amount' => 'float',
         'gift_details' => 'array',
+        'voucher_setting' => 'array',
         'voucher_usage_term_and_conditions' => 'array',
         'voucher_term_and_conditions' => 'array',
-        'voucher_setting' => 'array',
+
     ];
 
     protected $appends = ['module_type', 'order_attachment_full_url', 'order_proof_full_url'];

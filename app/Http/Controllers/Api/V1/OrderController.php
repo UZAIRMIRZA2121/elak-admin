@@ -193,6 +193,7 @@ class OrderController extends Controller
             $details[0]['is_guest'] = (int) $order->is_guest;
             $details['voucher_usage_term_and_conditions'] = $order->voucher_usage_term_and_conditions;
             $details['voucher_term_and_conditions'] = $order->voucher_term_and_conditions;
+            $details['voucher_setting'] = $order->voucher_setting;
 
 
 
