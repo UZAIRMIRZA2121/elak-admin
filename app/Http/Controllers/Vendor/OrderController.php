@@ -209,7 +209,7 @@ class OrderController extends Controller
             } else if ($order->voucher_type == 'In-Store' || $order->voucher_type == 'Delivery/Pickup') {
                 if ($order->voucher_sub_type == 'bogo') {
                     return view('vendor-views.order.order-view-bogo', compact('order', 'reasons'));
-                } else if ($order->voucher_sub_type == 'simple' || $order->voucher_sub_type == 'bundle') {
+                } else if ($order->voucher_sub_type == 'simple' || $order->voucher_sub_type == 'simple x' || $order->voucher_sub_type == 'bundle') {
                     return view('vendor-views.order.order-view-simple', compact('order', 'reasons'));
                 } 
 
