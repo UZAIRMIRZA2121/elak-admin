@@ -79,6 +79,7 @@
                             <input type="number" min="1" name="show_limit" class="form-control"
                                 value="{{ request()->get('show_limit') }}" placeholder="{{ translate('Ex : 100') }}">
                         </div>
+                        
                         <div class="col-md-4">
                             <label class="d-md-block">&nbsp;</label>
                             <div class="btn--container justify-content-end">
@@ -181,7 +182,7 @@
                                 <th class="table-column-pl-0 border-0">{{ translate('messages.name') }}</th>
                                 <th class="border-0">{{ translate('messages.contact_information') }}</th>
                                 <th class="border-0">{{ translate('messages.total_order') }}</th>
-                                <th class="border-0">{{ translate('messages.total_order_amount') }}</th>
+                                {{-- <th class="border-0">{{ translate('messages.total_order_amount') }}</th> --}}
                                 <th class="border-0">{{ translate('messages.segment_type') }}</th>
                                 <th class="border-0">{{ translate('messages.Joining_date') }}</th>
                                 <th class="border-0">{{ translate('messages.expire_at') }}</th>
@@ -228,17 +229,16 @@
                                             {{ $customer->orders_count }}
                                         </label>
                                     </td>
-                                    <td>
+                                    {{-- <td>
                                         <label class="badge">
                                             {{ \App\CentralLogics\Helpers::format_currency($customer->orders()->sum('order_amount')) }}
                                         </label>
-                                    </td>
+                                    </td> --}}
                                     <td>
                                         <label class="badge">
-                                            <span
-                                                class="fz--10 badge m-0 badge-soft-primary">{{ $customer->segment->name ?? '' }}</span>
-
-                                            {{ $customer->segment->type ?? '' }}
+                                            <span  class="fz--10 badge m-0 badge-soft-primary">{{ $customer->segment->name ?? '' }}</span>
+                                            <br>
+                                            <span  class="fz--10 badge m-0 badge-soft-info">{{ $customer->segment->type ?? '' }}</span>
                                         </label>
                                     </td>
                                     <td>

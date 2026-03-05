@@ -971,9 +971,9 @@ $moduleType = $store?->module?->module_type;
                         text: res.message
                     });
 
-                    if (res.success && res.redirect_url) {
-                        window.location.href = res.redirect_url;
-                    }
+                    // if (res.success && res.redirect_url) {
+                    //     window.location.href = res.redirect_url;
+                    // }
                 },
                 error: function(xhr) {
                     Swal.fire({

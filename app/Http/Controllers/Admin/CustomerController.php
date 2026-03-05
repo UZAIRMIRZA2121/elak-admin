@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Models\Client;
 use App\Models\User;
 use App\Models\Order;
 use App\Models\Newsletter;
@@ -63,7 +64,8 @@ class CustomerController extends Controller
                 $query->orWhere('f_name', 'like', "%{$value}%")
                     ->orWhere('l_name', 'like', "%{$value}%")
                     ->orWhere('email', 'like', "%{$value}%")
-                    ->orWhere('phone', 'like', "%{$value}%");
+                    ->orWhere('phone', 'like', "%{$value}%")
+                    ->orWhere('ref_code', 'like', "%{$value}%");
             };
         })->withcount('orders')
 
@@ -128,9 +130,11 @@ class CustomerController extends Controller
         } else{
             $customers=$customers->paginate(config('default_pagination'));
         }
+        
+        $clients = Client::with('segment')->all();
 
 
-        return view('admin-views.customer.list', compact('customers'));
+        return view('admin-views.customer.list', compact('customers' ,'clients'));
     }
 
     public function status(User $customer, Request $request)
