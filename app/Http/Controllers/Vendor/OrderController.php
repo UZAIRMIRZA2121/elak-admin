@@ -207,7 +207,7 @@ class OrderController extends Controller
             if ($order->voucher_type == 'Flat discount') {
                 return view('vendor-views.order.order-view-flat', compact('order', 'reasons'));
             } else if ($order->voucher_type == 'In-Store' || $order->voucher_type == 'Delivery/Pickup') {
-                if ($order->voucher_sub_type == 'bogo') {
+                if ($order->voucher_sub_type == 'bogo_free') {
                     return view('vendor-views.order.order-view-bogo', compact('order', 'reasons'));
                 } else if ($order->voucher_sub_type == 'simple' || $order->voucher_sub_type == 'simple x' || $order->voucher_sub_type == 'bundle') {
                     return view('vendor-views.order.order-view-simple', compact('order', 'reasons'));

@@ -21,7 +21,7 @@
     @if ($order->voucher_type == 'Flat discount')
         @include('admin-views.order.partials._invoice_flat')
     @elseif ($order->voucher_type == 'In-Store' || $order->voucher_type == 'Delivery/Pickup')
-        @if ($order->voucher_sub_type == 'bogo') 
+        @if ($order->voucher_sub_type == 'bogo_free') 
             @include('admin-views.order.partials._invoice_bogo')
          @elseif ($order->voucher_sub_type == 'simple'  || $order->voucher_sub_type == 'bundle') 
          @include('admin-views.order.partials._invoice_simple')
