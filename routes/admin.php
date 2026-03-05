@@ -893,6 +893,8 @@ Route::group(['namespace' => 'Admin', 'as' => 'admin.'], function () {
             Route::get('view/{user_id}', 'CustomerController@view')->name('view');
             Route::post('search', 'CustomerController@search')->name('search');
             Route::get('status/{customer}/{status}', 'CustomerController@status')->name('status');
+            Route::get('/get-client-segment/{id}', 'CustomerController@status')->name('status');
+        
         });
 
 

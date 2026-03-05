@@ -639,7 +639,7 @@
                                     <tbody>
                                         @foreach ($order->details as $key => $detail)
                                             @if (isset($detail->item_id))
-                                                @if ($detail->item->type == 'voucher')
+                                                @if (isset($detail->item->type) && $detail->item->type == 'voucher')
                                                     @php($product = \App\Models\Item::where(['id' => $detail->item['id']])->first())
 
 
@@ -674,7 +674,7 @@
                                                         </div>
                                                     </div>
                                                 @endif
-                                                @if ($detail->item->type != 'voucher')
+                                                @if (isset($detail->item->type) && $detail->item->type != 'voucher')
                                                     @php($detail->item = json_decode($detail->item_details, true))
                                                     @php($product = \App\Models\Item::where(['id' => $detail->item['id']])->first())
 

@@ -501,315 +501,43 @@
                                     }
                                 }
                                 ?>
-                            <div class="table-responsive">
-                                <table
-                                    class="table table-borderless table-thead-bordered table-nowrap table-align-middle card-table dataTable no-footer mb-0">
-                                    <thead class="thead-light">
-                                    <tr>
-                                        <th class="border-0">{{ translate('messages.#') }}</th>
-                                        <th class="border-0">{{ translate('messages.item_details') }}</th>
-                                        @if ($order->store && $order->store->module->module_type == 'food')
-                                            <th class="border-0">{{ translate('messages.addons') }}</th>
-                                        @endif
-                                        <th class="text-right  border-0">{{ translate('messages.price') }}</th>
-                                    </tr>
-                                    </thead>
-                                    <tbody>
-                                    @foreach ($details as $key => $detail)
-                                        @if (isset($detail->item_id) && $detail->status)
-                                                <?php
-                                                if (!$editing) {
-                                                    $detail->item = json_decode($detail->item_details, true);
-                                                }
-                                                $product = \App\Models\Item::where(['id' => data_get($detail->item,'id')])->first();
-                                                        if(!$product){
-                                                            $detail->item = json_decode($detail->item_details, true);
-                                                        }
+                              <div class="table-responsive">
+                            <table
+                                class="table table-borderless table-thead-bordered table-nowrap table-align-middle card-table dataTable no-footer mb-0">
 
-                                                ?>
 
-                                            <tr>
-                                                <td>
-                                                    <!-- Static Count Number -->
-                                                    <div>
-                                                        {{ $key + 1 }}
-                                                    </div>
-                                                    <!-- Static Count Number -->
-                                                </td>
-                                                <td>
-                                                    <div class="media media--sm">
-                                                        @if ($editing)
-                                                            <div class="avatar avatar-xl mr-3 cursor-pointer quick-view-cart-item" data-key="{{ $key }}"
-                                                                 title="{{ translate('messages.click_to_edit_this_item') }}">
-                                                                    <span
-                                                                        class="avatar-status avatar-lg-status avatar-status-dark"><i
-                                                                            class="tio-edit"></i></span>
-                                                                <img class="img-fluid rounded aspect-ratio-1 onerror-image"
-                                                                     src="{{ $product?->image_full_url ??asset('public/assets/admin/img/100x100/2.png') }}"
-                                                                     data-onerror-image="{{ asset('public/assets/admin/img/100x100/2.png') }}"
-                                                                     alt="Image Description">
-                                                            </div>
-                                                        @else
-                                                            <a class="avatar avatar-xl mr-3"
-                                                               href="{{ route('admin.item.view', [$detail->item['id'],'module_id' => $order->module_id]) }}">
-                                                                <img class="img-fluid rounded aspect-ratio-1 onerror-image"
-                                                                     src="{{ $product?->image_full_url ?? asset('public/assets/admin/img/100x100/2.png') }}"
-                                                                     data-onerror-image="{{ asset('public/assets/admin/img/100x100/2.png') }}"
-                                                                     alt="Image Description">
-                                                            </a>
-                                                        @endif
-                                                        <div class="media-body">
-                                                            <div>
-                                                                <strong class="line--limit-1">
-                                                                    {{ $detail->item['name'] }}</strong>
-                                                                <h6>
-                                                                    {{ $detail['quantity'] }} x
-                                                                    {{ \App\CentralLogics\Helpers::format_currency($detail['price']) }}
-                                                                </h6>
-                                                                @if ($order->store && $order->store->module->module_type == 'food')
-                                                                    @if (isset($detail['variation']) ? json_decode($detail['variation'], true) : [])
-                                                                        @foreach (json_decode($detail['variation'], true) as $variation)
-                                                                            @if (isset($variation['name']) && isset($variation['values']))
-                                                                                <span class="d-block text-capitalize">
-                                                                                        <strong>
-                                                                                            {{ $variation['name'] }} -
-                                                                                        </strong>
-                                                                                    </span>
-                                                                                @foreach ($variation['values'] as $value)
-                                                                                    <span
-                                                                                        class="d-block text-capitalize">
-                                                                                            &nbsp; &nbsp;
-                                                                                            {{ $value['label'] }} :
-                                                                                            <strong>{{ \App\CentralLogics\Helpers::format_currency($value['optionPrice']) }}</strong>
-                                                                                        </span>
-                                                                                @endforeach
-                                                                            @else
-                                                                                @if (isset(json_decode($detail['variation'], true)[0]))
-                                                                                    <strong><u>
-                                                                                            {{ translate('messages.Variation') }}
-                                                                                            : </u></strong>
-                                                                                    @foreach (json_decode($detail['variation'], true)[0] as $key1 => $variation)
-                                                                                        <div
-                                                                                            class="font-size-sm text-body">
-                                                                                                <span>{{ $key1 }}
-                                                                                                    : </span>
-                                                                                            <span
-                                                                                                class="font-weight-bold">{{ $variation }}</span>
-                                                                                        </div>
-                                                                                    @endforeach
-                                                                                @endif
-                                                                                {{-- @break --}}
-                                                                            @endif
-                                                                        @endforeach
-                                                                    @endif
-                                                                @else
-                                                                    @if (count(json_decode($detail['variation'], true)) > 0)
-                                                                        <strong><u>{{ translate('messages.variation') }}
-                                                                                :
-                                                                            </u></strong>
-                                                                    <?php
-                                                                        $detailsVariation = isset(json_decode($detail['variation'], true)[0]) ? json_decode($detail['variation'], true)[0] : json_decode($detail['variation'], true);
-                                                                    ?>
-{{--                                                                        @foreach (json_decode($detail['variation'], true)[0] as $key1 => $variation)--}}
-                                                                        @foreach ($detailsVariation as $key1 => $variation)
-                                                                            @if ($key1 != 'stock' || ($order->store && config('module.' . $order->store->module->module_type)['stock']))
-                                                                                <div class="font-size-sm text-body">
-                                                                                        <span>{{ $key1 }} :
-                                                                                        </span>
-{{--                                                                                    <span class="font-weight-bold">{{ Str::limit($variation, 15, '...') }}</span>--}}
-                                                                                    <span class="font-weight-bold">
-                                                                                       {{ Str::limit(implode(', ', array_map(fn($v) => is_array($v) ? implode(' ', $v) : $v, (array) $variation)), 15, '...') }}
-                                                                                    </span>
-                                                                                </div>
-                                                                            @endif
-                                                                        @endforeach
-                                                                    @endif
-                                                                @endif
+                                @foreach ($order->details as $key => $detail)
+                                    @if (isset($detail->item_id))
+                                        @php($detail->item = json_decode($detail->item_details, true))
+                                        @php($product = \App\Models\Item::where(['id' => $detail->item['id']])->first())
+                                        <!-- Media -->
+                                        <tr>
 
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </td>
-                                                @if ($order->store && $order->store->module->module_type == 'food')
-                                                    <td>
+                                            <td>
+                                                <div class="media media--sm">
+                                                    <a class="avatar avatar-xl mr-3"
+                                                        href="{{ route('vendor.item.view', $detail->item['id']) }}">
+                                                        <img class="img-fluid rounded onerror-image"
+                                                            src="{{ $product->image_full_url ?? asset('public/assets/admin/img/160x160/img2.jpg') }}"
+                                                            data-onerror-image="{{ asset('public/assets/admin/img/160x160/img2.jpg') }}"
+                                                            alt="Image Description">
+                                                    </a>
+                                                    <div class="media-body">
                                                         <div>
-                                                            @foreach (json_decode($detail['add_ons'], true) as $key2 => $addon)
-                                                                @if ($key2 == 0)
-                                                                    <strong><u>{{ translate('messages.addons') }} :
-                                                                        </u></strong>
-                                                                @endif
-                                                                <div class="font-size-sm text-body">
-                                                                        <span>{{ Str::limit($addon['name'], 20, '...') }}
-                                                                            : </span>
-                                                                    <span class="font-weight-bold">
-                                                                            {{ $addon['quantity'] }} x
-                                                                            {{ \App\CentralLogics\Helpers::format_currency($addon['price']) }}
-                                                                        </span>
-                                                                </div>
-                                                                @php($total_addon_price += $addon['price'] * $addon['quantity'])
-                                                            @endforeach
-                                                        </div>
-                                                    </td>
-                                                @endif
-                                                <td class="text-right">
-                                                    <div>
-                                                        @php($amount = $detail['price'] * $detail['quantity'])
-                                                        <h5>{{ \App\CentralLogics\Helpers::format_currency($amount) }}
-                                                        </h5>
-                                                    </div>
-                                                </td>
-                                            </tr>
-
-                                            @php($product_price += $amount)
-{{-- @dd($detail['discount_on_product_by']) --}}
-                                            @php($store_discount_amount += $detail['discount_on_item']  * ( $detail['discount_on_product_by'] == 'store_discount' ? 1 :$detail['quantity']  ))
-                                            <!-- End Media -->
+                                                            <strong class=" h1">#{{ $detail->item['name'] }}</strong>
 
 
-                                        @elseif(isset($detail->item_campaign_id) && $detail->status)
-                                                <?php
-                                                if (!$editing) {
-                                                    $detail->campaign = json_decode($detail->item_details, true);
-                                                }
-                                                $campaign = \App\Models\ItemCampaign::where(['id' => $detail->campaign['id']])->first();
-                                                ?>
-                                            <tr>
-                                                <td>
-                                                    <!-- Static Count Number -->
-                                                    <div>
-                                                        {{ $key + 1 }}
-                                                    </div>
-                                                    <!-- Static Count Number -->
-                                                </td>
-                                                <td>
-                                                    <div class="media media--sm">
-                                                        @if ($editing)
-                                                            <div class="avatar avatar-xl mr-3  cursor-pointer quick-view-cart-item" data-key="{{ $key }}"
-                                                                 title="{{ translate('messages.click_to_edit_this_item') }}">
-                                                                    <span
-                                                                        class="avatar-status avatar-lg-status avatar-status-dark"><i
-                                                                            class="tio-edit"></i></span>
-                                                                    <img class="img-fluid rounded onerror-image"
-                                                                        src="{{ $campaign?->image_full_url ?? asset('public/assets/admin/img/900x400/img1.jpg') }}"
-                                                                        data-onerror-image="{{ asset('public/assets/admin/img/160x160/img2.jpg') }}"
-                                                                        alt="Image Description">
-                                                                </div>
-                                                            @else
-                                                                <a class="avatar avatar-xl mr-3"
-                                                                    href="{{ route('admin.campaign.view', ['item', $detail->campaign['id']]) }}">
-                                                                    <img class="img-fluid rounded onerror-image"
-                                                                        src="{{ $campaign?->image_full_url ?? asset('public/assets/admin/img/900x400/img1.jpg') }}"
-                                                                        data-onerror-image="{{ asset('public/assets/admin/img/160x160/img2.jpg') }}"
-                                                                        alt="Image Description">
-                                                                </a>
-                                                            @endif
-
-                                                        <div class="media-body">
-                                                            <div>
-                                                                <strong
-                                                                    class="line--limit-1">{{ Str::limit($detail->campaign['name'], 20, '...') }}</strong>
-
-                                                                <h6>
-                                                                    {{ $detail['quantity'] }} x
-                                                                    {{ \App\CentralLogics\Helpers::format_currency($detail['price']) }}
-                                                                </h6>
-                                                                @if ($order->store && $order->store->module->module_type == 'food')
-                                                                    @if (isset($detail['variation']) ? json_decode($detail['variation'], true) : [])
-                                                                        @foreach (json_decode($detail['variation'], true) as $variation)
-                                                                            @if (isset($variation['name']) && isset($variation['values']))
-                                                                                <span class="d-block text-capitalize">
-                                                                                        <strong>
-                                                                                            {{ $variation['name'] }} -
-                                                                                        </strong>
-                                                                                    </span>
-                                                                                @foreach ($variation['values'] as $value)
-                                                                                    <span
-                                                                                        class="d-block text-capitalize">
-                                                                                            &nbsp; &nbsp;
-                                                                                            {{ $value['label'] }} :
-                                                                                            <strong>{{ \App\CentralLogics\Helpers::format_currency($value['optionPrice']) }}</strong>
-                                                                                        </span>
-                                                                                @endforeach
-                                                                            @else
-                                                                                @if (isset(json_decode($detail['variation'], true)[0]))
-                                                                                    <strong><u>
-                                                                                            {{ translate('messages.Variation') }}
-                                                                                            : </u></strong>
-                                                                                    @foreach (json_decode($detail['variation'], true)[0] as $key1 => $variation)
-                                                                                        <div
-                                                                                            class="font-size-sm text-body">
-                                                                                                <span>{{ $key1 }}
-                                                                                                    : </span>
-                                                                                            <span
-                                                                                                class="font-weight-bold">{{ $variation }}</span>
-                                                                                        </div>
-                                                                                    @endforeach
-                                                                                @endif
-                                                                                {{-- @break --}}
-                                                                            @endif
-                                                                        @endforeach
-                                                                    @endif
-                                                                @else
-                                                                    @if (count(json_decode($detail['variation'], true)) > 0)
-                                                                        <strong><u>{{ translate('messages.variation') }}
-                                                                                :</u></strong>
-                                                                        @foreach (json_decode($detail['variation'], true)[0] as $key1 => $variation)
-                                                                            @if ($key1 != 'stock' || ($order->store && config('module.' . $order->store->module->module_type)['stock']))
-                                                                                <div class="font-size-sm text-body">
-                                                                                        <span>{{ $key1 }} :
-                                                                                        </span>
-                                                                                    <span
-                                                                                        class="font-weight-bold">{{ Str::limit($variation, 15, '...') }}</span>
-                                                                                </div>
-                                                                            @endif
-                                                                        @endforeach
-                                                                    @endif
-                                                                @endif
-                                                            </div>
                                                         </div>
                                                     </div>
-                                                </td>
-                                                @if ($order->store && $order->store->module->module_type == 'food')
-                                                    <td>
-                                                        <div>
-                                                            @foreach (json_decode($detail['add_ons'], true) as $key2 => $addon)
-                                                                @if ($key2 == 0)
-                                                                    <strong><u>{{ translate('messages.addons') }} :
-                                                                        </u></strong>
-                                                                @endif
-                                                                <div class="font-size-sm text-body">
-                                                                        <span>{{ Str::limit($addon['name'], 20, '...') }}
-                                                                            : </span>
-                                                                    <span class="font-weight-bold">
-                                                                            {{ $addon['quantity'] }} x
-                                                                            {{ \App\CentralLogics\Helpers::format_currency($addon['price']) }}
-                                                                        </span>
-                                                                </div>
-                                                                @php($total_addon_price += $addon['price'] * $addon['quantity'])
-                                                            @endforeach
-                                                        </div>
-                                                    </td>
-                                                @endif
-                                                <td class="text-right">
-                                                    <div>
-                                                        @php($amount = $detail['price'] * $detail['quantity'])
-                                                        <h5>{{ \App\CentralLogics\Helpers::format_currency($amount) }}
-                                                        </h5>
-                                                    </div>
-                                                </td>
-                                            </tr>
+                                                </div>
+                                            </td>
 
-                                            @php($product_price += $amount)
+                                        </tr>
+                                    @endif
+                                @endforeach
 
-                                            @php($store_discount_amount += $detail['discount_on_item'] *  ( $detail['discount_on_product_by'] == 'store_discount' ?  1:$detail['quantity'] ))
-                                            <!-- End Media -->
-
-                                        @endif
-                                    @endforeach
-                                    </tbody>
-
-                                </table>
-                            </div>
+                            </table>
+                        </div>
                                 <?php
                                 $coupon_discount_amount = $order['coupon_discount_amount'];
                                 $old_store_discount_amount =0;
@@ -874,120 +602,32 @@
                         <div class="mx-3">
                             <hr>
                         </div>
-                        <div class="row justify-content-md-end mb-3 mt-4 mx-0">
+                           <div class="row justify-content-md-end mb-3 mx-0 mt-4">
                             <div class="col-md-9 col-lg-8">
                                 <dl class="row text-right">
-                                    @if (!$parcel_order)
-                                        <dt class="col-6">{{ translate('messages.items_price') }}:</dt>
-                                        <dd class="col-6">
-                                            {{ \App\CentralLogics\Helpers::format_currency($product_price) }}</dd>
-                                        @if ($order->store && $order->store->module->module_type == 'food')
-                                            <dt class="col-6">{{ translate('messages.addon_cost') }}:</dt>
-                                            <dd class="col-6">
-                                                {{ \App\CentralLogics\Helpers::format_currency($total_addon_price) }}
-                                                <hr>
-                                            </dd>
-                                        @endif
-
-                                        <dt class="col-6">{{ translate('messages.subtotal') }}
-                                            @if ($order->tax_status == 'included' ||  $tax_included ==  1)
-                                                ({{ translate('messages.TAX_Included') }})
-                                            @endif
-                                            :</dt>
-                                        <dd class="col-6">
-                                            {{ \App\CentralLogics\Helpers::format_currency($product_price + $total_addon_price) }}
-                                        </dd>
-                                        <dt class="col-6">{{ translate('messages.discount') }}:</dt>
-                                        <dd class="col-6">
-                                            - {{ \App\CentralLogics\Helpers::format_currency($store_discount_amount + $admin_flash_discount_amount  + $store_flash_discount_amount) }}
-                                        </dd>
-
-
-
-                                        <dt class="col-6">{{ translate('messages.coupon_discount') }}:</dt>
-                                        <dd class="col-6">
-                                            - {{ \App\CentralLogics\Helpers::format_currency($coupon_discount_amount) }}
-                                        </dd>
-                                            @if ($ref_bonus_amount > 0)
-                                                <dt class="col-6">{{ translate('messages.Referral_Discount') }}:</dt>
-                                                <dd class="col-6">
-                                                    - {{ \App\CentralLogics\Helpers::format_currency($ref_bonus_amount) }}
-                                                </dd>
-                                            @endif
-                                    @endif
-                                        @if ($order->tax_status == 'excluded' && $total_tax_amount > 0 || $order->tax_status == null  )
-                                            {{-- @php($tax_a=0) --}}
-                                            <dt class="col-6">{{ translate('messages.vat/tax') }}:</dt>
-                                            <dd class="col-6 text-right">
-                                                +
-                                                {{ \App\CentralLogics\Helpers::format_currency($total_tax_amount) }}
-                                            </dd>
-
-                                        @endif
-                                         @if (!$parcel_order)
-                                            <dt class="col-6">{{ translate('messages.delivery_fee') }}
-                                                @if ($order->free_delivery_by == 'admin')
-                                                <i class="tio-info-outined" data-toggle="tooltip" title="{{ translate('Delivery fee is applicable and will be covered by the admin.') }}"></i>
-
-                                                @elseif ($order->free_delivery_by == 'vendor')
-                                                <i class="tio-info-outined" data-toggle="tooltip" title="{{ translate('Delivery fee is applicable and will be covered by the Vendor.') }}"></i>
-                                                @endif
-                                                    :</dt>
-                                            <dd class="col-6">
-                                                + {{ \App\CentralLogics\Helpers::format_currency($del_c) }}
-                                                <hr>
-                                            </dd>
-                                        @endif
-                                    <dt class="col-6">{{ translate('messages.delivery_man_tips') }}</dt>
+                                    <dt class="col-6">{{ translate('messages.offer_type') }}:</dt>
                                     <dd class="col-6">
-                                        + {{ \App\CentralLogics\Helpers::format_currency($deliverman_tips) }}</dd>
-                                    <dt class="col-6">{{ \App\CentralLogics\Helpers::get_business_data('additional_charge_name')??\App\CentralLogics\Helpers::get_business_data('additional_charge_name')??translate('messages.additional_charge') }}</dt>
-
-                                    <dd class="col-6">
-                                        + {{ \App\CentralLogics\Helpers::format_currency($additional_charge) }}</dd>
-
-                                    @if ($extra_packaging_amount > 0)
-                                        <dt class="col-6">{{ translate('messages.Extra_Packaging_Amount') }}:</dt>
-                                        <dd class="col-6">
-                                            + {{ \App\CentralLogics\Helpers::format_currency($extra_packaging_amount) }}
-                                        </dd>
-                                    @endif
-
-                                    <dt class="col-6">{{ translate('messages.total') }} {{ $parcel_order && $order->tax_status == 'included' ? '('.translate('messages.TAX_Included').')'  :'' }} : </dt>
-                                    <dd class="col-6">
-
-                                        {{ \App\CentralLogics\Helpers::format_currency($product_price + $del_c + $total_tax_amount + $total_addon_price + $deliverman_tips + $additional_charge - $coupon_discount_amount - $store_discount_amount - $admin_flash_discount_amount - $store_flash_discount_amount - $ref_bonus_amount +$extra_packaging_amount )  }}
+                                        <span class="badge badge-soft-info ml-2 ml-sm-3 text-capitalize">
+                                       {{  $order->offer_type }}
+                                        </span>
                                     </dd>
-                                    @if ($order?->payments)
-                                        @foreach ($order?->payments as $payment)
-                                            @if ($payment->payment_status == 'paid')
-                                                @if ( $payment->payment_method == 'cash_on_delivery')
+                                    <dt class="col-6">{{ translate('messages.total_price') }}:</dt>
+                                    <dd class="col-6">
+                                        {{ \App\CentralLogics\Helpers::format_currency(value: $order->total_order_amount) }}
+                                    </dd>
+                                    <dt class="col-6">{{ translate('messages.discount') }}:</dt>
+                                    <dd class="col-6">
+                                        -{{ \App\CentralLogics\Helpers::format_currency(value: $order->discount_amount) }}
+                                    </dd>
 
-                                                    <dt class="col-6">{{ translate('messages.Paid_with_Cash') }} ({{  translate('COD')}}) :</dt>
-                                                @else
+                                    <dt class="col-6">{{ translate('messages.total_paid_amount') }}:</dt>
+                                    <dd class="col-6">
+                                        {{ \App\CentralLogics\Helpers::format_currency($order->total_order_amount - $order->discount_amount) }}
+                                    </dd>
 
-                                                    <dt class="col-6">{{ translate('messages.Paid_by') }} {{  translate($payment->payment_method)}} :</dt>
-                                                @endif
-                                            @else
-
-                                                <dt class="col-6">{{ translate('Due_Amount') }} ({{  $payment->payment_method == 'cash_on_delivery' ?  translate('messages.COD') : translate($payment->payment_method) }}) :</dt>
-                                            @endif
-                                            <dd class="col-6 text-right">
-                                                {{ \App\CentralLogics\Helpers::format_currency($payment->amount) }}
-                                            </dd>
-                                        @endforeach
-                                    @endif
                                 </dl>
                                 <!-- End Row -->
                             </div>
-                            @if ($editing)
-                                <div class="col-12">
-                                    <div class="btn--container justify-content-end">
-                                        <button class="btn btn-sm btn--reset cancel-edit-order" type="button" >{{ translate('messages.cancel') }}</button>
-                                        <button class="btn btn-sm btn--primary submit-edit-order" type="button">{{ translate('messages.submit') }}</button>
-                                    </div>
-                                </div>
-                            @endif
                         </div>
                         <!-- End Row -->
                     </div>

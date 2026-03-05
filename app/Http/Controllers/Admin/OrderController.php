@@ -286,16 +286,16 @@ class OrderController extends Controller
             $deliveryMen = Helpers::deliverymen_list_formatting($deliveryMen);
             $view = 'admin-views.order.order-view';
 
-            
+
             if ($order->voucher_type === 'Flat discount') {
                 $view = 'admin-views.order.order-view-flat';
 
             } elseif (in_array($order->voucher_type, ['In-Store', 'Delivery/Pickup'])) {
 
-                if ($order->voucher_sub_type === 'bogo') {
+                if ($order->voucher_sub_type === 'bogo_free') {
                     $view = 'admin-views.order.order-view-bogo';
 
-                } elseif (in_array($order->voucher_sub_type, ['simple', 'bundle'])) {
+                } elseif (in_array($order->voucher_sub_type, ['simple', 'simple x' , 'bundle'])) {
                     $view = 'admin-views.order.order-view-simple';
                 }
             }

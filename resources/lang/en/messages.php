@@ -8538,4 +8538,6 @@ Smartly or Earn. ',
   'segment_type' => 'Segment type',
   'join_at' => 'Join at',
   'expire_at' => 'Expire at',
+  'Client' => 'Client',
+  'Sort BySegment' => 'Sort BySegment',
 );

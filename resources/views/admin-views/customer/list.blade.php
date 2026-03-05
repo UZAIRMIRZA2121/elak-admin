@@ -74,12 +74,37 @@
                                     {{ translate('messages.Sort by newest') }}</option>
                             </select>
                         </div>
+                        <br>
+                        <div class="col-md-4">
+                            <label class="form-label">{{ translate('Client') }}</label>
+                            <select name="client_id" class="form-control">
+                                <option value="">Select Client</option>
+                                @foreach ($clients as $client)
+                                    <option value="{{ $client->id }}"
+                                        {{ request()->get('client_id') == $client->id ? 'selected' : '' }}>
+                                        {{ $client->name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">{{ translate('Sort BySegment') }}</label>
+                            <select name="segment_id" class="form-control">
+                                <option value="">Select Segment</option>
+                                @foreach ($segments as $segment)
+                                    <option value="{{ $segment->id }}"
+                                        {{ request()->get('segment_id') == $segment->id ? 'selected' : '' }}>
+                                        {{ $segment->name }}({{ $segment->type }})
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+
                         <div class="col-md-4">
                             <label class="form-label">{{ translate('Choose First') }}</label>
                             <input type="number" min="1" name="show_limit" class="form-control"
                                 value="{{ request()->get('show_limit') }}" placeholder="{{ translate('Ex : 100') }}">
                         </div>
-                        
+
                         <div class="col-md-4">
                             <label class="d-md-block">&nbsp;</label>
                             <div class="btn--container justify-content-end">
@@ -90,6 +115,7 @@
                 </form>
             </div>
         </div>
+
         <!-- Card -->
         <div class="card">
             <!-- Header -->
@@ -183,6 +209,7 @@
                                 <th class="border-0">{{ translate('messages.contact_information') }}</th>
                                 <th class="border-0">{{ translate('messages.total_order') }}</th>
                                 {{-- <th class="border-0">{{ translate('messages.total_order_amount') }}</th> --}}
+                                <th class="border-0">{{ translate('messages.client') }}</th>
                                 <th class="border-0">{{ translate('messages.segment_type') }}</th>
                                 <th class="border-0">{{ translate('messages.Joining_date') }}</th>
                                 <th class="border-0">{{ translate('messages.expire_at') }}</th>
@@ -210,7 +237,16 @@
                                                 class="text--hover">
                                                 {{ $customer['f_name'] ? $customer['f_name'] . ' ' . $customer['l_name'] : translate('messages.Incomplete_Profile') }}
                                             </a>
+
+
                                         </div>
+                                        <div>
+                                            <span class="fz--10 badge m-1 badge-soft-success">
+                                                {{ $customer['ref_code'] }}
+                                            </span>
+                                        </div>
+
+
                                     </td>
                                     <td>
                                         <div>
@@ -236,9 +272,19 @@
                                     </td> --}}
                                     <td>
                                         <label class="badge">
-                                            <span  class="fz--10 badge m-0 badge-soft-primary">{{ $customer->segment->name ?? '' }}</span>
+                                            <span
+                                                class="fz--10 badge m-0 badge-soft-primary">{{ $customer->client->name ?? '' }}</span>
                                             <br>
-                                            <span  class="fz--10 badge m-0 badge-soft-info">{{ $customer->segment->type ?? '' }}</span>
+
+                                        </label>
+                                    </td>
+                                    <td>
+                                        <label class="badge">
+                                            <span
+                                                class="fz--10 badge m-1 badge-soft-primary">{{ $customer->segment->name ?? '' }}</span>
+                                            <br>
+                                            <span
+                                                class="fz--10 badge m-0 badge-soft-info">{{ $customer->segment->type ?? '' }}</span>
                                         </label>
                                     </td>
                                     <td>
