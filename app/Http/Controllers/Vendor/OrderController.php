@@ -942,7 +942,7 @@ public function orderScanUpdate(Request $request)
     $order->order_status = 'pending';
     $order->store_id = $store->id;
     $order->qr_code = null;
-    // $order->save();
+    $order->save();
 
     return response()->json([
         'success' => true,

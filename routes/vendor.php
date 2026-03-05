@@ -29,8 +29,6 @@ Route::group(['namespace' => 'Vendor', 'as' => 'vendor.'], function () {
 
 
     Route::group(['middleware' => ['vendor']], function () {
-
-
         Route::post('search-routing', 'SearchRoutingController@index')->name('search.routing');
         Route::get('recent-search', 'SearchRoutingController@recentSearch')->name('recent.search');
         Route::post('store-clicked-route', 'SearchRoutingController@storeClickedRoute')->name('store.clicked.route');
