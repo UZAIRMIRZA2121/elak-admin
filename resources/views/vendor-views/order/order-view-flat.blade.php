@@ -14,8 +14,6 @@
     ?>
     <?php
     
-  
-    
     ?>
 
     <div class="content container-fluid">
@@ -210,14 +208,14 @@
                                         </span>
                                     @endif
                                 </h6>
-                                   <h6>
+                                <h6>
                                     {{ translate('messages.voucher_type') }} :
                                     @if ($order['voucher_type'] == 'Flat discount')
                                         <span class="badge badge-soft-info ml-2 ml-sm-3 text-capitalize">
                                             {{ translate('messages.flat_discount') }}
                                         </span>
                                     @endif
-                                   
+
                                 </h6>
                                 @if ($order->order_attachment)
                                     @php
@@ -300,63 +298,67 @@
                         <div class="table-responsive">
                             <table
                                 class="table table-borderless table-thead-bordered table-nowrap table-align-middle card-table dataTable no-footer mb-0">
-                             
-                              
-                                    @foreach ($order->details as $key => $detail)
-                                        @if (isset($detail->item_id))
 
-                                            @php($detail->item = json_decode($detail->item_details, true))
-                                            @php($product = \App\Models\Item::where(['id' => $detail->item['id']])->first())
-                                            <!-- Media -->
-                                            <tr>
-                                             
-                                                <td>
-                                                    <div class="media media--sm">
-                                                        <a class="avatar avatar-xl mr-3"
-                                                            href="{{ route('vendor.item.view', $detail->item['id']) }}">
-                                                            <img class="img-fluid rounded onerror-image"
-                                                                src="{{ $product->image_full_url ?? asset('public/assets/admin/img/160x160/img2.jpg') }}"
-                                                                data-onerror-image="{{ asset('public/assets/admin/img/160x160/img2.jpg') }}"
-                                                                alt="Image Description">
-                                                        </a>
-                                                        <div class="media-body">
-                                                            <div>
-                                                                <strong class=" h1">#{{$detail->item['name'] }}</strong>
-                                                            
-                                                             
-                                                            </div>
+
+                                @foreach ($order->details as $key => $detail)
+                                    @if (isset($detail->item_id))
+                                        @php($detail->item = json_decode($detail->item_details, true))
+                                        @php($product = \App\Models\Item::where(['id' => $detail->item['id']])->first())
+                                        <!-- Media -->
+                                        <tr>
+
+                                            <td>
+                                                <div class="media media--sm">
+                                                    <a class="avatar avatar-xl mr-3"
+                                                        href="{{ route('vendor.item.view', $detail->item['id']) }}">
+                                                        <img class="img-fluid rounded onerror-image"
+                                                            src="{{ $product->image_full_url ?? asset('public/assets/admin/img/160x160/img2.jpg') }}"
+                                                            data-onerror-image="{{ asset('public/assets/admin/img/160x160/img2.jpg') }}"
+                                                            alt="Image Description">
+                                                    </a>
+                                                    <div class="media-body">
+                                                        <div>
+                                                            <strong class=" h1">#{{ $detail->item['name'] }}</strong>
+
+
                                                         </div>
                                                     </div>
-                                                </td>
-                                             
-                                            </tr>
-                                     
-                                        @endif
-                                    @endforeach
-                               
+                                                </div>
+                                            </td>
+
+                                        </tr>
+                                    @endif
+                                @endforeach
+
                             </table>
                         </div>
                         <div class="mx-3">
                             <hr>
                         </div>
-                      
+
                         <div class="row justify-content-md-end mb-3 mx-0 mt-4">
                             <div class="col-md-9 col-lg-8">
                                 <dl class="row text-right">
-                                     <dt class="col-6">{{ translate('messages.offer_type') }}:</dt>
-                                    <dd class="col-6">   
-                                         <span class="badge badge-soft-info ml-2 ml-sm-3 text-capitalize">
+                                    <dt class="col-6">{{ translate('messages.offer_type') }}:</dt>
+                                    <dd class="col-6">
+                                        <span class="badge badge-soft-info ml-2 ml-sm-3 text-capitalize">
                                             {{ translate('messages.instant_discount') }}
-                                        </span></dd>
+                                        </span>
+                                    </dd>
                                     <dt class="col-6">{{ translate('messages.total_price') }}:</dt>
-                                    <dd class="col-6">{{ \App\CentralLogics\Helpers::format_currency(value: $order->total_order_amount) }} </dd>
-                                      <dt class="col-6">{{ translate('messages.discount') }}:</dt>
-                                    <dd class="col-6">-{{ \App\CentralLogics\Helpers::format_currency(value: $order->discount_amount) }} </dd>
+                                    <dd class="col-6">
+                                        {{ \App\CentralLogics\Helpers::format_currency(value: $order->total_order_amount) }}
+                                    </dd>
+                                    <dt class="col-6">{{ translate('messages.discount') }}:</dt>
+                                    <dd class="col-6">
+                                        -{{ \App\CentralLogics\Helpers::format_currency(value: $order->discount_amount) }}
+                                    </dd>
 
                                     <dt class="col-6">{{ translate('messages.total_paid_amount') }}:</dt>
-                                    <dd class="col-6">{{ \App\CentralLogics\Helpers::format_currency(value: $order->order_amount) }} 
+                                    <dd class="col-6">
+                                        {{ \App\CentralLogics\Helpers::format_currency($order->total_order_amount - $order->discount_amount) }}
                                     </dd>
-                                
+
                                 </dl>
                                 <!-- End Row -->
                             </div>
@@ -369,67 +371,67 @@
             </div>
 
             <div class="col-lg-4">
-            
-           @if($order->voucher_type === 'Gift' && !empty($order->details[0]['gift_details']))
+
+                @if ($order->voucher_type === 'Gift' && !empty($order->details[0]['gift_details']))
                     <?php $gift = $order->details[0]['gift_details']; ?>
-                <!-- order proof -->
-                <div class="card mb-2 mt-2">
-                    <div class="card-header border-0 text-center pb-0">
-                        <h4 class="m-0">{{ translate('messages.Gift Details') }}</h4>
-                    </div>
-                    <div class="card-body">
-                        <div class="media align-items-center">
-                            <div class="delivery--information-single d-block">
+                    <!-- order proof -->
+                    <div class="card mb-2 mt-2">
+                        <div class="card-header border-0 text-center pb-0">
+                            <h4 class="m-0">{{ translate('messages.Gift Details') }}</h4>
+                        </div>
+                        <div class="card-body">
+                            <div class="media align-items-center">
+                                <div class="delivery--information-single d-block">
 
-                                <div class="d-flex mb-1">
-                                    <span class="name mr-2">{{ translate('messages.Occasion') }}:</span>
-                                    <span class="info">{{ $gift['occasion'] ?? '-' }}</span>
-                                </div>
-
-                                <div class="d-flex mb-1">
-                                    <span class="name mr-2">{{ translate('messages.Sender') }}:</span>
-                                    <span class="info">{{ $gift['sender_name'] ?? '-' }}</span>
-                                </div>
-
-                                <div class="d-flex mb-1">
-                                    <span class="name mr-2">{{ translate('messages.Recipient Name') }}:</span>
-                                    <span class="info">{{ $gift['recipient_name'] ?? '-' }}</span>
-                                </div>
-
-                                <div class="d-flex mb-1">
-                                    <span class="name mr-2">{{ translate('messages.Recipient Email') }}:</span>
-                                    <span class="info">{{ $gift['recipient_email'] ?? '-' }}</span>
-                                </div>
-
-                                <div class="d-flex mb-1">
-                                    <span class="name ">{{ translate('messages.Message') }}:</span>
-                                    <span class="info">{{ $gift['message'] ?? '-' }}</span>
-                                </div>
-
-                                <div class="d-flex mb-1">
-                                    <span class="name mr-2">{{ translate('messages.Delivery Time') }}:</span>
-                                    <span class="info">{{ $gift['delivery_time'] ?? '-' }}</span>
-                                </div>
-
-                                <div class="d-flex mb-1">
-                                    <span class="name mr-2">{{ translate('messages.Amount') }}:</span>
-                                    <span class="info">{{ $gift['amount'] ?? '-' }}</span>
-                                </div>
-                            
-
-                                @if (!empty($gift['image']))
-                                    <div class="d-flex mt-2">
-                                        <span class="name mr-2">{{ translate('messages.Image') }}:</span>
-                                        <img src="{{ asset($gift['image']) }}" alt="Gift Image" class="img-fluid"
-                                            style="max-height:100px;">
+                                    <div class="d-flex mb-1">
+                                        <span class="name mr-2">{{ translate('messages.Occasion') }}:</span>
+                                        <span class="info">{{ $gift['occasion'] ?? '-' }}</span>
                                     </div>
-                                @endif
 
+                                    <div class="d-flex mb-1">
+                                        <span class="name mr-2">{{ translate('messages.Sender') }}:</span>
+                                        <span class="info">{{ $gift['sender_name'] ?? '-' }}</span>
+                                    </div>
+
+                                    <div class="d-flex mb-1">
+                                        <span class="name mr-2">{{ translate('messages.Recipient Name') }}:</span>
+                                        <span class="info">{{ $gift['recipient_name'] ?? '-' }}</span>
+                                    </div>
+
+                                    <div class="d-flex mb-1">
+                                        <span class="name mr-2">{{ translate('messages.Recipient Email') }}:</span>
+                                        <span class="info">{{ $gift['recipient_email'] ?? '-' }}</span>
+                                    </div>
+
+                                    <div class="d-flex mb-1">
+                                        <span class="name ">{{ translate('messages.Message') }}:</span>
+                                        <span class="info">{{ $gift['message'] ?? '-' }}</span>
+                                    </div>
+
+                                    <div class="d-flex mb-1">
+                                        <span class="name mr-2">{{ translate('messages.Delivery Time') }}:</span>
+                                        <span class="info">{{ $gift['delivery_time'] ?? '-' }}</span>
+                                    </div>
+
+                                    <div class="d-flex mb-1">
+                                        <span class="name mr-2">{{ translate('messages.Amount') }}:</span>
+                                        <span class="info">{{ $gift['amount'] ?? '-' }}</span>
+                                    </div>
+
+
+                                    @if (!empty($gift['image']))
+                                        <div class="d-flex mt-2">
+                                            <span class="name mr-2">{{ translate('messages.Image') }}:</span>
+                                            <img src="{{ asset($gift['image']) }}" alt="Gift Image" class="img-fluid"
+                                                style="max-height:100px;">
+                                        </div>
+                                    @endif
+
+                                </div>
                             </div>
                         </div>
                     </div>
-                    </div>
-                   
+
                 @endif
 
 
@@ -494,8 +496,7 @@
                                         </div>
                                         <div class="d-flex">
                                             <span class="name">{{ translate('messages.contact') }}:</span>
-                                            <a class="info deco-none"
-                                                href="tel:{{ $address['contact_person_number'] }}">
+                                            <a class="info deco-none" href="tel:{{ $address['contact_person_number'] }}">
                                                 {{ $address['contact_person_number'] }}</a>
                                         </div>
                                         <div class="d-flex">

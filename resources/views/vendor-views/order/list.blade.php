@@ -286,11 +286,13 @@
                                     @endif
                                 </td>
                                 <td class="text-capitalize">
-                                      <span class="fz--10 badge m-0 badge-soft-primary"> {{ $order->voucher_type ?? translate('not_assigned') }}</span>
-                                   
+                                    <span class="fz--10 badge m-0 badge-soft-primary">
+                                        {{ $order->voucher_type ?? translate('not_assigned') }}</span>
+
                                     <br>
-                                    @if(!empty($order->voucher_sub_type))
-                                    <span class="fz--10 badge m-0 badge-soft-primary">{{ $order->voucher_sub_type  }}</span>
+                                    @if (!empty($order->voucher_sub_type))
+                                        <span
+                                            class="fz--10 badge m-0 badge-soft-primary">{{ $order->voucher_sub_type }}</span>
                                     @endif
                                 </td>
                                 <td class="text-capitalize text-center">
@@ -324,7 +326,7 @@
                                         <div class="d-flex justify-content-between align-items-center mb-1">
                                             <dt class="mb-0">{{ translate('messages.order_amount') }}:</dt>
                                             <dd class="mb-0">
-                                                {{ \App\CentralLogics\Helpers::format_currency($order['order_amount']) }}
+                                                {{ \App\CentralLogics\Helpers::format_currency($order['total_order_amount'] - $order['discount_amount']) }}
                                             </dd>
                                         </div>
 

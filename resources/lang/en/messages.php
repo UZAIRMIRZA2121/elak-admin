@@ -8535,4 +8535,7 @@ Smartly or Earn. ',
   'voucher_sub_type' => 'Voucher sub type',
   'simple' => 'Simple',
   'bundle' => 'Bundle',
+  'segment_type' => 'Segment type',
+  'join_at' => 'Join at',
+  'expire_at' => 'Expire at',
 );

@@ -925,6 +925,8 @@ class CustomerAuthController extends Controller
             ], 500);
         }
     }
+
+
     private function ref_code_login($request_data)
     {
         // ✅ Find user by ref_code
@@ -939,6 +941,12 @@ class CustomerAuthController extends Controller
                     ]
                 ]
             ], 401);
+        }
+        if ($user->expire_at && Carbon::parse($user->expire_at)->isPast()) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Your account has been expired'
+            ], 403);
         }
 
 
@@ -957,13 +965,39 @@ class CustomerAuthController extends Controller
         $user->status = 1;
         $city = $this->getCityFromLatLng($request_data['request']['latitude'], $request_data['request']['longitude']);
         $user->last_active_city = $city;
+        $segment = $user->segment;
 
-        if (is_null($user->activated_at)) {
-            $user->activated_at = Carbon::now();
-            $user->is_active = 0;
+        $validationDate = null;
+        if ($segment) {
+
+            if (is_null($segment->validation_date)) {
+
+                $validationDate = Carbon::now()->addDays($segment->validity_days);
+
+            } else {
+
+                $validationDate = Carbon::parse($segment->validation_date);
+
+            }
+
+
+
         }
 
+
+
+        if (is_null($user->activated_at)) {
+
+            $user->expire_at = $validationDate->format('Y-m-d');
+
+            $user->activated_at = Carbon::now();
+
+            $user->is_active = 0;
+
+
+        }
         $user->save();
+
 
         $user_email = $user->email ?? null;
 
@@ -1047,10 +1081,15 @@ class CustomerAuthController extends Controller
             'is_exist_user' => $is_exist_user = $this->exist_user($user),
             'is_active' => $user->is_active ?? 0,
             'activated_at' => $user->activated_at ?? null,
+            'expire_at' => $user->expire_at ?? null,
             'login_type' => 'ref',
             'username' => $user->username ?? null,
             'phone' => $user->phone ?? null,
             'email' => $user_email,
+            'segment' => [
+                'name' => $user->segment->name ?? null,
+                'type' => $user->segment->type ?? null,
+            ],
 
             'client' => $clientData,
         ], 200);

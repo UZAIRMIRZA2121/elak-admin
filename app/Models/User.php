@@ -28,6 +28,7 @@ class User extends Authenticatable
         'is_active',
         'client_id',
         'last_active_city',
+        'expire_at',
     ];
 
     /**
