@@ -8540,4 +8540,7 @@ Smartly or Earn. ',
   'expire_at' => 'Expire at',
   'Client' => 'Client',
   'Sort BySegment' => 'Sort BySegment',
+  'mix match' => 'Mix match',
+  'Gift' => 'Gift',
+  'gift' => 'Gift',
 );

@@ -806,7 +806,7 @@ class ItemController extends Controller
         
         $items = Item::with(['store', 'category', 'module', 'unit']) // Eager load relationships "refer id" likely implies
             ->where('store_id', $store_id)
-            ->where('voucher_ids', 'like', '%Gift%')
+
             ->type($type)
             // Ensure store is in the correct zone and module
             ->whereHas('store', function ($query) use ($zone_id) {
