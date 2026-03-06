@@ -11,6 +11,7 @@ use App\Http\Controllers\Controller;
 use App\Models\ItemCampaign;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
+use MercadoPago\Resources\Customer\Issuer;
 
 class CartController extends Controller
 {
@@ -68,6 +69,7 @@ class CartController extends Controller
 
     public function add_to_cart(Request $request)
     {
+
         $validator = Validator::make($request->all(), [
             'guest_id' => $request->user ? 'nullable' : 'required',
             'item_id' => 'required|integer',
@@ -80,19 +82,28 @@ class CartController extends Controller
             'quantity' => 'required|integer|min:1',
         ]);
 
+
         if ($validator->fails()) {
             return response()->json(['errors' => Helpers::error_processor($validator)], 403);
         }
+
 
         $user_id = $request->user ? $request->user->id : $request['guest_id'];
         $is_guest = $request->user ? 0 : 1;
         $model = $request->model === 'Item' ? 'App\Models\Item' : 'App\Models\ItemCampaign';
         $item = $request->model === 'Item' ? Item::find($request->item_id) : ItemCampaign::find($request->item_id);
 
+        $old_cart = Cart::where('user_id', $user_id);
+
+        if ($old_cart->count() > 0) {
+          
+            $old_cart->delete();
+          
+        }
 
         $cart = Cart::where('item_id', $request->item_id)->where('item_type', $model)->where('user_id', $user_id)->where('is_guest', $is_guest)->where('module_id', $request->header('moduleId'))->first();
-    
-    
+
+
         if ($cart && json_decode($cart->variation, true) == $request->variation) {
 
             return response()->json([
@@ -216,7 +227,7 @@ class CartController extends Controller
             $elapsed = 0;
 
             while ($elapsed < $maxWait) {
-           
+
 
                 sleep($interval);
                 $elapsed += $interval;
