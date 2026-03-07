@@ -151,6 +151,113 @@ class OrderController extends Controller
         return view('admin-views.order.list', compact('orders', 'status', 'orderstatus', 'scheduled', 'vendor_ids', 'zone_ids', 'from_date', 'to_date', 'total', 'order_type'));
     }
 
+     public function voucher($status, Request $request)
+    {
+        // dd($status);
+        $key = explode(' ', $request['search']);
+        if (session()->has('zone_filter') == false) {
+            session()->put('zone_filter', 0);
+        }
+        $module_id = $request->query('module_id', null);
+        if (session()->has('order_filter')) {
+            $request = json_decode(session('order_filter'));
+        }
+        Order::where(['checked' => 0])->update(['checked' => 1]);
+
+        $orders = Order::with(['customer', 'store'])
+            ->when(isset($module_id), function ($query) use ($module_id) {
+                return $query->module($module_id);
+            })
+            ->when(isset($request->zone), function ($query) use ($request) {
+                return $query->whereHas('store', function ($q) use ($request) {
+                    return $q->whereIn('zone_id', $request->zone);
+                });
+            })
+            ->when($status == 'scheduled', function ($query) {
+                return $query->whereRaw('created_at <> schedule_at');
+            })
+            ->when($status == 'searching_for_deliverymen', function ($query) {
+                return $query->SearchingForDeliveryman();
+            })
+            ->when($status == 'pending', function ($query) {
+                return $query->Pending();
+            })
+            ->when($status == 'accepted', function ($query) {
+                return $query->AccepteByDeliveryman();
+            })
+            ->when($status == 'processing', function ($query) {
+                return $query->Preparing();
+            })
+            ->when($status == 'item_on_the_way', function ($query) {
+                return $query->ItemOnTheWay();
+            })
+            ->when($status == 'delivered', function ($query) {
+                return $query->Delivered();
+            })
+            ->when($status == 'canceled', function ($query) {
+                return $query->Canceled();
+            })
+            ->when($status == 'failed', function ($query) {
+                return $query->failed();
+            })
+            ->when($status == 'refunded', function ($query) {
+                return $query->Refunded();
+            })
+            ->when($status == 'requested', function ($query) {
+                return $query->Refund_requested();
+            })
+            ->when($status == 'rejected', function ($query) {
+                return $query->Refund_request_canceled();
+            })
+            ->when($status == 'scheduled', function ($query) {
+                return $query->Scheduled();
+            })
+            ->when($status == 'on_going', function ($query) {
+                return $query->Ongoing();
+            })
+            ->when(($status != 'all' && $status != 'scheduled' && $status != 'canceled' && $status != 'rejected' && $status != 'requested' && $status != 'refunded' && $status != 'delivered' && $status != 'failed'), function ($query) {
+                return $query->OrderScheduledIn(30);
+            })
+            ->when(isset($request->vendor), function ($query) use ($request) {
+                return $query->whereHas('store', function ($query) use ($request) {
+                    return $query->whereIn('id', $request->vendor);
+                });
+            })
+            ->when(isset($request->orderStatus) && $status == 'all', function ($query) use ($request) {
+                return $query->whereIn('order_status', $request->orderStatus);
+            })
+            ->when(isset($request->order_type), function ($query) use ($request) {
+                return $query->where('order_type', $request->order_type);
+            })
+            ->when(isset($request->from_date) && isset($request->to_date) && $request->from_date != null && $request->to_date != null, function ($query) use ($request) {
+                return $query->whereBetween('created_at', [$request->from_date . " 00:00:00", $request->to_date . " 23:59:59"]);
+            })
+            ->when(isset($key), function ($query) use ($key) {
+                return $query->where(function ($q) use ($key) {
+                    foreach ($key as $value) {
+                        $q->orWhere('id', 'like', "%{$value}%")
+                            ->orWhere('order_status', 'like', "%{$value}%")
+                            ->orWhere('transaction_reference', 'like', "%{$value}%");
+                    }
+                });
+            })
+            ->StoreOrder()
+            ->module(Config::get('module.current_module_id'))
+            ->orderBy('schedule_at', 'desc')
+            ->paginate(config('default_pagination'));
+        $orderstatus = isset($request->orderStatus) ? $request->orderStatus : [];
+        $scheduled = isset($request->scheduled) ? $request->scheduled : 0;
+        $vendor_ids = isset($request->vendor) ? $request->vendor : [];
+        $zone_ids = isset($request->zone) ? $request->zone : [];
+        $from_date = isset($request->from_date) ? $request->from_date : null;
+        $to_date = isset($request->to_date) ? $request->to_date : null;
+        $order_type = isset($request->order_type) ? $request->order_type : null;
+        $total = $orders->total();
+
+
+        return view('admin-views.order.voucher', compact('orders', 'status', 'orderstatus', 'scheduled', 'vendor_ids', 'zone_ids', 'from_date', 'to_date', 'total', 'order_type'));
+    }
+
     public function dispatch_list($module, $status, Request $request)
     {
         $module_id = $request->query('module_id', null);

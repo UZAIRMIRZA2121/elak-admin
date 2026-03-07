@@ -97,7 +97,7 @@ class CartController extends Controller
 
         if ($old_cart->count() > 0) {
           
-            $old_cart->delete();
+            // $old_cart->delete();
           
         }
 
@@ -120,6 +120,7 @@ class CartController extends Controller
                 ]
             ], 403);
         }
+
         if ($item->voucher_ids === 'Flat discount') {
             $config = json_decode($item->discount_configuration, true); // Decode JSON to array
 

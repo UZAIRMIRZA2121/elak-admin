@@ -547,6 +547,7 @@ Route::group(['namespace' => 'Admin', 'as' => 'admin.'], function () {
         Route::get('order/offline-payment', 'OrderController@offline_payment')->name('order.offline_payment');
         Route::group(['prefix' => 'order', 'as' => 'order.', 'middleware' => ['module:order']], function () {
             Route::get('list/{status}', 'OrderController@list')->name('list');
+            Route::get('voucher/{status}', 'OrderController@voucher')->name('voucher');
             Route::get('details/{id}', 'OrderController@details')->name('details');
             Route::get('all-details/{id}', 'OrderController@all_details')->name('all-details');
 

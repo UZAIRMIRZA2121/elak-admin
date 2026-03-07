@@ -462,6 +462,7 @@ Route::group(['namespace' => 'Api\V1', 'middleware' => 'localization'], function
 
             });
 
+
             Route::group(['prefix' => 'cart'], function () {
                 Route::get('list', 'CartController@get_carts');
                 Route::post('add', 'CartController@add_to_cart');
@@ -470,7 +471,6 @@ Route::group(['namespace' => 'Api\V1', 'middleware' => 'localization'], function
                 Route::delete('remove', 'CartController@remove_cart');
                 Route::post('status', [CartController::class, 'status_cart']);
             });
-
         });
 
         Route::group(['prefix' => 'items'], function () {
