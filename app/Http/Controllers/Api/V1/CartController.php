@@ -104,16 +104,21 @@ class CartController extends Controller
             $old_cart->delete();
         }
 
+      
+
+   
+       
+
         $cart = Cart::where('item_id', $request->item_id)->where('item_type', $model)->where('user_id', $user_id)->where('is_guest', $is_guest)->where('module_id', $request->header('moduleId'))->first();
 
 
         if ($cart && json_decode($cart->variation, true) == $request->variation) {
 
-            return response()->json([
-                'errors' => [
-                    ['code' => 'cart_item', 'message' => translate('messages.Item_already_exists')]
-                ]
-            ], 403);
+            // return response()->json([
+            //     'errors' => [
+            //         ['code' => 'cart_item', 'message' => translate('messages.Item_already_exists')]
+            //     ]
+            // ], 403);
         }
 
         if ($item->maximum_cart_quantity && ($request->quantity > $item->maximum_cart_quantity)) {
