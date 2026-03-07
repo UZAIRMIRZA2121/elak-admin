@@ -285,7 +285,7 @@ class OrderController extends Controller
 
             $deliveryMen = Helpers::deliverymen_list_formatting($deliveryMen);
             $view = 'admin-views.order.order-view';
-
+            // dd($order->voucher_sub_type);
 
             if ($order->voucher_type === 'Flat discount') {
                 $view = 'admin-views.order.order-view-flat';
@@ -297,6 +297,8 @@ class OrderController extends Controller
 
                 } elseif (in_array($order->voucher_sub_type, ['simple', 'simple x' , 'bundle'])) {
                     $view = 'admin-views.order.order-view-simple';
+                }elseif($order->voucher_sub_type === 'mix_match'){
+                        $view = 'admin-views.order.order-view-mix_match';
                 }
             }
 

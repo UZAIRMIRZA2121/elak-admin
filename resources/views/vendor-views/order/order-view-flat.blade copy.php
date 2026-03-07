@@ -16,118 +16,6 @@
     
     ?>
 
-      <style>
-        .coupon-card {
-            width: 600px;
-            height: 200px;
-            background-color: #f1f3f8;
-            border: 4px solid #ff9800;
-            border-radius: 30px;
-            position: relative;
-            overflow: hidden;
-        }
-
-        /* Creating the Ticket Notches (Cutouts) */
-        .coupon-card::before,
-        .coupon-card::after {
-            content: '';
-            position: absolute;
-            width: 40px;
-            height: 40px;
-            background-color: #f8f9fa;
-            /* Matches page background */
-            border: 4px solid #ff9800;
-            border-radius: 50%;
-            left: 33.3%;
-            transform: translateX(-50%);
-            z-index: 10;
-        }
-
-        .coupon-card::before {
-            top: -25px;
-        }
-
-        /* Top Notch */
-        .coupon-card::after {
-            bottom: -25px;
-        }
-
-        /* Bottom Notch */
-
-        /* Left Section */
-        .coupon-left {
-            flex: 0 0 33.3%;
-            background-color: #9db2a3;
-            /* Muted green from image */
-        }
-
-        .side-label {
-            background: linear-gradient(to bottom, #ff9800, #ffc107);
-            color: white;
-            writing-mode: vertical-rl;
-            transform: rotate(180deg);
-            text-align: center;
-            padding: 10px 5px;
-            font-weight: 600;
-            font-size: 0.9rem;
-        }
-
-        .image-section img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        /* Middle Section */
-        .coupon-body {
-            flex: 1;
-            padding-left: 30px;
-            border-left: 2px dashed #ff9800;
-            /* Separator line */
-        }
-
-        .title {
-            color: #0d3b66;
-            font-weight: 700;
-            font-size: 1.8rem;
-            margin: 0;
-        }
-
-        .subtitle {
-            color: #0d3b66;
-            font-weight: 600;
-            margin-top: 10px;
-        }
-
-        /* Right Section */
-        .coupon-right {
-            padding: 15px;
-            flex: 0 0 20%;
-        }
-
-        .save-badge {
-            background: linear-gradient(135deg, #ff9800 0%, #ffeb3b 100%);
-            color: white;
-            padding: 15px 10px;
-            border-radius: 15px;
-            text-align: center;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-        }
-
-        .save-text {
-            display: block;
-            font-size: 0.75rem;
-            font-weight: bold;
-        }
-
-        .percentage {
-            display: block;
-            font-size: 1.5rem;
-            font-weight: 800;
-        }
-    </style>
-
-
     <div class="content container-fluid">
         <!-- Page Header -->
         <div class="page-header">
@@ -407,211 +295,41 @@
                         
                         $total_addon_price = 0;
                         ?>
-                       <div class="table-responsive">
+                        <div class="table-responsive">
                             <table
                                 class="table table-borderless table-thead-bordered table-nowrap table-align-middle card-table dataTable no-footer mb-0">
-                                <thead class="thead-light">
-                                    <tr>
-                                        <th class="border-0">{{ translate('messages.#') }}</th>
-                                        <th class="border-0">{{ translate('messages.item_details') }}</th>
-
-                                        @if ($order->store && $order->store->module && $order->store->module->module_type == 'food')
-                                            <th class="border-0">{{ translate('messages.addons') }}</th>
-                                        @endif
-                                        <th class="text-right  border-0">{{ translate('messages.price') }}</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach ($order->details as $key => $detail)
-                                        @if (isset($detail->item_id))
 
 
-                                            @if ($detail->item->type == 'voucher')
-                                                @php($product = \App\Models\Item::where(['id' => $detail->item['id']])->first())
+                                @foreach ($order->details as $key => $detail)
+                                    @if (isset($detail->item_id))
+                                        @php($detail->item = json_decode($detail->item_details, true))
+                                        @php($product = \App\Models\Item::where(['id' => $detail->item['id']])->first())
+                                        <!-- Media -->
+                                        <tr>
 
-
-                                                <div class="coupon-card d-flex align-items-stretch d-block m-auto ">
-                                                   <div class="coupon-left d-flex">
-                                                    <div class="side-label">{{ $order['voucher_type'] }}</div>
-
-                                                    <div class="image-section">
-                                                        <img 
+                                            <td>
+                                                <div class="media media--sm">
+                                                    <a class="avatar avatar-xl mr-3"
+                                                        href="{{ route('vendor.item.view', $detail->item['id']) }}">
+                                                        <img class="img-fluid rounded onerror-image"
                                                             src="{{ $product->image_full_url ?? asset('public/assets/admin/img/160x160/img2.jpg') }}"
-                                                            data-image="{{ $product->image_full_url ?? asset('public/assets/admin/img/160x160/img2.jpg') }}"
-                                                            class="img-fluid preview-image"
-                                                            style="cursor:pointer;"
-                                                            alt="Product Image">
-                                                    </div>
-                                                </div>
-
-
-                                                    <div class="coupon-body d-flex flex-column justify-content-center">
-                                                        <h2 class="title"> #
-                                                            {{ Str::limit($detail->item['name'], 25, '...') }} </h2>
-                                                        <p class="subtitle">
-                                                            {{ Str::limit($detail->item['description'], 25, '...') }}</p>
-                                                    </div>
-
-                                                    <div class="coupon-right d-flex flex-column justify-content-between ">
-                                                        <div class="save-badge">
-                                                            <span class="save-text">SAVE</span>
-                                                            <span class="percentage">20%</span>
-                                                        </div>
-
-                                                    </div>
-                                                </div>
-                                            @endif
-                                            @if ($detail->item->type != 'voucher')
-                                                @php($detail->item = json_decode($detail->item_details, true))
-                                                @php($product = \App\Models\Item::where(['id' => $detail->item['id']])->first())
-
-                                                <!-- Media -->
-                                                <tr>
-                                                    <td>
+                                                            data-onerror-image="{{ asset('public/assets/admin/img/160x160/img2.jpg') }}"
+                                                            alt="Image Description">
+                                                    </a>
+                                                    <div class="media-body">
                                                         <div>
-                                                            {{ $key }}
+                                                            <strong class=" h1">#{{ $detail->item['name'] }}</strong>
+
+
                                                         </div>
-                                                    </td>
-                                                    <td>
-                                                        <div class="media media--sm">
-                                                            <a class="avatar avatar-xl mr-3"
-                                                                href="{{ route('vendor.item.view', $detail->item['id']) }}">
-                                                                <img class="img-fluid rounded onerror-image"
-                                                                    src="{{ $product->image_full_url ?? asset('public/assets/admin/img/160x160/img2.jpg') }}"
-                                                                    data-onerror-image="{{ asset('public/assets/admin/img/160x160/img2.jpg') }}"
-                                                                    alt="Image Description">
-                                                            </a>
-                                                            <div class="media-body">
-                                                                <div>
-                                                                    <strong
-                                                                        class="line--limit-1">{{ Str::limit($detail->item['name'], 25, '...') }}</strong>
-                                                                    {{-- <h6>
-                                                                        {{ $detail['quantity'] }}
-                                                                    </h6> --}}
-                                                                    @if ($order->store && $order->store->module && $order->store->module->module_type == 'food')
-                                                                        @if (isset($detail['variation']) ? json_decode($detail['variation'], true) : [])
-                                                                            @foreach (json_decode($detail['variation'], true) as $variation)
-                                                                                @if (isset($variation['name']) && isset($variation['values']))
-                                                                                    <span class="d-block text-capitalize">
-                                                                                        <strong>
-                                                                                            {{ $variation['name'] }} -
-                                                                                        </strong>
-                                                                                    </span>
-                                                                                    @foreach ($variation['values'] as $value)
-                                                                                        <span
-                                                                                            class="d-block text-capitalize">
-                                                                                            &nbsp; &nbsp;
-                                                                                            {{ $value['label'] }} :
-                                                                                            <strong>{{ \App\CentralLogics\Helpers::format_currency($value['optionPrice']) }}</strong>
-                                                                                        </span>
-                                                                                    @endforeach
-                                                                                @else
-                                                                                    @if (isset(json_decode($detail['variation'], true)[0]))
-                                                                                        <strong><u>
-                                                                                                {{ translate('messages.Variation') }}
-                                                                                                : </u></strong>
-                                                                                        @foreach (json_decode($detail['variation'], true)[0] as $key1 => $variation)
-                                                                                            @if ($key1 == 'name' || $key1 == 'values ')
-                                                                                                <div
-                                                                                                    class="font-size-sm text-body">
-                                                                                                    <span>{{ $key1 }}
-                                                                                                        : </span>
-                                                                                                    <span
-                                                                                                        class="font-weight-bold">{{ $variation }}
-                                                                                                    </span>
-                                                                                                </div>
-                                                                                            @endif
-                                                                                        @endforeach
-                                                                                    @endif
-                                                                                    {{-- @break --}}
-                                                                                @endif
-                                                                            @endforeach
-                                                                        @endif
-                                                                    @else
-                                                                        <?php
-                                                                        $variations = json_decode($detail['variation'], true);
-                                                                        ?>
-                                                                        @if (!empty($variations))
-                                                                            <strong><u>{{ translate('messages.variation') }}:</u></strong>
-                                                                            @foreach ($variations as $variation)
-                                                                                <div class="font-size-sm text-body">
-                                                                                    <span>{{ ucfirst($variation['name']) }}
-                                                                                        :
-                                                                                    </span>
-                                                                                    <span class="font-weight-bold">
-                                                                                        {{ $variation['values'][0]['label'] ?? '' }}
-                                                                                    </span>
-                                                                                </div>
-                                                                            @endforeach
-                                                                        @endif
-                                                                    @endif
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </td>
-                                                    <td>
-                                                        <div class="text-right   ">
-                                                            {{-- @php($amount = $detail['price'] * $detail['quantity']) --}}
-                                                            @php($amount = $detail['is_paid'] == 1 ? $detail['total_price'] * $detail['quantity'] : 0)
-                                                            @php($total_order_amount += $detail['total_price'])
+                                                    </div>
+                                                </div>
+                                            </td>
 
+                                        </tr>
+                                    @endif
+                                @endforeach
 
-                                                            <h6>
-                                                                @if ($detail['is_paid'] == 0)
-                                                                    @php($sum_free_product_price += $detail['total_price'])
-                                                                    <h5>
-                                                                        <del class="text-muted me-2">
-                                                                            {{ \App\CentralLogics\Helpers::format_currency($detail['total_price']) }}
-                                                                        </del>
-                                                                    </h5>
-
-                                                                    <span class="badge badge-soft-success ml-sm-3">
-                                                                        {{ translate('messages.free') }}
-                                                                    </span>
-                                                                @elseif ($detail['is_paid'] == 1)
-                                                                    @php($sum_paid_product_price += $detail['total_price'])
-                                                                    <h5 class="text-decoration-line-through">
-                                                                        {{ \App\CentralLogics\Helpers::format_currency($detail['total_price']) }}
-                                                                    </h5>
-
-                                                                    <span class="badge badge-soft-primary ml-sm-3">
-                                                                        {{ translate('messages.paid') }}
-                                                                    </span>
-                                                                @endif
-                                                            </h6>
-                                                            <br>
-                                                            @if (($order->store && $order->store->module && $order->store->module->module_type == 'food') || ($order->store && $order->store->module && $order->store->module->module_type == 'voucher'))
-                                                                @foreach (json_decode($detail['add_ons'], true) as $key2 => $addon)
-                                                                    @if ($key2 == 0)
-                                                                        <strong><u>{{ translate('messages.addons') }} :
-                                                                            </u></strong>
-                                                                    @endif
-
-                                                                    <span>{{ Str::limit($addon['name'], 25, '...') }} :
-                                                                    </span>
-                                                                    <span class="font-weight-bold">
-                                                                        {{ $addon['quantity'] }} x
-                                                                        {{ \App\CentralLogics\Helpers::format_currency($addon['price']) }}
-                                                                    </span>
-
-                                                                    @php($total_addon_price += $addon['price'] * $addon['quantity'])
-                                                                @endforeach
-                                                            @endif
-                                                        </div>
-
-                                                    </td>
-                                                </tr>
-
-
-                                                @php($product_price += $amount)
-                                                @php($store_discount_amount += $detail['discount_on_item'] * $detail['quantity'])
-                                                <!-- End Media -->
-                                            @endif
-
-                                            <!-- End Media -->
-                                        @endif
-                                    @endforeach
-                                </tbody>
                             </table>
                         </div>
                         <div class="mx-3">
