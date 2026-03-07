@@ -79,6 +79,17 @@
                             </span>
                         </a>
                         <ul class="js-navbar-vertical-aside-submenu nav nav-sub" style="display:{{ Request::is('admin/order*') ? 'block' : 'none' }}">
+                               <li class="nav-item {{ Request::is('admin/order/voucher/all') ? 'active' : '' }}">
+                                <a class="nav-link" href="{{ route('admin.order.voucher', ['all']) }}" title="{{ translate('messages.all_orders') }}">
+                                    <span class="tio-circle nav-indicator-icon"></span>
+                                    <span class="text-truncate sidebar--badge-container">
+                                        {{ translate('Voucher List') }}
+                                        <span class="badge badge-soft-info badge-pill ml-1">
+                                            {{ \App\Models\Order::StoreOrder()->module(Config::get('module.current_module_id'))->count() }}
+                                        </span>
+                                    </span>
+                                </a>
+                            </li>
                             <li class="nav-item {{ Request::is('admin/order/list/all') ? 'active' : '' }}">
                                 <a class="nav-link" href="{{ route('admin.order.list', ['all']) }}" title="{{ translate('messages.all_orders') }}">
                                     <span class="tio-circle nav-indicator-icon"></span>

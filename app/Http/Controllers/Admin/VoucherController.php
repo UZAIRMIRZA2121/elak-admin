@@ -136,7 +136,7 @@ class VoucherController extends Controller
     {
         // dd("dsvbfhjdv");
         $stores = store::where('type','main')->get();
-        $categories = Category::where(['position' => 0])->get();
+        $categories = Category::where(['position' => 0])->where(['parent_id' => 0])->get();
         $taxData = Helpers::getTaxSystemType();
         $productWiseTax = $taxData['productWiseTax'];
         $taxVats = $taxData['taxVats'];

@@ -322,6 +322,8 @@ class VendorController extends Controller
 
     public function update(Request $request, Store $store)
     {
+
+   
         $rules = [
 
             'name.0' => 'required',

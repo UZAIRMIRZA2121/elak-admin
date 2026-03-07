@@ -358,4 +358,24 @@ class Order extends Model
     {
         return $this->morphMany(OrderTax::class, 'order');
     }
+
+    public function getVoucher($order)
+    {
+        return $order->details()
+            ->whereHas('item', function ($q) {
+                $q->where('type', 'voucher');
+            })
+            ->with('item')
+            ->first();
+    }
+
+    public function voucher()
+    {
+        return $this->details()
+            ->whereHas('item', function ($q) {
+                $q->where('type', 'voucher');
+            })
+            ->with('item')
+            ->first();
+    }
 }

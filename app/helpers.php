@@ -309,7 +309,7 @@ if (!function_exists('config_settings')) {
 
         function calculate_discount($total_price, $offer_type, $discount)
         {
-          
+
             $total_price = floatval($total_price);
             $discount = floatval($discount);
 
@@ -340,6 +340,54 @@ if (!function_exists('config_settings')) {
             ];
         }
 
+    }
+
+
+
+    if (!function_exists('getCityFromLatLng')) {
+
+        function getCityFromLatLng($latitude, $longitude)
+        {
+            try {
+
+                $response = Http::timeout(10)
+                    ->withHeaders([
+                        'User-Agent' => 'LaravelApp'
+                    ])
+                    ->get('https://nominatim.openstreetmap.org/reverse', [
+                        'format' => 'json',
+                        'lat' => $latitude,
+                        'lon' => $longitude,
+                        'addressdetails' => 1,
+                        'accept-language' => 'en'
+                    ]);
+
+                if ($response->successful()) {
+
+                    $data = $response->json();
+
+                    $city = $data['address']['city']
+                        ?? $data['address']['town']
+                        ?? $data['address']['village']
+                        ?? $data['address']['district']
+                        ?? null;
+
+                    if ($city) {
+                        $city = str_replace('District ', '', $city);
+                    }
+
+                    return $city;
+                }
+
+                return null;
+
+            } catch (\Exception $e) {
+
+                \Log::error('Reverse Geocoding Error: ' . $e->getMessage());
+
+                return null;
+            }
+        }
     }
 
 }

@@ -8548,4 +8548,5 @@ Smartly or Earn. ',
   'partner' => 'Partner',
   'major_city' => 'Major city',
   'voucher_desc' => 'Voucher desc',
+  'The coordinates field is required.' => 'The coordinates field is required.',
 );

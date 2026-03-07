@@ -1,6 +1,6 @@
 @extends('layouts.admin.app')
 
-@section('title', translate('messages.Order List'))
+@section('title', translate('messages.Voucher List'))
 
 @push('css_or_js')
     <meta name="csrf-token" content="{{ csrf_token() }}">
@@ -23,7 +23,7 @@
                             @elseif(Request::is('admin/refund/*'))
                                 {{ translate('messages.Refund') }} {{ translate(str_replace('_', ' ', $status)) }}
                             @else
-                                {{ translate(str_replace('_', ' ', $status)) }} {{ translate('messages.orders') }}
+                                {{ translate(str_replace('_', ' ', $status)) }} {{ translate('messages.voucher') }}
                             @endif
                             <span class="badge badge-soft-dark ml-2">{{ $total }}</span>
                         </span>
@@ -305,8 +305,29 @@
                                         </div>
                                     </strong>
                                 </td>
-                                <td class="table-column-pl-0">
-                                    <a href="{{ route($parcel_order ? 'admin.parcel.order.details' : 'admin.order.details', ['id' => $order['id']]) }}">{{ $order['id'] }}</a>
+                                <td>
+                                    <strong>
+                                        <div> {{ $order->store->name ?? '' }}
+                                        </div>
+                                    </strong>
+                                </td>
+                                <td>
+                                    <strong>
+                                        <div> {{ $order->zone->name ?? '' }}
+                                        </div>
+                                    </strong>
+                                </td>
+                                <td>
+                                    <strong>
+                                        <div> {{ $order->zone->display_name ?? '' }}
+                                        </div>
+                                    </strong>
+                                </td>
+                                <td>
+                                    <strong>
+
+                                        <div>{{ $order->voucher()->item->description ?? '' }}</div>
+                                    </strong>
                                 </td>
                                 <td>
                                     <div>
@@ -318,192 +339,9 @@
                                         </div>
                                     </div>
                                 </td>
-                                @if ($status == 'scheduled')
-                                    <td>
-                                        <div>
-                                            <div>
-                                                {{ \App\CentralLogics\Helpers::date_format($order->schedule_at) }}
-                                            </div>
-                                            <div class="d-block text-uppercase">
-                                                {{ \App\CentralLogics\Helpers::time_format($order->schedule_at) }}
-                                            </div>
-                                        </div>
-                                    </td>
-                                @endif
-
-                                <td class="text-capitalize">
-                                    <span class="fz--10 badge m-0 badge-soft-primary">
-                                        {{ $order->voucher_type ?? translate('not_assigned') }}</span>
-
-                                    <br>
-                                    @if (!empty($order->voucher_sub_type))
-                                        <span
-                                            class="fz--10 badge m-0 badge-soft-primary">{{ $order->voucher_sub_type }}</span>
-                                    @endif
-                                </td>
-                                <td class="text-capitalize text-center">
-                                    <div class="text-right mw--85px">
-
-                                        @if ($order['voucher_type'] == 'Flat discount')
-                                            <!-- Flex container for label and value -->
-                                            <div class="d-flex justify-content-between align-items-center mb-1">
-                                                <dt class="mb-0">{{ translate('messages.offer_type') }}:</dt>
-                                                <dd class="mb-0">{{ $order['offer_type'] }}</dd>
-                                            </div>
-
-                                            <!-- Order amount -->
-                                            <div class="d-flex justify-content-between align-items-center mb-1">
-                                                <dt class="mb-0">{{ translate('messages.total_order_amount') }}:</dt>
-                                                <dd class="mb-0">
-                                                    {{ \App\CentralLogics\Helpers::format_currency($order['total_order_amount']) }}
-                                                </dd>
-                                            </div>
-                                            <!-- Order amount -->
-                                            <div class="d-flex justify-content-between align-items-center mb-1">
-                                                <dt class="mb-0">{{ translate('messages.discount') }}:</dt>
-                                                <dd class="mb-0">
-                                                    -{{ \App\CentralLogics\Helpers::format_currency($order['discount_amount']) }}
-                                                </dd>
-                                            </div>
-                                        @endif
 
 
-                                        <!-- Order amount -->
-                                        <div class="d-flex justify-content-between align-items-center mb-1">
-                                            <dt class="mb-0">{{ translate('messages.order_amount') }}:</dt>
-                                            <dd class="mb-0">
-                                                {{ \App\CentralLogics\Helpers::format_currency($order['order_amount']) }}
-                                            </dd>
-                                        </div>
 
-                                        <!-- Payment status -->
-                                        <div class="d-flex justify-content-between align-items-center">
-                                            <dt class="mb-0">{{ translate('messages.payment_status') }}:</dt>
-                                            <dd class="mb-0">
-                                                @if ($order->payment_status == 'paid')
-                                                    <strong class="text-success">{{ translate('messages.paid') }}</strong>
-                                                @elseif($order->payment_status == 'partially_paid')
-                                                    <strong
-                                                        class="text-success">{{ translate('messages.partially_paid') }}</strong>
-                                                @else
-                                                    <strong
-                                                        class="text-danger">{{ translate('messages.unpaid') }}</strong>
-                                                @endif
-                                            </dd>
-                                        </div>
-
-                                    </div>
-                                </td>
-                                {{-- <td>
-                                    @if ($parcel_order)
-                                        <div>
-                                            {{ Str::limit($order->parcel_category ? $order->parcel_category->name : translate('messages.not_found'), 20, '...') }}
-                                        </div>
-                                    @elseif ($order->store)
-                                        <div><a class="text--title"
-                                                href="{{ route('admin.store.view', $order->store_id) }}"
-                                                alt="view store">{{ Str::limit($order->store ? $order->store->name : translate('messages.store deleted!'), 20, '...') }}</a>
-                                        </div>
-                                    @else
-                                        <div>{{ Str::limit(translate('messages.not_found'), 20, '...') }}</div>
-                                    @endif
-                                </td> --}}
-
-
-                                {{-- @if (!$parcel_order)
-                                    <td class="text-center border-0">
-                                        {{ $order?->details()?->count() }}
-                                    </td>
-                                @endif --}}
-
-                                {{-- <td>
-                                    <div class="text-right mw--85px">
-                                        <div>
-                                            {{ \App\CentralLogics\Helpers::format_currency($order['order_amount']) }}
-                                        </div>
-                                        @if ($order->payment_status == 'paid')
-                                            <strong class="text-success">
-                                                {{ translate('messages.paid') }}
-                                            </strong>
-                                        @elseif($order->payment_status == 'partially_paid')
-                                            <strong class="text-success">
-                                                {{ translate('messages.partially_paid') }}
-                                            </strong>
-                                        @else
-                                            <strong class="text-danger">
-                                                {{ translate('messages.unpaid') }}
-                                            </strong>
-                                        @endif
-                                    </div>
-                                </td> --}}
-                                <td class="text-capitalize text-center">
-                                    @if ($order['order_status'] == 'pending')
-                                        <span class="badge badge-soft-info">
-                                            {{ translate('messages.pending') }}
-                                        </span>
-                                    @elseif($order['order_status'] == 'confirmed')
-                                        <span class="badge badge-soft-info">
-                                            {{ translate('messages.confirmed') }}
-                                        </span>
-                                    @elseif($order['order_status'] == 'processing')
-                                        <span class="badge badge-soft-warning">
-                                            {{ translate('messages.processing') }}
-                                        </span>
-                                    @elseif($order['order_status'] == 'picked_up')
-                                        <span class="badge badge-soft-warning">
-                                            {{ translate('messages.out_for_delivery') }}
-                                        </span>
-                                    @elseif($order['order_status'] == 'delivered')
-                                        <span class="badge badge-soft-success">
-                                            {{ translate('messages.delivered') }}
-                                        </span>
-                                    @elseif($order['order_status'] == 'failed')
-                                        <span class="badge badge-soft-danger">
-                                            {{ translate('messages.payment_failed') }}
-                                        </span>
-                                    @elseif($order['order_status'] == 'handover')
-                                        <span class="badge badge-soft-danger">
-                                            {{ translate('messages.handover') }}
-                                        </span>
-                                    @elseif($order['order_status'] == 'canceled')
-                                        <span class="badge badge-soft-danger">
-                                            {{ translate('messages.canceled') }}
-                                        </span>
-                                    @elseif($order['order_status'] == 'accepted')
-                                        <span class="badge badge-soft-danger">
-                                            {{ translate('messages.accepted') }}
-                                        </span>
-                                    @elseif($order['order_status'] == 'refund_requested')
-                                        <span class="badge badge-soft-danger">
-                                            {{ translate('messages.refund_requested') }}
-                                        </span>
-                                    @else
-                                        <span class="badge badge-soft-danger">
-                                            {{ str_replace('_', ' ', $order['order_status']) }}
-                                        </span>
-                                    @endif
-                                    @if ($order['order_type'] == 'take_away')
-                                        <div class="text-info mt-1">
-                                            {{ translate('messages.take_away') }}
-                                        </div>
-                                    @else
-                                        <div class="text-title mt-1">
-                                            {{ translate('messages.home Delivery') }}
-                                        </div>
-                                    @endif
-                                </td>
-                                <td>
-                                    <div class="btn--container justify-content-center">
-                                        <a class="ml-2 btn btn-sm btn--warning btn-outline-warning action-btn"
-                                            href="{{ route($parcel_order ? 'admin.parcel.order.details' : 'admin.order.details', ['id' => $order['id']]) }}">
-                                            <i class="tio-invisible"></i>
-                                        </a>
-                                        <a class="ml-2 btn btn-sm btn--primary btn-outline-primary action-btn"
-                                            href="{{ route($parcel_order ? 'admin.order.generate-invoice' : 'admin.order.generate-invoice', ['id' => $order['id']]) }}">
-                                            <i class="tio-print"></i>
-                                        </a>
-                                    </div>
-                                </td>
                             </tr>
                         @endforeach
                     </tbody>

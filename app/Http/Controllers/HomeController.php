@@ -35,6 +35,7 @@ class HomeController extends Controller
      */
     public function index()
     {
+       
         $datas =  DataSetting::with('translations', 'storage')->where('type', 'admin_landing_page')->get();
         $data = [];
         foreach ($datas as $key => $value) {

@@ -254,6 +254,8 @@ class OrderController extends Controller
         $order_type = isset($request->order_type) ? $request->order_type : null;
         $total = $orders->total();
 
+        
+
 
         return view('admin-views.order.voucher', compact('orders', 'status', 'orderstatus', 'scheduled', 'vendor_ids', 'zone_ids', 'from_date', 'to_date', 'total', 'order_type'));
     }
