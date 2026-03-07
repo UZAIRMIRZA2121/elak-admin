@@ -254,7 +254,7 @@
                                         </span>
                                     @endif
                                 </h6>
-                                @if ($order->store && $order->store->module->module_type == 'food')
+                                @if ($order->store && $order->store->module && $order->store->module->module_type == 'food')
                                     <h6>
                                         <span>{{ translate('cutlery') }}</span> <span>:</span>
                                         @if ($order['cutlery'] == '1')
@@ -411,7 +411,7 @@
                                         <th class="border-0">{{ translate('messages.#') }}</th>
                                         <th class="border-0">{{ translate('messages.item_details') }}</th>
 
-                                        @if ($order->store->module->module_type == 'food')
+                                        @if ($order->store && $order->store->module && $order->store->module->module_type == 'food')
                                             <th class="border-0">{{ translate('messages.addons') }}</th>
                                         @endif
                                         <th class="text-right  border-0">{{ translate('messages.price') }}</th>
@@ -428,17 +428,17 @@
 
                                                 <div class="coupon-card d-flex align-items-stretch d-block m-auto ">
                                                    <div class="coupon-left d-flex">
-    <div class="side-label">{{ $order['voucher_type'] }}</div>
+                                                    <div class="side-label">{{ $order['voucher_type'] }}</div>
 
-    <div class="image-section">
-        <img 
-            src="{{ $product->image_full_url ?? asset('public/assets/admin/img/160x160/img2.jpg') }}"
-            data-image="{{ $product->image_full_url ?? asset('public/assets/admin/img/160x160/img2.jpg') }}"
-            class="img-fluid preview-image"
-            style="cursor:pointer;"
-            alt="Product Image">
-    </div>
-</div>
+                                                    <div class="image-section">
+                                                        <img 
+                                                            src="{{ $product->image_full_url ?? asset('public/assets/admin/img/160x160/img2.jpg') }}"
+                                                            data-image="{{ $product->image_full_url ?? asset('public/assets/admin/img/160x160/img2.jpg') }}"
+                                                            class="img-fluid preview-image"
+                                                            style="cursor:pointer;"
+                                                            alt="Product Image">
+                                                    </div>
+                                                </div>
 
 
                                                     <div class="coupon-body d-flex flex-column justify-content-center">
@@ -484,7 +484,7 @@
                                                                     {{-- <h6>
                                                                         {{ $detail['quantity'] }}
                                                                     </h6> --}}
-                                                                    @if ($order->store && $order->store->module->module_type == 'food')
+                                                                    @if ($order->store && $order->store->module && $order->store->module->module_type == 'food')
                                                                         @if (isset($detail['variation']) ? json_decode($detail['variation'], true) : [])
                                                                             @foreach (json_decode($detail['variation'], true) as $variation)
                                                                                 @if (isset($variation['name']) && isset($variation['values']))
@@ -576,7 +576,7 @@
                                                                 @endif
                                                             </h6>
                                                             <br>
-                                                            @if ($order->store->module->module_type == 'food' || $order->store->module->module_type == 'voucher')
+                                                            @if (($order->store && $order->store->module && $order->store->module->module_type == 'food') || ($order->store && $order->store->module && $order->store->module->module_type == 'voucher'))
                                                                 @foreach (json_decode($detail['add_ons'], true) as $key2 => $addon)
                                                                     @if ($key2 == 0)
                                                                         <strong><u>{{ translate('messages.addons') }} :
@@ -636,7 +636,7 @@
                                     <dd class="col-6">
                                         {{ \App\CentralLogics\Helpers::format_currency($total_order_amount + $total_addon_price) }}
                                     </dd>
-                                    @if ($order->store->module->module_type == 'food')
+                                    @if ($order->store && $order->store->module && $order->store->module->module_type == 'food')
                                         <dt class="col-6">{{ translate('messages.addon_cost') }}:</dt>
 
                                         <dd class="col-6">
@@ -790,7 +790,7 @@
                                         </div>
                                     @endif
                                 </div>
-                                @if ($order->store && $order->store->module->module_type == 'food')
+                                @if ($order->store && $order->store->module && $order->store->module->module_type == 'food')
                                     <a class="btn btn--primary w-100 order-status-change-alert {{ $order['order_status'] == 'confirmed' || $order['order_status'] == 'accepted' ? '' : 'd-none' }}"
                                         data-url="{{ route('vendor.order.status', ['id' => $order['id'], 'order_status' => 'processing']) }}"
                                         data-message="{{ translate('Change status to cooking ?') }}"

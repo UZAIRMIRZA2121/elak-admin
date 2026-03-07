@@ -401,7 +401,7 @@
                                     @endif
 
                                 </h6>
-                                @if ($order->store && $order->store->module->module_type == 'food')
+                                @if ($order->store && $order->store->module && $order->store->module->module_type == 'food')
                                     <h6>
                                         <span>{{ translate('cutlery') }}</span> <span>:</span>
                                         @if ($order['cutlery'] == '1')
@@ -630,7 +630,7 @@
                                             <th class="border-0">{{ translate('messages.#') }}</th>
                                             <th class="border-0">{{ translate('messages.item_details') }}</th>
 
-                                            @if ($order->store->module->module_type == 'food')
+                                            @if ($order->store && $order->store->module && $order->store->module->module_type == 'food')
                                                 <th class="border-0">{{ translate('messages.addons') }}</th>
                                             @endif
                                             <th class="text-right  border-0">{{ translate('messages.price') }}</th>
@@ -701,7 +701,7 @@
                                                                         {{-- <h6>
                                                                         {{ $detail['quantity'] }}
                                                                     </h6> --}}
-                                                                        @if ($order->store && $order->store->module->module_type == 'food')
+                                                                        @if ($order->store && $order->store->module && $order->store->module->module_type == 'food')
                                                                             @if (isset($detail['variation']) ? json_decode($detail['variation'], true) : [])
                                                                                 @foreach (json_decode($detail['variation'], true) as $variation)
                                                                                     @if (isset($variation['name']) && isset($variation['values']))
@@ -769,7 +769,7 @@
                                                                 @php($amount = $detail['is_paid'] == 1 ? $detail['total_price'] * $detail['quantity'] : 0)
                                                                 @php($total_order_amount += $detail['total_price'])
                                                                 <br>
-                                                                @if ($order->store->module->module_type == 'food' || $order->store->module->module_type == 'voucher')
+                                                                @if (($order->store && $order->store->module && $order->store->module->module_type == 'food') || ($order->store && $order->store->module && $order->store->module->module_type == 'voucher'))
                                                                     @foreach (json_decode($detail['add_ons'], true) as $key2 => $addon)
                                                                         @if ($key2 == 0)
                                                                             <strong><u>{{ translate('messages.addons') }}
@@ -1291,7 +1291,7 @@
                                                     data-message="{{ translate('Change status to confirmed ?') }}"
                                                     href="javascript:">{{ translate('messages.confirmed') }}</a>
                                                 @if ($order->order_type != 'parcel')
-                                                    @if ($order->store && $order->store->module->module_type == 'food')
+                                                    @if ($order->store && $order->store->module && $order->store->module->module_type == 'food')
                                                         <a class="dropdown-item {{ $order['order_status'] == 'processing' ? 'active' : '' }} order_status_change_alert"
                                                             data-url="{{ route('admin.order.status', ['id' => $order['id'], 'order_status' => 'processing']) }}"
                                                             data-message="{{ translate('Change status to cooking ?') }}"

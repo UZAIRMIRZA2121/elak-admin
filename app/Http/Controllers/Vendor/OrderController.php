@@ -211,7 +211,7 @@ class OrderController extends Controller
                     return view('vendor-views.order.order-view-bogo', compact('order', 'reasons'));
                 } else if ($order->voucher_sub_type == 'simple' || $order->voucher_sub_type == 'simple x' || $order->voucher_sub_type == 'bundle') {
                     return view('vendor-views.order.order-view-simple', compact('order', 'reasons'));
-                } 
+                }
 
             } else {
                 return view('vendor-views.order.order-view', compact('order', 'reasons'));
