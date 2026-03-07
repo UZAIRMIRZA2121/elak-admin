@@ -93,11 +93,11 @@ class CartController extends Controller
         $model = $request->model === 'Item' ? 'App\Models\Item' : 'App\Models\ItemCampaign';
         $item = $request->model === 'Item' ? Item::find($request->item_id) : ItemCampaign::find($request->item_id);
 
-        $old_cart = Cart::where('user_id', $user_id);
+        $old_cart = Cart::where('user_id', $user_id)->where('cart_group' != $request->cart_group);
 
         if ($old_cart->count() > 0) {
           
-            // $old_cart->delete();
+             $old_cart->delete();
           
         }
 
