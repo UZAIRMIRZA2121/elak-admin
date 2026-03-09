@@ -7,6 +7,7 @@ use App\Mail\PlaceOrder;
 use App\Mail\UserOfflinePaymentMail;
 use App\Models\Item;
 use App\Models\Zone;
+use App\Models\OrderCancelReason;
 use App\Models\Order;
 use App\Models\Store;
 use App\Models\Coupon;
@@ -394,7 +395,8 @@ class OrderController extends Controller
 
             $deliveryMen = Helpers::deliverymen_list_formatting($deliveryMen);
             $view = 'admin-views.order.order-view';
-            // dd($order->voucher_sub_type);
+            // dd($order->voucher_type);
+             $reasons = OrderCancelReason::where('status', 1)->where('user_type', 'store')->get();
 
             if ($order->voucher_type === 'Flat discount') {
                 $view = 'admin-views.order.order-view-flat';
@@ -409,7 +411,13 @@ class OrderController extends Controller
                 }elseif($order->voucher_sub_type === 'mix_match'){
                         $view = 'admin-views.order.order-view-mix_match';
                 }
+
+              } else if ($order->voucher_type == 'Gift') {
+                $view = 'admin-views.order.order-view-gift';
+            } else {
+                $view = 'admin-views.order.order-view';
             }
+
 
             return view($view, compact(
                 'order',
@@ -418,7 +426,8 @@ class OrderController extends Controller
                 'products',
                 'category',
                 'keyword',
-                'editing'
+                'editing',
+                'reasons'
             ));
         } else {
             Toastr::info(translate('messages.no_more_orders'));
