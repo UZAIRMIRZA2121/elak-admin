@@ -56,42 +56,73 @@ class UserAllDataController extends Controller
 
     }
 
-    public function voucher_list(Request $request)
+     public function voucher_list(Request $request)
     {
         $query_param = [];
         $search = $request['search'];
-        $store_name = $request['store_name'];
-        $zone_id = $request['zone_id'];
-        $user_id = $request['user_id'];
+        
+        // New filter values
+        $ref_code = $request->input('ref_code', null);
+        $segment_id = $request->input('segment_id', null);
+        $partner_id = $request->input('partner_id', null);
+        $zone_id_filter = $request->input('zone_id_filter', null);
+        $category_id = $request->input('category_id', null);
+
         $client_id = auth('client')->id();
 
         $userIds = User::where('client_id', $client_id)->pluck('id');
         $orders = Order::with(['customer.segment', 'store', 'zone'])
             ->whereIn('user_id', $userIds)
-            ->when(isset($user_id), function ($query) use ($user_id) {
-                $query->where('user_id', $user_id);
-            })
             ->when(isset($search), function ($query) use ($search) {
-                $query->whereHas('customer', function ($q) use ($search) {
-                    $q->where('f_name', 'LIKE', '%' . $search . '%')
-                        ->orWhere('l_name', 'LIKE', '%' . $search . '%')
-                        ->orWhere('username', 'LIKE', '%' . $search . '%');
-                })->orWhere('id', 'LIKE', '%' . $search . '%');
-            })
-            ->when(isset($store_name), function ($query) use ($store_name) {
-                $query->whereHas('store', function ($q) use ($store_name) {
-                    $q->where('name', 'LIKE', '%' . $store_name . '%');
+                $query->where(function($q) use ($search) {
+                    $q->whereHas('customer', function ($cq) use ($search) {
+                        $cq->where('f_name', 'LIKE', '%' . $search . '%')
+                            ->orWhere('l_name', 'LIKE', '%' . $search . '%')
+                            ->orWhere('username', 'LIKE', '%' . $search . '%');
+                    })->orWhere('id', 'LIKE', '%' . $search . '%');
                 });
             })
-            ->when(isset($zone_id), function ($query) use ($zone_id) {
-                $query->where('zone_id', $zone_id);
+            // New Filters
+            ->when($ref_code, function ($query) use ($ref_code) {
+                return $query->whereHas('customer', function ($q) use ($ref_code) {
+                    return $q->where('ref_code', 'like', "%{$ref_code}%");
+                });
+            })
+            ->when($segment_id && $segment_id != 'all', function ($query) use ($segment_id) {
+                return $query->whereHas('customer', function ($q) use ($segment_id) {
+                    return $q->where('segment_id', $segment_id);
+                });
+            })
+            ->when($partner_id && $partner_id != 'all', function ($query) use ($partner_id) {
+                return $query->where('store_id', $partner_id);
+            })
+            ->when($zone_id_filter && $zone_id_filter != 'all', function ($query) use ($zone_id_filter) {
+                return $query->where('zone_id', $zone_id_filter);
+            })
+            ->when($category_id && $category_id != 'all', function ($query) use ($category_id) {
+                return $query->whereHas('details.item', function ($q) use ($category_id) {
+                    return $q->whereHas('category', function ($cq) use ($category_id) {
+                        return $cq->where('id', $category_id)->orWhere('parent_id', $category_id);
+                    });
+                });
             })
             ->latest()
             ->paginate(Config::get('default_pagination'));
 
-        $zones = \App\Models\Zone::active()->get();
+        // Dropdown Data
+        $segments = \App\Models\Segment::where('status', 'active')->orderBy('name')->get();
+        // Stores belonging to users of this client? Or just all stores? 
+        // Admin side showed all stores. Client side likely wants stores they interact with, 
+        // but for now, I'll follow the "same as admin" logic for dropdowns if applicable.
+        // Actually, stores are global.
+        $partners = Store::active()->orderBy('name')->get(['id', 'name']);
+        $zones = \App\Models\Zone::active()->orderBy('name')->get(['id', 'name']);
+        $categories = \App\Models\Category::where(['position' => 0, 'status' => 1])->orderBy('name')->get(['id', 'name']);
 
-        return view('client-views.voucher_list', compact('orders', 'search', 'zones', 'store_name', 'zone_id'));
+        return view('client-views.voucher_list', compact(
+            'orders', 'search', 'zones', 'segments', 'partners', 'categories',
+            'ref_code', 'segment_id', 'partner_id', 'zone_id_filter', 'category_id'
+        ));
     }
 
     public function edit($id)

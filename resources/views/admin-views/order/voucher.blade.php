@@ -33,6 +33,81 @@
             <!-- End Row -->
         </div>
         <!-- End Page Header -->
+        <div class="card mb-3">
+            <div class="card-body">
+                <form action="{{ url()->current() }}" method="GET">
+                    <div class="row g-3">
+                        <div class="col-sm-6 col-md-4 col-lg-2">
+                            <div class="form-group">
+                                <label class="input-label">{{translate('messages.ref_code')}}</label>
+                                <input type="text" name="ref_code" value="{{ request()->ref_code }}" class="form-control" placeholder="{{translate('messages.Ex:')}} S123">
+                            </div>
+                        </div>
+                        <div class="col-sm-6 col-md-4 col-lg-2">
+                            <div class="form-group">
+                                <label class="input-label">{{translate('messages.segment')}}</label>
+                                <select name="segment_id" class="form-control js-select2-custom">
+                                    <option value="all">{{translate('messages.all')}}</option>
+                                    @if(isset($segments))
+                                        @foreach($segments as $segment)
+                                            <option value="{{ $segment->id }}" {{ request()->segment_id == $segment->id ? 'selected' : '' }}>{{ $segment->name }}</option>
+                                        @endforeach
+                                    @endif
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-sm-6 col-md-4 col-lg-2">
+                            <div class="form-group">
+                                <label class="input-label">{{translate('messages.partner')}}</label>
+                                <select name="partner_id" class="form-control js-select2-custom">
+                                    <option value="all">{{translate('messages.all')}}</option>
+                                    @if(isset($partners))
+                                        @foreach($partners as $partner)
+                                            <option value="{{ $partner->id }}" {{ request()->partner_id == $partner->id ? 'selected' : '' }}>{{ $partner->name }}</option>
+                                        @endforeach
+                                    @endif
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-sm-6 col-md-4 col-lg-2">
+                            <div class="form-group">
+                                <label class="input-label">{{translate('messages.zone')}}</label>
+                                <select name="zone_id_filter" class="form-control js-select2-custom">
+                                    <option value="all">{{translate('messages.all')}}</option>
+                                    @if(isset($zones))
+                                        @foreach($zones as $zone)
+                                            <option value="{{ $zone->id }}" {{ request()->zone_id_filter == $zone->id ? 'selected' : '' }}>{{ $zone->name }}</option>
+                                        @endforeach
+                                    @endif
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-sm-6 col-md-4 col-lg-2">
+                            <div class="form-group">
+                                <label class="input-label">{{translate('messages.category')}}</label>
+                                <select name="category_id" class="form-control js-select2-custom">
+                                    <option value="all">{{translate('messages.all')}}</option>
+                                    @if(isset($categories))
+                                        @foreach($categories as $category)
+                                            <option value="{{ $category->id }}" {{ request()->category_id == $category->id ? 'selected' : '' }}>{{ $category->name }}</option>
+                                        @endforeach
+                                    @endif
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-sm-6 col-md-4 col-lg-2">
+                            <div class="form-group">
+                                <label class="input-label">&nbsp;</label>
+                                <div class="btn--container justify-content-end">
+                                    <button type="submit" class="btn btn--primary">{{translate('messages.filter')}}</button>
+                                    <a href="{{ route('admin.order.voucher', ['status' => $status]) }}" class="btn btn--secondary">{{translate('messages.clear')}}</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
         <!-- Card -->
         <div class="card">
             <!-- Header -->
