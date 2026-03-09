@@ -154,24 +154,32 @@ class OrderController extends Controller
 
      public function voucher($status, Request $request)
     {
-        // dd($status);
+        // Capture filter values
+        $ref_code = $request->input('ref_code', null);
+        $segment_id = $request->input('segment_id', null);
+        $partner_id = $request->input('partner_id', null);
+        $zone_id_filter = $request->input('zone_id_filter', null);
+        $category_id = $request->input('category_id', null);
+
         $key = explode(' ', $request['search']);
         if (session()->has('zone_filter') == false) {
             session()->put('zone_filter', 0);
         }
         $module_id = $request->query('module_id', null);
         if (session()->has('order_filter')) {
-            $request = json_decode(session('order_filter'));
+            $session_request = json_decode(session('order_filter'));
+        } else {
+            $session_request = null;
         }
         Order::where(['checked' => 0])->update(['checked' => 1]);
 
-        $orders = Order::with(['customer', 'store'])
+        $orders = Order::with(['customer.segment', 'store', 'zone'])
             ->when(isset($module_id), function ($query) use ($module_id) {
                 return $query->module($module_id);
             })
-            ->when(isset($request->zone), function ($query) use ($request) {
-                return $query->whereHas('store', function ($q) use ($request) {
-                    return $q->whereIn('zone_id', $request->zone);
+            ->when(isset($session_request->zone), function ($query) use ($session_request) {
+                return $query->whereHas('store', function ($q) use ($session_request) {
+                    return $q->whereIn('zone_id', $session_request->zone);
                 });
             })
             ->when($status == 'scheduled', function ($query) {
@@ -219,21 +227,21 @@ class OrderController extends Controller
             ->when(($status != 'all' && $status != 'scheduled' && $status != 'canceled' && $status != 'rejected' && $status != 'requested' && $status != 'refunded' && $status != 'delivered' && $status != 'failed'), function ($query) {
                 return $query->OrderScheduledIn(30);
             })
-            ->when(isset($request->vendor), function ($query) use ($request) {
-                return $query->whereHas('store', function ($query) use ($request) {
-                    return $query->whereIn('id', $request->vendor);
+            ->when(isset($session_request->vendor), function ($query) use ($session_request) {
+                return $query->whereHas('store', function ($query) use ($session_request) {
+                    return $query->whereIn('id', $session_request->vendor);
                 });
             })
-            ->when(isset($request->orderStatus) && $status == 'all', function ($query) use ($request) {
-                return $query->whereIn('order_status', $request->orderStatus);
+            ->when(isset($session_request->orderStatus) && $status == 'all', function ($query) use ($session_request) {
+                return $query->whereIn('order_status', $session_request->orderStatus);
             })
-            ->when(isset($request->order_type), function ($query) use ($request) {
-                return $query->where('order_type', $request->order_type);
+            ->when(isset($session_request->order_type), function ($query) use ($session_request) {
+                return $query->where('order_type', $session_request->order_type);
             })
-            ->when(isset($request->from_date) && isset($request->to_date) && $request->from_date != null && $request->to_date != null, function ($query) use ($request) {
-                return $query->whereBetween('created_at', [$request->from_date . " 00:00:00", $request->to_date . " 23:59:59"]);
+            ->when(isset($session_request->from_date) && isset($session_request->to_date) && $session_request->from_date != null && $session_request->to_date != null, function ($query) use ($session_request) {
+                return $query->whereBetween('created_at', [$session_request->from_date . " 00:00:00", $session_request->to_date . " 23:59:59"]);
             })
-            ->when(isset($key), function ($query) use ($key) {
+            ->when(isset($key) && count($key) > 0 && $key[0] != "", function ($query) use ($key) {
                 return $query->where(function ($q) use ($key) {
                     foreach ($key as $value) {
                         $q->orWhere('id', 'like', "%{$value}%")
@@ -242,23 +250,57 @@ class OrderController extends Controller
                     }
                 });
             })
+            // New Filters
+            ->when($ref_code, function ($query) use ($ref_code) {
+                return $query->whereHas('customer', function ($q) use ($ref_code) {
+                    return $q->where('ref_code', 'like', "%{$ref_code}%");
+                });
+            })
+            ->when($segment_id && $segment_id != 'all', function ($query) use ($segment_id) {
+                return $query->whereHas('customer', function ($q) use ($segment_id) {
+                    return $q->where('segment_id', $segment_id);
+                });
+            })
+            ->when($partner_id && $partner_id != 'all', function ($query) use ($partner_id) {
+                return $query->where('store_id', $partner_id);
+            })
+            ->when($zone_id_filter && $zone_id_filter != 'all', function ($query) use ($zone_id_filter) {
+                return $query->whereHas('store', function ($q) use ($zone_id_filter) {
+                    return $q->where('zone_id', $zone_id_filter);
+                });
+            })
+            ->when($category_id && $category_id != 'all', function ($query) use ($category_id) {
+                return $query->whereHas('details.item', function ($q) use ($category_id) {
+                    return $q->whereHas('category', function ($cq) use ($category_id) {
+                        return $cq->where('id', $category_id)->orWhere('parent_id', $category_id);
+                    });
+                });
+            })
             ->StoreOrder()
             ->module(Config::get('module.current_module_id'))
             ->orderBy('schedule_at', 'desc')
             ->paginate(config('default_pagination'));
-        $orderstatus = isset($request->orderStatus) ? $request->orderStatus : [];
-        $scheduled = isset($request->scheduled) ? $request->scheduled : 0;
-        $vendor_ids = isset($request->vendor) ? $request->vendor : [];
-        $zone_ids = isset($request->zone) ? $request->zone : [];
-        $from_date = isset($request->from_date) ? $request->from_date : null;
-        $to_date = isset($request->to_date) ? $request->to_date : null;
-        $order_type = isset($request->order_type) ? $request->order_type : null;
+
+        $orderstatus = isset($session_request->orderStatus) ? $session_request->orderStatus : [];
+        $scheduled = isset($session_request->scheduled) ? $session_request->scheduled : 0;
+        $vendor_ids = isset($session_request->vendor) ? $session_request->vendor : [];
+        $zone_ids = isset($session_request->zone) ? $session_request->zone : [];
+        $from_date = isset($session_request->from_date) ? $session_request->from_date : null;
+        $to_date = isset($session_request->to_date) ? $session_request->to_date : null;
+        $order_type = isset($session_request->order_type) ? $session_request->order_type : null;
         $total = $orders->total();
 
-        
+        // Dropdown Data
+        $segments = \App\Models\Segment::where('status', 'active')->orderBy('name')->get();
+        $partners = \App\Models\Store::active()->orderBy('name')->get(['id', 'name']);
+        $zones = \App\Models\Zone::active()->orderBy('name')->get(['id', 'name']);
+        $categories = \App\Models\Category::where(['position' => 0, 'status' => 1])->orderBy('name')->get(['id', 'name']);
 
-
-        return view('admin-views.order.voucher', compact('orders', 'status', 'orderstatus', 'scheduled', 'vendor_ids', 'zone_ids', 'from_date', 'to_date', 'total', 'order_type'));
+        return view('admin-views.order.voucher', compact(
+            'orders', 'status', 'orderstatus', 'scheduled', 'vendor_ids', 'zone_ids', 
+            'from_date', 'to_date', 'total', 'order_type',
+            'segments', 'partners', 'zones', 'categories'
+        ));
     }
 
     public function dispatch_list($module, $status, Request $request)
