@@ -280,7 +280,7 @@ class ItemController extends Controller
         $type = $request->query('type', 'all');
 
         $items = Item::active()->type($type)
-
+             ->where('type', 'voucher')
             ->when($request->category_id, function ($query) use ($request) {
                 $query->whereHas('category', function ($q) use ($request) {
                     return $q->whereId($request->category_id)->orWhere('parent_id', $request->category_id);
@@ -302,6 +302,9 @@ class ItemController extends Controller
             ->where(function ($q) use ($key) {
                 foreach ($key as $value) {
                     $q->orWhere('name', 'like', "%{$value}%");
+                }
+                foreach ($key as $value) {
+                    $q->orWhere('tags_ids', 'like', "%{$value}%");
                 }
                 $q->orWhereHas('translations', function ($query) use ($key) {
                     $query->where(function ($q) use ($key) {
@@ -876,7 +879,7 @@ class ItemController extends Controller
         }
         $key = explode(' ', $request->name);
 
-        $items = Item::active()->whereHas('store', function ($query) use ($zone_id) {
+        $items = Item::active()->where('type', 'voucher')->whereHas('store', function ($query) use ($zone_id) {
             $query->when(config('module.current_module_data'), function ($query) {
                 $query->where('module_id', config('module.current_module_data')['id'])->whereHas('zone.modules', function ($query) {
                     $query->where('modules.id', config('module.current_module_data')['id']);
@@ -885,7 +888,7 @@ class ItemController extends Controller
         })
             ->where(function ($q) use ($key) {
                 foreach ($key as $value) {
-                    $q->orwhere('name', 'like', "%{$value}%")->orWhere('description', 'like', "%{$value}%");
+                    $q->orwhere('name', 'like', "%{$value}%")->orWhere('description', 'like', "%{$value}%")->orWhere('tags_ids', 'like', "%{$value}%");
                 }
 
                 $relationships = [
