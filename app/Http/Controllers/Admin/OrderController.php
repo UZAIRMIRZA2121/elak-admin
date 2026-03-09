@@ -28,12 +28,14 @@ use App\CentralLogics\Helpers;
 use App\Models\BusinessSetting;
 use App\CentralLogics\OrderLogic;
 use App\CentralLogics\CouponLogic;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use App\CentralLogics\ProductLogic;
 use App\CentralLogics\CustomerLogic;
 use App\Http\Controllers\Controller;
 use Brian2694\Toastr\Facades\Toastr;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Validator;
 use Maatwebsite\Excel\Facades\Excel;
 use Rap2hpoutre\FastExcel\FastExcel;
 use App\Exports\StoreOrderlistExport;
@@ -152,7 +154,7 @@ class OrderController extends Controller
         return view('admin-views.order.list', compact('orders', 'status', 'orderstatus', 'scheduled', 'vendor_ids', 'zone_ids', 'from_date', 'to_date', 'total', 'order_type'));
     }
 
-     public function voucher($status, Request $request)
+    public function voucher($status, Request $request)
     {
         // Capture filter values
         $ref_code = $request->input('ref_code', null);
@@ -297,9 +299,20 @@ class OrderController extends Controller
         $categories = \App\Models\Category::where(['position' => 0, 'status' => 1])->orderBy('name')->get(['id', 'name']);
 
         return view('admin-views.order.voucher', compact(
-            'orders', 'status', 'orderstatus', 'scheduled', 'vendor_ids', 'zone_ids', 
-            'from_date', 'to_date', 'total', 'order_type',
-            'segments', 'partners', 'zones', 'categories'
+            'orders',
+            'status',
+            'orderstatus',
+            'scheduled',
+            'vendor_ids',
+            'zone_ids',
+            'from_date',
+            'to_date',
+            'total',
+            'order_type',
+            'segments',
+            'partners',
+            'zones',
+            'categories'
         ));
     }
 
@@ -438,7 +451,7 @@ class OrderController extends Controller
             $deliveryMen = Helpers::deliverymen_list_formatting($deliveryMen);
             $view = 'admin-views.order.order-view';
             // dd($order->voucher_type);
-             $reasons = OrderCancelReason::where('status', 1)->where('user_type', 'store')->get();
+            $reasons = OrderCancelReason::where('status', 1)->where('user_type', 'store')->get();
 
             if ($order->voucher_type === 'Flat discount') {
                 $view = 'admin-views.order.order-view-flat';
@@ -448,13 +461,13 @@ class OrderController extends Controller
                 if ($order->voucher_sub_type === 'bogo_free') {
                     $view = 'admin-views.order.order-view-bogo';
 
-                } elseif (in_array($order->voucher_sub_type, ['simple', 'simple x' , 'bundle'])) {
+                } elseif (in_array($order->voucher_sub_type, ['simple', 'simple x', 'bundle'])) {
                     $view = 'admin-views.order.order-view-simple';
-                }elseif($order->voucher_sub_type === 'mix_match'){
-                        $view = 'admin-views.order.order-view-mix_match';
+                } elseif ($order->voucher_sub_type === 'mix_match') {
+                    $view = 'admin-views.order.order-view-mix_match';
                 }
 
-              } else if ($order->voucher_type == 'Gift') {
+            } else if ($order->voucher_type == 'Gift') {
                 $view = 'admin-views.order.order-view-gift';
             } else {
                 $view = 'admin-views.order.order-view';
@@ -570,6 +583,7 @@ class OrderController extends Controller
 
     public function status(Request $request)
     {
+      
         $request->validate([
             'reason' => 'required_if:order_status,canceled'
         ]);
@@ -596,10 +610,13 @@ class OrderController extends Controller
             Toastr::warning(translate('messages.you_can_not_change_the_status_of_a_completed_order'));
             return back();
         }
-        if (in_array($order->order_status, ['refund_requested']) && BusinessSetting::where(['key' => 'refund_active_status'])->first()->value == false) {
-            Toastr::warning(translate('Refund Option is not active. Please active it from Refund Settings'));
-            return back();
+        if (!Auth::guard('admin')->check()) {
+            if (in_array($order->order_status, ['refund_requested']) && BusinessSetting::where(['key' => 'refund_active_status'])->first()->value == false) {
+                Toastr::warning(translate('Refund Option is not active. Please active it from Refund Settings'));
+                return back();
+            }
         }
+
 
         if ($order['delivery_man_id'] == null && $request->order_status == 'out_for_delivery') {
             Toastr::warning(translate('messages.please_assign_deliveryman_first'));
@@ -672,10 +689,12 @@ class OrderController extends Controller
                     return back();
                 }
             }
+            
             $refund_method = $request->refund_method ?? 'manual';
             $wallet_status = BusinessSetting::where('key', 'wallet_status')->first()->value;
             $refund_to_wallet = BusinessSetting::where('key', 'wallet_add_refund')->first()->value;
             if ($order->payment_status == "paid" && $wallet_status == 1 && $refund_to_wallet == 1) {
+             
                 $refund_amount = round($order->order_amount - $order->delivery_charge - $order->dm_tips, config('round_up_to_digit'));
                 CustomerLogic::create_wallet_transaction($order->user_id, $refund_amount, 'order_refund', $order->id);
                 Toastr::info(translate('Refunded amount added to customer wallet'));
@@ -1780,6 +1799,65 @@ class OrderController extends Controller
             ->paginate(config('default_pagination'));
         return view('admin-views.refund.index', compact('refund_active_status', 'reasons'));
     }
+    public function admin_refunded(Request $request)
+    {
+
+        $validator = Validator::make($request->all(), [
+            'order_id' => 'required|integer',
+            'note' => 'nullable|string|max:65535',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => Helpers::error_processor($validator)], 403);
+        }
+
+        $order = Order::where('id', $request->order_id)
+            ->Notpos()
+            ->first();
+
+        if (!$order) {
+            return response()->json([
+                'errors' => [
+                    ['code' => 'order', 'message' => translate('messages.not_found')]
+                ]
+            ], 404);
+        }
+
+        if ($order->order_status == 'delivered' && $order->payment_status == 'paid') {
+
+            $refund_amount = round(
+                $order->order_amount - $order->delivery_charge - $order->dm_tips,
+                config('round_up_to_digit')
+            );
+
+            DB::beginTransaction();
+
+            $refund = new Refund();
+            $refund->order_id = $order->id;
+            $refund->user_id = $order->user_id;
+            $refund->order_status = $order->order_status;
+            $refund->refund_status = 'pending';
+            $refund->refund_method = 'wallet';
+            $refund->customer_reason = 'Refund by admin'; // static reason
+            $refund->admin_note = $request->note;
+            $refund->refund_amount = $refund_amount;
+            $refund->image = json_encode([]);
+
+            $refund->save();
+
+            $order->order_status = 'refund_requested';
+            $order->refund_requested = now();
+            $order->save();
+
+            DB::commit();
+
+            return redirect()->back()->with('success', 'Refund request placed by admin successfully');
+        }
+
+        return redirect()->back()->withErrors([
+            'order' => 'Order not eligible for refund'
+        ])->withInput();
+    }
 
     public function refund_reason(Request $request)
     {
@@ -1877,6 +1955,7 @@ class OrderController extends Controller
     }
     public function reason_status(Request $request)
     {
+
         $refund_reason = RefundReason::findOrFail($request->id);
         $refund_reason->status = $request->status;
         $refund_reason->save();

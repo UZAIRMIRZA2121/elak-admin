@@ -583,6 +583,7 @@ Route::group(['namespace' => 'Admin', 'as' => 'admin.'], function () {
         // Refund
         Route::group(['prefix' => 'refund', 'as' => 'refund.', 'middleware' => ['module:order']], function () {
             Route::get('settings', 'OrderController@refund_settings')->name('refund_settings');
+            Route::post('refunded', 'OrderController@admin_refunded')->name('refunded');
             Route::get('refund_mode', 'OrderController@refund_mode')->name('refund_mode');
             Route::post('refund_reason', 'OrderController@refund_reason')->name('refund_reason');
             Route::get('/status/{id}/{status}', 'OrderController@reason_status')->name('reason_status');

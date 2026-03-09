@@ -278,7 +278,7 @@
                                 <th class="border-0">{{ translate('messages.store') }}</th>
                                 <th class="text-center border-0">{{ translate('messages.Item_Quantity') }}</th>
                             @endif --}}
-                        
+
 
                             @if ($status == 'refunded')
                                 <th class="text-center border-0">{{ translate('messages.Refunded_order_status') }}</th>
@@ -332,7 +332,8 @@
                                         <a class="text-body"
                                             href="{{ route('admin.customer.view', [$order['user_id']]) }}">
                                             <strong>
-                                                <div> {{ $order->customer['f_name'] . ' ' . $order->customer['l_name'] }}</div>
+                                                <div> {{ $order->customer['f_name'] . ' ' . $order->customer['l_name'] }}
+                                                </div>
                                             </strong>
                                         </a>
                                         <a href="tel:{{ $order->customer['phone'] }}">
@@ -514,6 +515,15 @@
                                             href="{{ route($parcel_order ? 'admin.order.generate-invoice' : 'admin.order.generate-invoice', ['id' => $order['id']]) }}">
                                             <i class="tio-print"></i>
                                         </a>
+
+                                        <!-- Refund Button -->
+                                        <button type="button"
+                                            class="ml-2 btn btn-sm btn--danger btn-outline-danger action-btn refund-btn"
+                                            data-order-id="{{ $order['id'] }}" data-toggle="modal"
+                                            data-target="#refundModal">
+                                            <i class="tio-undo"></i>
+                                        </button>
+
                                     </div>
                                 </td>
                             </tr>
@@ -522,6 +532,43 @@
                 </table>
             </div>
             <!-- End Table -->
+            <div class="modal fade" id="refundModal" tabindex="-1">
+                <div class="modal-dialog">
+                    <form action="{{ route('admin.refund.refunded') }}" method="POST">
+                        @csrf
+                        <input type="hidden" name="order_id" id="refund_order_id">
+
+                        <div class="modal-content">
+
+                            <div class="modal-header">
+                                <h5 class="modal-title">Refund Request</h5>
+                                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                            </div>
+
+                            <div class="modal-body">
+
+                                <div class="form-group">
+                                    <label>Note</label>
+                                    <textarea class="form-control" name="note" rows="4" placeholder="Enter refund note"></textarea>
+                                </div>
+
+
+                            </div>
+
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                                    Cancel
+                                </button>
+
+                                <button type="submit" class="btn btn-danger">
+                                    Submit Refund
+                                </button>
+                            </div>
+
+                        </div>
+                    </form>
+                </div>
+            </div>
 
 
             @if (count($orders) !== 0)
@@ -698,13 +745,15 @@
                         <small class="text-cap mb-3">{{ translate('messages.order_type') }}</small>
                         <div class="custom-control custom-radio mb-2">
                             <input type="radio" id="take_away" name="order_type" class="custom-control-input"
-                                value="take_away" {{ isset($order_type) ? ($order_type == 'take_away' ? 'checked' : '') : '' }}>
+                                value="take_away"
+                                {{ isset($order_type) ? ($order_type == 'take_away' ? 'checked' : '') : '' }}>
                             <label class="custom-control-label text-uppercase"
                                 for="take_away">{{ translate('messages.take_away') }}</label>
                         </div>
                         <div class="custom-control custom-radio mb-2">
                             <input type="radio" id="delivery" name="order_type" class="custom-control-input"
-                                value="delivery" {{ isset($order_type) ? ($order_type == 'delivery' ? 'checked' : '') : '' }}>
+                                value="delivery"
+                                {{ isset($order_type) ? ($order_type == 'delivery' ? 'checked' : '') : '' }}>
                             <label class="custom-control-label text-uppercase"
                                 for="delivery">{{ translate('messages.delivery') }}</label>
                         </div>
@@ -929,6 +978,14 @@
                         $('#loading').hide();
                     },
                 });
+            });
+        </script>
+
+        <script>
+            $(document).on('click', '.refund-btn', function() {
+                let orderId = $(this).data('order-id');
+                
+                $('#refund_order_id').val(orderId);
             });
         </script>
     @endpush

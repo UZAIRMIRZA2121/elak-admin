@@ -8550,4 +8550,8 @@ Smartly or Earn. ',
   'voucher_desc' => 'Voucher desc',
   'The coordinates field is required.' => 'The coordinates field is required.',
   'longitude-latitude_required' => 'Longitude-latitude required',
+  'You can not request for a refund' => 'You can not request for a refund',
+  'The order id field is required.' => 'The order id field is required.',
+  'Order not eligible for refund' => 'Order not eligible for refund',
+  'Refund Option is not active. Please active it from Refund Settings' => 'Refund Option is not active. Please active it from Refund Settings',
 );
