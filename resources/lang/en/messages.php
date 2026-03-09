@@ -8549,4 +8549,5 @@ Smartly or Earn. ',
   'major_city' => 'Major city',
   'voucher_desc' => 'Voucher desc',
   'The coordinates field is required.' => 'The coordinates field is required.',
+  'longitude-latitude_required' => 'Longitude-latitude required',
 );

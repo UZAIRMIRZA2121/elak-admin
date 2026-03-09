@@ -28,6 +28,7 @@ class ItemController extends Controller
 
     public function get_latest_products(Request $request)
     {
+
         $validator = Validator::make($request->all(), [
             'store_id' => 'required',
             'category_id' => 'required',
@@ -129,6 +130,7 @@ class ItemController extends Controller
                     }
                 ]);
             })
+            ->where('type', 'voucher')
             ->select(['items.*'])
             ->selectSub(function ($subQuery) {
                 $subQuery->selectRaw('active as temp_available')
@@ -181,6 +183,9 @@ class ItemController extends Controller
             ->where(function ($q) use ($key) {
                 foreach ($key as $value) {
                     $q->orWhere('name', 'like', "%{$value}%");
+                }
+                foreach ($key as $value) {
+                    $q->orWhere('tags_ids', 'like', "%{$value}%");
                 }
 
                 $relationships = [
@@ -502,7 +507,7 @@ class ItemController extends Controller
 
 
             if ($item['type'] == 'voucher') {
-                
+
                 if ($item->product !== "[]") {
                     $item['product'] = $item->relatedProducts() ?? [];
                 }
@@ -593,7 +598,7 @@ class ItemController extends Controller
 
     public function new_voucher(Request $request)
     {
-      
+
         if (!$request->hasHeader('zoneId')) {
             $errors = [];
             array_push($errors, ['code' => 'zoneId', 'message' => translate('messages.zone_id_required')]);
@@ -604,14 +609,14 @@ class ItemController extends Controller
 
         $type = $request->query('type', 'all');
         $filter = $request->query('filter', 'all');
-  
+
         $zone_id = $request->header('zoneId');
         $items = ProductLogic::new_voucher_items($zone_id, $request->store_id, $request['limit'], $request['offset'], $type, $filter);
         $items['items'] = Helpers::product_data_formatting($items['items'], true, false, app()->getLocale());
         return response()->json($items, 200);
     }
 
-       public function hot_voucher(Request $request)
+    public function hot_voucher(Request $request)
     {
         if (!$request->hasHeader('zoneId')) {
             $errors = [];
@@ -784,10 +789,10 @@ class ItemController extends Controller
 
     public function get_items_by_store(Request $request, $store_id)
     {
-        
-    //    return response()->json(Auth::user());
 
-    
+        //    return response()->json(Auth::user());
+
+
 
 
         if (!$request->hasHeader('zoneId')) {
@@ -799,30 +804,30 @@ class ItemController extends Controller
         }
 
         $zone_id = $request->header('zoneId');
-        
+
         $type = $request->query('type', 'all');
         $limit = $request['limit'] ?? 25;
         $offset = $request['offset'] ?? 1;
-        
+
         $items = Item::with(['store', 'category', 'module', 'unit']) // Eager load relationships "refer id" likely implies
             ->where('store_id', $store_id)
 
             ->type($type)
             // Ensure store is in the correct zone and module
             ->whereHas('store', function ($query) use ($zone_id) {
-                 $query->when(config('module.current_module_data'), function ($query) {
+                $query->when(config('module.current_module_data'), function ($query) {
                     $query->where('module_id', config('module.current_module_data')['id'])->whereHas('zone.modules', function ($query) {
                         $query->where('modules.id', config('module.current_module_data')['id']);
                     });
                 })->whereIn('zone_id', json_decode($zone_id, true));
             })
             ->paginate($limit, ['*'], 'page', $offset);
-        
+
         $products = Helpers::product_data_formatting($items->items(), true, false, app()->getLocale());
-        
+
         $original_items = collect($items->items())->keyBy('id');
-            // dd($original_items);
-           
+        // dd($original_items);
+
         foreach ($products as &$product) {
             if (isset($product['id']) && $original = $original_items->get($product['id'])) {
                 $product['gift_occasions'] = $original->gift_occasions;

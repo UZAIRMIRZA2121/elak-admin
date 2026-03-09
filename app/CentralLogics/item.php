@@ -111,14 +111,8 @@ class ProductLogic
             })
             ->when($rating_count, function ($query) use ($rating_count) {
                 $query->where('avg_rating', '>=', $rating_count);
-            })
-            ->when($filter && in_array('available_now', $filter), function ($query) {
-                $query->where(function ($q) {
-                    $currentTime = now()->format('H:i:s');
-                    $q->whereRaw("(available_time_starts < available_time_ends AND TIME(?) BETWEEN available_time_starts AND available_time_ends)", [$currentTime])
-                        ->orWhereRaw("(available_time_starts > available_time_ends AND (TIME(?) >= available_time_starts OR TIME(?) <= available_time_ends))", [$currentTime, $currentTime]);
-                });
             });
+       
 
 
         if ($latest_items_default_status == '1') {
