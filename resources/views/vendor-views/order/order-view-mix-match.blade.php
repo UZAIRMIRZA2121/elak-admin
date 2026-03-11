@@ -762,7 +762,8 @@
                                         </div>
                                     @endif
                                 </div>
-                                @if ($order->store && $order->store->module->module_type == 'food')
+                                @if ($order->store && $order->store->module->module_type == 'food'  || $order->store->module->module_type == 'voucher')
+                              
                                     <a class="btn btn--primary w-100 order-status-change-alert {{ $order['order_status'] == 'confirmed' || $order['order_status'] == 'accepted' ? '' : 'd-none' }}"
                                         data-url="{{ route('vendor.order.status', ['id' => $order['id'], 'order_status' => 'processing']) }}"
                                         data-message="{{ translate('Change status to cooking ?') }}"
@@ -774,10 +775,12 @@
                                         data-message="{{ translate('messages.proceed_for_processing') }}"
                                         href="javascript:">{{ translate('messages.proceed_for_processing') }}</a>
                                 @endif
+
                                 <a class="btn btn--primary w-100 route-alert {{ $order['order_status'] == 'processing' ? '' : 'd-none' }}"
                                     data-url="{{ route('vendor.order.status', ['id' => $order['id'], 'order_status' => 'handover']) }}"
                                     data-message="{{ translate('messages.make_ready_for_handover') }}"
                                     href="javascript:">{{ translate('messages.make_ready_for_handover') }}</a>
+
                                 @if (
                                     $order['order_status'] == 'handover' ||
                                         ($order['order_status'] == 'picked_up' && $order->store->sub_self_delivery == 1))
@@ -1431,6 +1434,7 @@
                     allowOutsideClick: () => !Swal.isLoading()
                 })
             } else {
+                
                 Swal.fire({
                     title: '{{ translate('messages.Are you sure ?') }}',
                     text: message,

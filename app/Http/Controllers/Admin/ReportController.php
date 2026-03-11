@@ -50,6 +50,7 @@ class ReportController extends Controller
 
     public function day_wise_report(Request $request)
     {
+    
         $key = explode(' ', $request['search']);
 
         $from =  null;

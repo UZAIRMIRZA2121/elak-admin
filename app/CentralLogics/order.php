@@ -94,7 +94,7 @@ class OrderLogic
         if($order?->cashback_history){
             self::cashbackToWallet($order);
         }
-
+      
         if($type=='parcel')
         {
             $comission = \App\Models\BusinessSetting::where('key','parcel_commission_dm')->first();
@@ -106,10 +106,12 @@ class OrderLogic
         }
         else
         {
-            $comission = isset($order->store->comission) == null?\App\Models\BusinessSetting::where('key','admin_commission')->first()->value:$order->store->comission;
+
+      
+            $comission = isset($order->store->comission) == null ? \App\Models\BusinessSetting::where('key','admin_commission')->first()->value:$order->store->comission;
             $dm_tips = $dm_tips_manage_status ? $order->dm_tips : 0;
             // $order_amount = $order->order_amount - $order->delivery_charge - $order->total_tax_amount - $dm_tips;
-
+  
             if($order->store_discount_amount > 0  && $order->discount_on_product_by == 'vendor')
             {
                 if($store->store_business_model == 'subscription' && isset($store_sub)){
@@ -206,7 +208,7 @@ class OrderLogic
                 'created_at' => now(),
                 'updated_at' => now(),
                 'delivery_fee_comission'=>isset($comission_on_actual_delivery_fee)?$comission_on_actual_delivery_fee: 0,
-                'discount_amount_by_store' => $store_coupon_discount_subsidy + $store_d_amount + $store_subsidy,
+                'discount_amount_by_store' => $store_coupon_discount_subsidy + $store_d_amount + $store_subsidy + $order->discount_amount,
                 'additional_charge' => $order->additional_charge,
                 'extra_packaging_amount' => $order->extra_packaging_amount,
                 'ref_bonus_amount' => $order->ref_bonus_amount,

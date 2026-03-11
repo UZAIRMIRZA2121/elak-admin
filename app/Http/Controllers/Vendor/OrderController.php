@@ -207,7 +207,6 @@ class OrderController extends Controller
             if ($order->voucher_type == 'Flat discount') {
                 return view('vendor-views.order.order-view-flat', compact('order', 'reasons'));
             } else if ($order->voucher_type == 'In-Store' || $order->voucher_type == 'Delivery/Pickup') {
-
                 if ($order->voucher_sub_type == 'bogo_free') {
                     return view('vendor-views.order.order-view-bogo', compact('order', 'reasons'));
                 } else if ($order->voucher_sub_type == 'simple' || $order->voucher_sub_type == 'simple x' || $order->voucher_sub_type == 'bundle') {
@@ -218,7 +217,7 @@ class OrderController extends Controller
 
 
             } else if ($order->voucher_sub_type == 'Gift') {
-              
+
                 return view('vendor-views.order.order-view-gift', compact('order', 'reasons'));
             } else {
                 return view('vendor-views.order.order-view', compact('order', 'reasons'));
@@ -233,6 +232,7 @@ class OrderController extends Controller
 
     public function status(Request $request)
     {
+      
         $request->validate([
             'id' => 'required',
             'order_status' => 'required|in:confirmed,processing,handover,delivered,canceled',
@@ -285,7 +285,7 @@ class OrderController extends Controller
                     return back();
                 }
             }
-
+    
             if ($order->transaction == null) {
                 $unpaid_payment = OrderPayment::where('payment_status', 'unpaid')->where('order_id', $order->id)->first()?->payment_method;
                 $unpaid_pay_method = 'digital_payment';

@@ -485,7 +485,7 @@
                                                                     {{-- <h6>
                                                                         {{ $detail['quantity'] }}
                                                                     </h6> --}}
-                                                                    @if ($order->store && $order->store->module->module_type == 'food')
+                                                                      @if ($order->store && $order->store->module->module_type == 'food'  || $order->store->module->module_type == 'voucher')
                                                                         @if (isset($detail['variation']) ? json_decode($detail['variation'], true) : [])
                                                                             @foreach (json_decode($detail['variation'], true) as $variation)
                                                                                 @if (isset($variation['name']) && isset($variation['values']))

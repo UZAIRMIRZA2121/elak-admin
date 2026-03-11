@@ -762,7 +762,7 @@
                                         </div>
                                     @endif
                                 </div>
-                                @if ($order->store && $order->store->module->module_type == 'food')
+                        @if ($order->store && $order->store->module->module_type == 'food'  || $order->store->module->module_type == 'voucher')
                                     <a class="btn btn--primary w-100 order-status-change-alert {{ $order['order_status'] == 'confirmed' || $order['order_status'] == 'accepted' ? '' : 'd-none' }}"
                                         data-url="{{ route('vendor.order.status', ['id' => $order['id'], 'order_status' => 'processing']) }}"
                                         data-message="{{ translate('Change status to cooking ?') }}"

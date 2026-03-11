@@ -8554,4 +8554,8 @@ Smartly or Earn. ',
   'The order id field is required.' => 'The order id field is required.',
   'Order not eligible for refund' => 'Order not eligible for refund',
   'Refund Option is not active. Please active it from Refund Settings' => 'Refund Option is not active. Please active it from Refund Settings',
+  'Are you sure 111111111?' => 'Are you sure 111111111?',
+  'simple x' => 'Simple x',
+  'vendor_withdraw_request_denied' => 'Vendor withdraw request denied',
+  'i cant do this' => 'I cant do this',
 );
