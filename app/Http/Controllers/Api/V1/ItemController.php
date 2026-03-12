@@ -794,10 +794,6 @@ class ItemController extends Controller
     {
 
         //    return response()->json(Auth::user());
-
-
-
-
         if (!$request->hasHeader('zoneId')) {
             $errors = [];
             array_push($errors, ['code' => 'zoneId', 'message' => translate('messages.zone_id_required')]);
@@ -814,6 +810,7 @@ class ItemController extends Controller
 
         $items = Item::with(['store', 'category', 'module', 'unit']) // Eager load relationships "refer id" likely implies
             ->where('store_id', $store_id)
+            ->where('voucher_ids', 'Gift')
 
             ->type($type)
             // Ensure store is in the correct zone and module
