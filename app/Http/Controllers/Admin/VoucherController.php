@@ -192,11 +192,15 @@ class VoucherController extends Controller
             ->where('voucher_id', $id)
             ->get();
         $WorkManagement = WorkManagement::where('voucher_id', $id)->get();
-        $UsageTermManagement = UsageTermManagement::get();
+        $VoucherSetting = VoucherSetting::selectRaw('MIN(id) as id, title_name')
+            ->groupBy('title_name')
+            ->get();
+    // dd($VoucherSetting);
+        // $UsageTermManagement = UsageTermManagement::get();
         // dd($UsageTermManagement);
         return response()->json([
             'work_management' => $WorkManagement,
-            'usage_term_management' => $UsageTermManagement
+            'VoucherSetting' => $VoucherSetting
         ]);
     }
 
@@ -265,7 +269,22 @@ class VoucherController extends Controller
             $this->setGiftItemData($item, $request);
         }
 
+
         $item->save();
+
+        if (!empty($request->setting_id)) {
+            $setting = VoucherSetting::find($request->setting_id);
+
+            if ($setting) {
+                $newSetting = $setting->replicate();
+                $newSetting->item_id = $item->id;
+                $newSetting->save();
+            }
+
+        }
+
+
+        // dd($item);
 
         return response()->json(['success' => translate('messages.voucher_created_successfully')], 200);
     }
@@ -328,6 +347,24 @@ class VoucherController extends Controller
 
             $item->updated_at = now();
             $item->save();
+
+
+            if (!empty($request->setting_id)) {
+
+                $setting = VoucherSetting::find($request->setting_id);
+
+                if ($setting) {
+
+                    // pehle delete karo existing item_id record
+                    VoucherSetting::where('item_id', $item->id)->delete();
+
+                    // phir duplicate create karo
+                    $newSetting = $setting->replicate();
+                    $newSetting->item_id = $item->id;
+                    $newSetting->save();
+                }
+
+            }
 
             DB::commit();
 

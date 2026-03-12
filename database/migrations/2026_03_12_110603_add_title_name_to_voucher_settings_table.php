@@ -15,7 +15,7 @@ return new class extends Migration
             $table->string('title_name')->nullable()->after('id');
         });
     }
-
+        
     /**
      * Reverse the migrations.
      */

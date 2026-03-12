@@ -1847,7 +1847,7 @@
                                 onclick="toggleAccordion(${item.id})">
                                 
                                 <div class="d-flex align-items-center flex-grow-1">
-                                    <input type="checkbox" name="howto_work[]" value="${item.id}"
+                                    <input type="radio" name="howto_work" value="${item.id}"
                                         class="form-check-input record-checkbox me-3"
                                         id="record_${item.id}"
                                         data-item-id="${item.id}"
@@ -1875,7 +1875,7 @@
 
                     $("#workList").html(workHtml);
                     let usageHtml = "";
-                $.each(response.usage_term_management, function (index, term) {
+                $.each(response.VoucherSetting, function (index, term) {
                     // Check if this term is in saved IDs (using == for type coercion)
                     let isTermChecked = savedTermIds.some(id => id == term.id) ? 'checked' : '';
                     
@@ -1887,14 +1887,14 @@
                                         <input
                                             class="form-check-input mt-1 flex-shrink-0"
                                             style="width: 15px; height: 15px; cursor: pointer;"
-                                            name="term_and_condition[]"
-                                            type="checkbox"
+                                            name="setting_id"
+                                            type="radio"
                                             value="${term.id}"
                                             id="term${term.id}"
                                             ${isTermChecked}>
                                         
                                         <label for="term${term.id}" class="form-check-label fw-semibold mb-0 cursor-pointer flex-grow-1 ms-3 mt-1 ml-2" style="cursor: pointer; line-height: 1.5;">
-                                            ${term.baseinfor_condition_title}
+                                            ${term.title_name}
                                         </label>
                                     </div>
                                 </div>
