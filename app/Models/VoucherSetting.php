@@ -23,6 +23,7 @@ class VoucherSetting extends Model
         'usage_limit_per_store',
         'offer_validity_after_purchase',
         'general_restrictions',
+        'title_name',
         'status',
     ];
 

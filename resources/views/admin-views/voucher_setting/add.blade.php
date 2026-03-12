@@ -195,6 +195,14 @@
                                         </div>
                                     </div>
 
+                                <!-- title_name -->
+                                <div class="form-group">
+                                    <div class="custom-control">
+                                            <label class="input-label" for="title_name">Title
+                                            </label>
+                                        <input type="input" class="form-control" id="title_name" name="title_name">
+                                    </div>
+                                </div>
                                 <!-- TIME CONDITIONS -->
                                 <div class="condition-card">
                                     <div class="condition-header" data-bs-toggle="collapse" data-bs-target="#timeConditions">
@@ -390,8 +398,7 @@
 
                                           <div class="form-group">
                                         <div class="form-group mb-0">
-                                            <label class="input-label"
-                                                for="age_restriction">{{ translate('Age Restriction') }}
+                                            <label class="input-label" for="age_restriction">{{ translate('Age Restriction') }}
                                             </label>
                                             <!-- Dropdown: Only Percent & Fixed -->
                                             <select name="age_restriction[]" id="ageRestriction"  class="form-control js-select2-custom" multiple>
@@ -626,6 +633,16 @@
                                     <span>edit Setting</span>
                                 </div>
                             </div>
+
+                                <!-- title_name -->
+                                <div class="form-group">
+                                    <div class="custom-control">
+                                            <label class="input-label" for="title_name">Title
+                                            </label>
+                                        <input type="input" class="form-control" value="{{ $VoucherSetting->title_name ?? ''}}" id="title_name" name="title_name">
+                                    </div>
+                                </div>
+
                             <div class="row">
                                     <!-- LEFT SIDE - FORM -->
                                     <div class="col-lg-7">

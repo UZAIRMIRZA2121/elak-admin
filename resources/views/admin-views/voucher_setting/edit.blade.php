@@ -184,7 +184,13 @@
                         @csrf
                         <div class="row">
                             <!-- LEFT SIDE - FORM -->
-                            <div class="col-lg-7">
+                                <!-- title_name -->
+                                <div class="form-group">
+                                    <div class="custom-control">
+                                            <label class="input-label" for="title_name">Title </label>
+                                        <input type="input" class="form-control" value="{{ $VoucherSetting->title_name ?? ''}}" id="title_name" name="title_name">
+                                    </div>
+                                </div>
 
                                 <!-- TIME CONDITIONS -->
                                 <div class="condition-card">
