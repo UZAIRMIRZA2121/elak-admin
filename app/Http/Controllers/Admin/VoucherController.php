@@ -578,11 +578,9 @@ class VoucherController extends Controller
         $branch_ids = $request->sub_branch_id ?? [];
         $item->branch_ids = json_encode(array_filter(is_array($branch_ids) ? $branch_ids : []));
 
-        $howto_work = $request->howto_work ?? [];
-        $item->how_and_condition_ids = json_encode(array_filter(is_array($howto_work) ? $howto_work : []));
+        $item->how_and_condition_ids = $request->howto_work;
 
-        $term_and_condition = $request->term_and_condition ?? [];
-        $item->term_and_condition_ids = json_encode(array_filter(is_array($term_and_condition) ? $term_and_condition : []));
+        $item->term_and_condition_ids = $request->term_and_condition;
 
         $item->product = json_encode(array_filter(is_array($data) ? $data : []));
         $item->product_b = json_encode(array_filter(is_array($data_b) ? $data_b : []));

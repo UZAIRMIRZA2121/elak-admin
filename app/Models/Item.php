@@ -66,8 +66,8 @@ class Item extends Model
         'voucher_ids' => 'string',
         'bundle_type' => 'string',
         'tags_ids' => 'array',
-        'how_and_condition_ids' => 'array',
-        'term_and_condition_ids' => 'array',
+        'how_and_condition_ids' => 'string',
+        'term_and_condition_ids' => 'string',
         'product' => 'array',
         'product_b' => 'array',
         'required_quantity' => 'integer',
@@ -92,8 +92,6 @@ class Item extends Model
         'validity_period' => 'string',
         'usage_restrictions' => 'string',
         'blackout_dates' => 'string',
-
-
 
 
     ];
