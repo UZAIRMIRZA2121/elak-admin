@@ -580,7 +580,7 @@ class VoucherController extends Controller
 
         $item->how_and_condition_ids = $request->howto_work;
 
-        $item->term_and_condition_ids = $request->term_and_condition;
+        $item->term_and_condition_ids = $request->setting_id;
 
         $item->product = json_encode(array_filter(is_array($data) ? $data : []));
         $item->product_b = json_encode(array_filter(is_array($data_b) ? $data_b : []));

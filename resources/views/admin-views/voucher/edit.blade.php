@@ -1781,7 +1781,7 @@
         function getDataFromServer(voucher_id) {
             // Get saved howto_work value for pre-selection
              <?php
-                $rawHowtoWork = $product->how_and_condition_ids ?? '[]';
+                $rawHowtoWork = $product->how_and_condition_ids ?? '';
                 $decoded = json_decode($rawHowtoWork, true);
                 if (is_array($decoded) && !empty($decoded)) {
                     $savedId = $decoded[0];
@@ -1796,12 +1796,12 @@
             
             // Get saved term_and_condition_ids for pre-selection
             <?php
-                $rawTermCondition = $product->term_and_condition_ids ?? '[]';
-                $decodedTerms = json_decode($rawTermCondition, true);
-                $savedTermIds = is_array($decodedTerms) ? $decodedTerms : [];
+                $rawTermCondition = $product->term_and_condition_ids ?? '';
+                // $decodedTerms = json_decode($rawTermCondition, true);
+                // $savedTermIds = is_array($decodedTerms) ? $decodedTerms : [];
             ?>
-            let savedTermIds = @json($savedTermIds);
-            console.log('Saved Term & Condition IDs:', savedTermIds);
+            let savedTermIds = '{{ $product->term_and_condition_ids ?? "" }}';
+            console.log('Saved Term & Condition IDs ttt:', savedTermIds);
             
             $.ajax({
                 url: "{{ route('admin.Voucher.get_document') }}",
@@ -1873,12 +1873,13 @@
                 });
 
 
-                    $("#workList").html(workHtml);
+                    $("#workList").html(workHtml);  
                     let usageHtml = "";
                 $.each(response.VoucherSetting, function (index, term) {
                     // Check if this term is in saved IDs (using == for type coercion)
-                    let isTermChecked = savedTermIds.some(id => id == term.id) ? 'checked' : '';
+                    let isTermChecked = savedTermIds == term.id ? 'checked' : '';
                     
+                       
                     usageHtml += `
                         <div class="col-md-6 mb-3">
                             <div class="card h-100 border shadow-sm hover-shadow-lg transition-all">
