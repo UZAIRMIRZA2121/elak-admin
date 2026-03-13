@@ -6,6 +6,7 @@ use App\CentralLogics\OrderLogic;
 use App\Models\OrderPayment;
 use App\Models\User;
 use App\Models\Order;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use App\Models\BusinessSetting;
 use App\Library\Payer;
@@ -143,6 +144,7 @@ class PaymentController extends Controller
         $order = Order::where(['id' => session('order_id'), 'user_id' => session('customer_id')])->first();
 
         $order->order_status = 'delivered';
+        $order->delivered = Carbon::now();
         $order->save();
       
         if ($order->voucher_type == 'Flat discount') {
@@ -172,7 +174,7 @@ class PaymentController extends Controller
 
 
         }
-      
+        
 
         if (isset($order) && $order->callback != null) {
             return redirect($order->callback . '&status=success');
