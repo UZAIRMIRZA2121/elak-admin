@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\CentralLogics\OrderLogic;
+use App\Models\OrderPayment;
 use App\Models\User;
 use App\Models\Order;
 use Illuminate\Http\Request;
@@ -137,7 +139,41 @@ class PaymentController extends Controller
 
     public function success()
     {
+
         $order = Order::where(['id' => session('order_id'), 'user_id' => session('customer_id')])->first();
+
+        $order->order_status = 'delivered';
+        $order->save();
+      
+        if ($order->voucher_type == 'Flat discount') {
+
+            if ($order->transaction == null) {
+                $unpaid_payment = OrderPayment::where('payment_status', 'unpaid')->where('order_id', $order->id)->first()?->payment_method;
+                $unpaid_pay_method = 'digital_payment';
+                if ($unpaid_payment) {
+                    $unpaid_pay_method = $unpaid_payment;
+                }
+                if ($order->payment_method == 'cash_on_delivery' || $unpaid_pay_method == 'cash_on_delivery') {
+                    $ol = OrderLogic::create_transaction($order, 'store', null);
+                } else {
+                    $ol = OrderLogic::create_transaction($order, 'admin', null);
+                }
+
+
+                if (!$ol) {
+                    Toastr::warning(translate('messages.faield_to_create_order_transaction'));
+                    return back();
+                }
+            }
+
+            $order->payment_status = 'paid';
+
+            OrderLogic::update_unpaid_order_payment(order_id: $order->id, payment_method: $order->payment_method);
+
+
+        }
+      
+
         if (isset($order) && $order->callback != null) {
             return redirect($order->callback . '&status=success');
         }

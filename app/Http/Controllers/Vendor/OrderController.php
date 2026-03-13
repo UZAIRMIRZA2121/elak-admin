@@ -318,6 +318,7 @@ class OrderController extends Controller
                 $order?->customer?->increment('order_count');
             }
         }
+        
         if ($request->order_status == 'canceled' || $request->order_status == 'delivered') {
             if ($order->delivery_man) {
                 $dm = $order->delivery_man;

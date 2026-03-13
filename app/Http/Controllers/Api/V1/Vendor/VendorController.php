@@ -244,49 +244,60 @@ class VendorController extends Controller
         return response()->json(['message' => translate('messages.profile_updated_successfully')], 200);
     }
 
-    public function get_current_orders(Request $request)
-    {
-        $vendor = $request['vendor'];
+ public function get_current_orders(Request $request)
+{
+    $vendor = $request['vendor'];
 
-        $perPage = $request->get('limit', 20); // default 10
-        $page = $request->get('page', 1);
+    $perPage = $request->get('limit', 20);
 
-        $ordersQuery = Order::whereHas('store.vendor', function ($query) use ($vendor) {
-            $query->where('id', $vendor->id);
-        })
-            ->with('customer')
-            ->where(function ($query) use ($vendor) {
+    $baseQuery = Order::whereHas('store.vendor', function ($query) use ($vendor) {
+        $query->where('id', $vendor->id);
+    })
+    ->Notpos()
+    ->NotDigitalOrder();
 
-                if (config('order_confirmation_model') == 'store' || $vendor->stores[0]->sub_self_delivery) {
-                    $query->whereIn('order_status', ['accepted', 'pending', 'confirmed', 'processing', 'handover', 'picked_up']);
-                } else {
-                    $query->whereIn('order_status', ['confirmed', 'processing', 'handover', 'picked_up'])
-                        ->orWhere(function ($query) {
-                            $query->whereNotNull('confirmed')->where('order_status', 'accepted');
-                        })
-                        ->orWhere(function ($query) {
-                            $query->where('payment_status', 'paid')->where('order_status', 'accepted');
-                        })
-                        ->orWhere(function ($query) {
-                            $query->where('order_status', 'pending')->where('order_type', 'take_away');
-                        });
-                }
+    // STATUS CONDITION (reuse)
+    $baseQuery->where(function ($query) use ($vendor) {
 
-            })
-            ->Notpos()
-            ->NotDigitalOrder()
-            ->orderBy('schedule_at', 'desc');
+        if (config('order_confirmation_model') == 'store' || optional($vendor->stores->first())->sub_self_delivery) {
+            $query->whereIn('order_status', ['accepted','pending','confirmed','processing','handover','picked_up','delivered']);
+        } else {
+            $query->whereIn('order_status', ['confirmed','processing','handover','picked_up','delivered'])
+                ->orWhere(function ($query) {
+                    $query->whereNotNull('confirmed')->where('order_status', 'accepted');
+                })
+                ->orWhere(function ($query) {
+                    $query->where('payment_status', 'paid')->where('order_status', 'accepted');
+                })
+                ->orWhere(function ($query) {
+                    $query->where('order_status', 'pending')->where('order_type', 'take_away');
+                });
+        }
+    });
 
-        $orders = $ordersQuery->paginate($perPage);
+    // CLONE QUERY FOR COUNTS
+    $pendingCount = (clone $baseQuery)->where('order_status', 'pending')->count();
+    $processingCount = (clone $baseQuery)->where('order_status', 'processing')->count();
+    $deliveredCount = (clone $baseQuery)->where('order_status', 'delivered')->count();
 
-        $formatted = Helpers::order_data_formatting($orders->items(), true);
-        return response()->json([
-            'total_size' => $orders->total(),
-            'limit' => $perPage,
-            'offset' => $orders->currentPage(),
-            'orders' => $formatted,
-        ], 200);
-    }
+    // MAIN PAGINATION QUERY
+    $orders = (clone $baseQuery)
+        ->with('customer')
+        ->orderBy('schedule_at', 'desc')
+        ->paginate($perPage);
+
+    $formatted = Helpers::order_data_formatting($orders->items(), true);
+
+    return response()->json([
+        'total_pending' => $pendingCount,
+        'total_processing' => $processingCount,
+        'total_delivered' => $deliveredCount,
+        'total_size' => $orders->total(),
+        'limit' => $perPage,
+        'offset' => $orders->currentPage(),
+        'orders' => $formatted,
+    ], 200);
+}
     public function get_completed_orders(Request $request)
     {
         $validator = Validator::make($request->all(), [

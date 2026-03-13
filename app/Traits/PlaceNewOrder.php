@@ -726,10 +726,6 @@ trait PlaceNewOrder
                 if ($loyalty_point_status == 1) {
                     CustomerLogic::create_loyalty_point_transaction($order->user_id, $order->id, $order->order_amount, 'order_place');
                 }
-
-
-
-
                 if ($request->payment_method == 'wallet')
                     CustomerLogic::create_wallet_transaction($order->user_id, $order->order_amount, 'order_place', $order->id);
 
@@ -742,6 +738,7 @@ trait PlaceNewOrder
                             ]
                         ], 203);
                     }
+
                     $p_amount = min($request->user->wallet_balance, $order->order_amount);
                     $unpaid_amount = $order->order_amount - $p_amount;
                     $order->partially_paid_amount = $p_amount;
