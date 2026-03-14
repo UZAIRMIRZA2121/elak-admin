@@ -1620,77 +1620,67 @@ $(document).ready(function () {
                 success: function(response) {
                     let workHtml = "";
 
-                    $.each(response.work_management, function(index, item) {
-                        // Parse sections from JSON string
-                        let sections = [];
-                        try {
-                            sections = JSON.parse(item.sections);
-                        } catch(e) {
-                            console.error('Error parsing sections:', e);
-                        }
+                   $.each(response.work_management, function(index, item) {
 
-                        // Create sections HTML
-                        let sectionsHtml = '';
-                        $.each(sections, function(sIndex, section) {
-                            let stepsHtml = '';
-                            $.each(section.steps, function(stepIndex, step) {
-                                stepsHtml += `
-                                    <li class="mb-2">
-                                        <i class="fas fa-circle text-muted" style="font-size: 6px; vertical-align: middle;"></i>
-                                        <span class="ms-2 text-muted">${step}</span>
-                                    </li>
-                                `;
-                            });
+                    // sections already array — no JSON.parse needed
+                    let sections = Array.isArray(item.sections) ? item.sections : [];
 
-                            sectionsHtml += `
-                                <div class="mb-3">
-                                    <h6 class="fw-semibold text-dark mb-2">${section.title}</h6>
-                                    <ul class="list-unstyled ms-3">
-                                        ${stepsHtml}
-                                    </ul>
-                                </div>
+                    let sectionsHtml = '';
+                    $.each(sections, function(sIndex, section) {
+                        let stepsHtml = '';
+                        $.each(section.steps, function(stepIndex, step) {
+                            stepsHtml += `
+                                <li class="mb-2">
+                                    <i class="fas fa-circle text-muted" style="font-size: 6px; vertical-align: middle;"></i>
+                                    <span class="ms-2 text-muted">${step}</span>
+                                </li>
                             `;
                         });
 
-                        workHtml += `
-                            <div class="card mb-3 work-item shadow-sm">
-                                <!-- Header with checkbox and toggle -->
-                                <div class="card-header bg-white d-flex align-items-center justify-content-between py-3 cursor-pointer"
-                                    onclick="toggleAccordion(${item.id})"
-                                    style="cursor: pointer;">
-                                    <div class="d-flex align-items-center flex-grow-1">
-                                        <input type="checkbox"
-                                            class="form-check-input record-checkbox me-3"
-                                            id="record_${item.id}". value="${item.id}"
-                                            data-item-id="${item.id}"
-                                            name="howto_work[]"
-                                            onclick="event.stopPropagation()">
-                                        <label for="record_${item.id}"
-                                            class="fw-semibold mb-0 cursor-pointer flex-grow-1"
-                                            style="cursor: pointer;"
-                                            onclick="event.stopPropagation()">
-                                            ${item.guide_title}
-                                        </label>
-                                    </div>
-                                    <i class="fas fa-chevron-down text-muted accordion-icon"
-                                    id="icon_${item.id}"
-                                    style="transition: transform 0.3s ease;"></i>
-                                </div>
-
-                                <!-- Accordion Content -->
-                                <div id="content_${item.id}"
-                                    class="accordion-content collapse">
-                                    <div class="card-body bg-light border-top">
-                                        ${sectionsHtml || '<p class="text-muted fst-italic mb-0">No sections available</p>'}
-                                    </div>
-                                </div>
+                        sectionsHtml += `
+                            <div class="mb-3">
+                                <h6 class="fw-semibold text-dark mb-2">${section.title}</h6>
+                                <ul class="list-unstyled ms-3">
+                                    ${stepsHtml}
+                                </ul>
                             </div>
                         `;
                     });
 
+                    workHtml += `
+                        <div class="card mb-3 work-item shadow-sm">
+                            <div class="card-header bg-white d-flex align-items-center justify-content-between py-3 cursor-pointer"
+                                onclick="toggleAccordion(${item.id})">
+                                
+                                <div class="d-flex align-items-center flex-grow-1">
+                                    <input type="radio" name="howto_work" value="${item.id}"
+                                        class="form-check-input record-checkbox me-3"
+                                        id="record_${item.id}"
+                                        data-item-id="${item.id}">
+                                    
+                                    <label for="record_${item.id}" class="fw-semibold mb-0 flex-grow-1">
+                                        ${item.guide_title}
+                                    </label>
+                                </div>
+
+                                <i class="fas fa-chevron-down text-muted accordion-icon"
+                                    id="icon_${item.id}" style="transition: transform 0.3s ease;">
+                                </i>
+                            </div>
+
+                            <div id="content_${item.id}" class="accordion-content collapse">
+                                <div class="card-body bg-light border-top">
+                                    ${sectionsHtml || '<p class="text-muted fst-italic mb-0">No sections available</p>'}
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+
                     $("#workList").html(workHtml);
-                    let usageHtml = "";
-                $.each(response.usage_term_management, function (index, term) {
+
+                let usageHtml = "";
+                $.each(response.VoucherSetting, function (index, term) {
                     usageHtml += `
                         <div class="col-md-6 mb-3">
                             <div class="card h-100 border shadow-sm hover-shadow-lg transition-all">
@@ -1699,13 +1689,13 @@ $(document).ready(function () {
                                         <input
                                             class="form-check-input mt-1 flex-shrink-0"
                                             style="width: 15px; height: 15px; cursor: pointer;"
-                                            name="term_and_condition[]"
-                                            type="checkbox"
+                                            name="setting_id"
+                                            type="radio"
                                             value="${term.id}"
-                                            id="term${term.id}">
+                                            id="term${term.id}"> 
                                         
                                         <label for="term${term.id}" class="form-check-label fw-semibold mb-0 cursor-pointer flex-grow-1 ms-3 mt-1 ml-2" style="cursor: pointer; line-height: 1.5;">
-                                            ${term.baseinfor_condition_title}
+                                            ${term.title_name}
                                         </label>
                                     </div>
                                 </div>
@@ -1713,7 +1703,9 @@ $(document).ready(function () {
                         </div>
                     `;
                 });
-
+                // console.log("usageHtml");
+                // console.log(usageHtml);
+                // console.log("usageHtml");
                 $("#usageTerms").html(usageHtml);
 
 

@@ -906,11 +906,9 @@ $(document).ready(function () {
 
     
   function getDataFromServer(voucher_id) {
-            // alert(storeId)
-            
             // Get saved howto_work value for pre-selection
-              <?php
-                $rawHowtoWork = $product->how_and_condition_ids ?? '[]';
+             <?php
+                $rawHowtoWork = $product->how_and_condition_ids ?? '';
                 $decoded = json_decode($rawHowtoWork, true);
                 if (is_array($decoded) && !empty($decoded)) {
                     $savedId = $decoded[0];
@@ -925,12 +923,12 @@ $(document).ready(function () {
             
             // Get saved term_and_condition_ids for pre-selection
             <?php
-                $rawTermCondition = $product->term_and_condition_ids ?? '[]';
-                $decodedTerms = json_decode($rawTermCondition, true);
-                $savedTermIds = is_array($decodedTerms) ? $decodedTerms : [];
+                $rawTermCondition = $product->term_and_condition_ids ?? '';
+                // $decodedTerms = json_decode($rawTermCondition, true);
+                // $savedTermIds = is_array($decodedTerms) ? $decodedTerms : [];
             ?>
-            let savedTermIds = @json($savedTermIds);
-            console.log('Saved Term & Condition IDs:', savedTermIds);
+            let savedTermIds = '{{ $product->term_and_condition_ids ?? "" }}';
+            console.log('Saved Term & Condition IDs ttt:', savedTermIds);
             
             $.ajax({
                 url: "{{ route('admin.Voucher.get_document') }}",
@@ -968,9 +966,7 @@ $(document).ready(function () {
                     });
 
                     // Check if this radio button should be pre-selected
-                    // Check if this radio button should be pre-selected
-                    console.log('Comparing saved:', savedHowtoWork, 'with item:', item.id);
-                    let isChecked = (savedHowtoWork == item.id) ? 'checked' : '';
+                    let isChecked = savedHowtoWork && savedHowtoWork == item.id ? 'checked' : '';
                     
                     workHtml += `
                         <div class="card mb-3 work-item shadow-sm">
@@ -978,7 +974,7 @@ $(document).ready(function () {
                                 onclick="toggleAccordion(${item.id})">
                                 
                                 <div class="d-flex align-items-center flex-grow-1">
-                                    <input type="radio" name="howto_work[]" value="${item.id}"
+                                    <input type="radio" name="howto_work" value="${item.id}"
                                         class="form-check-input record-checkbox me-3"
                                         id="record_${item.id}"
                                         data-item-id="${item.id}"
@@ -1004,12 +1000,12 @@ $(document).ready(function () {
                 });
 
 
-                    $("#workList").html(workHtml);
-                        let usageHtml = "";
-                $.each(response.usage_term_management, function (index, term) {
+                    $("#workList").html(workHtml);  
+                    let usageHtml = "";
+                $.each(response.VoucherSetting, function (index, term) {
                     // Check if this term is in saved IDs (using == for type coercion)
-                    let isTermChecked = savedTermIds.some(id => id == term.id) ? 'checked' : '';
-                    
+                    let isTermChecked = savedTermIds == term.id ? 'checked' : '';
+                       
                     usageHtml += `
                         <div class="col-md-6 mb-3">
                             <div class="card h-100 border shadow-sm hover-shadow-lg transition-all">
@@ -1018,14 +1014,14 @@ $(document).ready(function () {
                                         <input
                                             class="form-check-input mt-1 flex-shrink-0"
                                             style="width: 15px; height: 15px; cursor: pointer;"
-                                            name="term_and_condition[]"
-                                            type="checkbox"
+                                            name="setting_id"
+                                            type="radio"
                                             value="${term.id}"
                                             id="term${term.id}"
                                             ${isTermChecked}>
                                         
                                         <label for="term${term.id}" class="form-check-label fw-semibold mb-0 cursor-pointer flex-grow-1 ms-3 mt-1 ml-2" style="cursor: pointer; line-height: 1.5;">
-                                            ${term.baseinfor_condition_title}
+                                            ${term.title_name}
                                         </label>
                                     </div>
                                 </div>
