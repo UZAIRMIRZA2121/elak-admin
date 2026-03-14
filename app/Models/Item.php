@@ -876,44 +876,39 @@ class Item extends Model
         return DeliveryOption::whereIn('id', $ids)->get();
     }
 
-  public function usageTerms(): Collection
+    public function usageTerms(): Collection
     {
-        $usageTermIds = $this->how_and_condition_ids; // JSON column in items table
+        $value = $this->how_and_condition_ids;
 
-        // Decode JSON safely
-        if (is_string($usageTermIds)) {
-            $usageTermIds = json_decode($usageTermIds, true);
-            if (is_string($usageTermIds)) {
-                $usageTermIds = json_decode($usageTermIds, true);
+        if (empty($value)) {
+            return collect();
+        }
+
+        // Handle JSON or comma-separated strings
+        if (is_string($value)) {
+            $decoded = json_decode($value, true);
+            if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+                $value = $decoded;
+            } else {
+                $value = explode(',', $value);
             }
         }
 
-        if (!is_array($usageTermIds)) {
-            $usageTermIds = [];
+        // Normalize to plain ID array
+        $ids = collect(is_array($value) ? $value : [$value])
+            ->map(fn($id) => is_array($id) ? ($id['id'] ?? null) : $id)
+            ->filter()
+            ->unique()
+            ->toArray();
+
+        if (empty($ids)) {
+            return collect();
         }
 
-        // Fetch related usage terms
-        return \App\Models\WorkManagement::whereIn('id', $usageTermIds)->get();
+        return \App\Models\WorkManagement::whereIn('id', $ids)->get();
     }
 
 
-  public function getUsageTerms(): Collection
-{
-    $usageTermIds = $this->how_and_condition_ids; // JSON column
-
-    if (is_string($usageTermIds)) {
-        $usageTermIds = json_decode($usageTermIds, true);
-        if (is_string($usageTermIds)) {
-            $usageTermIds = json_decode($usageTermIds, true);
-        }
-    }
-
-    if (!is_array($usageTermIds)) {
-        $usageTermIds = [];
-    }
-
-    return \App\Models\WorkManagement::whereIn('id', $usageTermIds)->get();
-}
 
     /**  Relation: Item → VoucherSetting */
     public function voucherSetting()
@@ -959,20 +954,34 @@ class Item extends Model
 
     public function termsAndConditions(): Collection
     {
-        $termIds = $this->term_and_condition_ids;
+        $value = $this->term_and_condition_ids;
 
-        if (is_string($termIds)) {
-            $termIds = json_decode($termIds, true);
-            if (is_string($termIds)) {
-                $termIds = json_decode($termIds, true);
+        if (empty($value)) {
+            return collect();
+        }
+
+        // Handle JSON or comma-separated strings
+        if (is_string($value)) {
+            $decoded = json_decode($value, true);
+            if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+                $value = $decoded;
+            } else {
+                $value = explode(',', $value);
             }
         }
 
-        if (!is_array($termIds)) {
-            $termIds = [];
+        // Normalize to plain ID array
+        $ids = collect(is_array($value) ? $value : [$value])
+            ->map(fn($id) => is_array($id) ? ($id['id'] ?? null) : $id)
+            ->filter()
+            ->unique()
+            ->toArray();
+
+        if (empty($ids)) {
+            return collect();
         }
 
-        return \App\Models\UsageTermManagement::whereIn('id', $termIds)->get();
+        return \App\Models\UsageTermManagement::whereIn('id', $ids)->get();
     }
 
 }
