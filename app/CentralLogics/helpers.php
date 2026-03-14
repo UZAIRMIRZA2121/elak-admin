@@ -1157,15 +1157,15 @@ public static function order_details_data_formatting($data)
                 $settings = $product->voucherSetting;
 
                 $item['settings'] = $settings ? [
-                    'validity_period' => json_decode($settings->validity_period, true),
-                    'specific_days_of_week' => json_decode($settings->specific_days_of_week, true),
-                    'holidays_occasions' => json_decode($settings->holiday_occasions, true),
-                    'custom_blackout_dates' => json_decode($settings->custom_blackout_dates, true),
-                    'age_restriction' => (int) $settings->age_restriction,
-                    'group_size_requirement' => (int) $settings->group_size_requirement,
-                    'usage_limit_per_user' => json_decode($settings->usage_limit_per_user, true),
-                    'usage_limit_per_store' => json_decode($settings->usage_limit_per_store, true),
-                    'offer_validity_after_purchase' => (int) $settings->offer_validity_after_purchase,
+                    'validity_period' => (array) $settings->validity_period,
+                    'specific_days_of_week' => (array) $settings->specific_days_of_week,
+                    'holidays_occasions' => (array) $settings->holiday_occasions,
+                    'custom_blackout_dates' => (array) $settings->custom_blackout_dates,
+                    'age_restriction' => (array) $settings->age_restriction,
+                    'group_size_requirement' => (array) $settings->group_size_requirement,
+                    'usage_limit_per_user' => (array) $settings->usage_limit_per_user,
+                    'usage_limit_per_store' => (array) $settings->usage_limit_per_store,
+                    'offer_validity_after_purchase' => (array) $settings->offer_validity_after_purchase,
                     'general_restrictions' => $settings->general_restriction_settings,
                     'status' => $settings->status,
                 ] : null;
