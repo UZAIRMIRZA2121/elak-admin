@@ -539,14 +539,11 @@ trait PlaceNewOrder
 
                         if ($voucherSetting) {
 
-                            // Decode all JSON fields safely
+                            // Decode JSON fields safely - model already has casts
+                            $voucherSetting->validity_period = (array) $voucherSetting->validity_period;
 
-                            // Decode JSON fields
-                            $voucherSetting->validity_period = json_decode($voucherSetting->validity_period, true);
                             // Decode specific days safely
-                            $voucherSetting->specific_days_of_week = is_string($voucherSetting->specific_days_of_week)
-                                ? json_decode($voucherSetting->specific_days_of_week, true)
-                                : $voucherSetting->specific_days_of_week;
+                            $voucherSetting->specific_days_of_week = (array) $voucherSetting->specific_days_of_week;
 
                             // Filter only days that actually have a value
                             if (!empty($voucherSetting->specific_days_of_week)) {
@@ -564,33 +561,19 @@ trait PlaceNewOrder
                             }
 
 
-                            $voucherSetting->age_restriction = is_string($voucherSetting->age_restriction)
-                                ? json_decode($voucherSetting->age_restriction, true)
-                                : $voucherSetting->age_restriction;
+                            $voucherSetting->age_restriction = (array) $voucherSetting->age_restriction;
 
-                            $voucherSetting->group_size_requirement = is_string($voucherSetting->group_size_requirement)
-                                ? json_decode($voucherSetting->group_size_requirement, true)
-                                : $voucherSetting->group_size_requirement;
+                            $voucherSetting->group_size_requirement = (array) $voucherSetting->group_size_requirement;
 
-                            $voucherSetting->usage_limit_per_user = is_string($voucherSetting->usage_limit_per_user)
-                                ? json_decode($voucherSetting->usage_limit_per_user, true)
-                                : $voucherSetting->usage_limit_per_user;
+                            $voucherSetting->usage_limit_per_user = (array) $voucherSetting->usage_limit_per_user;
 
-                            $voucherSetting->usage_limit_per_store = is_string($voucherSetting->usage_limit_per_store)
-                                ? json_decode($voucherSetting->usage_limit_per_store, true)
-                                : $voucherSetting->usage_limit_per_store;
+                            $voucherSetting->usage_limit_per_store = (array) $voucherSetting->usage_limit_per_store;
 
-                            $voucherSetting->offer_validity_after_purchase = is_string($voucherSetting->offer_validity_after_purchase)
-                                ? json_decode($voucherSetting->offer_validity_after_purchase, true)
-                                : $voucherSetting->offer_validity_after_purchase;
+                            $voucherSetting->offer_validity_after_purchase = (array) $voucherSetting->offer_validity_after_purchase;
 
-                            $restrictionIds = is_string($voucherSetting->general_restrictions)
-                                ? json_decode($voucherSetting->general_restrictions, true)
-                                : $voucherSetting->general_restrictions;
+                            $restrictionIds = (array) $voucherSetting->general_restrictions;
 
-                            $holidays_occasionsIds = is_string($voucherSetting->holidays_occasions)
-                                ? json_decode($voucherSetting->holidays_occasions, true)
-                                : $voucherSetting->holidays_occasions;
+                            $holidays_occasionsIds = (array) $voucherSetting->holidays_occasions;
 
                             $voucherSetting->general_restriction_data = [];
                             $voucherSetting->holidays_occasions = [];
