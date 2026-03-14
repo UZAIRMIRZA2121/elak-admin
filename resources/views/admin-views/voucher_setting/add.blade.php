@@ -851,7 +851,7 @@
                                                         <input type="checkbox" id="excludeNational_{{ $item->id}}"
                                                             name="exclude_national[]"
                                                             value="{{ $item->id}}"
-                                                            {{ in_array($item->id, $holidays ?? []) ? 'checked' : '' }}>
+                                                            {{ in_array($item->id, (array) ($holidays ?? [])) ? 'checked' : '' }}>
                                                         <label for="excludeNational_{{ $item->id}}">{{ $item->name_en}}</label>
                                                         </div>
                                                     @endforeach
@@ -870,7 +870,7 @@
                                                 <input type="checkbox" id="custom_blackout_dates_{{ $item->id}}"
                                                     name="custom_blackout_dates[]"
                                                     value="{{ $item->id}}"
-                                                    {{ in_array($item->id, $custom_blackout_dates ?? []) ? 'checked' : '' }}>
+                                                    {{ in_array($item->id, (array) ($custom_blackout_dates ?? [])) ? 'checked' : '' }}>
                                                 <label for="custom_blackout_dates_{{ $item->id}}">{{ $item->description}}</label>
                                             </div>
                                             @endforeach
@@ -913,7 +913,7 @@
                                                         class="form-control js-select2-custom" multiple>
                                                     @foreach ($AgeRestrictin as $itemn)
                                                         <option value="{{ $itemn->id }}" 
-                                                            {{ in_array($itemn->id, $selectedAgeIds) ? 'selected' : '' }}>
+                                                            {{ in_array($itemn->id, (array) ($selectedAgeIds ?? [])) ? 'selected' : '' }}>
                                                             {{ $itemn->name_en }}
                                                         </option>
                                                     @endforeach
@@ -925,7 +925,7 @@
                                             <select name="group_size[]" id="groupSize" class="form-control js-select2-custom" multiple>
                                                 @foreach ($GroupSizeRequirement as $group)
                                                     <option value="{{ $group->id }}"
-                                                        {{ in_array($group->id, $selectedGroupIds)  ? 'selected' : '' }}>
+                                                        {{ in_array($group->id, (array) ($selectedGroupIds ?? []))  ? 'selected' : '' }}>
                                                         {{ $group->name_en }}
                                                     </option>
                                                 @endforeach
@@ -1051,7 +1051,7 @@
                                                 <input type="checkbox" id="noOtherOffers_{{ $item->id}}"
                                                     name="no_other_offers[]"
                                                     value="{{ $item->id}}"
-                                                    {{ in_array($item->id, $generalRestrictions ?? []) ? 'checked' : '' }}>
+                                                    {{ in_array($item->id, (array) ($generalRestrictions ?? [])) ? 'checked' : '' }}>
                                                 <label for="noOtherOffers_{{ $item->id}}">{{ $item->name_en}}</label>
                                                 </div>
                                             @endforeach
