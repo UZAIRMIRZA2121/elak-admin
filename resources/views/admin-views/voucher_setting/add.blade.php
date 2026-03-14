@@ -896,8 +896,13 @@
 
 
                                         // Extract IDs for comparison
-                                        $selectedAgeIds = array_column($VoucherSetting->age_restriction, 'id');        // e.g. [11, ...]
-                                        $selectedGroupIds = array_column($VoucherSetting->group_size_requirement, 'id'); // e.g. [10, ...]
+                                        $age_data = $VoucherSetting->age_restriction ?? [];
+                                        if(is_string($age_data)) $age_data = json_decode($age_data, true) ?? [];
+                                        $selectedAgeIds = array_column((array)$age_data, 'id');
+
+                                        $group_data = $VoucherSetting->group_size_requirement ?? [];
+                                        if(is_string($group_data)) $group_data = json_decode($group_data, true) ?? [];
+                                        $selectedGroupIds = array_column((array)$group_data, 'id');
                                     ?>
 
                                             

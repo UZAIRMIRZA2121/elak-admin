@@ -89,39 +89,14 @@ class VoucherSettingController extends Controller
         if (!empty($VoucherSetting)) {
             $check_data = 1;  // data exists
 
-
-            $validityPeriod = is_string($VoucherSetting->validity_period)
-                ? json_decode($VoucherSetting->validity_period, true)
-                : ($VoucherSetting->validity_period ?? []);
-
-            $specificDays = is_string($VoucherSetting->specific_days_of_week)
-                ? json_decode($VoucherSetting->specific_days_of_week, true)
-                : ($VoucherSetting->specific_days_of_week ?? []);
-
-            $holidays = is_string($VoucherSetting->holidays_occasions)
-                ? json_decode($VoucherSetting->holidays_occasions, true)
-                : ($VoucherSetting->holidays_occasions ?? []);
-
-            $custom_blackout_dates = is_string($VoucherSetting->custom_blackout_dates)
-                ? json_decode($VoucherSetting->custom_blackout_dates, true)
-                : ($VoucherSetting->custom_blackout_dates ?? []);
-
-            $userLimit = is_string($VoucherSetting->usage_limit_per_user)
-                ? json_decode($VoucherSetting->usage_limit_per_user, true)
-                : ($VoucherSetting->usage_limit_per_user ?? []);
-
-            $storeLimit = is_string($VoucherSetting->usage_limit_per_store)
-                ? json_decode($VoucherSetting->usage_limit_per_store, true)
-                : ($VoucherSetting->usage_limit_per_store ?? []);
-
-            $offer_validity_after_purchase = is_string($VoucherSetting->offer_validity_after_purchase)
-                ? json_decode($VoucherSetting->offer_validity_after_purchase, true)
-                : ($VoucherSetting->offer_validity_after_purchase ?? []);
-
-            $generalRestrictions = is_string($VoucherSetting->general_restrictions)
-                ? json_decode($VoucherSetting->general_restrictions, true)
-                : ($VoucherSetting->general_restrictions ?? []);
-
+            $validityPeriod = $VoucherSetting->validity_period ?? [];
+            $specificDays = $VoucherSetting->specific_days_of_week ?? [];
+            $holidays = $VoucherSetting->holidays_occasions ?? [];
+            $custom_blackout_dates = $VoucherSetting->custom_blackout_dates ?? [];
+            $userLimit = $VoucherSetting->usage_limit_per_user ?? [];
+            $storeLimit = $VoucherSetting->usage_limit_per_store ?? [];
+            $offer_validity_after_purchase = $VoucherSetting->offer_validity_after_purchase ?? [];
+            $generalRestrictions = $VoucherSetting->general_restrictions ?? [];
         } else {
             $check_data = 0; // no data
 
@@ -245,20 +220,16 @@ class VoucherSettingController extends Controller
         $VoucherSetting = VoucherSetting::updateOrCreate(
             ['item_id' => $item_id], // check condition
             [
-                'validity_period' => json_encode($request->validity_period ?? []),
-                'specific_days_of_week' => json_encode($request->working_hours ?? []),
-                'holidays_occasions' => json_encode($request->exclude_national ?? []),
-                'custom_blackout_dates' => json_encode($request->custom_blackout_dates ?? []),
-                // 'age_restriction' =>  json_encode($request->age_restriction ?? []), 
-                // 'group_size_requirement' =>  json_encode($request->group_size ?? []), 
+                'validity_period' => $request->validity_period ?? [],
+                'specific_days_of_week' => $request->working_hours ?? [],
+                'holidays_occasions' => $request->exclude_national ?? [],
+                'custom_blackout_dates' => $request->custom_blackout_dates ?? [],
                 'age_restriction' => $ageRestrictionData ?? [],
                 'group_size_requirement' => $groupSizeData ?? [],
-                // Store
-
-                'usage_limit_per_user' => json_encode($request->user_limit ?? []),
-                'usage_limit_per_store' => json_encode($request->store_limit ?? []),
-                'offer_validity_after_purchase' => json_encode($request->validity_after ?? []),
-                'general_restrictions' => json_encode($request->no_other_offers ?? []),
+                'usage_limit_per_user' => $request->user_limit ?? [],
+                'usage_limit_per_store' => $request->store_limit ?? [],
+                'offer_validity_after_purchase' => $request->validity_after ?? [],
+                'general_restrictions' => $request->no_other_offers ?? [],
                 'title_name' => $request->title_name,
                 'status' => "active",
             ]
@@ -537,37 +508,14 @@ class VoucherSettingController extends Controller
         $VoucherSetting = VoucherSetting::findOrFail($id);
         $items = Item::findOrFail($VoucherSetting->item_id);
 
-        $validityPeriod = is_string($VoucherSetting->validity_period)
-            ? json_decode($VoucherSetting->validity_period, true)
-            : ($VoucherSetting->validity_period ?? []);
-
-        $specificDays = is_string($VoucherSetting->specific_days_of_week)
-            ? json_decode($VoucherSetting->specific_days_of_week, true)
-            : ($VoucherSetting->specific_days_of_week ?? []);
-
-        $holidays = is_string($VoucherSetting->holidays_occasions)
-            ? json_decode($VoucherSetting->holidays_occasions, true)
-            : ($VoucherSetting->holidays_occasions ?? []);
-
-        $custom_blackout_dates = is_string($VoucherSetting->custom_blackout_dates)
-            ? json_decode($VoucherSetting->custom_blackout_dates, true)
-            : ($VoucherSetting->custom_blackout_dates ?? []);
-
-        $userLimit = is_string($VoucherSetting->usage_limit_per_user)
-            ? json_decode($VoucherSetting->usage_limit_per_user, true)
-            : ($VoucherSetting->usage_limit_per_user ?? []);
-
-        $storeLimit = is_string($VoucherSetting->usage_limit_per_store)
-            ? json_decode($VoucherSetting->usage_limit_per_store, true)
-            : ($VoucherSetting->usage_limit_per_store ?? []);
-
-        $offer_validity_after_purchase = is_string($VoucherSetting->offer_validity_after_purchase)
-            ? json_decode($VoucherSetting->offer_validity_after_purchase, true)
-            : ($VoucherSetting->offer_validity_after_purchase ?? []);
-
-        $generalRestrictions = is_string($VoucherSetting->general_restrictions)
-            ? json_decode($VoucherSetting->general_restrictions, true)
-            : ($VoucherSetting->general_restrictions ?? []);
+        $validityPeriod = $VoucherSetting->validity_period ?? [];
+        $specificDays = $VoucherSetting->specific_days_of_week ?? [];
+        $holidays = $VoucherSetting->holidays_occasions ?? [];
+        $custom_blackout_dates = $VoucherSetting->custom_blackout_dates ?? [];
+        $userLimit = $VoucherSetting->usage_limit_per_user ?? [];
+        $storeLimit = $VoucherSetting->usage_limit_per_store ?? [];
+        $offer_validity_after_purchase = $VoucherSetting->offer_validity_after_purchase ?? [];
+        $generalRestrictions = $VoucherSetting->general_restrictions ?? [];
 
         $CustomBlackoutData = CustomBlackoutData::get();
         $HolidayOccasion = HolidayOccasion::get();
@@ -629,16 +577,16 @@ class VoucherSettingController extends Controller
         })->values()->toArray();
 
         $VoucherSetting->update([
-            'validity_period' => json_encode($request->validity_period ?? []),
-            'specific_days_of_week' => json_encode($request->working_hours ?? []),
-            'holidays_occasions' => json_encode($request->exclude_national ?? []),
-            'custom_blackout_dates' => json_encode($request->custom_blackout_dates ?? []),
+            'validity_period' => $request->validity_period ?? [],
+            'specific_days_of_week' => $request->working_hours ?? [],
+            'holidays_occasions' => $request->exclude_national ?? [],
+            'custom_blackout_dates' => $request->custom_blackout_dates ?? [],
             'age_restriction' => $ageRestrictionData ?? [],
             'group_size_requirement' => $groupSizeData ?? [],
-            'usage_limit_per_user' => json_encode($request->user_limit ?? []),
-            'usage_limit_per_store' => json_encode($request->store_limit ?? []),
-            'offer_validity_after_purchase' => json_encode($request->validity_after ?? []),
-            'general_restrictions' => json_encode($request->no_other_offers ?? []),
+            'usage_limit_per_user' => $request->user_limit ?? [],
+            'usage_limit_per_store' => $request->store_limit ?? [],
+            'offer_validity_after_purchase' => $request->validity_after ?? [],
+            'general_restrictions' => $request->no_other_offers ?? [],
             'title_name' => $request->title_name,
         ]);
 

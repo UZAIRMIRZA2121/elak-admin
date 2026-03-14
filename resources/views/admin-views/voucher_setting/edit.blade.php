@@ -417,32 +417,43 @@
                                         <i class="tio-chevron-down"></i>
                                     </div>
                                     <div class="collapse show condition-body" id="generalRestrictions">
-
                                         <!-- Age Restriction -->
+                                        @php
+                                            $age_data = $VoucherSetting->age_restriction ?? [];
+                                            if(is_string($age_data)) $age_data = json_decode($age_data, true) ?? [];
+                                            $selectedAgeIds = array_column((array)$age_data, 'id');
+                                        @endphp
                                         <div class="form-group">
-                                            <label>Age Restriction</label>
-                                            <select class="form-control" name="age_restriction" id="ageRestriction">
-                                                <option value="">No Age Restriction</option>
-                                                <option value="18+" {{ $VoucherSetting->age_restriction == '18+' ? 'selected' : '' }}>18+ Only</option>
-                                                <option value="21+" {{ $VoucherSetting->age_restriction == '21+' ? 'selected' : '' }}>21+ Only</option>
-                                                <option value="under 18" {{ $VoucherSetting->age_restriction == 'under 18' ? 'selected' : '' }}>Under 18 Only</option>
+                                            <label class="input-label" for="age_restriction">{{ translate('Age Restriction') }}</label>
+                                            <select name="age_restriction[]" id="ageRestriction" class="form-control js-select2-custom" multiple>
+                                                @foreach ($AgeRestrictin as $item)
+                                                    <option value="{{ $item->id }}" 
+                                                        {{ in_array($item->id, $selectedAgeIds) ? 'selected' : '' }}>
+                                                        {{ $item->name_en }}
+                                                    </option>
+                                                @endforeach
                                             </select>
-
                                         </div>
 
                                         <!-- Group Size -->
-                                        <div class="form-group">
-                                            <label>Group Size Requirement</label>
-                                            <select class="form-control" name="group_size" id="groupSize">
-                                                <option value="">No requirement</option>
-                                                <option value="Minimum 2 people" {{ $VoucherSetting->group_size_requirement == 'Minimum 2 people' ? 'selected' : '' }}>Minimum 2 people</option>
-                                                <option value="Minimum 4 people" {{ $VoucherSetting->group_size_requirement == 'Minimum 4 people' ? 'selected' : '' }}>Minimum 4 people</option>
-                                                <option value="Minimum 6 people" {{ $VoucherSetting->group_size_requirement == 'Minimum 6 people' ? 'selected' : '' }}>Minimum 6 people</option>
-                                                <option value="Minimum 8 people" {{ $VoucherSetting->group_size_requirement == 'Minimum 8 people' ? 'selected' : '' }}>Minimum 8 people</option>
-                                                <!-- Baki options -->
-                                            </select>
 
+                                        @php
+                                            $group_data = $VoucherSetting->group_size_requirement ?? [];
+                                            if(is_string($group_data)) $group_data = json_decode($group_data, true) ?? [];
+                                            $selectedGroupIds = array_column((array)$group_data, 'id');
+                                        @endphp
+                                        <div class="form-group">
+                                            <label class="input-label" for="group_size">{{ translate('Group Size Requirement') }}</label>
+                                            <select name="group_size[]" id="groupSize" class="form-control js-select2-custom" multiple>
+                                                @foreach ($GroupSizeRequirement as $group)
+                                                    <option value="{{ $group->id }}"
+                                                        {{ in_array($group->id, $selectedGroupIds) ? 'selected' : '' }}>
+                                                        {{ $group->name_en }}
+                                                    </option>
+                                                @endforeach
+                                            </select>
                                         </div>
+
 
                                         <!-- Usage Limit per User -->
                                         <div class="form-group">
@@ -491,14 +502,17 @@
                                         <!-- Offer Validity -->
                                         <div class="form-group">
                                             <label>Offer Validity After Purchase</label>
-                                            <select class="form-control" name="validity_after" id="validityAfter">
-                                                <option value="">No time limit</option>
-                                                <option value="1 month" {{ $VoucherSetting->offer_validity_after_purchase == '1 month' ? 'selected' : '' }}>1 Month</option>
-                                                <option value="3 months" {{ $VoucherSetting->offer_validity_after_purchase == '3 months' ? 'selected' : '' }}>3 Months</option>
-                                                <option value="6 months" {{ $VoucherSetting->offer_validity_after_purchase == '6 months' ? 'selected' : '' }}>6 Months</option>
-                                                <option value="1 year" {{ $VoucherSetting->offer_validity_after_purchase == '1 year' ? 'selected' : '' }}>1 Year</option>
-                                                <!-- Baki options -->
-                                            </select>
+                                            <div class="usage-row">
+                                                <div class="form-group">
+                                                    <input type="number"
+                                                        class="form-control"
+                                                        name="validity_after[value]"
+                                                        value="{{ $VoucherSetting->offer_validity_after_purchase['value'] ?? '' }}"
+                                                        placeholder="Number of Day"
+                                                        min="1">
+                                                </div>
+                                                <span class="times-label">Day</span>
+                                            </div>
                                         </div>
                                         <!-- General Restrictions Checkboxes -->
                                         <div class="form-group">

@@ -1878,7 +1878,6 @@
                 $.each(response.VoucherSetting, function (index, term) {
                     // Check if this term is in saved IDs (using == for type coercion)
                     let isTermChecked = savedTermIds == term.id ? 'checked' : '';
-                    
                        
                     usageHtml += `
                         <div class="col-md-6 mb-3">

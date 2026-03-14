@@ -686,12 +686,12 @@ class VoucherController extends Controller
         }
         // dd($product->how_and_condition_ids);
         if (!empty($product->how_and_condition_ids)) {
-            $how_ids = json_decode($product->how_and_condition_ids, true);
+            $how_ids = (array) $product->how_and_condition_ids;
             $product->how_conditions = WorkManagement::whereIn('id', $how_ids)->get();
         }
 
         if (!empty($product->term_and_condition_ids)) {
-            $term_ids = json_decode($product->term_and_condition_ids, true);
+            $term_ids = (array) $product->term_and_condition_ids;
             $product->terms_conditions = UsageTermManagement::whereIn('id', $term_ids)->get();
         }
         if (!empty($product->product)) {

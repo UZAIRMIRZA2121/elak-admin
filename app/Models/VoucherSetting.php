@@ -34,6 +34,7 @@ class VoucherSetting extends Model
         'custom_blackout_dates' => 'array',
         'usage_limit_per_user' => 'array',
         'usage_limit_per_store' => 'array',
+        'offer_validity_after_purchase' => 'array',
         'general_restrictions' => 'array',
         'age_restriction' => 'array',
         'group_size_requirement' => 'array',

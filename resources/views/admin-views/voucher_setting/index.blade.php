@@ -246,7 +246,7 @@
                                 <td class="text-center">
                                     <span  class="font-size-sm text-body mr-3">
                                        @php(
-                                            $period = json_decode($voucher->validity_period, true) )
+                                            $period = $voucher->validity_period )
 
                                          <table style="margin:auto; border:1px solid #ddd; border-collapse: collapse;">
                                             <tr>
@@ -265,7 +265,7 @@
                                 {{-- Client Created At --}}
                                 <td class="text-center">
                                     @php(
-                                        $days = json_decode($voucher->specific_days_of_week, true)
+                                        $days = $voucher->specific_days_of_week
                                     )
                                     <table class="table table-bordered text-center" style="font-size: 12px">
                                         <thead>
@@ -288,7 +288,7 @@
                                 </td>
 
 
-                                  @php($HolidayOccasions = json_decode($voucher->holidays_occasions, true) ?? []
+                                  @php($HolidayOccasions = $voucher->holidays_occasions ?? []
                                   )
                               @php($HolidayOccasion_all = \App\Models\HolidayOccasion::whereIn('id', $HolidayOccasions)->get())
 
@@ -308,8 +308,8 @@
                                 <td class="text-center">
                                    {{ $voucher->group_size_requirement}}
                                 </td>
-                               @php( $user_limit = json_decode($voucher->usage_limit_per_user, true)  )
-                               @php( $store_limit = json_decode($voucher->usage_limit_per_store, true) )
+                               @php( $user_limit = $voucher->usage_limit_per_user  )
+                               @php( $store_limit = $voucher->usage_limit_per_store )
 
                                 <td class="text-center">
                                     {{ $user_limit[0] }} <br>
@@ -321,11 +321,14 @@
                                 </td>
 
                                 <td class="text-center">
-                                   {{ $voucher->offer_validity_after_purchase}}
+                                   @if(is_array($voucher->offer_validity_after_purchase))
+                                       {{ ($voucher->offer_validity_after_purchase['value'] ?? '') . ' ' . ($voucher->offer_validity_after_purchase['period'] ?? '') }}
+                                   @else
+                                       {{ $voucher->offer_validity_after_purchase }}
+                                   @endif
                                 </td>
                             @php(
-
-                                $generalRestrictionIds = json_decode($voucher->general_restrictions, true) ?? [] // null ho to empty array
+                                $generalRestrictionIds = $voucher->general_restrictions ?? [] // null ho to empty array
                             )
                                  @php(
                                     $GeneralRestriction = \App\Models\GeneralRestriction::whereIn('id', $generalRestrictionIds)->get()

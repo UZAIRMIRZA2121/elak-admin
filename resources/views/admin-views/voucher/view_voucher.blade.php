@@ -422,7 +422,7 @@
                                     <th><i class="fas fa-folder mr-2"></i> Images</th>
                                     <td>
                                         @php
-                                            $images = json_decode($product->images, true);
+                                            $images = is_array($product->images) ? $product->images : json_decode($product->images, true);
                                         @endphp
 
                                         @if (!empty($images))
@@ -503,7 +503,7 @@
                                 <tr>
                                     <th><i class="fas fa-tag mr-2"></i> Gift Occasion</th>
                                     <td>
-                                        @forelse($product->gift_occasions as $occasion)
+                                        @forelse(($product->gift_occasions ?? []) as $occasion)
                                             <span class="badge-custom badge-info mr-1 mb-1">
                                                 {{ $occasion->title }}
                                             </span>
@@ -532,7 +532,7 @@
                                 <tr>
                                     <th><i class="fas fa-truck mr-2"></i> Delivery Options</th>
                                     <td>
-                                        @forelse($product->delivery_options as $option)
+                                        @forelse(($product->delivery_options ?? []) as $option)
                                             <span class="badge-custom badge-success mr-1 mb-1">
                                                 {{ $option->title }}
                                             </span>
@@ -719,9 +719,13 @@
                             </div>
                             <hr class="my-2">
                             @php
-                                $productsA = !empty($product->product) ? json_decode($product->product, true) : [];
+                                $productsA = is_array($product->product) 
+                                    ? $product->product 
+                                    : json_decode($product->product ?? '[]', true);
 
-                                $productsB = !empty($product->product_b) ? json_decode($product->product_b, true) : [];
+                                $productsB = is_array($product->product_b) 
+                                    ? $product->product_b 
+                                    : json_decode($product->product_b ?? '[]', true);
                             @endphp
 
                             @if (empty($productsB))
@@ -1072,7 +1076,7 @@
                 <div class="col-md-12">
                     @if ($product->how_conditions && $product->how_conditions->count() > 0)
                         <h5 class="section-title"><i class="fas fa-cogs mr-2"></i>How It Works</h5>
-                        @foreach ($product->how_conditions as $condition)
+                        @foreach (($product->how_conditions ?? []) as $condition)
                             <div class="condition-card">
                                 <strong><i class="fas fa-book mr-2"></i>{{ $condition->guide_title }}</strong>
                                 @php($sections = $condition->sections)
@@ -1104,13 +1108,13 @@
                     <?php
                     $voucher = $product->voucherSetting;
                     
-                    $validity = json_decode($voucher->validity_period, true);
-                    $days = json_decode($voucher->specific_days_of_week, true);
-                    $generalRestrictionsids = json_decode($voucher->general_restrictions, true);
-                    $holidayIds = json_decode($voucher->holidays_occasions, true);
+                    $validity = $voucher?->validity_period ?? [];
+                    $days = $voucher?->specific_days_of_week ?? [];
+                    $generalRestrictionsids = $voucher?->general_restrictions ?? [];
+                    $holidayIds = $voucher?->holidays_occasions ?? [];
                     
-                    $holidays = \App\Models\HolidayOccasion::whereIn('id', $holidayIds)->get();
-                    $generalRestrictions = \App\Models\GeneralRestriction::whereIn('id', $generalRestrictionsids)->get();
+                    $holidays = !empty($holidayIds) ? \App\Models\HolidayOccasion::whereIn('id', (array)$holidayIds)->get() : collect();
+                    $generalRestrictions = !empty($generalRestrictionsids) ? \App\Models\GeneralRestriction::whereIn('id', (array)$generalRestrictionsids)->get() : collect();
                     ?>
                     <h5 class="section-title"><i class="fas fa-file-contract mr-2"></i>Terms & Conditions</h5>
                     <div class="row mt-4">
@@ -1127,14 +1131,18 @@
                                 <li class="list-group-item">
                                     <strong>Available Days:</strong>
                                     <ul>
-                                        @foreach ($days as $day => $time)
-                                            @if ($time['start'])
-                                                <li>
-                                                    {{ ucfirst($day) }} :
-                                                    {{ $time['start'] }} - {{ $time['end'] }}
-                                                </li>
-                                            @endif
-                                        @endforeach
+                                        @if(!empty($days) && is_iterable($days))
+                                            @foreach ($days as $day => $time)
+                                                @if (isset($time['start']) && $time['start'])
+                                                    <li>
+                                                        {{ ucfirst($day) }} :
+                                                        {{ $time['start'] }} - {{ $time['end'] ?? 'N/A' }}
+                                                    </li>
+                                                @endif
+                                            @endforeach
+                                        @else
+                                            <li>No available days set</li>
+                                        @endif
                                     </ul>
                                 </li>
 
@@ -1153,11 +1161,15 @@
                                 <li class="list-group-item">
                                     <strong>Blackout Dates:</strong>
                                     <ul>
-                                        @foreach ($voucher->custom_blackout_dates as $date)
-                                            <li>
-                                                {{ $date['date'] }} - {{ $date['description'] }}
-                                            </li>
-                                        @endforeach
+                                        @if(isset($voucher?->custom_blackout_dates) && is_iterable($voucher->custom_blackout_dates))
+                                            @foreach ($voucher->custom_blackout_dates as $date)
+                                                <li>
+                                                    {{ $date['date'] ?? 'N/A' }} - {{ $date['description'] ?? 'N/A' }}
+                                                </li>
+                                            @endforeach
+                                        @else
+                                            <li>No blackout dates set</li>
+                                        @endif
                                     </ul>
                                 </li>
 
