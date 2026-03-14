@@ -142,13 +142,8 @@ class PaymentController extends Controller
     {
 
         $order = Order::where(['id' => session('order_id'), 'user_id' => session('customer_id')])->first();
-
-        $order->order_status = 'delivered';
-        $order->delivered = Carbon::now();
-        $order->save();
-      
+        
         if ($order->voucher_type == 'Flat discount') {
-
             if ($order->transaction == null) {
                 $unpaid_payment = OrderPayment::where('payment_status', 'unpaid')->where('order_id', $order->id)->first()?->payment_method;
                 $unpaid_pay_method = 'digital_payment';
@@ -160,12 +155,13 @@ class PaymentController extends Controller
                 } else {
                     $ol = OrderLogic::create_transaction($order, 'admin', null);
                 }
-
-
                 if (!$ol) {
                     Toastr::warning(translate('messages.faield_to_create_order_transaction'));
                     return back();
                 }
+                        $order->order_status = 'delivered';
+        $order->delivered = Carbon::now();
+        $order->save();
             }
 
             $order->payment_status = 'paid';
@@ -174,7 +170,7 @@ class PaymentController extends Controller
 
 
         }
-        
+
 
         if (isset($order) && $order->callback != null) {
             return redirect($order->callback . '&status=success');
