@@ -881,7 +881,7 @@ class Item extends Model
         $value = $this->how_and_condition_ids;
 
         if (empty($value)) {
-            return collect();
+            return new Collection();
         }
 
         // Handle JSON or comma-separated strings
@@ -902,7 +902,7 @@ class Item extends Model
             ->toArray();
 
         if (empty($ids)) {
-            return collect();
+            return new Collection();
         }
 
         return \App\Models\WorkManagement::whereIn('id', $ids)->get();
@@ -957,7 +957,7 @@ class Item extends Model
         $value = $this->term_and_condition_ids;
 
         if (empty($value)) {
-            return collect();
+            return new Collection();
         }
 
         // Handle JSON or comma-separated strings
@@ -978,7 +978,7 @@ class Item extends Model
             ->toArray();
 
         if (empty($ids)) {
-            return collect();
+            return new Collection();
         }
 
         return \App\Models\UsageTermManagement::whereIn('id', $ids)->get();
