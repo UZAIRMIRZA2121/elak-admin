@@ -101,8 +101,10 @@ class StripePaymentController extends Controller
 
     public function success(Request $request)
     {
+
         Stripe::setApiKey($this->config_values->api_key);
         $session = Session::retrieve($request->get('session_id'));
+      
 
         if ($session->payment_status == 'paid' && $session->status == 'complete') {
 

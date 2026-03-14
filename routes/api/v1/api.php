@@ -90,7 +90,7 @@ Route::group(['namespace' => 'Api\V1', 'middleware' => 'localization'], function
     Route::group(['prefix' => 'auth', 'namespace' => 'Auth'], function () {
         Route::post('sign-up', 'CustomerAuthController@register');
         Route::post('login', 'CustomerAuthController@login');
-    
+
         Route::post('external-login', 'CustomerAuthController@customerLoginFromDrivemond');
         Route::post('verify-phone', 'CustomerAuthController@verify_phone_or_email');
         Route::post('update-info', 'CustomerAuthController@update_info');
@@ -496,22 +496,24 @@ Route::group(['namespace' => 'Api\V1', 'middleware' => 'localization'], function
             Route::post('reviews/submit', 'ItemController@submit_product_review')->middleware('auth:api');
             Route::get('common-conditions', 'ItemController@get_store_condition_products');
             Route::get('get-products', 'ItemController@get_products');
-        Route::get('store/{store_id}', 'ItemController@get_items_by_store')->middleware('auth:api');;
-        Route::get('debug/store/{id}', function ($id) {
-            $store = \App\Models\Store::find($id);
-            if (!$store) return ['status' => 'Store not found'];
-            return [
-                'store_id' => $store->id,
-                'zone_id' => $store->zone_id,
-                'module_id' => $store->module_id,
-                'status' => $store->status,
-                'active' => $store->active,
-                'item_count' => \App\Models\Item::where('store_id', $id)->count(),
-                'active_item_count' => \App\Models\Item::where('store_id', $id)->active()->count(),
-                'module_check' => request()->header('moduleId') ? (request()->header('moduleId') == $store->module_id ? 'Match' : 'Mismatch') : 'N/A',
-                'zone_check' => request()->header('zoneId') ? (in_array($store->zone_id, json_decode(request()->header('zoneId'), true) ?? []) ? 'Match' : 'Mismatch') : 'N/A',
-            ];
-        });
+            Route::get('store/{store_id}', 'ItemController@get_items_by_store')->middleware('auth:api');
+            ;
+            Route::get('debug/store/{id}', function ($id) {
+                $store = \App\Models\Store::find($id);
+                if (!$store)
+                    return ['status' => 'Store not found'];
+                return [
+                    'store_id' => $store->id,
+                    'zone_id' => $store->zone_id,
+                    'module_id' => $store->module_id,
+                    'status' => $store->status,
+                    'active' => $store->active,
+                    'item_count' => \App\Models\Item::where('store_id', $id)->count(),
+                    'active_item_count' => \App\Models\Item::where('store_id', $id)->active()->count(),
+                    'module_check' => request()->header('moduleId') ? (request()->header('moduleId') == $store->module_id ? 'Match' : 'Mismatch') : 'N/A',
+                    'zone_check' => request()->header('zoneId') ? (in_array($store->zone_id, json_decode(request()->header('zoneId'), true) ?? []) ? 'Match' : 'Mismatch') : 'N/A',
+                ];
+            });
         });
 
         Route::group(['prefix' => 'stores'], function () {

@@ -283,7 +283,7 @@
                                     : <label
                                         class="fz--10 badge m-0 badge-soft-primary">{{ translate(str_replace('_', ' ', $order['voucher_type'])) }}</label>
                                 </h6>
-                                  <h6 class="text-capitalize">{{ translate('messages.voucher_sub_type') }}
+                                <h6 class="text-capitalize">{{ translate('messages.voucher_sub_type') }}
                                     : <label
                                         class="fz--10 badge m-0 badge-soft-primary">{{ translate(str_replace('_', ' ', $order['voucher_sub_type'])) }}</label>
                                 </h6>
@@ -431,15 +431,13 @@
 
 
                                                 <div class="coupon-card d-flex align-items-stretch d-block m-auto ">
-                                                   <div class="coupon-left d-flex">
+                                                    <div class="coupon-left d-flex">
                                                         <div class="side-label">{{ $order['voucher_type'] }}</div>
 
                                                         <div class="image-section">
-                                                            <img 
-                                                                src="{{ $product->image_full_url ?? asset('public/assets/admin/img/160x160/img2.jpg') }}"
+                                                            <img src="{{ $product->image_full_url ?? asset('public/assets/admin/img/160x160/img2.jpg') }}"
                                                                 data-image="{{ $product->image_full_url ?? asset('public/assets/admin/img/160x160/img2.jpg') }}"
-                                                                class="img-fluid preview-image"
-                                                                style="cursor:pointer;"
+                                                                class="img-fluid preview-image" style="cursor:pointer;"
                                                                 alt="Product Image">
                                                         </div>
                                                     </div>
@@ -613,10 +611,10 @@
                                 <dl class="row text-right">
                                     <dt class="col-6">{{ translate('messages.voucher_value') }}:</dt>
                                     <dd class="col-6">
-                                        {{ \App\CentralLogics\Helpers::format_currency($order->total_order_amount ) }}
+                                        {{ \App\CentralLogics\Helpers::format_currency($order->total_order_amount) }}
                                     </dd>
 
-                                  
+
                                     {{-- <dt class="col-6">{{ translate('messages.subtotal') }}
                                         @if ($order->tax_status == 'included' || $tax_included == 1)
                                             ({{ translate('messages.TAX_Included') }})
@@ -693,7 +691,7 @@
 
                                     <dt class="col-6">{{ translate('messages.amount_to_pay') }}:</dt>
                                     <dd class="col-6">
-                                        {{ \App\CentralLogics\Helpers::format_currency($order->total_order_amount  - $order->discount_amount) }}
+                                        {{ \App\CentralLogics\Helpers::format_currency($order->total_order_amount - $order->discount_amount) }}
                                     </dd>
                                     @if ($order?->payments)
                                         @foreach ($order?->payments as $payment)
@@ -733,67 +731,7 @@
                     $order->order_status != 'refund_requested' &&
                         $order->order_status != 'refunded' &&
                         $order->order_status != 'delivered')
-                    <div class="card mb-2">
-                        <!-- Header -->
-                        <div class="card-header justify-content-center text-center px-0 mx-4">
-                            <h5 class="card-header-title text-capitalize">
-                                <span>{{ translate('messages.order_setup') }}</span>
-                            </h5>
-                        </div>
-                        <!-- End Header -->
-
-                        <!-- Body -->
-
-                        <div class="card-body">
-                            <!-- Order Status Flow Starts -->
-                            @php($order_delivery_verification = (bool) \App\Models\BusinessSetting::where(['key' => 'order_delivery_verification'])->first()->value)
-                            <div class="mb-4">
-                                <div class="row g-1">
-                                    <div class="{{ config('canceled_by_store') ? 'col-6' : 'col-12' }}">
-                                        <a class="btn btn--primary w-100 fz--13 px-2 {{ $order['order_status'] == 'pending' ? '' : 'd-none' }} route-alert"
-                                            data-url="{{ route('vendor.order.status', ['id' => $order['id'], 'order_status' => 'confirmed']) }}"
-                                            data-message="{{ translate('messages.confirm_this_order_?') }}"
-                                            href="javascript:">{{ translate('messages.confirm_this_order') }}</a>
-                                    </div>
-                                    @if (config('canceled_by_store'))
-                                        <div class="col-6">
-                                            <a
-                                                class="btn btn--danger w-100 fz--13 px-2 cancelled-status {{ $order['order_status'] == 'pending' ? '' : 'd-none' }}">{{ translate('Cancel Order') }}</a>
-                                        </div>
-                                    @endif
-                                </div>
-                        @if ($order->store && $order->store->module->module_type == 'food'  || $order->store->module->module_type == 'voucher')
-                                    <a class="btn btn--primary w-100 order-status-change-alert {{ $order['order_status'] == 'confirmed' || $order['order_status'] == 'accepted' ? '' : 'd-none' }}"
-                                        data-url="{{ route('vendor.order.status', ['id' => $order['id'], 'order_status' => 'processing']) }}"
-                                        data-message="{{ translate('Change status to cooking ?') }}"
-                                        data-verification="false" data-processing-time="{{ $max_processing_time }}"
-                                        href="javascript:">{{ translate('messages.proceed_for_processing') }}</a>
-                                @else
-                                    <a class="btn btn--primary w-100 route-alert  {{ $order['order_status'] == 'confirmed' || $order['order_status'] == 'accepted' ? '' : 'd-none' }}"
-                                        data-url="{{ route('vendor.order.status', ['id' => $order['id'], 'order_status' => 'processing']) }}"
-                                        data-message="{{ translate('messages.proceed_for_processing') }}"
-                                        href="javascript:">{{ translate('messages.proceed_for_processing') }}</a>
-                                @endif
-                                <a class="btn btn--primary w-100 route-alert {{ $order['order_status'] == 'processing' ? '' : 'd-none' }}"
-                                    data-url="{{ route('vendor.order.status', ['id' => $order['id'], 'order_status' => 'handover']) }}"
-                                    data-message="{{ translate('messages.make_ready_for_handover') }}"
-                                    href="javascript:">{{ translate('messages.make_ready_for_handover') }}</a>
-                                @if (
-                                    $order['order_status'] == 'handover' ||
-                                        ($order['order_status'] == 'picked_up' && $order->store->sub_self_delivery == 1))
-                                    <a class="btn  w-100
-                                    {{ $order['order_type'] == 'take_away' || $order->store->sub_self_delivery == 1 ? 'btn--primary order-status-change-alert' : 'btn--secondary  self-delivery-warning' }} "
-                                        data-url="{{ route('vendor.order.status', ['id' => $order['id'], 'order_status' => 'delivered']) }}"
-                                        data-message="{{ translate('messages.Change status to delivered (payment status will be paid if not)?') }}"
-                                        data-verification="{{ $order_delivery_verification ? 'true' : 'false' }}"
-                                        href="javascript:">{{ translate('messages.make_delivered') }}</a>
-                                @endif
-
-                            </div>
-                        </div>
-
-                        <!-- End Body -->
-                    </div>
+                    @include('vendor-views.order.order-setup-view')
                 @endif
                 <!-- End Card -->
                 @if ($order->order_status == 'canceled')
@@ -819,7 +757,7 @@
                                         <span class="name">{{ translate('Amount_paid_by') }}
                                             {{ translate($pay_info->payment_method) }} </span>
                                         <span class="info">
-                                            {{ \App\CentralLogics\Helpers::format_currency($pay_info->amount) }} </span>
+                                            {{App\CentralLogics\Helpers::format_currency($pay_info->amount) }} </span>
                                     </li>
                                 @endforeach
                             @else
@@ -1048,7 +986,7 @@
 
                 @endif
 
-          
+
 
                 <!-- Card -->
                 <div class="card">
@@ -1492,27 +1430,27 @@
 
 
     <!-- Image Preview Modal -->
-<div class="modal fade" id="imagePreviewModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered modal-lg">
-        <div class="modal-content">
-            <div class="modal-body text-center">
-                <img id="modalPreviewImage" src="" class="img-fluid rounded">
+    <div class="modal fade" id="imagePreviewModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content">
+                <div class="modal-body text-center">
+                    <img id="modalPreviewImage" src="" class="img-fluid rounded">
+                </div>
             </div>
         </div>
     </div>
-</div>
-<script>
-document.addEventListener("DOMContentLoaded", function () {
-    const previewImages = document.querySelectorAll(".preview-image");
-    const modalImage = document.getElementById("modalPreviewImage");
-    const imageModal = new bootstrap.Modal(document.getElementById("imagePreviewModal"));
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const previewImages = document.querySelectorAll(".preview-image");
+            const modalImage = document.getElementById("modalPreviewImage");
+            const imageModal = new bootstrap.Modal(document.getElementById("imagePreviewModal"));
 
-    previewImages.forEach(img => {
-        img.addEventListener("click", function () {
-            modalImage.src = this.getAttribute("data-image");
-            imageModal.show();
+            previewImages.forEach(img => {
+                img.addEventListener("click", function() {
+                    modalImage.src = this.getAttribute("data-image");
+                    imageModal.show();
+                });
+            });
         });
-    });
-});
-</script>
+    </script>
 @endpush
