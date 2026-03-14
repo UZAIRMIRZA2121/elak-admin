@@ -525,16 +525,16 @@ class ItemController extends Controller
                 $settings = $item->voucherSetting;
 
                 $item['settings'] = $settings ? [
-                    'validity_period' => json_decode($settings->validity_period),
-                    'specific_days_of_week' => json_decode($settings->specific_days_of_week),
-                    'holidays_occasions' => json_decode($settings->holiday_occasions), // ← accessor here
-                    'custom_blackout_dates' => json_decode($settings->custom_blackout_dates), // full CustomBlackoutData objects
-                    'age_restriction' => $settings->age_restriction, // full CustomBlackoutData objects(int) $settings->age_restriction,
-                    'group_size_requirement' => $settings->group_size_requirement, // full CustomBlackoutData objects(int) $settings->age_restriction,
+                    'validity_period' => $settings->validity_period,
+                    'specific_days_of_week' => $settings->specific_days_of_week,
+                    'holidays_occasions' => $settings->holiday_occasions, // full HolidayOccasion objects via accessor
+                    'custom_blackout_dates' => $settings->custom_blackout_dates, // full CustomBlackoutData objects via accessor
+                    'age_restriction' => $settings->age_restriction,
+                    'group_size_requirement' => $settings->group_size_requirement,
 
-                    'usage_limit_per_user' => json_decode($settings->usage_limit_per_user),
-                    'usage_limit_per_store' => json_decode($settings->usage_limit_per_store),
-                    'offer_validity_after_purchase' => (int) $settings->offer_validity_after_purchase,
+                    'usage_limit_per_user' => $settings->usage_limit_per_user,
+                    'usage_limit_per_store' => $settings->usage_limit_per_store,
+                    'offer_validity_after_purchase' => $settings->offer_validity_after_purchase,
                     'general_restrictions' => $settings->general_restriction_settings,
 
                     'status' => $settings->status,
