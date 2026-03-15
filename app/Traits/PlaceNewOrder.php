@@ -523,20 +523,21 @@ trait PlaceNewOrder
             $order->voucher_type = null;
             $order->voucher_sub_type = null;
             foreach ($carts ?? [] as $cart) {
-
                 if (isset($cart->item_id)) {
-
                     $item = Item::find($cart->item_id);
 
                     if ($item && $item->type == 'voucher') {
                         $order->voucher_type = $item->voucher_ids;
                         $order->voucher_sub_type = $item->bundle_type;
                         $voucher_details = $item;
-
-
                         $order->voucher_usage_term_and_conditions = $voucher_details->usageTerms() ?? null;
+
+
+
                         $voucherSetting = VoucherSetting::where('item_id', $item->id)->first();
 
+
+                        
                         if ($voucherSetting) {
 
                             // Decode JSON fields safely - model already has casts
@@ -602,12 +603,6 @@ trait PlaceNewOrder
                     }
                 }
             }
-
-
-
-
-
-
             $order->total_order_amount = $carts[0]['total_price'] ?? null;
 
             $order->total_order_amount = $carts[0]['total_price'] ?? null;
