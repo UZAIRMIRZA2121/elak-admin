@@ -7281,5 +7281,5 @@ Smartly or Earn. ',
   'No Package Found' => 'No Package Found',
   'Passwords Matched' => 'Passwords Matched',
   'confirmPassword not match' => 'ConfirmPassword not match',
-  'select_pickup_zone' => 'Select pickup zone',
+  'select_pickup_zone' => 'Select pickup zone ',
 );
