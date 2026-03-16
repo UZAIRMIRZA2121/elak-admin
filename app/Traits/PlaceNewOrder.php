@@ -562,7 +562,7 @@ trait PlaceNewOrder
                         SoldVoucher::create([
                         'user_id' => $order->user_id,
                         'voucher_id' => $cart->item_id,
-                        'store_id' => $cart->store_id
+                        'store_id' => $order->store_id
                        ]);
 
                         
