@@ -706,7 +706,7 @@ class OrderController extends Controller
 
     public function new_flat_request()
     {
-        dd(123);
+       
         $store_id = \App\CentralLogics\Helpers::get_store_id();
 
         $cart = Cart::where('status', 'pending')
