@@ -8558,4 +8558,5 @@ Smartly or Earn. ',
   'simple x' => 'Simple x',
   'vendor_withdraw_request_denied' => 'Vendor withdraw request denied',
   'i cant do this' => 'I cant do this',
+  'branches' => 'Branches',
 );

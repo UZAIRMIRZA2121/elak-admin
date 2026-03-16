@@ -515,8 +515,6 @@ trait PlaceNewOrder
 
             $order->order_amount = $request['order_amount'] ?? 0;
 
-
-
             $order->order_status = $order->voucher_type === 'Flat discount' ? 'confirmed' : $order_status;
             $order->order_type = $request['order_type'] ?? $carts[0]['type'] ?? null;
 
@@ -532,7 +530,10 @@ trait PlaceNewOrder
                         $voucher_details = $item;
                         $order->voucher_usage_term_and_conditions = $voucher_details->usageTerms() ?? null;
 
-
+                                SoldVoucher::create([
+                                'user_id' => $order->user_id,
+                                'voucher_id' => $cart->item_id
+                            ]);
 
                         $voucherSetting = VoucherSetting::where('item_id', $item->id)->first();
 

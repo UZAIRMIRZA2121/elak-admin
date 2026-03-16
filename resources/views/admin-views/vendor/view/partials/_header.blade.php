@@ -12,7 +12,37 @@
             <div>
                 @if(Request::is("admin/store/view/{$store->id}"))
                     @if($store->vendor->status)
-                    <a href="{{route('admin.store.edit',[$store->id])}}" class="btn btn--primary float-right">
+                    
+                    @if($store->type == 'main' || $store->parent_id)
+                        <div class="hs-unfold float-right">
+                            <a class="js-hs-unfold-invoker btn btn--white dropdown-toggle" href="javascript:;"
+                            data-hs-unfold-options='{
+                                "target": "#branchesDropdown",
+                                "type": "css-animation"
+                            }'>
+                                <i class="tio-neighborhood mr-1"></i> {{translate('messages.branches')}}
+                            </a>
+
+                            <div id="branchesDropdown" class="hs-unfold-content dropdown-unfold dropdown-menu dropdown-menu-right shadow-none" style="min-width: 200px;">
+                                @php($main_branch = $store->parent_id ? $store->parent : $store)
+                                @if($main_branch)
+                                    <a class="dropdown-item {{ $store->id == $main_branch->id ? 'active' : '' }}" href="{{route('admin.store.view',[$main_branch->id])}}">
+                                        <i class="tio-shop mr-2"></i> {{ $main_branch->name }} ({{ translate('messages.main') }})
+                                    </a>
+                                    @if($main_branch->children->count() > 0)
+                                        <div class="dropdown-divider"></div>
+                                        @foreach($main_branch->children as $branch)
+                                            <a class="dropdown-item {{ $store->id == $branch->id ? 'active' : '' }}" href="{{route('admin.store.view',[$branch->id])}}">
+                                                <i class="tio-shop-outlined mr-2"></i> {{ $branch->name }}
+                                            </a>
+                                        @endforeach
+                                    @endif
+                                @endif
+                            </div>
+                        </div>
+                    @endif
+
+                    <a href="{{route('admin.store.edit',[$store->id])}}" class="btn btn--primary float-right mr-2">
                         <i class="tio-edit"></i> {{translate('messages.edit_store')}}
                     </a>
                     @else
