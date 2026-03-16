@@ -1127,6 +1127,7 @@
             updateHiddenField();
         }
 
+        
         function removeStaff(rowId) {
             document.getElementById(rowId).remove();
             updateHiddenField();
