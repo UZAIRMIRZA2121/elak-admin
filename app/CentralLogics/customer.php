@@ -65,7 +65,7 @@ class CustomerLogic
         $user->wallet_balance = $current_balance + $credit + $admin_bonus - $debit;
 
 
-        //   $order = Order::where(['id' => session('order_id'), 'user_id' => session('customer_id')])->first();
+          $order = Order::where(['id' => $referance, 'user_id' => $user_id])->first();
 
         // if ($order->voucher_type == 'Flat discount') {
         //     if ($order->transaction == null) {
@@ -92,9 +92,7 @@ class CustomerLogic
 
         //     OrderLogic::update_unpaid_order_payment(order_id: $order->id, payment_method: $order->payment_method);
 
-
         // }
-        //  dd("create_wallet_transaction");
 
 
         try {

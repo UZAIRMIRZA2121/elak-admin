@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api\V1\Vendor;
 
+use App\Models\Cart;
 use App\Models\Item;
 use App\Models\Admin;
 use App\Models\Order;
@@ -244,60 +245,60 @@ class VendorController extends Controller
         return response()->json(['message' => translate('messages.profile_updated_successfully')], 200);
     }
 
- public function get_current_orders(Request $request)
-{
-    $vendor = $request['vendor'];
+    public function get_current_orders(Request $request)
+    {
+        $vendor = $request['vendor'];
 
-    $perPage = $request->get('limit', 20);
+        $perPage = $request->get('limit', 20);
 
-    $baseQuery = Order::whereHas('store.vendor', function ($query) use ($vendor) {
-        $query->where('id', $vendor->id);
-    })
-    ->Notpos()
-    ->NotDigitalOrder();
+        $baseQuery = Order::whereHas('store.vendor', function ($query) use ($vendor) {
+            $query->where('id', $vendor->id);
+        })
+            ->Notpos()
+            ->NotDigitalOrder();
 
-    // STATUS CONDITION (reuse)
-    $baseQuery->where(function ($query) use ($vendor) {
+        // STATUS CONDITION (reuse)
+        $baseQuery->where(function ($query) use ($vendor) {
 
-        if (config('order_confirmation_model') == 'store' || optional($vendor->stores->first())->sub_self_delivery) {
-            $query->whereIn('order_status', ['accepted','pending','confirmed','processing','handover','picked_up','delivered']);
-        } else {
-            $query->whereIn('order_status', ['confirmed','processing','handover','picked_up','delivered'])
-                ->orWhere(function ($query) {
-                    $query->whereNotNull('confirmed')->where('order_status', 'accepted');
-                })
-                ->orWhere(function ($query) {
-                    $query->where('payment_status', 'paid')->where('order_status', 'accepted');
-                })
-                ->orWhere(function ($query) {
-                    $query->where('order_status', 'pending')->where('order_type', 'take_away');
-                });
-        }
-    });
+            if (config('order_confirmation_model') == 'store' || optional($vendor->stores->first())->sub_self_delivery) {
+                $query->whereIn('order_status', ['accepted', 'pending', 'confirmed', 'processing', 'handover', 'picked_up', 'delivered']);
+            } else {
+                $query->whereIn('order_status', ['confirmed', 'processing', 'handover', 'picked_up', 'delivered'])
+                    ->orWhere(function ($query) {
+                        $query->whereNotNull('confirmed')->where('order_status', 'accepted');
+                    })
+                    ->orWhere(function ($query) {
+                        $query->where('payment_status', 'paid')->where('order_status', 'accepted');
+                    })
+                    ->orWhere(function ($query) {
+                        $query->where('order_status', 'pending')->where('order_type', 'take_away');
+                    });
+            }
+        });
 
-    // CLONE QUERY FOR COUNTS
-    $pendingCount = (clone $baseQuery)->where('order_status', 'pending')->count();
-    $processingCount = (clone $baseQuery)->where('order_status', 'processing')->count();
-    $deliveredCount = (clone $baseQuery)->where('order_status', 'delivered')->count();
+        // CLONE QUERY FOR COUNTS
+        $pendingCount = (clone $baseQuery)->where('order_status', 'pending')->count();
+        $processingCount = (clone $baseQuery)->where('order_status', 'processing')->count();
+        $deliveredCount = (clone $baseQuery)->where('order_status', 'delivered')->count();
 
-    // MAIN PAGINATION QUERY
-    $orders = (clone $baseQuery)
-        ->with('customer')
-        ->orderBy('schedule_at', 'desc')
-        ->paginate($perPage);
+        // MAIN PAGINATION QUERY
+        $orders = (clone $baseQuery)
+            ->with('customer')
+            ->orderBy('schedule_at', 'desc')
+            ->paginate($perPage);
 
-    $formatted = Helpers::order_data_formatting($orders->items(), true);
+        $formatted = Helpers::order_data_formatting($orders->items(), true);
 
-    return response()->json([
-        'total_pending' => $pendingCount,
-        'total_processing' => $processingCount,
-        'total_delivered' => $deliveredCount,
-        'total_size' => $orders->total(),
-        'limit' => $perPage,
-        'offset' => $orders->currentPage(),
-        'orders' => $formatted,
-    ], 200);
-}
+        return response()->json([
+            'total_pending' => $pendingCount,
+            'total_processing' => $processingCount,
+            'total_delivered' => $deliveredCount,
+            'total_size' => $orders->total(),
+            'limit' => $perPage,
+            'offset' => $orders->currentPage(),
+            'orders' => $formatted,
+        ], 200);
+    }
     public function get_completed_orders(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -1449,5 +1450,101 @@ class VendorController extends Controller
         return response()->json($data, 200);
     }
 
+
+    public function new_flat_request(Request $request)
+    {
+
+        // 1️⃣ Get the current store ID
+        $vendor = $request['vendor'];
+
+
+        // Fetch latest pending cart
+        $cart = Cart::where('status', 'pending')->where('store_id', $vendor->store->id)->latest()->first();
+
+        if (!$cart) {
+            return response()->json(['success' => false]);
+        }
+
+        // Prepare user object
+        $user = $cart->is_guest
+            ? [
+                'name' => json_decode($cart->delivery_address, true)['contact_person_name'] ?? 'Guest',
+                'phone' => json_decode($cart->delivery_address, true)['contact_person_number'] ?? '-'
+            ]
+            : [
+                'name' => $cart->user->f_name . ' ' . $cart->user->l_name,
+                'phone' => $cart->user->phone
+            ];
+
+
+        return response()->json([
+            'success' => true,
+
+
+            'cart' => [
+                'id' => $cart->id,
+                'quantity' => $cart->quantity,
+                'price' => $cart->price,
+                'total_price' => $cart->total_price,
+                'discount_amount' => $cart->discount_amount,
+                'status' => $cart->status,
+                'type' => $cart->type,
+                'created' => strtotime($cart->created_at)
+            ],
+
+            // 'item' => $cart->item,
+            'user' => $user
+        ]);
+    }
+
+    public function updateStatus($id, $status)
+    {
+        $allowedStatus = ['approved', 'rejected'];
+
+        // ❌ Invalid status
+        if (!in_array($status, $allowedStatus)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Invalid status'
+            ], 400);
+        }
+
+        // 🔎 Find Cart
+        $cart = Cart::find($id);
+
+        if (!$cart) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Cart not found'
+            ], 404);
+        }
+
+        /*
+        ❌ If Rejected → Update Status
+        */
+        if ($status == 'rejected') {
+
+            $cart->status = 'rejected';
+            $cart->save();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Request rejected successfully',
+                'data' => $cart
+            ], 200);
+        }
+
+        /*
+        ✅ If Approved → Update Status
+        */
+        $cart->status = 'approved';
+        $cart->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Request approved successfully',
+            'data' => $cart
+        ], 200);
+    }
 
 }

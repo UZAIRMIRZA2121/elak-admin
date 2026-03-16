@@ -379,33 +379,36 @@
                                         </span>
                                     @endif
 
-                                    @if ($order['order_type'] == 'take_away')
-                                        <div class="text-info mt-1">
-                                            {{ translate('messages.take_away') }}
-                                        </div>
-                                    @elseif ($order['order_type'] == 'Flat discount')
-                                        <div class="text-info mt-1">
-                                            {{ translate('messages.flat_discount') }}
-                                        </div>
+                                    @if ($order['voucher_type'] == 'Delivery/Pickup')
+                                        @if ($order['order_type'] == 'take_away')
+                                            <div class="text-info mt-1">
+                                                {{ translate('messages.take_away') }}
+                                            </div>
+                                        @else
+                                            <div class="text-title mt-1">
+                                                {{ translate('messages.home Delivery') }}
+                                            </div>
+                                        @endif
                                     @else
-                                        <div class="text-title mt-1">
-                                            {{ translate('messages.home Delivery') }}
+                                        <div class="text-info mt-1">
+                                            {{ $order['voucher_type'] }}
                                         </div>
                                     @endif
+                    
 
 
-                                </td>
-                                <td>
-                                    <div class="btn--container justify-content-center">
-                                        <a class="btn btn-sm btn--warning btn-outline-warning action-btn"
-                                            href="{{ route('vendor.order.details', ['id' => $order['id']]) }}"><i
-                                                class="tio-visible-outlined"></i></a>
-                                        <a class="btn btn-sm btn--primary btn-outline-primary action-btn" target="_blank"
-                                            href="{{ route('vendor.order.generate-invoice', [$order['id']]) }}"><i
-                                                class="tio-print"></i></a>
-                                    </div>
-                                </td>
-                            </tr>
+                        </td>
+                        <td>
+                            <div class="btn--container justify-content-center">
+                                <a class="btn btn-sm btn--warning btn-outline-warning action-btn"
+                                    href="{{ route('vendor.order.details', ['id' => $order['id']]) }}"><i
+                                        class="tio-visible-outlined"></i></a>
+                                <a class="btn btn-sm btn--primary btn-outline-primary action-btn" target="_blank"
+                                    href="{{ route('vendor.order.generate-invoice', [$order['id']]) }}"><i
+                                        class="tio-print"></i></a>
+                            </div>
+                        </td>
+                        </tr>
                         @endforeach
                     </tbody>
                 </table>
