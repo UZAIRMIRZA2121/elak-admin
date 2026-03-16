@@ -7,6 +7,7 @@ use App\Models\CashBack;
 use App\Models\GeneralRestriction;
 use App\Models\HolidayOccasion;
 use App\Models\Item;
+use App\Models\SoldVoucher;
 use App\Models\User;
 use App\Models\VoucherSetting;
 use App\Models\WalletPayment;
@@ -530,13 +531,13 @@ trait PlaceNewOrder
                         $voucher_details = $item;
                         $order->voucher_usage_term_and_conditions = $voucher_details->usageTerms() ?? null;
 
-                                SoldVoucher::create([
-                                'user_id' => $order->user_id,
-                                'voucher_id' => $cart->item_id
-                            ]);
-
+                        
                         $voucherSetting = VoucherSetting::where('item_id', $item->id)->first();
-
+                        
+                        SoldVoucher::create([
+                        'user_id' => $order->user_id,
+                        'voucher_id' => $cart->item_id
+                       ]);
 
                         
                         if ($voucherSetting) {
