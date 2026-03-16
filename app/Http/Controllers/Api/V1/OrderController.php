@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Models\Admin;
+use App\Models\Cart;
 use App\Models\Order;
 use App\Models\Store;
 use App\Models\Refund;
@@ -700,6 +701,48 @@ class OrderController extends Controller
 
         return response()->json([
             'success' => true
+        ]);
+    }
+
+    public function new_flat_request()
+    {
+        dd(123);
+        $store_id = \App\CentralLogics\Helpers::get_store_id();
+
+        $cart = Cart::where('status', 'pending')
+            ->where('store_id', $store_id)
+            ->latest()
+            ->first();
+
+        if (!$cart) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No pending cart found'
+            ]);
+        }
+
+        $user = $cart->is_guest
+            ? [
+                'name' => json_decode($cart->delivery_address, true)['contact_person_name'] ?? 'Guest',
+                'phone' => json_decode($cart->delivery_address, true)['contact_person_number'] ?? '-'
+            ]
+            : [
+                'name' => $cart->user->f_name . ' ' . $cart->user->l_name,
+                'phone' => $cart->user->phone
+            ];
+
+        return response()->json([
+            'success' => true,
+            'cart' => [
+                'id' => $cart->id,
+                'quantity' => $cart->quantity,
+                'total_price' => $cart->total_price * $cart->quantity,
+                'status' => $cart->status,
+                'created_at' => $cart->created_at->toDateTimeString(),
+                'created_timestamp' => strtotime($cart->created_at)
+            ],
+            'item' => $cart->item,
+            'user' => $user
         ]);
     }
 
