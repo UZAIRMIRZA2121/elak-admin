@@ -505,7 +505,7 @@ trait PlaceNewOrder
                 ], 203);
             }
 
-
+        //   dd("dsjhvbhsd");
 
             if ($order_status == 'active') {
                 $order->store_id = null;
@@ -561,7 +561,8 @@ trait PlaceNewOrder
 
                         SoldVoucher::create([
                         'user_id' => $order->user_id,
-                        'voucher_id' => $cart->item_id
+                        'voucher_id' => $cart->item_id,
+                        'store_id' => $cart->store_id
                        ]);
 
                         
@@ -732,6 +733,7 @@ trait PlaceNewOrder
                     CustomerLogic::create_loyalty_point_transaction($order->user_id, $order->id, $order->order_amount, 'order_place');
                 }
                 if ($request->payment_method == 'wallet')
+                    //   dd("dsjhvbhsd");
                     CustomerLogic::create_wallet_transaction($order->user_id, $order->order_amount, 'order_place', $order->id);
 
                 if ($request->partial_payment) {

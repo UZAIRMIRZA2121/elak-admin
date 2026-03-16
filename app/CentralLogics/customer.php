@@ -17,6 +17,7 @@ use App\Models\WalletBonus;
 class CustomerLogic
 {    public static function create_wallet_transaction($user_id, float $amount, $transaction_type, $referance)
     {
+    //    dd($referance);
         if (BusinessSetting::where('key', 'wallet_status')->first()->value != 1) return false;
         $user = User::find($user_id);
         $current_balance = $user->wallet_balance;
@@ -55,6 +56,7 @@ class CustomerLogic
             $credit = 0.0;
         }
 
+        
         $wallet_transaction->credit = $credit;
         $wallet_transaction->debit = $debit;
         $wallet_transaction->balance = $current_balance + $credit + $admin_bonus - $debit;
@@ -63,36 +65,37 @@ class CustomerLogic
         $user->wallet_balance = $current_balance + $credit + $admin_bonus - $debit;
 
 
-          $order = Order::where(['id' => session('order_id'), 'user_id' => session('customer_id')])->first();
+        //   $order = Order::where(['id' => session('order_id'), 'user_id' => session('customer_id')])->first();
 
-        if ($order->voucher_type == 'Flat discount') {
-            if ($order->transaction == null) {
-                $unpaid_payment = OrderPayment::where('payment_status', 'unpaid')->where('order_id', $order->id)->first()?->payment_method;
-                $unpaid_pay_method = 'digital_payment';
-                if ($unpaid_payment) {
-                    $unpaid_pay_method = $unpaid_payment;
-                }
-                if ($order->payment_method == 'cash_on_delivery' || $unpaid_pay_method == 'cash_on_delivery') {
-                    $ol = OrderLogic::create_transaction($order, 'store', null);
-                } else {
-                    $ol = OrderLogic::create_transaction($order, 'admin', null);
-                }
-                if (!$ol) {
-                    Toastr::warning(translate('messages.faield_to_create_order_transaction'));
-                    return back();
-                }
-                $order->order_status = 'delivered';
-                $order->delivered = Carbon::now();
-                $order->save();
-            }
+        // if ($order->voucher_type == 'Flat discount') {
+        //     if ($order->transaction == null) {
+        //         $unpaid_payment = OrderPayment::where('payment_status', 'unpaid')->where('order_id', $order->id)->first()?->payment_method;
+        //         $unpaid_pay_method = 'digital_payment';
+        //         if ($unpaid_payment) {
+        //             $unpaid_pay_method = $unpaid_payment;
+        //         }
+        //         if ($order->payment_method == 'cash_on_delivery' || $unpaid_pay_method == 'cash_on_delivery') {
+        //             $ol = OrderLogic::create_transaction($order, 'store', null);
+        //         } else {
+        //             $ol = OrderLogic::create_transaction($order, 'admin', null);
+        //         }
+        //         if (!$ol) {
+        //             Toastr::warning(translate('messages.faield_to_create_order_transaction'));
+        //             return back();
+        //         }
+        //         $order->order_status = 'delivered';
+        //         $order->delivered = Carbon::now();
+        //         $order->save();
+        //     }
 
-            $order->payment_status = 'paid';
+        //     $order->payment_status = 'paid';
 
-            OrderLogic::update_unpaid_order_payment(order_id: $order->id, payment_method: $order->payment_method);
+        //     OrderLogic::update_unpaid_order_payment(order_id: $order->id, payment_method: $order->payment_method);
 
 
-        }
-dd(123);
+        // }
+        //  dd("create_wallet_transaction");
+
 
         try {
             DB::beginTransaction();

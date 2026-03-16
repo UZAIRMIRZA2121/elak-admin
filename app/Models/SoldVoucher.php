@@ -9,7 +9,7 @@ class SoldVoucher extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['user_id', 'voucher_id'];
+    protected $fillable = ['user_id', 'voucher_id','store_id'];
 
      public function user()
     {
