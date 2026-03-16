@@ -534,6 +534,31 @@ trait PlaceNewOrder
                         
                         $voucherSetting = VoucherSetting::where('item_id', $item->id)->first();
                         
+                        if ($voucherSetting && isset($voucherSetting->usage_limit_per_user['value']) && isset($voucherSetting->usage_limit_per_user['period'])) {
+                            $limit = (int) $voucherSetting->usage_limit_per_user['value'];
+                            $period = $voucherSetting->usage_limit_per_user['period'];
+                            $query = SoldVoucher::where('user_id', $order->user_id)->where('voucher_id', $cart->item_id);
+
+                            if ($period == 'Per Day') {
+                                $query->whereDate('created_at', Carbon::today());
+                            } elseif ($period == 'Per Week') {
+                                $query->whereBetween('created_at', [Carbon::now()->startOfWeek(), Carbon::now()->endOfWeek()]);
+                            } elseif ($period == 'Per Month') {
+                                $query->whereMonth('created_at', Carbon::now()->month)->whereYear('created_at', Carbon::now()->year);
+                            } elseif ($period == 'Per Year') {
+                                $query->whereYear('created_at', Carbon::now()->year);
+                            }
+
+                            if ($query->count() >= $limit) {
+                                DB::rollBack();
+                                return response()->json([
+                                    'errors' => [
+                                        ['code' => 'usage_limit', 'message' => translate('messages.voucher_usage_limit_exceeded')]
+                                    ]
+                                ], 403);
+                            }
+                        }
+
                         SoldVoucher::create([
                         'user_id' => $order->user_id,
                         'voucher_id' => $cart->item_id
