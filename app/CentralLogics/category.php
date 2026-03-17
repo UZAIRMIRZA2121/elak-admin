@@ -473,6 +473,9 @@ public static function stores(
     $longitude = 0,
     $latitude = 0
 ) {
+
+
+    
     // ✅ Normalize zone_id
     if (is_string($zone_id)) {
         $zone_id = json_decode($zone_id, true);
@@ -480,7 +483,6 @@ public static function stores(
     $zone_id = is_array($zone_id) ? $zone_id : [$zone_id];
 
     $paginator = Store::withOpen($longitude ?? 0, $latitude ?? 0)
-
         // ✅ Load FULL voucher data
         ->with([
             'vouchers' => function ($q) {
@@ -496,7 +498,6 @@ public static function stores(
                 );
             }
         ])
-
         // Optional counts
         ->withCount(['items', 'campaigns'])
 
@@ -541,6 +542,8 @@ public static function stores(
         ->paginate($limit, ['*'], 'page', $offset);
 
     // ✅ Post processing
+
+    // dd($paginator);
     $paginator->each(function ($store) {
 
         // Category IDs
