@@ -128,13 +128,13 @@ class CartController extends Controller
                 ]
             ], 403);
         }
-
+            
         if ($item->voucher_ids === 'Flat discount') {
             $config = json_decode($item->discount_configuration, true); // Decode JSON to array
 
             $price = $request->price;
             $selectedTier = null;
-
+         
             // Loop through config to find matching tier
             foreach ($config as $row) {
                 if ($price >= $row['min_amount'] && $price <= $row['max_amount']) {
@@ -148,7 +148,7 @@ class CartController extends Controller
                 // Price is valid, continue processing
                 // Example: calculate bonus
                 $bonus = ($price * $selectedTier['bonus_percentage']) / 100;
-                $totalPaid = $price + $bonus;
+                $totalPaid = $price - $bonus;
 
                 // Continue your logic
                 // dd($selectedTier, $bonus, $totalPaid);
@@ -160,6 +160,7 @@ class CartController extends Controller
                 ], 400);
             }
         }
+
 
         $cart = new Cart();
         $cart->cart_group = $request->cart_group; // ✅ new column
