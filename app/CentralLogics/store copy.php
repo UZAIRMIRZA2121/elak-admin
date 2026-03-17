@@ -186,40 +186,26 @@ class StoreLogic
         ];
     }
 
-    public static function get_latest_stores($zone_id, $limit = 50, $offset = 1, $type = 'all', $longitude = 0, $latitude = 0)
+    public static function get_latest_stores($zone_id, $limit = 50, $offset = 1, $type='all',$longitude=0,$latitude=0)
     {
-        $latest_stores_default_status = BusinessSetting::where('key', 'latest_stores_default_status')->first()?->value ?? 1;
-        $latest_stores_sort_by_general = PriorityList::where('name', 'latest_stores_sort_by_general')->where('type', 'general')->first()?->value ?? '';
-        $latest_stores_sort_by_unavailable = PriorityList::where('name', 'latest_stores_sort_by_unavailable')->where('type', 'unavailable')->first()?->value ?? '';
-        $latest_stores_sort_by_temp_closed = PriorityList::where('name', 'latest_stores_sort_by_temp_closed')->where('type', 'temp_closed')->first()?->value ?? '';
+    $latest_stores_default_status =BusinessSetting::where('key', 'latest_stores_default_status')->first()?->value ?? 1;
+    $latest_stores_sort_by_general =PriorityList::where('name', 'latest_stores_sort_by_general')->where('type','general')->first()?->value ?? '';
+    $latest_stores_sort_by_unavailable =PriorityList::where('name', 'latest_stores_sort_by_unavailable')->where('type','unavailable')->first()?->value ?? '';
+    $latest_stores_sort_by_temp_closed =PriorityList::where('name', 'latest_stores_sort_by_temp_closed')->where('type','temp_closed')->first()?->value ?? '';
 
 
 
 
-        $query = Store::withOpen($longitude ?? 0, $latitude ?? 0)
-            ->withCount(['items', 'campaigns'])
-            ->with([
-                'discount' => function ($q) {
-                    return $q->validate();
-                },
-                'vouchers' => function ($q) {
-                    $q->select(
-                        'id',
-                        'store_id',
-                        'category_id',
-                        'name',
-                        'price',
-                        'discount',
-                        'type',
-                        'created_at'
-                    );
-                }
-            ])
-            ->when(config('module.current_module_data'), function ($query) use ($zone_id) {
-                $query->whereHas('zone.modules', function ($query) {
+    $query = Store::withOpen($longitude??0,$latitude??0)
+            ->withCount(['items','campaigns'])
+            ->with(['discount'=>function($q){
+                return $q->validate();
+            }])
+            ->when(config('module.current_module_data'), function($query)use($zone_id){
+                $query->whereHas('zone.modules', function($query){
                     $query->where('modules.id', config('module.current_module_data')['id']);
                 })->module(config('module.current_module_data')['id']);
-                if (!config('module.current_module_data')['all_zone_service']) {
+                if(!config('module.current_module_data')['all_zone_service']) {
                     $query->whereIn('zone_id', json_decode($zone_id, true));
                 }
             })
@@ -228,81 +214,54 @@ class StoreLogic
 
 
 
-        if ($latest_stores_default_status == '1') {
-            $query = $query->latest();
-        } else {
-            if ($latest_stores_sort_by_unavailable == 'remove') {
-                $query = $query->where('active', '>', 0);
-            } elseif ($latest_stores_sort_by_unavailable == 'last') {
-                $query = $query->orderByDesc('active');
-            }
-
-            if ($latest_stores_sort_by_temp_closed == 'remove') {
-                $query = $query->having('open', '>', 0);
-            } elseif ($latest_stores_sort_by_temp_closed == 'last') {
-                $query = $query->orderBy('open', 'desc');
-            }
-
-            if ($latest_stores_sort_by_general == 'rating') {
-                $query = $query->selectSub(function ($query) {
-                    $query->selectRaw('AVG(reviews.rating)')
-                        ->from('reviews')
-                        ->join('items', 'items.id', '=', 'reviews.item_id')
-                        ->whereColumn('items.store_id', 'stores.id')
-                        ->groupBy('items.store_id');
-                }, 'avg_r')->orderBy('avg_r', 'desc');
-            } elseif ($latest_stores_sort_by_general == 'review_count') {
-                $query = $query->orderByDesc('reviews_count');
-            } elseif ($latest_stores_sort_by_general == 'order_count') {
-                $query = $query->orderBy('orders_count', 'desc');
-            } elseif ($latest_stores_sort_by_general == 'latest_created') {
+            if($latest_stores_default_status == '1'){
                 $query = $query->latest();
-            } elseif ($latest_stores_sort_by_general == 'first_created') {
-                $query = $query->oldest();
-            } elseif ($latest_stores_sort_by_general == 'a_to_z') {
-                $query = $query->orderBy('name');
-            } elseif ($latest_stores_sort_by_general == 'z_to_a') {
-                $query = $query->orderByDesc('name');
-            }
-        }
+            } else{
 
+                if($latest_stores_default_status != '1') {
+                    if($latest_stores_sort_by_unavailable == 'remove'){
+                        $query = $query->where('active', '>', 0);
+                    }elseif($latest_stores_sort_by_unavailable == 'last'){
+                        $query = $query->orderByDesc('active');
+                    }
 
+                    if($latest_stores_sort_by_temp_closed == 'remove'){
+                        $query = $query->having('open', '>', 0);
+                    }elseif($latest_stores_sort_by_temp_closed == 'last'){
+                        $query = $query->orderBy('open', 'desc');
+                    }
 
-
-        $paginator = $query->paginate($limit ?? 50, ['*'], 'page', $offset ?? 1);
-
-        $paginator->each(function ($store) {
-            // Category IDs
-            $category_ids = DB::table('items')
-                ->join('categories', 'items.category_id', '=', 'categories.id')
-                ->where('items.store_id', $store->id)
-                ->where('categories.status', 1)
-                ->selectRaw('CAST(categories.id AS UNSIGNED) as id, categories.parent_id')
-                ->groupBy('id', 'categories.parent_id')
-                ->get();
-
-            $mergedIds = [];
-            foreach ($category_ids as $item) {
-                if ($item->id) {
-                    $mergedIds[] = $item->id;
+                    if($latest_stores_sort_by_general == 'rating') {
+                        $query = $query->selectSub(function ($query) {
+                            $query->selectRaw('AVG(reviews.rating)')
+                                ->from('reviews')
+                                ->join('items', 'items.id', '=', 'reviews.item_id')
+                                ->whereColumn('items.store_id', 'stores.id')
+                                ->groupBy('items.store_id');
+                        }, 'avg_r')->orderBy('avg_r', 'desc');
+                    }elseif($latest_stores_sort_by_general == 'review_count') {
+                        $query = $query->orderByDesc('reviews_count');
+                    }elseif($latest_stores_sort_by_general == 'order_count') {
+                        $query = $query->orderBy('orders_count', 'desc');
+                    }elseif($latest_stores_sort_by_general == 'latest_created') {
+                        $query = $query->latest();
+                    }elseif($latest_stores_sort_by_general == 'first_created') {
+                        $query = $query->oldest();
+                    }elseif($latest_stores_sort_by_general == 'a_to_z') {
+                        $query = $query->orderBy('name');
+                    }elseif($latest_stores_sort_by_general == 'z_to_a') {
+                        $query = $query->orderByDesc('name');
+                    }
                 }
-                if ($item->parent_id) {
-                    $mergedIds[] = $item->parent_id;
-                }
             }
 
-            $store->category_ids = array_values(array_unique($mergedIds));
 
-            // ✅ Discount check (items OR vouchers)
-            $store->discount_status =
-                $store->items()->where('discount', '>', 0)->exists()
-                || $store->vouchers->where('discount', '>', 0)->isNotEmpty();
-        });
+            $paginator = $query->paginate($limit??50, ['*'], 'page', $offset??1);
 
         return [
             'total_size' => $paginator->total(),
-            'limit' => $limit ?? 50,
-            'offset' => $offset ?? 1,
+            'limit' => $limit??50,
+            'offset' => $offset??1,
             'stores' => $paginator->items()
         ];
     }
@@ -896,22 +855,8 @@ class StoreLogic
         if(config('module.current_module_data')){
             $shuffle= DataSetting::where(['key' => 'shuffle_recommended_store' , 'type' => config('module.current_module_data')['id']])?->first()?->value;
         }
-        $query = Store::withOpen($longitude ?? 0, $latitude ?? 0)
-            ->withCount(['items', 'campaigns'])
-            ->with([
-                'vouchers' => function ($q) {
-                    $q->select(
-                        'id',
-                        'store_id',
-                        'category_id',
-                        'name',
-                        'price',
-                        'discount',
-                        'type',
-                        'created_at'
-                    );
-                }
-            ])
+        $query = Store::withOpen($longitude??0,$latitude??0)
+            ->withCount(['items','campaigns'])
             ->wherehas('storeConfig', function ($q){
                 $q->where(['is_recommended_deleted'=> 0 , 'is_recommended' => 1]);
             })
@@ -986,44 +931,12 @@ class StoreLogic
             }
 
         }
-
-
-
-
-        $paginator = $query->paginate($limit ?? 50, ['*'], 'page', $offset ?? 1);
-
-        $paginator->each(function ($store) {
-            // Category IDs
-            $category_ids = DB::table('items')
-                ->join('categories', 'items.category_id', '=', 'categories.id')
-                ->where('items.store_id', $store->id)
-                ->where('categories.status', 1)
-                ->selectRaw('CAST(categories.id AS UNSIGNED) as id, categories.parent_id')
-                ->groupBy('id', 'categories.parent_id')
-                ->get();
-
-            $mergedIds = [];
-            foreach ($category_ids as $item) {
-                if ($item->id) {
-                    $mergedIds[] = $item->id;
-                }
-                if ($item->parent_id) {
-                    $mergedIds[] = $item->parent_id;
-                }
-            }
-
-            $store->category_ids = array_values(array_unique($mergedIds));
-
-            // ✅ Discount check (items OR vouchers)
-            $store->discount_status =
-                $store->items()->where('discount', '>', 0)->exists()
-                || $store->vouchers->where('discount', '>', 0)->isNotEmpty();
-        });
+        $paginator = $query->paginate($limit??50, ['*'], 'page', $offset??1);
 
         return [
             'total_size' => $paginator->total(),
-            'limit' => $limit ?? 50,
-            'offset' => $offset ?? 1,
+            'limit' => $limit??50,
+            'offset' => $offset??1,
             'stores' => $paginator->items()
         ];
     }

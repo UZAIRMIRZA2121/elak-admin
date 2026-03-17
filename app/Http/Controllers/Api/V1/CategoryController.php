@@ -263,6 +263,7 @@ class CategoryController extends Controller
 
         $data = CategoryLogic::stores($id, $zone_id, $request['limit'], $request['offset'], $type, $longitude, $latitude);
         $data['stores'] = Helpers::store_data_formatting($data['stores'], true);
+        // dd($data['stores']);
         return response()->json($data, 200);
     }
 
@@ -347,7 +348,6 @@ class CategoryController extends Controller
     {
 
         $avg_items = Item::where('order_count', '>=', 1)->avg('order_count') ?? 0;
-
         $items = Item::where('order_count', '>', $avg_items)->pluck('category_ids');
         $get_popular_category_ids = $items->flatMap(function ($categoryIds) {
             $categories = json_decode($categoryIds, true);

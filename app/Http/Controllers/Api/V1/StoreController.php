@@ -73,7 +73,7 @@ class StoreController extends Controller
         $latitude= $request->header('latitude');
         $stores = StoreLogic::get_popular_stores($zone_id, $request['limit'], $request['offset'], $type,$longitude,$latitude);
         $stores['stores'] = Helpers::store_data_formatting($stores['stores'], true);
-
+        // dd("sdsd");
         return response()->json($stores, 200);
     }
 
