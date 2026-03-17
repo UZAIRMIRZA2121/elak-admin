@@ -193,9 +193,6 @@ class StoreLogic
         $latest_stores_sort_by_unavailable = PriorityList::where('name', 'latest_stores_sort_by_unavailable')->where('type', 'unavailable')->first()?->value ?? '';
         $latest_stores_sort_by_temp_closed = PriorityList::where('name', 'latest_stores_sort_by_temp_closed')->where('type', 'temp_closed')->first()?->value ?? '';
 
-
-
-
         $query = Store::withOpen($longitude ?? 0, $latitude ?? 0)
             ->withCount(['items', 'campaigns'])
             ->with([
