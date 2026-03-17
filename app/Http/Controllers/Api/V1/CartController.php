@@ -129,37 +129,37 @@ class CartController extends Controller
             ], 403);
         }
             
-        if ($item->voucher_ids === 'Flat discount') {
-            $config = json_decode($item->discount_configuration, true); // Decode JSON to array
+        // if ($item->voucher_ids === 'Flat discount') {
+        //     $config = json_decode($item->discount_configuration, true); // Decode JSON to array
 
-            $price = $request->price;
-            $selectedTier = null;
+        //     $price = $request->price;
+        //     $selectedTier = null;
          
-            // Loop through config to find matching tier
-            foreach ($config as $row) {
-                if ($price >= $row['min_amount'] && $price <= $row['max_amount']) {
-                    $selectedTier = $row;
-                    break;
-                }
-            }
+        //     // Loop through config to find matching tier
+        //     foreach ($config as $row) {
+        //         if ($price >= $row['min_amount'] && $price <= $row['max_amount']) {
+        //             $selectedTier = $row;
+        //             break;
+        //         }
+        //     }
 
-            // Check if a tier was found
-            if ($selectedTier) {
-                // Price is valid, continue processing
-                // Example: calculate bonus
-                $bonus = ($price * $selectedTier['bonus_percentage']) / 100;
-                $totalPaid = $price - $bonus;
+        //     // Check if a tier was found
+        //     if ($selectedTier) {
+        //         // Price is valid, continue processing
+        //         // Example: calculate bonus
+        //         $bonus = ($price * $selectedTier['bonus_percentage']) / 100;
+        //         $totalPaid = $price - $bonus;
 
-                // Continue your logic
-                // dd($selectedTier, $bonus, $totalPaid);
-            } else {
-                // Price does not fall in any tier, return error
-                return response()->json([
-                    'status' => 'error',
-                    'message' => 'The price does not qualify for any discount tier for this voucher.'
-                ], 400);
-            }
-        }
+        //         // Continue your logic
+        //         // dd($selectedTier, $bonus, $totalPaid);
+        //     } else {
+        //         // Price does not fall in any tier, return error
+        //         return response()->json([
+        //             'status' => 'error',
+        //             'message' => 'The price does not qualify for any discount tier for this voucher.'
+        //         ], 400);
+        //     }
+        // }
 
 
         $cart = new Cart();
