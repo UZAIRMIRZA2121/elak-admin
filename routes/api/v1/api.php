@@ -212,9 +212,9 @@ Route::group(['namespace' => 'Api\V1', 'middleware' => 'localization'], function
 
     Route::group(['prefix' => 'vendor', 'namespace' => 'Vendor', 'middleware' => ['vendor.api', 'actch:vendor_app']], function () {
 
-
+        Route::post('/scanning-voucher', 'VendorController@orderScanUpdate')->name('scan');
         Route::get('/flat-request', 'VendorController@new_flat_request');
-        Route::get('flat-request/{id}/{status}', 'VendorController@updateStatus');
+        Route::put('/flat-request/{id}/{status}', 'VendorController@updateStatus');
 
 
         Route::get('notifications', 'VendorController@get_notifications');
