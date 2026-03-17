@@ -558,7 +558,7 @@ trait PlaceNewOrder
                                 ], 403);
                             }
                         }
-
+                       
                         SoldVoucher::create([
                         'user_id' => $order->user_id,
                         'voucher_id' => $cart->item_id,

@@ -67,32 +67,32 @@ class CustomerLogic
 
           $order = Order::where(['id' => $referance, 'user_id' => $user_id])->first();
 
-        // if ($order->voucher_type == 'Flat discount') {
-        //     if ($order->transaction == null) {
-        //         $unpaid_payment = OrderPayment::where('payment_status', 'unpaid')->where('order_id', $order->id)->first()?->payment_method;
-        //         $unpaid_pay_method = 'digital_payment';
-        //         if ($unpaid_payment) {
-        //             $unpaid_pay_method = $unpaid_payment;
-        //         }
-        //         if ($order->payment_method == 'cash_on_delivery' || $unpaid_pay_method == 'cash_on_delivery') {
-        //             $ol = OrderLogic::create_transaction($order, 'store', null);
-        //         } else {
-        //             $ol = OrderLogic::create_transaction($order, 'admin', null);
-        //         }
-        //         if (!$ol) {
-        //             Toastr::warning(translate('messages.faield_to_create_order_transaction'));
-        //             return back();
-        //         }
-        //         $order->order_status = 'delivered';
-        //         $order->delivered = Carbon::now();
-        //         $order->save();
-        //     }
+        if ($order->voucher_type == 'Flat discount') {
+            if ($order->transaction == null) {
+                $unpaid_payment = OrderPayment::where('payment_status', 'unpaid')->where('order_id', $order->id)->first()?->payment_method;
+                $unpaid_pay_method = 'digital_payment';
+                if ($unpaid_payment) {
+                    $unpaid_pay_method = $unpaid_payment;
+                }
+                if ($order->payment_method == 'cash_on_delivery' || $unpaid_pay_method == 'cash_on_delivery') {
+                    $ol = OrderLogic::create_transaction($order, 'store', null);
+                } else {
+                    $ol = OrderLogic::create_transaction($order, 'admin', null);
+                }
+                if (!$ol) {
+                    Toastr::warning(translate('messages.faield_to_create_order_transaction'));
+                    return back();
+                }
+                $order->order_status = 'delivered';
+                $order->delivered = Carbon::now();
+                $order->save();
+            }
 
-        //     $order->payment_status = 'paid';
+            $order->payment_status = 'paid';
 
-        //     OrderLogic::update_unpaid_order_payment(order_id: $order->id, payment_method: $order->payment_method);
+            OrderLogic::update_unpaid_order_payment(order_id: $order->id, payment_method: $order->payment_method);
 
-        // }
+        }
 
 
         try {
