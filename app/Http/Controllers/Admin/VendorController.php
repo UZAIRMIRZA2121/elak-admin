@@ -59,14 +59,14 @@ class VendorController extends Controller
     public function index()
     {
 
-        
+
         return view('admin-views.vendor.index');
     }
 
     public function store(Request $request)
     {
-        
-         dd($request->all());
+
+
         $rules = [
 
             'name.0' => 'required',
@@ -135,7 +135,7 @@ class VendorController extends Controller
 
         if ($request->zone_id) {
             $zone = Zone::query()
-                ->whereContains('coordinates', new Point((float)$request->latitude, (float)$request->longitude, POINT_SRID))
+                ->whereContains('coordinates', new Point((float) $request->latitude, (float) $request->longitude, POINT_SRID))
                 ->where('id', $request->zone_id)
                 ->first();
             if (!$zone) {
@@ -323,7 +323,7 @@ class VendorController extends Controller
     public function update(Request $request, Store $store)
     {
 
-   
+
         $rules = [
 
             'name.0' => 'required',
@@ -394,7 +394,7 @@ class VendorController extends Controller
 
         if ($request->zone_id) {
             $zone = Zone::query()
-                ->whereContains('coordinates', new Point((float)$request->latitude, (float)$request->longitude, POINT_SRID))
+                ->whereContains('coordinates', new Point((float) $request->latitude, (float) $request->longitude, POINT_SRID))
                 ->where('id', $request->zone_id)
                 ->first();
             if (!$zone) {
@@ -610,6 +610,7 @@ class VendorController extends Controller
 
     public function view(Request $request, $store_id, $tab = null, $sub_tab = 'cash')
     {
+
         $voucher_ids = $request->voucher_ids;
         $bundle_type = $request->bundle_type;
         $category_search = $request->category;
@@ -617,6 +618,8 @@ class VendorController extends Controller
         $item_type = $request?->item_type;
         $key = explode(' ', request()->search);
         $store = Store::findOrFail($store_id);
+
+
 
         //    dd($item_type);
 
@@ -663,9 +666,6 @@ class VendorController extends Controller
                 ->Notpos()->paginate(10);
             return view('admin-views.vendor.view.order', compact('store', 'orders'));
         } else if ($tab == 'voucher') {
-
-
-
             if ($sub_tab == 'pending-items' || $sub_tab == 'rejected-items') {
 
                 $foods = TempProduct::withoutGlobalScope(\App\Scopes\StoreScope::class)->where('store_id', $store->id)->where('type', 'voucher')
@@ -733,13 +733,13 @@ class VendorController extends Controller
 
 
             if ($sub_tab == 'pending-items' || $sub_tab == 'rejected-items') {
-              
+
 
                 $foods = TempProduct::withoutGlobalScope(\App\Scopes\StoreScope::class)
                     ->where('store_id', $store->id)
                     ->whereIn('type', ['Product', 'Food'])
-                    
-               
+
+
                     ->when(isset($key), function ($q) use ($key) {
                         $q->where(function ($q) use ($key) {
                             foreach ($key as $value) {
@@ -760,12 +760,12 @@ class VendorController extends Controller
             } else {
 
 
-            
+
 
                 $foods = Item::withoutGlobalScope(\App\Scopes\StoreScope::class)
                     ->where('store_id', $store->id)
-                     ->where('type', 'food')
-                     ->orwhere('type', 'product')
+                    ->where('type', 'food')
+                    ->orwhere('type', 'product')
                     ->when(isset($key), function ($q) use ($key) {
                         $q->where(function ($q) use ($key) {
                             foreach ($key as $value) {
@@ -796,7 +796,7 @@ class VendorController extends Controller
             $taxData = Helpers::getTaxSystemType(getTaxVatList: false);
             $productWiseTax = $taxData['productWiseTax'];
 
-           
+
             return view('admin-views.vendor.view.product', compact('store', 'foods', 'sub_tab', 'productWiseTax'));
         } else if ($tab == 'discount') {
 
@@ -854,7 +854,69 @@ class VendorController extends Controller
 
 
 
+        } else if ($tab == 'all_business_stat') {
+
+
+            $store = Store::where('id', $store->id)->with([
+                'store_sub_update_application.package',
+                'vendor',
+                'store_sub_update_application.last_transcations',
+                'module:id,module_type'
+            ])->withcount('items')
+                ->first();
+            $packages = SubscriptionPackage::where('status', 1)
+                ->where('module_type', $store?->module?->module_type == 'rental' && addon_published_status('Rental') ? 'rental' : 'all')
+                ->latest()->get();
+            $admin_commission = BusinessSetting::where('key', 'admin_commission')->first()?->value;
+            $business_name = BusinessSetting::where('key', 'business_name')->first()?->value;
+            try {
+                $index = $store->store_business_model == 'commission' ? 0 : 1 + array_search($store?->store_sub_update_application?->package_id ?? 1, array_column($packages->toArray(), 'id'));
+            } catch (\Throwable $th) {
+                $index = 2;
+            }
+            return view('admin-views.vendor.view.subscription', compact('store', 'packages', 'business_name', 'admin_commission', 'index'));
+
+
+
+        } else if ($tab == 'all_stats') {
+
+
+
+
+            // Main branch
+            $main_branch = $store->parent_id ? $store->parent : $store;
+
+            // Merge main + children
+            $branches = collect([$main_branch])->merge($main_branch->children);
+
+            // Totals
+            $totals = [
+                'collected_cash' => 0,
+                'pending_withdraw' => 0,
+                'total_withdrawn' => 0,
+                'balance' => 0,
+                'total_earning' => 0,
+            ];
+
+            foreach ($branches as $branch) {
+                $wallet = optional($branch->vendor)->wallet;
+
+                $totals['collected_cash'] += $wallet->collected_cash ?? 0;
+                $totals['pending_withdraw'] += $wallet->pending_withdraw ?? 0;
+                $totals['total_withdrawn'] += $wallet->total_withdrawn ?? 0;
+                $totals['balance'] += ($wallet && $wallet->balance > 0) ? $wallet->balance : 0;
+                $totals['total_earning'] += $wallet->total_earning ?? 0;
+            }
+
+
+
+            return view('admin-views.vendor.view.all-stats', compact('store', 'main_branch', 'branches', 'totals'));
+
+
         }
+
+
+
 
         return view('admin-views.vendor.view.index', compact('store', 'wallet'));
     }

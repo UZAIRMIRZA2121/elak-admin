@@ -12,7 +12,9 @@
 
         @include('admin-views.vendor.view.partials._header', ['store' => $store])
 
-        <!-- Page Heading -->
+
+
+
         @if ($store->vendor->status)
             <div class="row g-3 text-capitalize">
                 <!-- Earnings (Monthly) Card Example -->
@@ -48,7 +50,8 @@
                                     {{ \App\CentralLogics\Helpers::format_currency($wallet->pending_withdraw) }}</h4>
                                 <div class="subtitle">{{ translate('messages.pending_withdraw') }}</div>
                                 <img class="resturant-icon w--30"
-                                    src="{{ asset('public/assets/admin/img/transactions/pending.png') }}" alt="transaction">
+                                    src="{{ asset('public/assets/admin/img/transactions/pending.png') }}"
+                                    alt="transaction">
                             </div>
                         </div>
 
@@ -93,6 +96,8 @@
                 </div>
             </div>
         @endif
+
+
         <div class="card mt-4">
             <div class="card-header">
                 <h5 class="card-title m-0 d-flex align-items-center">
@@ -375,12 +380,12 @@
                                 <li>
                                     @if ($store->agreement_certificate_image)
                                         <?php
-                                            $agreements = json_decode($store->agreement_certificate_image, true);
+                                        $agreements = json_decode($store->agreement_certificate_image, true);
                                         ?>
 
                                         @foreach ($agreements as $agreement)
                                             <?php
-                                                $ext = pathinfo($agreement, PATHINFO_EXTENSION);
+                                            $ext = pathinfo($agreement, PATHINFO_EXTENSION);
                                             ?>
 
                                             @if (in_array(strtolower($ext), ['jpg', 'jpeg', 'png', 'gif']))

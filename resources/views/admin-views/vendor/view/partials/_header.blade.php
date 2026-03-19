@@ -77,6 +77,9 @@
 
             <!-- Nav -->
             <ul class="nav nav-tabs page-header-tabs mb-2">
+                  <li class="nav-item">
+                    <a class="nav-link  {{request('tab')=='all_stats'?'active':''}}" href="{{route('admin.store.view', ['store'=>$store->id, 'tab'=> 'all_stats'])}}">{{translate('messages.all_stats')}}</a>
+                </li>
                 <li class="nav-item">
                     <a class="nav-link {{request('tab')==null?'active':''}}" href="{{route('admin.store.view', $store->id)}}">{{translate('messages.overview')}}</a>
                 </li>

@@ -123,6 +123,7 @@ class VoucherController extends Controller
     {
 
         $categories = Category::where(['position' => 0])->get();
+
         $stores = store::all();
         $taxData = Helpers::getTaxSystemType();
         $productWiseTax = $taxData['productWiseTax'];
@@ -134,9 +135,11 @@ class VoucherController extends Controller
     }
     public function index(Request $request)
     {
-        // dd("dsvbfhjdv");
-        $stores = store::where('type','main')->get();
-        $categories = Category::where(['position' => 0])->where(['parent_id' => 0])->get();
+        $module_id = Config::get('module.current_module_id');
+
+        $stores = store::where('type', 'main')->get();
+        $categories = Category::where(['position' => 0])->where(['parent_id' => 0])->where(['module_id' => $module_id])->get();
+
         $taxData = Helpers::getTaxSystemType();
         $productWiseTax = $taxData['productWiseTax'];
         $taxVats = $taxData['taxVats'];
@@ -195,7 +198,7 @@ class VoucherController extends Controller
         $VoucherSetting = VoucherSetting::selectRaw('MIN(id) as id, title_name')
             ->groupBy('title_name')
             ->get();
-    // dd($VoucherSetting);
+        // dd($VoucherSetting);
         // $UsageTermManagement = UsageTermManagement::get();
         // dd($UsageTermManagement);
         return response()->json([
@@ -245,13 +248,15 @@ class VoucherController extends Controller
                 ->where('voucher_ids', 'Gift')
                 ->where('type', 'voucher')
                 ->first();
-            
+
             if ($existingGiftVoucher) {
                 return response()->json([
-                    'errors' => [[
-                        'code' => 'gift_voucher_exists',
-                        'message' => translate('messages.store_already_has_gift_voucher') ?: 'This store already has a gift voucher. Each store can only have one gift voucher.'
-                    ]]
+                    'errors' => [
+                        [
+                            'code' => 'gift_voucher_exists',
+                            'message' => translate('messages.store_already_has_gift_voucher') ?: 'This store already has a gift voucher. Each store can only have one gift voucher.'
+                        ]
+                    ]
                 ], 422);
             }
         }
@@ -321,14 +326,16 @@ class VoucherController extends Controller
                     ->where('type', 'voucher')
                     ->where('id', '!=', $id)
                     ->first();
-                
+
                 if ($existingGiftVoucher) {
                     DB::rollBack();
                     return response()->json([
-                        'errors' => [[
-                            'code' => 'gift_voucher_exists',
-                            'message' => translate('messages.store_already_has_gift_voucher') ?: 'This store already has a gift voucher. Each store can only have one gift voucher.'
-                        ]]
+                        'errors' => [
+                            [
+                                'code' => 'gift_voucher_exists',
+                                'message' => translate('messages.store_already_has_gift_voucher') ?: 'This store already has a gift voucher. Each store can only have one gift voucher.'
+                            ]
+                        ]
                     ], 422);
                 }
             }
@@ -434,7 +441,7 @@ class VoucherController extends Controller
                 // 'delivery_options' => 'required',
                 'type' => 'required',
                 'min_max_amount' => 'required',
-                 'voucher_title' => 'required',
+                'voucher_title' => 'required',
                 'item_images' => $imageValidation,
                 'image' => $imageValidation,
                 'description' => 'required',
@@ -626,7 +633,7 @@ class VoucherController extends Controller
         $item->description = $request->description;
         $item->discount_configuration = json_encode(array_filter($request->bonus_tiers ?? []));
         $item->discount_type = $request->discount_type ?? 0;
-           $item->discount_type = $request->discount_type;
+        $item->discount_type = $request->discount_type;
         $item->offer_type = $request->offer_type;
     }
 
@@ -650,16 +657,16 @@ class VoucherController extends Controller
         $item->validity_period = json_encode($request->validity_period ?? []);
         $item->usage_restrictions = json_encode($request->usage_restrictions ?? []);
         $item->blackout_dates = json_encode($request->blackout_dates ?? []);
-           $item->discount_type = $request->discount_type;
+        $item->discount_type = $request->discount_type;
         $item->offer_type = $request->offer_type;
 
 
-           // Image data
-         $item->name = $request->voucher_title;
+        // Image data
+        $item->name = $request->voucher_title;
         $item->description = $request->description;
-         $item->tags_ids = $request->tags ?? null;
+        $item->tags_ids = $request->tags ?? null;
     }
-       // Helper Functions end
+    // Helper Functions end
     public function view_voucher($id)
     {
         $taxData = Helpers::getTaxSystemType();
@@ -710,12 +717,12 @@ class VoucherController extends Controller
         }
 
         $branchIds = json_decode($product->branch_ids, true);
-        
+
         // Ensure branchIds is an array, default to empty array if null
         if (!is_array($branchIds) || empty($branchIds)) {
             $branchIds = [];
         }
-        
+
         $product->branches = Store::whereIn('parent_id', $branchIds)
             ->orWhereIn('id', $branchIds)
             ->where('status', 1)
@@ -767,33 +774,33 @@ class VoucherController extends Controller
                 }
 
                 // Query related models.  
-                $product->HolidayOccasion = ($holidays instanceof \Illuminate\Support\Collection) 
-                    ? $holidays 
-                    : (!empty($holidays) ? (\App\Models\HolidayOccasion::whereIn('id', (array)$holidays)->get()) : collect());
+                $product->HolidayOccasion = ($holidays instanceof \Illuminate\Support\Collection)
+                    ? $holidays
+                    : (!empty($holidays) ? (\App\Models\HolidayOccasion::whereIn('id', (array) $holidays)->get()) : collect());
 
-                $product->CustomBlackoutDates = ($blackoutDates instanceof \Illuminate\Support\Collection) 
-                    ? $blackoutDates 
-                    : (!empty($blackoutDates) ? (\App\Models\CustomBlackoutData::whereIn('id', (array)$blackoutDates)->get()) : collect());
+                $product->CustomBlackoutDates = ($blackoutDates instanceof \Illuminate\Support\Collection)
+                    ? $blackoutDates
+                    : (!empty($blackoutDates) ? (\App\Models\CustomBlackoutData::whereIn('id', (array) $blackoutDates)->get()) : collect());
 
-                $product->GeneralRestrictions = ($generalRestrictions instanceof \Illuminate\Support\Collection) 
-                    ? $generalRestrictions 
-                    : (!empty($generalRestrictions) ? (\App\Models\GeneralRestriction::whereIn('id', (array)$generalRestrictions)->get()) : collect());
+                $product->GeneralRestrictions = ($generalRestrictions instanceof \Illuminate\Support\Collection)
+                    ? $generalRestrictions
+                    : (!empty($generalRestrictions) ? (\App\Models\GeneralRestriction::whereIn('id', (array) $generalRestrictions)->get()) : collect());
 
                 // Fetch Age Restriction and Group Size models
                 $age_restrictions = $product->VoucherSetting->age_restriction;
                 if (is_array($age_restrictions) && count($age_restrictions) > 0 && is_array($age_restrictions[0])) {
                     $age_restrictions = array_column($age_restrictions, 'id');
                 }
-                $product->AgeRestrictions = !empty($age_restrictions) 
-                    ? \App\Models\AgeRestrictin::whereIn('id', (array)$age_restrictions)->get() 
+                $product->AgeRestrictions = !empty($age_restrictions)
+                    ? \App\Models\AgeRestrictin::whereIn('id', (array) $age_restrictions)->get()
                     : collect();
 
                 $group_sizes = $product->VoucherSetting->group_size_requirement;
                 if (is_array($group_sizes) && count($group_sizes) > 0 && is_array($group_sizes[0])) {
                     $group_sizes = array_column($group_sizes, 'id');
                 }
-                $product->GroupSizes = !empty($group_sizes) 
-                    ? \App\Models\GroupSizeRequirement::whereIn('id', (array)$group_sizes)->get() 
+                $product->GroupSizes = !empty($group_sizes)
+                    ? \App\Models\GroupSizeRequirement::whereIn('id', (array) $group_sizes)->get()
                     : collect();
             } else {
                 // VoucherSetting null hai, empty collections assign karo
@@ -1270,9 +1277,9 @@ class VoucherController extends Controller
                 return $query->whereHas('category', function ($q) use ($category_id) {
                     return $q->whereId($category_id)->orWhere('parent_id', $category_id);
                 });
-            })->when(isset($request->product_gallery) && $request->product_gallery == 1, function($query){
+            })->when(isset($request->product_gallery) && $request->product_gallery == 1, function ($query) {
                 return $query->where('type', 'voucher');
-            }, function($query){
+            }, function ($query) {
                 return $query->module(Config::get('module.current_module_id'));
             })->where('is_approved', 1);
 
@@ -2198,8 +2205,8 @@ class VoucherController extends Controller
     //     $foods = Item::withoutGlobalScope(\App\Scopes\StoreScope::class)
     //         ->where('store_id', $request->store)
     //         ->whereIn('type', ['Product', 'Food'])
-            
-        
+
+
     //         ->when(isset($key), function ($q) use ($key) {
     //             $q->where(function ($q) use ($key) {
     //                 foreach ($key as $value) {
@@ -2211,7 +2218,7 @@ class VoucherController extends Controller
     //             $query->where('category_id', 'like', "%{$category_search}%");
     //         })
     //         ->latest()->paginate(25);
-         
+
 
     //         // dd($store->id);
 
@@ -2220,7 +2227,7 @@ class VoucherController extends Controller
 
     //         dd($foods);
     //         return view('admin-views.voucher.product_gallery', compact( 'foods',  'productWiseTax'));
-      
+
     // }
 
     public function product_gallery(Request $request)
@@ -2239,7 +2246,7 @@ class VoucherController extends Controller
                 return $query->where('store_id', $store_id);
             })
             ->when(is_numeric($category_id), function ($query) use ($category_id) {
-                return $query->whereRaw("JSON_CONTAINS(category_ids, '{\"id\": \"".$category_id."\"}')");
+                return $query->whereRaw("JSON_CONTAINS(category_ids, '{\"id\": \"" . $category_id . "\"}')");
             })
             ->when($request['search'], function ($query) use ($key) {
                 return $query->where(function ($q) use ($key) {
@@ -2259,10 +2266,10 @@ class VoucherController extends Controller
         // dd();
         $store = $store_id != 'all' ? Store::findOrFail($store_id) : null;
         $category = $category_id != 'all' ? Category::findOrFail($category_id) : null;
-        
+
         $taxData = Helpers::getTaxSystemType();
         $productWiseTax = $taxData['productWiseTax'];
-        
+
         return view('admin-views.voucher.product_gallery', compact('items', 'store', 'category', 'type', 'productWiseTax'));
     }
 
