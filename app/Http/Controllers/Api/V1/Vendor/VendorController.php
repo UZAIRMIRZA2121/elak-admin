@@ -1477,6 +1477,23 @@ class VendorController extends Controller
                 'phone' => $cart->user->phone
             ];
 
+        $cart_total = $cart->total_price;
+
+        $configs = json_decode($cart->item->discount_configuration, true);
+
+        $matched_config = null;
+
+        if (!empty($configs)) {
+            foreach ($configs as $config) {
+                if ($cart_total >= $config['min_amount'] && $cart_total <= $config['max_amount']) {
+                    $matched_config = $config;
+                    break;
+                }
+            }
+        }
+            // dd($matched_config);
+   
+
 
         return response()->json([
             'success' => true,
@@ -1490,6 +1507,7 @@ class VendorController extends Controller
                 'discount_amount' => $cart->discount_amount,
                 'status' => $cart->status,
                 'type' => $cart->type,
+                'matched_config' => $matched_config,
                 'created' => strtotime($cart->created_at)
             ],
 
@@ -1550,7 +1568,7 @@ class VendorController extends Controller
 
     public function orderScanUpdate(Request $request)
     {
-        
+
         $validator = Validator::make($request->all(), [
             'qr_code' => 'required'
         ]);
@@ -1564,11 +1582,11 @@ class VendorController extends Controller
 
         $qr_code = $request->qr_code;
 
-    
-  // 1️⃣ Get the current store ID
+
+        // 1️⃣ Get the current store ID
         $vendor = $request['vendor'];
 
-   
+
         $store = $vendor->store;
 
         if (!$store) {
@@ -1579,7 +1597,7 @@ class VendorController extends Controller
         }
 
         $order = Order::where('qr_code', $qr_code)->first();
-          
+
         if (!$order) {
             return response()->json([
                 'success' => false,
@@ -1597,98 +1615,98 @@ class VendorController extends Controller
         $setting = $order->voucher_setting;
 
         if ($setting) {
-              $now = Carbon::now();
-        $today = $now->toDateString();
+            $now = Carbon::now();
+            $today = $now->toDateString();
 
-        /*
-        VALIDITY PERIOD
-        */
-        if (!empty($setting['validity_period']['active'])) {
+            /*
+            VALIDITY PERIOD
+            */
+            if (!empty($setting['validity_period']['active'])) {
 
-            $start = $setting['validity_period']['start'] ?? null;
-            $end = $setting['validity_period']['end'] ?? null;
+                $start = $setting['validity_period']['start'] ?? null;
+                $end = $setting['validity_period']['end'] ?? null;
 
-            if ($start && $end) {
-                if ($today < $start || $today > $end) {
+                if ($start && $end) {
+                    if ($today < $start || $today > $end) {
+                        return response()->json([
+                            'success' => false,
+                            'message' => 'Voucher is not valid on this date.'
+                        ], 400);
+                    }
+                }
+            }
+
+            /*
+            BLACKOUT DATE
+            */
+            if (!empty($setting['custom_blackout_dates'])) {
+
+                foreach ($setting['custom_blackout_dates'] as $blackout) {
+                    if (!empty($blackout['date']) && $blackout['date'] == $today) {
+                        return response()->json([
+                            'success' => false,
+                            'message' => 'Voucher is not valid today (Blackout date).'
+                        ], 400);
+                    }
+                }
+            }
+
+            /*
+            HOLIDAY CHECK
+            */
+            if (!empty($setting['holidays_occasions'])) {
+
+                foreach ($setting['holidays_occasions'] as $holiday) {
+                    if ($today >= $holiday['start_date'] && $today <= $holiday['end_date']) {
+                        return response()->json([
+                            'success' => false,
+                            'message' => 'Voucher cannot be redeemed on holiday.'
+                        ], 400);
+                    }
+                }
+            }
+
+            /*
+            VALIDITY AFTER PURCHASE
+            */
+            if (!empty($setting['offer_validity_after_purchase']['value'])) {
+
+                $days = (int) $setting['offer_validity_after_purchase']['value'];
+                $expiryDate = Carbon::parse($order->created_at)->addDays($days);
+
+                if ($now->greaterThan($expiryDate)) {
                     return response()->json([
                         'success' => false,
-                        'message' => 'Voucher is not valid on this date.'
+                        'message' => 'Voucher expired after purchase validity period.'
                     ], 400);
                 }
             }
-        }
 
-        /*
-        BLACKOUT DATE
-        */
-        if (!empty($setting['custom_blackout_dates'])) {
+            /*
+            STORE SCHEDULE
+            */
+            $todayDay = $now->dayOfWeek;
+            $todaySchedule = $store->schedules()->where('day', $todayDay)->first();
 
-            foreach ($setting['custom_blackout_dates'] as $blackout) {
-                if (!empty($blackout['date']) && $blackout['date'] == $today) {
-                    return response()->json([
-                        'success' => false,
-                        'message' => 'Voucher is not valid today (Blackout date).'
-                    ], 400);
-                }
-            }
-        }
-
-        /*
-        HOLIDAY CHECK
-        */
-        if (!empty($setting['holidays_occasions'])) {
-
-            foreach ($setting['holidays_occasions'] as $holiday) {
-                if ($today >= $holiday['start_date'] && $today <= $holiday['end_date']) {
-                    return response()->json([
-                        'success' => false,
-                        'message' => 'Voucher cannot be redeemed on holiday.'
-                    ], 400);
-                }
-            }
-        }
-
-        /*
-        VALIDITY AFTER PURCHASE
-        */
-        if (!empty($setting['offer_validity_after_purchase']['value'])) {
-
-            $days = (int) $setting['offer_validity_after_purchase']['value'];
-            $expiryDate = Carbon::parse($order->created_at)->addDays($days);
-
-            if ($now->greaterThan($expiryDate)) {
+            if (!$todaySchedule) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Voucher expired after purchase validity period.'
+                    'message' => 'Store is closed today.'
                 ], 400);
             }
-        }
 
-        /*
-        STORE SCHEDULE
-        */
-        $todayDay = $now->dayOfWeek;
-        $todaySchedule = $store->schedules()->where('day', $todayDay)->first();
+            $currentTime = $now->format('H:i:s');
 
-        if (!$todaySchedule) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Store is closed today.'
-            ], 400);
-        }
-
-        $currentTime = $now->format('H:i:s');
-
-        if ($currentTime < $todaySchedule->opening_time || $currentTime > $todaySchedule->closing_time) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Store is currently closed.'
-            ], 400);
-        }
+            if ($currentTime < $todaySchedule->opening_time || $currentTime > $todaySchedule->closing_time) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Store is currently closed.'
+                ], 400);
+            }
 
         }
 
-     
+
         /*
         SUCCESS REDEEM
         */
