@@ -32,6 +32,7 @@ class CategoryAddRequest extends FormRequest
             'name' => 'required|max:100',
             'name.0' => 'required',
             'image' => 'required_if:position,==,0',
+            'zone_ids' => 'nullable|array',
         ];
     }
 

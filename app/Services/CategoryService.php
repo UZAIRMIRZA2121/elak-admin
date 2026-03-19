@@ -34,6 +34,7 @@ class CategoryService
             'schedule_status' =>$request->has('schedule_status') ? 'active' : 'inactive',
             'start_date' => $request->start_date ?: null,
             'end_date' => $request->end_date ?: null,
+            'zone_ids' => isset($request->zone_ids) ? implode(',', $request->zone_ids) : null,
         ];
     }
 
@@ -49,6 +50,7 @@ class CategoryService
             'slug' => $object->slug ?? "{$slug}{$object->id}",
             'name' => $request->name[array_search('default', $request->lang)],
             'image' => $request->has('image') ? $this->updateAndUpload('category/', $object->image, 'png', $request->file('image')) : $object->image,
+            'zone_ids' => isset($request->zone_ids) ? implode(',', $request->zone_ids) : null,
         ];
     }
 

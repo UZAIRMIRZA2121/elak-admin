@@ -48,9 +48,9 @@ class Category extends Model
         'module_id',
         'products_count',
         'childes_count',
-        'schedule_status',
         'end_date',
         'start_date',
+        'zone_ids',
     ];
 
     protected $casts = [
@@ -191,5 +191,11 @@ class Category extends Model
     public function taxVats()
     {
         return $this->morphMany(Taxable::class, 'taxable');
+    }
+
+    public function getZonesAttribute()
+    {
+        $ids = explode(',', $this->zone_ids);
+        return Zone::whereIn('id', $ids)->get();
     }
 }

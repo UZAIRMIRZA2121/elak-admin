@@ -227,6 +227,7 @@ class VendorController extends Controller
 
 
 
+        $store->agreement_detail = $request->agreement_detail;
         $store->agreement_certificate_image = json_encode($certificate_paths);
 
 
@@ -367,6 +368,9 @@ class VendorController extends Controller
             'f_name' => 'nullable|max:100',
             'l_name' => 'nullable|max:100',
             'phone' => 'nullable|regex:/^([0-9\s\-\+\(\)]*)$/|min:10|max:20',
+            'bonus_tiers' => 'nullable|max:200',
+            'limit_to' => 'nullable|max:200',
+            'flate_discount' => 'nullable|max:200',
 
 
         ];
@@ -440,9 +444,9 @@ class VendorController extends Controller
         $store->zone_id = $request->zone_id;
 
         $store->bonus_tiers = $request->bonus_tiers;
-        // $store->limit_from = $request->limit_from;
-        // $store->limit_to = $request->limit_to;
-        // $store->flate_discount = $request->flate_discount;
+        $store->limit_from = $request->limit_from;
+        $store->limit_to = $request->limit_to;
+        $store->flate_discount = $request->flate_discount;
 
         $store->parent_id = $parent_id;
         $store->type = $type_value;
@@ -485,6 +489,7 @@ class VendorController extends Controller
             $request->delivery_time_type;
 
         $store->agreement_start_date = $request->agreement_start_date;
+        $store->agreement_detail = $request->agreement_detail;
         $store->agreement_expire_date = $request->agreement_expire_date;
 
         $store->staff_data = $request->staff_data;

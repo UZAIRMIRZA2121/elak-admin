@@ -31,6 +31,7 @@ class CategoryUpdateRequest extends FormRequest
         return [
             'name' => 'required|max:100',
             'name.0' => 'required',
+            'zone_ids' => 'nullable|array',
         ];
     }
 

@@ -20,6 +20,7 @@ use Exception;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
+use App\Models\Zone;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
@@ -69,8 +70,9 @@ class CategoryController extends BaseController
         $taxData = Helpers::getTaxSystemType();
         $categoryWiseTax = $taxData['categoryWiseTax'];
         $taxVats = $taxData['taxVats'];
+        $zones = Zone::active()->get();
 
-        return view($this->categoryService->getViewByPosition($request['position']), compact('categories','language','mainCategories','categoryWiseTax','taxVats'));
+        return view($this->categoryService->getViewByPosition($request['position']), compact('categories','language','mainCategories','categoryWiseTax','taxVats','zones'));
     }
 
     public function add(CategoryAddRequest $request): RedirectResponse
@@ -111,13 +113,13 @@ class CategoryController extends BaseController
     {
         $category = $this->categoryRepo->getFirstWithoutGlobalScopeWhere(params: ['id' => $id]);
         $language = getWebConfig('language');
-
         $taxData = Helpers::getTaxSystemType();
         $categoryWiseTax = $taxData['categoryWiseTax'];
         $taxVats = $taxData['taxVats'];
         $taxVatIds = $categoryWiseTax ? $category->taxVats()->pluck('tax_id')->toArray(): [];
+        $zones = Zone::active()->get();
 
-        return view(CategoryViewPath::UPDATE['view'], compact('category','language','categoryWiseTax','taxVats','taxVatIds'));
+        return view(CategoryViewPath::UPDATE['view'], compact('category','language','categoryWiseTax','taxVats','taxVatIds','zones'));
     }
 
     public function updateStatus(Request $request): RedirectResponse
