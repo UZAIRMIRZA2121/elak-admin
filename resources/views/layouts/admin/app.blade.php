@@ -647,6 +647,7 @@ if(in_array(config('module.current_module_type'),config('module.module_type') ))
     messaging.onMessage(function(payload) {
         console.log(payload.data)
         if(payload.data.order_id && payload.data.type == "order_request"){
+            
                 @php($admin_order_notification = \App\Models\BusinessSetting::where('key', 'admin_order_notification')->first())
                 @php($admin_order_notification = $admin_order_notification ? $admin_order_notification->value : 0)
                 @if (\App\CentralLogics\Helpers::module_permission_check('order') && $admin_order_notification && $order_notification_type == 'firebase')

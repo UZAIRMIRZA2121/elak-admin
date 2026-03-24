@@ -954,4 +954,11 @@ class Store extends Model
     {
         return $this->hasMany(Store::class, 'parent_id');
     }
+
+      // Relationship: A store has many voucher availabilities
+    public function voucherAvailabilities()
+    {
+        return $this->hasMany(VoucherAvailability::class);
+    }
 }
+
