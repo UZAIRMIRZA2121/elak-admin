@@ -606,6 +606,7 @@
                                         <div class="input-group input-group-merge">
                                             <input type="password" class="js-toggle-password form-control"
                                                 name="password" id="signupSrPassword"
+                                                autocomplete="new-password"
                                                 pattern="(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}"
                                                 title="{{ translate('messages.Must_contain_at_least_one_number_and_one_uppercase_and_lowercase_letter_and_symbol,_and_at_least_8_or_more_characters') }}"
                                                 placeholder="{{ translate('messages.password_length_placeholder', ['length' => '8+']) }}"
@@ -633,6 +634,7 @@
                                         <div class="input-group input-group-merge">
                                             <input type="password" class="js-toggle-password form-control"
                                                 name="confirmPassword" id="signupSrConfirmPassword"
+                                                autocomplete="new-password"
                                                 pattern="(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}"
                                                 title="{{ translate('messages.Must_contain_at_least_one_number_and_one_uppercase_and_lowercase_letter_and_symbol,_and_at_least_8_or_more_characters') }}"
                                                 placeholder="{{ translate('messages.password_length_placeholder', ['length' => '8+']) }}"
