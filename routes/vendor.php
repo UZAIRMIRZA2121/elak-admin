@@ -177,6 +177,11 @@ Route::group(['namespace' => 'Vendor', 'as' => 'vendor.'], function () {
 
 
             Route::get('flash-sale', 'ItemController@flash_sale')->name('flash_sale');
+            Route::put('update-voucher/{id}', 'ItemController@update_voucher')->name('update_voucher');
+            Route::delete ('delete_voucher_availability/{id}', 'ItemController@delete_voucher_availability')->name('delete_voucher_availability');
+            
+
+  
 
         });
 

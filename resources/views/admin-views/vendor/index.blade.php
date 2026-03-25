@@ -604,65 +604,90 @@
                             </h4>
                         </div>
                         <div class="card-body">
-                            <div class="row g-3">
-                                <div class="col-md-4 col-12">
-                                    <div class="form-group mb-0">
-                                        <label class="input-label"
-                                            for="email">{{ translate('messages.email') }}</label>
-                                        <input type="email" name="email" class="form-control"
-                                            placeholder="{{ translate('messages.Ex:') }} ex@example.com"
-                                            value="{{ old('email') }}" required>
-                                    </div>
-                                </div>
-                                <div class="col-md-4 col-12">
-                                    <div class="js-form-message form-group mb-0">
-                                        <label class="input-label" for="signupSrPassword">
-                                            {{ translate('messages.password') }}
-                                        </label>
-
-                                        <div class="input-group input-group-merge">
-                                            <input type="password" class="js-toggle-password form-control"
-                                                name="password" id="signupSrPassword"
-                                                placeholder="{{ translate('messages.password') }}"
-                                                aria-label="Password" required
-                                                data-hs-toggle-password-options='{
-                                            "target": [".js-toggle-password-target-1", ".js-toggle-password-target-2"],
-                                            "defaultClass": "tio-hidden-outlined",
-                                            "showClass": "tio-visible-outlined",
-                                            "classChangeTarget": ".js-toggle-passowrd-show-icon-1"
-                                            }'>
-                                            <div class="js-toggle-password-target-1 input-group-append">
-                                                <a class="input-group-text" href="javascript:">
-                                                    <i class="js-toggle-passowrd-show-icon-1 tio-visible-outlined"></i>
-                                                </a>
+                              <div class="row g-3">
+                            <div class="col-md-12">
+                                <div class="bg--secondary rounded p-20 h-100">
+                                    <div class="row g-3">
+                                        <div class="col-12 col-md-6">
+                                            <div class="form-group mb-0">
+                                                <label class="input-label mb-2 d-block title-clr fw-normal"
+                                                    for="exampleFormControlInput1">{{ translate('Start Date') }} <span
+                                                        class="text-danger">*</span></label>
+                                                <input type="date" name="agreement_start_date" class="form-control"
+                                                    required>
                                             </div>
                                         </div>
-                                    </div>
-                                </div>
-                                <div class="col-md-4 col-12">
-                                    <div class="js-form-message form-group mb-0">
-                                        <label class="input-label"
-                                            for="signupSrConfirmPassword">{{ translate('messages.confirm_password') }}</label>
-                                        <div class="input-group input-group-merge">
-                                            <input type="password" class="js-toggle-password form-control"
-                                                name="confirmPassword" id="signupSrConfirmPassword"
-                                                placeholder="{{ translate('messages.confirm_password') }}"
-                                                aria-label="Confirm Password" required
-                                                data-hs-toggle-password-options='{
-                                                "target": [".js-toggle-password-target-1", ".js-toggle-password-target-2"],
-                                                "defaultClass": "tio-hidden-outlined",
-                                                "showClass": "tio-visible-outlined",
-                                                "classChangeTarget": ".js-toggle-passowrd-show-icon-2"
-                                                }'>
-                                            <div class="js-toggle-password-target-2 input-group-append">
-                                                <a class="input-group-text" href="javascript:">
-                                                    <i class="js-toggle-passowrd-show-icon-2 tio-visible-outlined"></i>
-                                                </a>
+                                        <div class="col-12 col-md-6">
+                                            <div class="form-group mb-0">
+                                                <label class="input-label mb-2 d-block title-clr fw-normal"
+                                                    for="exampleFormControlInput1">{{ translate('Expire Date') }} <span
+                                                        class="text-danger">*</span></label>
+                                                <input type="date" name="agreement_expire_date" class="form-control"
+                                                    required>
+                                            </div>
+                                        </div>
+                                        <div class="col-12 col-md-12">
+                                            <div class="form-group mb-0">
+                                                <label class="input-label mb-2 d-block title-clr fw-normal"
+                                                    for="agreement_detail">{{ translate('Agreement Detail') }}
+                                                    <span class="text-danger">*</span></label>
+                                                <textarea name="agreement_detail" id="agreement_detail"
+                                                    class="form-control"></textarea>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
+                            <div class="col-md-12">
+                                <div class="bg--secondary rounded p-20 h-100 single-document-uploaderwrap">
+                                    <div class="d-flex align-items-center gap-1 justify-content-between mb-20">
+                                        <div>
+                                            <h4 class="mb-1 fz--14px">{{ translate('Agreement Certificate') }}</h4>
+                                            <p class="fz-12px mb-0">
+                                                {{ translate('pdf, doc, jpg. File size : max 2 MB') }}</p>
+                                        </div>
+                                        <div class="d-flex gap-3 align-items-center">
+                                            <button type="button" id="doc_edit_btn"
+                                                class="w-30px h-30 rounded d-flex align-items-center justify-content-center btn--primary btn px-3 icon-btn">
+                                                <i class="tio-edit"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <div id="file-assets"
+                                            data-picture-icon="{{ asset('public/assets/admin/img/picture.svg') }}"
+                                            data-document-icon="{{ asset('public/assets/admin/img/document.svg') }}"
+                                            data-blank-thumbnail="{{ asset('public/assets/admin/img/picture.svg') }}">
+                                        </div>
+
+                                        <!-- Upload box -->
+                                        <div class="d-flex justify-content-center" id="pdf-container">
+                                            <div class="document-upload-wrapper" id="doc-upload-wrapper">
+
+                                                <!-- Multiple files allowed -->
+                                                <input type="file" name="agreement_certificate_image[]"
+                                                    class="document_input" accept=".doc,.docx,.pdf,.jpg,.png,.jpeg"
+                                                    multiple>
+
+                                                <div class="textbox">
+                                                    <img width="40" height="40" class="svg"
+                                                        src="{{ asset('public/assets/admin/img/doc-uploaded.png') }}"
+                                                        alt="">
+                                                    <p class="fs-12 mb-0">
+                                                        Select files or <span class="font-semibold">Drag &
+                                                            Drop</span>
+                                                        here
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </div>
+
+
+                                    </div>
+
+                                </div>
+                            </div>
+                        </div>
                         </div>
                     </div>
                 </div>
@@ -762,7 +787,7 @@
             </div>
         </form>
         <!-- File preview list -->
-        <ul id="file-preview-list" class="mt-3"></ul>
+        {{-- <ul id="file-preview-list" class="mt-3"></ul> --}}
     </div>
 
     <script>

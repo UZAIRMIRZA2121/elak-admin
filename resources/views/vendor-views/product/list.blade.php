@@ -13,8 +13,9 @@
         <div class="page-header">
             <div class="btn--container align-items-center mb-0">
                 <div class="mr-auto">
-                    <h1 class="page-header-title"><i class="tio-filter-list"></i> {{ translate('messages.item_list') }}<span
-                            class="badge badge-soft-dark ml-2" id="itemCount">{{ $items->total() }}</span></h1>
+                    <h1 class="page-header-title"><i class="tio-filter-list"></i>
+                        {{ translate('messages.voucher_list') }}<span class="badge badge-soft-dark ml-2"
+                            id="itemCount">{{ $items->total() }}</span></h1>
                 </div>
 
 
@@ -139,7 +140,8 @@
                             <th class="border-0 w-20p">{{ translate('messages.name') }}</th>
                             {{-- <th class="border-0 w-20p">{{ translate('messages.category') }}</th> --}}
                             <th class="border-0 w-20p">{{ translate('messages.discount') }}</th>
-                            <th class="border-0 w-20p">{{ translate('messages.usage') }}</th>
+                            <th class="border-0 w-20p">{{ translate('messages.usage') }}/{{ translate('messages.stock') }}
+                            </th>
                             @if ($store_data->module->module_type != 'food')
                                 {{-- <th class="border-0 w-20p">{{ translate('messages.quantity') }}</th> --}}
                             @endif
@@ -149,6 +151,7 @@
                             @if ($productWiseTax)
                                 <th class="border-0 ">{{ translate('messages.Vat/Tax') }}</th>
                             @endif
+                            <th class="border-0 text-center">{{ translate('messages.availbility') }}</th>
                             <th class="border-0 text-center">{{ translate('messages.status') }}</th>
                             <th class="border-0 text-center">{{ translate('messages.action') }}</th>
                         </tr>
@@ -190,25 +193,21 @@
                                 <td>
                                     {{ $item->orders->count() }}
                                 </td>
-                              
+
                                 <td>
                                     @isset($item->voucherSetting)
                                         <div class="mw--85px">
-                                        <?php
-                                            $validity = $item->voucherSetting->validity_period
-                                                ? json_decode($item->voucherSetting->validity_period, true)
-                                                : null;
-                                       ?>
-                                        @if ($validity && !empty($validity['start']) && !empty($validity['end']))
-                                            {{ \Carbon\Carbon::parse($validity['start'])->format('d M Y') }}
-                                            →
-                                            {{ \Carbon\Carbon::parse($validity['end'])->format('d M Y') }}
-                                
-                                        @endif
-                                    </div>
-
+                                            <?php
+                                            $validity = $item->voucherSetting->validity_period ? json_decode($item->voucherSetting->validity_period, true) : null;
+                                            ?>
+                                            @if ($validity && !empty($validity['start']) && !empty($validity['end']))
+                                                {{ \Carbon\Carbon::parse($validity['start'])->format('d M Y') }}
+                                                →
+                                                {{ \Carbon\Carbon::parse($validity['end'])->format('d M Y') }}
+                                            @endif
+                                        </div>
                                     @endisset
-                                   
+
                                 </td>
 
                                 {{-- <td>
@@ -245,16 +244,30 @@
                                         </span>
                                     </td>
                                 @endif
+                  <td>
+    @if ($item->voucherAvailability)
+        <span class="badge badge-soft-danger d-inline-flex align-items-center">
+            {{ translate('messages.not_availble') }}
 
+            <!-- Delete button -->
+            <span class="badge-close ms-2" style="cursor:pointer;" data-id="{{ $item->voucherAvailability->id }}">
+                &times;
+            </span>
 
-
+            <!-- Hidden form -->
+            <form id="deleteForm{{ $item->voucherAvailability->id }}" action="{{ route('vendor.item.delete_voucher_availability', $item->voucherAvailability->id) }}" method="POST" style="display:none;">
+                @csrf
+                @method('DELETE')
+            </form>
+        </span>
+    @endif
+</td>
                                 <td>
-                                    <label class="toggle-switch toggle-switch-sm"
-                                        for="stocksCheckbox{{ $item->id }}">
+                                    <label class="toggle-switch toggle-switch-sm" for="stocksCheckbox{{ $item->id }}">
                                         <input type="checkbox"
                                             data-url="{{ route('vendor.item.status', [$item['id'], $item->status ? 0 : 1]) }}"
-                                            class="toggle-switch-input redirect-url"
-                                            id="stocksCheckbox{{ $item->id }}" {{ $item->status ? 'checked' : '' }}>
+                                            class="toggle-switch-input redirect-url" id="stocksCheckbox{{ $item->id }}"
+                                            {{ $item->status ? 'checked' : '' }}>
                                         <span class="toggle-switch-label mx-auto">
                                             <span class="toggle-switch-indicator"></span>
                                         </span>
@@ -278,7 +291,12 @@
                                             title="{{ translate('messages.delete_item') }}"><i
                                                 class="tio-delete-outlined"></i>
                                         </a> --}}
+                                        <a class="btn btn-sm btn-outline-primary action-btn edit-voucher-btn" href="#"
+                                            data-id="{{ $item['id'] }}" title="Edit Voucher">
+                                            <i class="tio-edit"></i>
+                                        </a>
                                     </div>
+
                                     <form action="{{ route('vendor.item.delete', [$item['id']]) }}" method="post"
                                         id="food-{{ $item['id'] }}">
                                         @csrf @method('delete')
@@ -312,6 +330,40 @@
     </div>
 
 
+    <div class="modal fade" id="editVoucherModal" tabindex="-1" aria-labelledby="editVoucherLabel" aria-hidden="true">
+        <div class="modal-dialog modal-sm">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editVoucherLabel">Make unavailable till:</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="editVoucherForm" method="POST">
+                        @csrf
+                        @method('PUT')
+
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="unavailable_till" id="nextDay"
+                                value="next_day">
+                            <label class="form-check-label" for="nextDay">Next Day</label>
+                        </div>
+
+                        <div class="form-check mt-2">
+                            <input class="form-check-input" type="radio" name="unavailable_till" id="furtherNotice"
+                                value="further_notice">
+                            <label class="form-check-label" for="furtherNotice">Until a further
+                                notice</label>
+                        </div>
+
+                        <div class="mt-3 text-end">
+                            <button type="submit" class="btn btn-danger btn-sm">Apply</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
     {{-- Add Quantity Modal --}}
     <div class="modal fade update-quantity-modal" id="update-quantity" tabindex="-1">
         <div class="modal-dialog modal-dialog-scrollable">
@@ -340,6 +392,38 @@
 @endsection
 
 @push('script_2')
+<script>
+    $(document).ready(function() {
+        $('.badge-close').on('click', function() {
+            var id = $(this).data('id');
+            
+            if (confirm('Are you sure you want to delete this availability?')) {
+                $('#deleteForm' + id).submit();
+            }
+        });
+    });
+</script>
+    <script>
+        $(document).ready(function() {
+            $('.edit-voucher-btn').on('click', function(e) {
+                e.preventDefault();
+
+                var itemId = $(this).data('id');
+
+                // Use named route with itemId
+                var url = "{{ route('vendor.item.update_voucher', ':id') }}";
+                url = url.replace(':id', itemId);
+
+                $('#editVoucherForm').attr('action', url);
+
+                // Reset or pre-select radio buttons
+                $('#editVoucherForm input[name="unavailable_till"]').prop('checked', false);
+
+                // Open modal
+                $('#editVoucherModal').modal('show');
+            });
+        });
+    </script>
     <script>
         "use strict";
         $(document).on('ready', function() {

@@ -983,5 +983,9 @@ class Item extends Model
 
         return \App\Models\UsageTermManagement::whereIn('id', $ids)->get();
     }
-
+    // Relationship: An item can have many voucher availabilities
+    public function voucherAvailability()
+    {
+        return $this->hasOne(VoucherAvailability::class, 'voucher_id');
+    }
 }
