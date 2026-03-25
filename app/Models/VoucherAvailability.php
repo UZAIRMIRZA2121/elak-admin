@@ -24,4 +24,11 @@ class VoucherAvailability extends Model
     public function voucher() {
         return $this->belongsTo(Item::class);
     }
+
+      public static function getForVoucherBranches(int $voucherId, array $branchIds)
+    {
+        return self::where('voucher_id', $voucherId)
+            ->whereIn('store_id', $branchIds)
+            ->get();
+    }
 }

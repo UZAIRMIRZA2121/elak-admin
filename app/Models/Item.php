@@ -432,28 +432,42 @@ class Item extends Model
 
 
 
-    public function branches(): Collection
-    {
-        $branchIds = $this->branch_ids;
+ // Inside your Item model (or wherever branches() is defined)
+public function branches(): array
+{
+    $branchIds = $this->branch_ids;
 
-        // Decode the JSON string safely
+    // Step 1: Decode JSON safely (in case it's stored as JSON)
+    if (is_string($branchIds)) {
+        $branchIds = json_decode($branchIds, true);
         if (is_string($branchIds)) {
-            // The extra escapes need double decoding
             $branchIds = json_decode($branchIds, true);
-            if (is_string($branchIds)) {
-                // In case it’s still a string after first decode
-                $branchIds = json_decode($branchIds, true);
-            }
         }
-
-        // Ensure it's an array
-        if (!is_array($branchIds)) {
-            $branchIds = [];
-        }
-
-        return Store::whereIn('id', $branchIds)->get();
     }
 
+    if (!is_array($branchIds)) {
+        $branchIds = [];
+    }
+
+    // Step 2: Get all branches for these IDs
+    $branches = Store::whereIn('id', $branchIds)
+        ->get()
+        ->map(function ($branch) {
+            // Step 3: Get voucher availabilities for this item/voucher
+            $availability = $branch->voucherAvailabilities()
+                ->where('voucher_id', $this->id) // Filter by current voucher/item
+                ->get(['status', 'active_at']); // Only return needed fields
+
+            // Step 4: Attach availability to branch array
+            $branchArray = $branch->toArray();
+            $branchArray['availability'] = $availability->toArray();
+
+            return $branchArray;
+        });
+
+    // Step 5: Return as array for API response
+    return $branches->toArray();
+}
 
     /**
      * Get clients from clients_section JSON

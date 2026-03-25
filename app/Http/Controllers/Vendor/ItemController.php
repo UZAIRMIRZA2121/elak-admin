@@ -2048,7 +2048,7 @@ class ItemController extends Controller
                 'voucher_id' => $itemId,
             ],
             [
-                'status' => 'active',   // You can adjust this if needed
+                'status' => 'not_available',   // You can adjust this if needed
                 'active_at' => $activeAt,
                 'updated_at' => now(),
             ]

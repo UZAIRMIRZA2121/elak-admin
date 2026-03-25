@@ -280,7 +280,7 @@ class ItemController extends Controller
         $type = $request->query('type', 'all');
 
         $items = Item::active()->type($type)
-             ->where('type', 'voucher')
+            ->where('type', 'voucher')
             ->when($request->category_id, function ($query) use ($request) {
                 $query->whereHas('category', function ($q) use ($request) {
                     return $q->whereId($request->category_id)->orWhere('parent_id', $request->category_id);
@@ -520,8 +520,10 @@ class ItemController extends Controller
                 // Send how_and_condition_ids as array
                 $item['how_it_works'] = $item->usageTerms() ?? [];
                 // Return full branch data
-                $item['branches'] = $item->branches(); // calls the method and returns collection
-
+              $item['all_branches'] = [
+    'branches' => $item->branches(), // Each branch now has its availability inside
+];
+           
                 $settings = $item->voucherSetting;
 
                 $item['settings'] = $settings ? [
@@ -543,6 +545,9 @@ class ItemController extends Controller
                 $item['terms_conditions'] = $item->termsAndConditions() ?? [];
 
             }
+
+
+
 
             return response()->json($item, 200);
 

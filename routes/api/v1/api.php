@@ -354,6 +354,10 @@ Route::group(['namespace' => 'Api\V1', 'middleware' => 'localization'], function
             Route::get('requested/item/view/{id}', 'ItemController@requested_item_view');
             Route::put('stock-update', 'ItemController@stock_update');
             Route::get('stock-limit-list', 'ItemController@stock_limit_list');
+
+            Route::put('update-availability/{id}', 'ItemController@update_voucher');
+
+            Route::delete('delete-availability/{id}', 'ItemController@delete_voucher_availability');
         });
 
         // POS
