@@ -534,7 +534,26 @@
                         </div>
                     </div>
                 </div>
-                <div class="col-lg-12" id="owner_info_div"  style="display: none;"  >
+                
+                <div class="col-lg-12 mt-4">
+                    <div class="card">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h4 class="card-title m-0 d-flex align-items-center">
+                                <span class="card-header-icon mr-2"><i class="tio-group"></i></span>
+                                <span>Staff Information</span>
+                            </h4>
+                            <button type="button" class="btn btn-primary btn-sm" id="addStaffBtn">
+                                + Add Staff
+                            </button>
+                        </div>
+
+                        <div class="card-body">
+                            <div id="staffContainer"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-12"  >
                     <div class="card">
                         <div class="card-header">
                             <h4 class="card-title m-0 d-flex align-items-center">
@@ -574,28 +593,11 @@
                         </div>
                     </div>
                 </div>
-                <div class="col-lg-12 mt-4">
-                    <div class="card">
-                        <div class="card-header d-flex justify-content-between align-items-center">
-                            <h4 class="card-title m-0 d-flex align-items-center">
-                                <span class="card-header-icon mr-2"><i class="tio-group"></i></span>
-                                <span>Staff Information</span>
-                            </h4>
-                            <button type="button" class="btn btn-primary btn-sm" id="addStaffBtn">
-                                + Add Staff
-                            </button>
-                        </div>
-
-                        <div class="card-body">
-                            <div id="staffContainer"></div>
-                        </div>
-                    </div>
-                </div>
 
                 <!-- Hidden input to store all staff as JSON -->
                 <input type="hidden" name="staff_data" id="staffDataInput">
 
-                <div class="col-lg-12">
+                <div class="col-lg-12" id="agreement_section"  style="display: none;">
                     <div class="card">
                         <div class="card-header">
                             <h4 class="card-title m-0 d-flex align-items-center">
@@ -691,7 +693,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="col-lg-12 " id="agreement_section" style="display: none;">
+                <!-- <div class="col-lg-12 " id="agreement_section" style="display: none;">
                     <div>
                         <div class="card p-20">
                             <div class="mb-20">
@@ -747,11 +749,9 @@
                                                 data-blank-thumbnail="{{ asset('public/assets/admin/img/picture.svg') }}">
                                             </div>
 
-                                            <!-- Upload box -->
                                             <div class="d-flex justify-content-center" id="pdf-container">
                                                 <div class="document-upload-wrapper" id="doc-upload-wrapper">
 
-                                                    <!-- Multiple files allowed -->
                                                     <input type="file" name="agreement_certificate_image[]"
                                                         class="document_input" accept=".doc,.docx,.pdf,.jpg,.png,.jpeg"
                                                         multiple>
@@ -776,7 +776,7 @@
                             </div>
                         </div>
                     </div>
-                </div>
+                </div> -->
                 <div class="col-lg-12">
                     <div class="btn--container justify-content-end">
                         <button type="reset" id="reset_btn"

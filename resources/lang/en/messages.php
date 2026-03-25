@@ -8576,4 +8576,6 @@ Smartly or Earn. ',
   'voucher_list' => 'Voucher list',
   'availbility' => 'Availbility',
   'not_availble' => 'Not availble',
+  'Account information' => 'Account information',
+  'Owner information' => 'Owner information',
 );

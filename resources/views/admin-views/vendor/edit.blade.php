@@ -580,7 +580,7 @@
                         <div class="card-header">
                             <h4 class="card-title m-0 d-flex align-items-center">
                                 <span class="card-header-icon mr-2"><i class="tio-user"></i></span>
-                                <span>{{ translate('messages.account_information') }}</span>
+                                <span>{{ translate('Owner information') }}</span>
                             </h4>
                         </div>
                         <div class="card-body">
@@ -662,30 +662,47 @@
                     <div>
                         <div class="card p-20">
                             <div class="mb-20">
-                                <h3 class="mb-1">{{ translate('Business TIN') }}</h3>
+                                <h3 class="mb-1">{{ translate('Account information') }}</h3>
                                 {{-- <p class="fz-12px mb-0">{{translate('Lorem ipsum dolor sit amet, consectetur adipiscing elit.')}}</p> --}}
                             </div>
                             <div class="row g-3">
-                                <div class="col-md-8 col-xxl-9">
+                                <div class="col-md-12">
                                     <div class="bg--secondary rounded p-20 h-100">
-
-                                        <div class="form-group mb-0">
-                                            <label class="input-label mb-2 d-block title-clr fw-normal"
-                                                for="exampleFormControlInput1">{{ translate('Start Date') }} <span
-                                                    class="text-danger">*</span></label>
-                                            <input type="date" name="agreement_start_date" class="form-control"
-                                                value="{{ $store->agreement_start_date }}" required>
+                                         <div class="row g-3">
+                                        <div class="col-12 col-md-6">
+                                            <div class="form-group mb-0">
+                                                <label class="input-label mb-2 d-block title-clr fw-normal"
+                                                    for="exampleFormControlInput1">{{ translate('Start Date') }} <span
+                                                        class="text-danger">*</span></label>
+                                                <input type="date" name="agreement_start_date" class="form-control"
+                                                    value="{{ $store->agreement_start_date }}" required>
+                                            </div>
                                         </div>
-                                        <div class="form-group mb-0">
-                                            <label class="input-label mb-2 d-block title-clr fw-normal"
-                                                for="exampleFormControlInput1">{{ translate('Expire Date') }} <span
-                                                    class="text-danger">*</span></label>
-                                            <input type="date" name="agreement_expire_date" class="form-control"
-                                                value="{{ $store->agreement_expire_date }}" required>
+                                          <div class="col-12 col-md-6">
+                                              <div class="form-group mb-0">
+                                                  <label class="input-label mb-2 d-block title-clr fw-normal"
+                                                      for="exampleFormControlInput1">{{ translate('Expire Date') }} <span
+                                                          class="text-danger">*</span></label>
+                                                  <input type="date" name="agreement_expire_date" class="form-control"
+                                                      value="{{ $store->agreement_expire_date }}" required>
+                                              </div>
+                                            
                                         </div>
+                                         <div class="col-12 col-md-12">
+                                            <div class="form-group mb-0">
+                                                <label class="input-label mb-2 d-block title-clr fw-normal"
+                                                    for="agreement_detail">{{ translate('Agreement Detail') }}
+                                                    <span class="text-danger">*</span></label>
+                                                <textarea name="agreement_detail" id="agreement_detail"
+                                                    class="form-control">{{ $store->agreement_detail }}</textarea>
+                                            </div>
+                                        </div>
+                                     </div>
                                     </div>
                                 </div>
-                                <div class="col-md-4 col-xxl-3">
+
+
+                                <div class="col-md-12">
                                     <div class="bg--secondary rounded p-20 h-100 single-document-uploaderwrap">
                                         <div class="d-flex align-items-center gap-1 justify-content-between mb-20">
                                             <div>
@@ -783,6 +800,7 @@
                     </div>
 
                 </div>
+
                 <div class="col-lg-12">
                     <div class="btn--container justify-content-end">
                         <button type="reset" id="reset_btn"
