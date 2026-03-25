@@ -49,6 +49,98 @@
         }
     </style>
 
+
+    <style>
+        .file-box {
+            position: relative;
+            display: inline-block;
+            width: 200px;
+            height: 200px;
+            margin: 10px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            overflow: hidden;
+            text-align: center;
+            vertical-align: top;
+            background: #f9f9f9;
+        }
+
+        .file-box img,
+        .file-box .pdf-preview {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .delete-file-btn {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background: red;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            font-size: 16px;
+            line-height: 20px;
+            cursor: pointer;
+            z-index: 10;
+        }
+
+        .delete-file-btn:hover {
+            background: darkred;
+        }
+
+        .pdf-preview {
+            width: 100%;
+            height: 100%;
+        }
+
+        .file-box {
+            position: relative;
+            display: inline-block;
+            width: 200px;
+            height: 200px;
+            margin: 10px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            overflow: hidden;
+            text-align: center;
+            vertical-align: top;
+            background: #f9f9f9;
+            cursor: pointer;
+        }
+
+        .file-box img,
+        .file-box .pdf-preview {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .delete-file-btn {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background: red;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            font-size: 16px;
+            line-height: 20px;
+            cursor: pointer;
+            z-index: 10;
+        }
+
+        .delete-file-btn:hover {
+            background: darkred;
+        }
+    </style>
+
+
     <div class="content container-fluid">
         <!-- Page Header -->
         <div class="page-header">

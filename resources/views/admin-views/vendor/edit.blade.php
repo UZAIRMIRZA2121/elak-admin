@@ -5,6 +5,51 @@
     {{-- <link rel="stylesheet" href="{{asset('/public/assets/admin/css/intlTelInput.css')}}" /> --}}
 @endpush
 
+   <style>
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 48px;
+            height: 24px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            inset: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 24px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked+.slider {
+            background-color: #28a745;
+        }
+
+        input:checked+.slider:before {
+            transform: translateX(24px);
+        }
+    </style>
+
+
 @section('content')
     <div class="content container-fluid">
         <!-- Page Header -->
@@ -316,19 +361,26 @@
                                     </div>
                                     <div class="form-group mb-5">
                                         <input type="hidden" name="hiiden_check" id="hiiden_check" value="0">
-                                        <label class="input-label" for="type">
+                                        <label class="input-label d-block mb-2">
                                             {{ translate('Is Main Branch') }}
                                             <span class="form-label-secondary" data-toggle="tooltip"
                                                 data-placement="right"
-                                                data-original-title="{{ translate('messages.store_lat_lng_warning') }}"></span>
-                                            <input type="checkbox" name="type" id="type" class="mt-2"
-                                                value="1" {{ $store->type == 'main' ? 'checked' : '' }}>
+                                                data-original-title="{{ translate('messages.store_lat_lng_warning') }}">
+                                            </span>
+                                        </label>
+
+                                        <label class="switch">
+                                            <input type="checkbox" id="type" name="type" value="1"
+                                                {{ $store->type == 'main' ? 'checked' : '' }}>
+                                            <span class="slider"></span>
                                         </label>
                                     </div>
+                                    
 
                                     <div class="form-group" id="sub_branch_group">
                                         <label class="input-label" for="parent_id">
                                             {{ translate('Main Branch') }}
+                                            <span class="text-danger" id="parent_id_required_indicator">*</span>
                                             <span class="form-label-secondary" data-toggle="tooltip"
                                                 data-placement="right"
                                                 data-original-title="{{ translate('Main Branch') }}"></span>
@@ -399,25 +451,25 @@
                                     <input id="pac-input" class="controls rounded"
                                         data-toggle="tooltip" data-placement="right" data-original-title="{{ translate('messages.search_your_location_here') }}" type="text" placeholder="{{ translate('messages.search_here') }}" />
                                     <div id="map"></div>
-                                        <div class="form-group " style="margin-top: 92px">
+                                     <!-- <div class="form-group " style="margin-top: 92px">
                                         <label class="input-label" for="bonus_tiers">{{translate('Bonus Tiers')}}</label>
                                         <input type="text" id="bonus_tiers" value="{{$store->bonus_tiers}}"  name="bonus_tiers" class="form-control" placeholder="Bonus Tiers"  required >
-                                    </div>
+                                    </div> -->
                                  
-                                    <div class="form-group">
+                                    <!-- <div class="form-group">
                                         <label class="input-label" for="limit_to">{{translate('Limit To')}}</label>
                                         <input type="text" id="limit_to" value="{{$store->limit_to}}" name="limit_to" class="form-control" placeholder="Limit To"  required >
                                     </div>
                                          <div class="form-group">
                                         <label class="input-label" for="flate_discount">{{translate('Flate Discount')}}</label>
                                         <input type="text" id="flate_discount"  value="{{$store->flate_discount}}" name="flate_discount" class="form-control" placeholder="Flate Discount"  required >
-                                    </div>
+                                    </div> -->
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
-                <div class="col-lg-12">
+                <div class="col-lg-12" id="owner_info_div">
                     <div class="card">
                         <div class="card-header">
                             <h4 class="card-title m-0 d-flex align-items-center">
@@ -604,7 +656,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="col-lg-12">
+                <div class="col-lg-12" id="agreement_section">
                     <div>
                         <div class="card p-20">
                             <div class="mb-20">
@@ -688,13 +740,13 @@
                                                 data-store-id="{{ $store->id }}">&times;</button>
 
                                             @if (in_array($ext, ['jpg', 'jpeg', 'png', 'gif']))
-                                                <img src="{{ asset('storage/store/' . $file) }}" alt="Agreement Image"
+                                                <img src="{{ asset('public/storage/store/' . $file) }}" alt="Agreement Image"
                                                     class="clickable-file" data-type="image">
                                             @elseif($ext === 'pdf')
                                                 <div class="pdf-clickable clickable-file"
-                                                    data-src="{{ asset('storage/store/' . $file) }}" data-type="pdf">
+                                                    data-src="{{ asset('public/storage/store/' . $file) }}" data-type="pdf">
                                                     <embed
-                                                        src="{{ asset('storage/store/' . $file) }}#toolbar=0&navpanes=0&scrollbar=0"
+                                                        src="{{ asset('public/storage/store/' . $file) }}#toolbar=0&navpanes=0&scrollbar=0"
                                                         type="application/pdf" class="pdf-preview">
                                                     <div class="pdf-label">PDF</div>
                                                 </div>
@@ -989,25 +1041,79 @@ $(document).on('click', '.clickable-file', function() {
     </script>
 
     <script>
-        function toggleSubBranch() {
+        function toggleSections() {
             let checkbox = document.getElementById("type");
             let subBranch = document.getElementById("sub_branch_group");
-            let hiiden_check = document.getElementById("hiiden_check");
+            let parentIdSelect = document.getElementById("parent_id");
+            let requiredIndicator = document.getElementById("parent_id_required_indicator");
+            let owner_info_div = document.getElementById("owner_info_div");
+            let agreementSection = document.getElementById("agreement_section");
+            let hiddenCheck = document.getElementById("hiiden_check");
 
             if (checkbox.checked) {
-                subBranch.style.display = "none"; // Hide sub branch
-                hiiden_check.value = "1"; // Hide sub branch
+                // When checked (Is Main Branch = YES)
+                // Hide sub branch, show agreement
+                subBranch.style.display = "none";
+                agreementSection.style.display = "block";
+                owner_info_div.style.display = "block";
+                hiddenCheck.value = "1";
+                
+                // Remove required from Main Branch dropdown
+                parentIdSelect.removeAttribute("required");
+                
+                // Hide red asterisk
+                requiredIndicator.style.display = "none";
             } else {
-                subBranch.style.display = "block"; // Show sub branch
-                hiiden_check.value = "0"; // Show sub branch
+                // When unchecked (Is Main Branch = NO)
+                // Show sub branch, hide agreement
+                subBranch.style.display = "block";
+                owner_info_div.style.display = "none";
+                agreementSection.style.display = "none";
+                hiddenCheck.value = "0";
+                
+                // Add required to Main Branch dropdown
+                parentIdSelect.setAttribute("required", "required");
+                
+                // Show red asterisk
+                requiredIndicator.style.display = "inline";
             }
         }
 
-        // Call on page load (so it respects old value)
-        document.addEventListener("DOMContentLoaded", toggleSubBranch);
+        // Apply on page load
+        document.addEventListener("DOMContentLoaded", toggleSections);
 
-        // Call when checkbox changes
-        document.getElementById("type").addEventListener("change", toggleSubBranch);
+        // Apply on checkbox change
+        document.getElementById("type").addEventListener("change", toggleSections);
+    </script>
+
+
+    <script>
+        // Form validation for Main Branch field
+        document.getElementById("vendor_form").addEventListener("submit", function(e) {
+            let checkbox = document.getElementById("type");
+            let parentIdSelect = document.getElementById("parent_id");
+            
+            // If checkbox is unchecked (Is Main Branch = NO), then parent_id is required
+            if (!checkbox.checked) {
+                let selectedValue = parentIdSelect.value;
+                
+                // Check if no value is selected or empty value is selected
+                if (!selectedValue || selectedValue === "") {
+                    e.preventDefault(); // Stop form submission
+                    
+                    // Show alert
+                    alert("Please select a Main Branch. This field is required.");
+                    
+                    // Focus on the field
+                    parentIdSelect.focus();
+                    
+                    // Scroll to the field
+                    parentIdSelect.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    
+                    return false;
+                }
+            }
+        });
     </script>
 
 

@@ -76,18 +76,18 @@
                         </div>
                         @foreach (json_decode($language) as $lang)
                         <?php
-                                    if (count($store->translations)) {
-                                        $translate = [];
-                                        foreach ($store->translations as $t) {
-                                            if ($t->locale == $lang && $t->key == 'name') {
-                                                $translate[$lang]['name'] = $t->value;
-                                            }
-                                            if ($t->locale == $lang && $t->key == 'address') {
-                                                $translate[$lang]['address'] = $t->value;
-                                            }
-                                        }
-                                    }
-                                    ?>
+if (count($store->translations)) {
+    $translate = [];
+    foreach ($store->translations as $t) {
+        if ($t->locale == $lang && $t->key == 'name') {
+            $translate[$lang]['name'] = $t->value;
+        }
+        if ($t->locale == $lang && $t->key == 'address') {
+            $translate[$lang]['address'] = $t->value;
+        }
+    }
+}
+?>
                         <div class="d-none lang_form" id="{{ $lang }}-form">
                             <div class="form-group">
                                 <label class="input-label" for="{{ $lang }}_name">{{ translate('messages.name') }}
@@ -372,8 +372,8 @@
                                 </div> --}}
                                 {{--
                                 <?php
-                                    // $selectedVoucherIds = $store->category_id ? json_decode($store->category_id, true) : [];
-                                    ?>
+// $selectedVoucherIds = $store->category_id ? json_decode($store->category_id, true) : [];
+?>
                                 <div class="form-group">
                                     <label class="input-label" for="category_id">{{ translate('Category') }}
                                         <span class="form-label-secondary" data-toggle="tooltip" data-placement="right"
@@ -479,18 +479,18 @@
                     <div class="card-body">
                         <div id="staffContainer">
                             <?php
-                                // Default to empty array
-                                $staffData = [];
-                                
-                                // Check if staff_data exists and is not empty
-                                if (isset($store->staff_data) && !empty($store->staff_data)) {
-                                    $decoded = json_decode($store->staff_data, true);
-                                    // Make sure it's an array
-                                    if (isset($decoded) && is_array($decoded)) {
-                                        $staffData = $decoded;
-                                    }
-                                }
-                                ?>
+// Default to empty array
+$staffData = [];
+
+// Check if staff_data exists and is not empty
+if (isset($store->staff_data) && !empty($store->staff_data)) {
+    $decoded = json_decode($store->staff_data, true);
+    // Make sure it's an array
+    if (isset($decoded) && is_array($decoded)) {
+        $staffData = $decoded;
+    }
+}
+?>
 
                             @if (isset($staffData) && is_array($staffData) && count($staffData) > 0)
                             @foreach ($staffData as $index => $staff)
@@ -609,7 +609,6 @@
                     <div class="card p-20">
                         <div class="mb-20">
                             <h3 class="mb-1">{{ translate('Agreement') }}</h3>
-
                         </div>
                         <div class="row g-3">
                             <div class="col-md-12">
@@ -694,8 +693,8 @@
                             @if ($store->agreement_certificate_image)
                             @foreach (json_decode($store->agreement_certificate_image) as $index => $file)
                             <?php
-                                        $ext = pathinfo($file, PATHINFO_EXTENSION);
-                                        ?>
+$ext = pathinfo($file, PATHINFO_EXTENSION);
+?>
 
 
                             <div class="file-box" id="file-{{ $index }}">
