@@ -195,19 +195,20 @@
                                 </td>
 
                                 <td>
-                                    @isset($item->voucherSetting)
-                                        <div class="mw--85px">
-                                            <?php
-                                            $validity = $item->voucherSetting->validity_period ? json_decode($item->voucherSetting->validity_period, true) : null;
-                                            ?>
-                                            @if ($validity && !empty($validity['start']) && !empty($validity['end']))
-                                                {{ \Carbon\Carbon::parse($validity['start'])->format('d M Y') }}
-                                                →
-                                                {{ \Carbon\Carbon::parse($validity['end'])->format('d M Y') }}
-                                            @endif
-                                        </div>
-                                    @endisset
-
+@if(isset($item->voucherSetting) && !empty($item->voucherSetting->validity_period))
+ 
+        <?php
+            $validity = is_string($item->voucherSetting->validity_period)
+                        ? json_decode($item->voucherSetting->validity_period, true)
+                        : (is_array($item->voucherSetting->validity_period) ? $item->voucherSetting->validity_period : null);
+        ?>
+        @if(is_array($validity) && !empty($validity['start']) && !empty($validity['end']))
+            {{ \Carbon\Carbon::parse($validity['start'])->format('d M Y') }}
+            →
+            {{ \Carbon\Carbon::parse($validity['end'])->format('d M Y') }}
+        @endif
+ 
+@endif
                                 </td>
 
                                 {{-- <td>
