@@ -389,9 +389,12 @@
                                             ?>
 
                                             @if (in_array(strtolower($ext), ['jpg', 'jpeg', 'png', 'gif']))
+                                            <a href="{{ asset('public/storage/store/' . $agreement) }}">
+
                                                 <img src="{{ asset('public/storage/store/' . $agreement) }}"
                                                     alt="Agreement Image"
                                                     style="max-width:150px; max-height:150px; margin:5px; border:1px solid #ccc;">
+                                            </a>
                                             @else
                                                 <a href="{{ asset('public/storage/store/' . $agreement) }}"
                                                     target="_blank">{{ $agreement }}</a><br>
