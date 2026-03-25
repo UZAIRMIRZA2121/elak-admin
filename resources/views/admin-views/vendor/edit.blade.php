@@ -742,10 +742,8 @@
                                                 data-store-id="{{ $store->id }}">&times;</button>
 
                                             @if (in_array($ext, ['jpg', 'jpeg', 'png', 'gif']))
-                                                <a href="{{ asset('public/storage/store/' . $file) }}" target="_blank">
-                                                    <img src="{{ asset('public/storage/store/' . $file) }}" alt="Agreement Image"
-                                                        class="clickable-file" data-type="image">
-                                                </a>
+                                                <img src="{{ asset('public/storage/store/' . $file) }}" alt="Agreement Image"
+                                                    class="clickable-file" data-type="image">
                                             @elseif($ext === 'pdf')
                                                 <div class="pdf-clickable clickable-file"
                                                     data-src="{{ asset('public/storage/store/' . $file) }}" data-type="pdf">
