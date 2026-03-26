@@ -1357,7 +1357,7 @@ class ItemController extends Controller
             $item_id = $id;
 
 
-            $availability = VoucherAvailability::where('store_id', $store_id)->where('item_id', $item_id);
+            $availability = VoucherAvailability::where('store_id', $store_id)->where('voucher_id', $item_id);
             $availability->delete();
 
             return response()->json([
