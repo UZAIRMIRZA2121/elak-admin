@@ -474,7 +474,7 @@
                         <div class="card-header">
                             <h4 class="card-title m-0 d-flex align-items-center">
                                 <span class="card-header-icon mr-2"><i class="tio-user"></i></span>
-                                <span>{{ translate('messages.owner_information') }}</span>
+                                <span>{{ translate('Staff Information') }}</span>
                             </h4>
                         </div>
                         <div class="card-body">
@@ -504,6 +504,9 @@
                                         <input type="tel" id="phone" name="phone" class="form-control"
                                             placeholder="{{ translate('messages.Ex:') }} 017********"
                                             value="{{ $store->vendor->phone }}" required>
+                                        @error('phone')
+                                            <div class="text-danger mt-1">{{ $message }}</div>
+                                        @enderror
                                     </div>
                                 </div>
                             </div>
@@ -542,19 +545,24 @@
                                     @foreach ($staffData as $index => $staff)
                                         <div class="staff-item mb-3" data-index="{{ $index }}">
                                             <div class="row g-2 align-items-center">
-                                                <div class="col-md-4">
-                                                    <input type="text" name="staff[{{ $index }}][name]"
-                                                        class="form-control" placeholder="Staff Name"
-                                                        value="{{ $staff['name'] ?? '' }}">
-                                                </div>
-                                                <div class="col-md-4">
-                                                    <input type="text" name="staff[{{ $index }}][role]"
-                                                        class="form-control" placeholder="Staff Role"
-                                                        value="{{ $staff['role'] ?? '' }}">
+                                                <div class="col-md-3">
+                                                    <input type="text" class="form-control staff-f-name" placeholder="{{ translate('messages.first_name') }}"
+                                                        value="{{ $staff['f_name'] ?? ($staff['name'] ?? '') }}">
                                                 </div>
                                                 <div class="col-md-3">
-                                                    <input type="text" name="staff[{{ $index }}][phone]"
-                                                        class="form-control" placeholder="Phone"
+                                                    <input type="text" class="form-control staff-l-name" placeholder="{{ translate('messages.last_name') }}"
+                                                        value="{{ $staff['l_name'] ?? '' }}">
+                                                </div>
+                                                <div class="col-md-3">
+                                                    <select class="form-control staff-role-id" required>
+                                                        <option value="" disabled>{{ translate('messages.select_Role') }}</option>
+                                                        @foreach($rls as $r)
+                                                            <option value="{{ $r->id }}" {{ (isset($staff['role_id']) && $staff['role_id'] == $r->id) ? 'selected' : '' }}>{{ $r->name }}</option>
+                                                        @endforeach
+                                                    </select>
+                                                </div>
+                                                <div class="col-md-2">
+                                                    <input type="text" class="form-control staff-phone" placeholder="{{ translate('messages.phone') }}"
                                                         value="{{ $staff['phone'] ?? '' }}">
                                                 </div>
                                                 <div class="col-md-1 text-end">
@@ -580,7 +588,7 @@
                         <div class="card-header">
                             <h4 class="card-title m-0 d-flex align-items-center">
                                 <span class="card-header-icon mr-2"><i class="tio-user"></i></span>
-                                <span>{{ translate('Owner information') }}</span>
+                                <span>{{ translate('Owner information.') }}</span>
                             </h4>
                         </div>
                         <div class="card-body">
@@ -592,6 +600,9 @@
                                         <input type="email" name="email" class="form-control"
                                             placeholder="{{ translate('messages.Ex:') }} ex@example.com"
                                             value="{{ $store->email }}" required>
+                                        @error('email')
+                                            <div class="text-danger mt-1">{{ $message }}</div>
+                                        @enderror
                                     </div>
                                 </div>
                                 <div class="col-md-4 col-sm-6">
@@ -984,13 +995,15 @@ $(document).on('click', '.clickable-file', function() {
                 const staffArray = [];
 
                 staffItems.forEach(item => {
-                    const name = item.querySelector('.staff-name').value.trim();
-                    const role = item.querySelector('.staff-role').value.trim();
+                    const f_name = item.querySelector('.staff-f-name').value.trim();
+                    const l_name = item.querySelector('.staff-l-name').value.trim();
+                    const role_id = item.querySelector('.staff-role-id').value.trim();
                     const phone = item.querySelector('.staff-phone').value.trim();
-                    if (name !== '' || role !== '' || phone !== '') {
+                    if (f_name !== '' || l_name !== '' || role_id !== '' || phone !== '') {
                         staffArray.push({
-                            name,
-                            role,
+                            f_name,
+                            l_name,
+                            role_id,
                             phone
                         });
                     }
@@ -1001,20 +1014,29 @@ $(document).on('click', '.clickable-file', function() {
 
             // Add new staff row
             addStaffBtn.addEventListener('click', () => {
-                alert('here');
+                let roleOptions = '<option value="" selected disabled>{{ translate('messages.select_Role') }}</option>';
+                @foreach ($rls as $r)
+                    roleOptions += '<option value="{{ $r->id }}">{{ $r->name }}</option>';
+                @endforeach
+
                 const div = document.createElement('div');
                 div.classList.add('staff-item', 'mb-3');
                 div.setAttribute('data-index', staffIndex);
                 div.innerHTML = `
             <div class="row g-2 align-items-center">
-                <div class="col-md-4">
-                    <input type="text" class="form-control staff-name" placeholder="Staff Name">
-                </div>
-                <div class="col-md-4">
-                    <input type="text" class="form-control staff-role" placeholder="Staff Role">
+                <div class="col-md-3">
+                    <input type="text" class="form-control staff-f-name" placeholder="{{ translate('messages.first_name') }}">
                 </div>
                 <div class="col-md-3">
-                    <input type="text" class="form-control staff-phone" placeholder="Phone">
+                    <input type="text" class="form-control staff-l-name" placeholder="{{ translate('messages.last_name') }}">
+                </div>
+                <div class="col-md-3">
+                    <select class="form-control staff-role-id" required>
+                        ${roleOptions}
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <input type="text" class="form-control staff-phone" placeholder="{{ translate('messages.phone') }}">
                 </div>
                 <div class="col-md-1 text-end">
                     <button type="button" class="btn btn-danger btn-sm removeStaffBtn">✕</button>
@@ -1066,7 +1088,6 @@ $(document).on('click', '.clickable-file', function() {
             let subBranch = document.getElementById("sub_branch_group");
             let parentIdSelect = document.getElementById("parent_id");
             let requiredIndicator = document.getElementById("parent_id_required_indicator");
-            let owner_info_div = document.getElementById("owner_info_div");
             let agreementSection = document.getElementById("agreement_section");
             let hiddenCheck = document.getElementById("hiiden_check");
 
@@ -1075,7 +1096,6 @@ $(document).on('click', '.clickable-file', function() {
                 // Hide sub branch, show agreement
                 subBranch.style.display = "none";
                 agreementSection.style.display = "block";
-                owner_info_div.style.display = "block";
                 hiddenCheck.value = "1";
                 
                 // Remove required from Main Branch dropdown
@@ -1087,7 +1107,6 @@ $(document).on('click', '.clickable-file', function() {
                 // When unchecked (Is Main Branch = NO)
                 // Show sub branch, hide agreement
                 subBranch.style.display = "block";
-                owner_info_div.style.display = "none";
                 agreementSection.style.display = "none";
                 hiddenCheck.value = "0";
                 

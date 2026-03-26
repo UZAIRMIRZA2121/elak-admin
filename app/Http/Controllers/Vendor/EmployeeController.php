@@ -158,7 +158,7 @@ class EmployeeController extends Controller
         ->when(isset($key) , function($query) use($key) {
             $query->where(function ($q) use ($key) {
                 foreach ($key as $value) {
-                    $q->orWhere('f_name', 'like', "%{$value}%");
+                    $q->orWhere('f_name', 'like', "%{$value}%"); 
                     $q->orWhere('l_name', 'like', "%{$value}%");
                     $q->orWhere('phone', 'like', "%{$value}%");
                     $q->orWhere('email', 'like', "%{$value}%");

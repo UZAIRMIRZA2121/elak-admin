@@ -11,7 +11,9 @@ use App\Models\Module;
 use App\Models\Vendor;
 use App\Models\Message;
 use App\Models\UserInfo;
+use App\Models\EmployeeRole;
 use App\Scopes\StoreScope;
+use App\Models\VendorEmployee;
 use App\Models\AdminWallet;
 use App\Models\DataSetting;
 use App\Models\StoreConfig;
@@ -58,9 +60,8 @@ class VendorController extends Controller
 {
     public function index()
     {
-
-
-        return view('admin-views.vendor.index');
+        $rls = EmployeeRole::get();
+        return view('admin-views.vendor.index', compact('rls'));
     }
 
     public function store(Request $request)
@@ -78,14 +79,10 @@ class VendorController extends Controller
             'parent_id' => 'nullable|max:200',
             'type' => 'nullable|max:200',
             'email' => 'required|unique:vendors',
-
             'minimum_delivery_time' => 'nullable',
             'maximum_delivery_time' => 'nullable',
             'delivery_time_type' => 'nullable',
-
-
             'password' => 'required',
-
             'zone_id' => 'required',
             'logo' => 'required',
             'tin' => 'nullable',
@@ -161,11 +158,17 @@ class VendorController extends Controller
 
 
 
-        // if (Vendor::where(['phone' => $phone])->exists()) {
-        //     $validator->getMessageBag()->add('phone', translate('messages.phone_already_taken'));
-        //     return back()->withErrors($validator)
-        //         ->withInput();
-        // }
+        if (Vendor::where(['phone' => $phone])->exists()) {
+            $validator->getMessageBag()->add('phone', translate('messages.phone_already_taken'));
+            return back()->withErrors($validator)
+                ->withInput();
+        }
+
+        if (Vendor::where(['email' => $request->email])->exists()) {
+            $validator->getMessageBag()->add('email', translate('messages.email_already_taken'));
+            return back()->withErrors($validator)
+                ->withInput();
+        }
 
         $vendor = new Vendor();
         $vendor->f_name = $firstName;
@@ -223,14 +226,8 @@ class VendorController extends Controller
         // agreement fields
         $store->agreement_start_date = $request->agreement_start_date;
         $store->agreement_expire_date = $request->agreement_expire_date;
-
-
-
-
         $store->agreement_detail = $request->agreement_detail;
         $store->agreement_certificate_image = json_encode($certificate_paths);
-
-
 
         // delivery time
         $store->delivery_time = $request->minimum_delivery_time
@@ -299,8 +296,20 @@ class VendorController extends Controller
                 }
             }
             Translation::insert($data);
-            // $store->zones()->attach($request->zone_ids);
-            //code...
+
+            if ($request->staff_data) {
+                $staff_data = json_decode($request->staff_data, true);
+                foreach ($staff_data as $staff) {
+                    $vendor_employee = new VendorEmployee();
+                    $vendor_employee->f_name = $staff['f_name'];
+                    $vendor_employee->l_name = $staff['l_name'];
+                    $vendor_employee->phone = $staff['phone'];
+                    $vendor_employee->employee_role_id = $staff['role_id'];
+                    $vendor_employee->vendor_id = $vendor->id;
+                    $vendor_employee->store_id = $store->id;
+                    $vendor_employee->save();
+                }
+            }
         } catch (\Exception $ex) {
             info($ex->getMessage());
         }
@@ -317,8 +326,8 @@ class VendorController extends Controller
             return back();
         }
         $store = Store::withoutGlobalScope('translate')->findOrFail($id);
-        // dd($store);
-        return view('admin-views.vendor.edit', compact('store'));
+        $rls = EmployeeRole::get();
+        return view('admin-views.vendor.edit', compact('store', 'rls'));
     }
 
     public function update(Request $request, Store $store)
@@ -367,10 +376,11 @@ class VendorController extends Controller
 
             'f_name' => 'nullable|max:100',
             'l_name' => 'nullable|max:100',
-            'phone' => 'nullable|regex:/^([0-9\s\-\+\(\)]*)$/|min:10|max:20',
             'bonus_tiers' => 'nullable|max:200',
             'limit_to' => 'nullable|max:200',
             'flate_discount' => 'nullable|max:200',
+            'email' => 'required|unique:vendors,email,'.$store->vendor->id,
+            'phone' => 'required|regex:/^([0-9\s\-\+\(\)]*)$/|min:10|max:20|unique:vendors,phone,'.$store->vendor->id,
 
 
         ];
@@ -495,6 +505,21 @@ class VendorController extends Controller
         $store->staff_data = $request->staff_data;
 
         $store->save();
+
+        if ($request->staff_data) {
+            $staff_data = json_decode($request->staff_data, true);
+            VendorEmployee::where('store_id', $store->id)->delete();
+            foreach ($staff_data as $staff) {
+                $vendor_employee = new VendorEmployee();
+                $vendor_employee->f_name = $staff['f_name'];
+                $vendor_employee->l_name = $staff['l_name'];
+                $vendor_employee->phone = $staff['phone'];
+                $vendor_employee->employee_role_id = $staff['role_id'];
+                $vendor_employee->vendor_id = $vendor->id;
+                $vendor_employee->store_id = $store->id;
+                $vendor_employee->save();
+            }
+        }
 
 
         // Translation Update

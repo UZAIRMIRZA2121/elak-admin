@@ -1064,44 +1064,37 @@
 
                 @endif
 
-                <!-- Employee-->
+                <!-- Admin Management-->
 
                 <li class="nav-item">
-                    <small class="nav-subtitle" title="{{ translate('messages.employee_handle') }}">{{ translate('messages.employee') }}
-                        {{ translate('management') }}</small>
+                    <small class="nav-subtitle" title="{{ translate('Admin Management') }}">{{ translate('Admin Management') }}</small>
                     <small class="tio-more-horizontal nav-subtitle-replacer"></small>
                 </li>
 
                 @if (\App\CentralLogics\Helpers::module_permission_check('custom_role'))
-                <li class="navbar-vertical-aside-has-menu {{ Request::is('admin/custom-role*') ? 'active' : '' }}">
-                    <a class="js-navbar-vertical-aside-menu-link nav-link" href="{{ route('admin.custom-role.create') }}" title="{{ translate('messages.employee_Role') }}">
+                <li class="navbar-vertical-aside-has-menu {{ Request::is('admin/users/custom-role*') ? 'active' : '' }}">
+                    <a class="js-navbar-vertical-aside-menu-link nav-link" href="{{ route('admin.users.custom-role.create') }}" title="{{ translate('Admin Role') }}">
                         <i class="tio-incognito nav-icon"></i>
-                        <span class="navbar-vertical-aside-mini-mode-hidden-elements text-truncate">{{ translate('messages.employee_Role') }}</span>
+                        <span class="navbar-vertical-aside-mini-mode-hidden-elements text-truncate">{{ translate('Admin Role') }}</span>
                     </a>
                 </li>
                 @endif
 
                 @if (\App\CentralLogics\Helpers::module_permission_check('employee'))
-                <li class="navbar-vertical-aside-has-menu {{ Request::is('admin/employee*') ? 'active' : '' }}">
-                    <a class="js-navbar-vertical-aside-menu-link nav-link nav-link-toggle" href="javascript:" title="{{ translate('messages.Employee') }}">
+                <li class="navbar-vertical-aside-has-menu {{ Request::is('admin/users/employee*') ? 'active' : '' }}">
+                    <a class="js-navbar-vertical-aside-menu-link nav-link nav-link-toggle" href="javascript:" title="{{ translate('Admins') }}">
                         <i class="tio-user nav-icon"></i>
-                        <span class="navbar-vertical-aside-mini-mode-hidden-elements text-truncate">{{ translate('messages.employees') }}</span>
+                        <span class="navbar-vertical-aside-mini-mode-hidden-elements text-truncate">{{ translate('Admins') }}</span>
                     </a>
-                    <ul class="js-navbar-vertical-aside-submenu nav nav-sub"  style="display:{{ Request::is('admin/employee*') ? 'block' : 'none' }}">
-                        <li class="nav-item {{ Request::is('admin/employee/add-new') ? 'active' : '' }}">
-                            <a class="nav-link " href="{{ route('admin.employee.add-new') }}" title="{{ translate('messages.add_new_Employee') }}">
+                    <ul class="js-navbar-vertical-aside-submenu nav nav-sub"  style="display:{{ Request::is('admin/users/employee*') ? 'block' : 'none' }}">
+                        <li class="nav-item {{ Request::is('admin/users/employee/add-new') ? 'active' : '' }}">
+                            <a class="nav-link " href="{{ route('admin.users.employee.add-new') }}" title="{{ translate('Add New Admin') }}">
                                 <span class="tio-circle nav-indicator-icon"></span>
                                 <span class="text-truncate">{{ translate('messages.add_new') }}</span>
                             </a>
                         </li>
-                        <li class="nav-item {{ Request::is('admin/employee/list') ? 'active' : '' }}">
-                            <a class="nav-link " href="{{ route('admin.employee.list') }}" title="{{ translate('messages.Employee_list') }}">
-                                <span class="tio-circle nav-indicator-icon"></span>
-                                <span class="text-truncate">{{ translate('messages.list') }}</span>
-                            </a>
-                        </li>
-                        <li class="nav-item {{ Request::is('admin/employee/list') ? 'active' : '' }}">
-                            <a class="nav-link " href="{{ route('admin.employee.list') }}" title="{{ translate('messages.Employee_list') }}">
+                        <li class="nav-item {{ Request::is('admin/users/employee/list') ? 'active' : '' }}">
+                            <a class="nav-link " href="{{ route('admin.users.employee.list') }}" title="{{ translate('Admin List') }}">
                                 <span class="tio-circle nav-indicator-icon"></span>
                                 <span class="text-truncate">{{ translate('messages.list') }}</span>
                             </a>

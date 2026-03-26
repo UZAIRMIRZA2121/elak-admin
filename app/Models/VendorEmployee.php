@@ -12,7 +12,18 @@ class VendorEmployee extends Authenticatable
 {
     use Notifiable;
 
-    protected $fillable = ['remember_token','login_remember_token'];
+    protected $fillable = [
+        'f_name',
+        'l_name',
+        'phone',
+        'email',
+        'password',
+        'vendor_id',
+        'store_id',
+        'employee_role_id',
+        'remember_token',
+        'login_remember_token'
+    ];
 
     protected $casts = [
         'employee_role_id' => 'integer',

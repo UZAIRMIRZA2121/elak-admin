@@ -1092,7 +1092,7 @@
                         <a class="js-navbar-vertical-aside-menu-link nav-link" href="{{ route('admin.store.list') }}" title="{{ translate('Partner list') }}">
                             <span class="tio-layout nav-icon"></span>
                             <span class="text-truncate">{{ translate('Partner list') }}
-                                </span>
+                            </span>
                         </a>
                     </li>
 

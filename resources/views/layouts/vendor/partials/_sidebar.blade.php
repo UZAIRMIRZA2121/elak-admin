@@ -634,15 +634,15 @@
                     @if (
                         \App\CentralLogics\Helpers::employee_module_permission_check('role') ||
                             \App\CentralLogics\Helpers::employee_module_permission_check('employee'))
-                        {{-- <li class="nav-item">
+                        <li class="nav-item">
                             <small class="nav-subtitle"
                                 title="{{ translate('messages.employee_section') }}">{{ translate('messages.employee_section') }}</small>
                             <small class="tio-more-horizontal nav-subtitle-replacer"></small>
-                        </li> --}}
+                        </li>
                     @endif
 
                     @if (\App\CentralLogics\Helpers::employee_module_permission_check('role'))
-                        {{-- <li
+                        <li
                             class="navbar-vertical-aside-has-menu {{ Request::is('vendor-panel/custom-role*') ? 'active' : '' }}">
                             <a class="js-navbar-vertical-aside-menu-link nav-link"
                                 href="{{ route('vendor.custom-role.create') }}"
@@ -651,11 +651,11 @@
                                 <span
                                     class="navbar-vertical-aside-mini-mode-hidden-elements text-truncate">{{ translate('messages.employee_Role') }}</span>
                             </a>
-                        </li> --}}
+                        </li>
                     @endif
 
                     @if (\App\CentralLogics\Helpers::employee_module_permission_check('employee'))
-                        {{-- <li
+                        <li
                             class="navbar-vertical-aside-has-menu {{ Request::is('vendor-panel/employee*') ? 'active' : '' }}">
                             <a class="js-navbar-vertical-aside-menu-link nav-link nav-link-toggle" href="javascript:"
                                 title="{{ translate('messages.employees') }}">
@@ -682,7 +682,7 @@
                                 </li>
 
                             </ul>
-                        </li> --}}
+                        </li>
                     @endif
                     <!-- End Employee -->
 

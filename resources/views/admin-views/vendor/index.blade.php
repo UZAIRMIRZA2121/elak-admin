@@ -553,7 +553,95 @@
                     </div>
                 </div>
 
-                <div class="col-lg-12"  >
+                  <div class="col-lg-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <h4 class="card-title m-0 d-flex align-items-center">
+                                <span class="card-header-icon mr-2"><i class="tio-user"></i></span>
+                                <span>{{ translate('Owner information.') }}</span>
+                            </h4>
+                        </div>
+                        <div class="card-body">
+                            <div class="row g-3">
+                                <div class="col-md-4 col-sm-6">
+                                    <div class="form-group mb-0">
+                                        <label class="input-label"
+                                            for="exampleFormControlInput1">{{ translate('messages.email') }}</label>
+                                        <input type="email" name="email" class="form-control"
+                                            placeholder="{{ translate('messages.Ex:') }} ex@example.com"
+                                            value="{{ old('email') }}" required>
+                                        @error('email')
+                                            <div class="text-danger mt-1">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+                                </div>
+                                <div class="col-md-4 col-sm-6">
+                                    <div class="js-form-message form-group mb-0">
+                                        <label class="input-label"
+                                            for="signupSrPassword">{{ translate('password') }}<span
+                                                class="form-label-secondary" data-toggle="tooltip" data-placement="right"
+                                                data-original-title="{{ translate('messages.Must_contain_at_least_one_number_and_one_uppercase_and_lowercase_letter_and_symbol,_and_at_least_8_or_more_characters') }}"><img
+                                                    src="{{ asset('/public/assets/admin/img/info-circle.svg') }}"
+                                                    alt="{{ translate('messages.Must_contain_at_least_one_number_and_one_uppercase_and_lowercase_letter_and_symbol,_and_at_least_8_or_more_characters') }}"></span></label>
+
+                                        <div class="input-group input-group-merge">
+                                            <input type="password" class="js-toggle-password form-control"
+                                                name="password" id="signupSrPassword"
+                                                autocomplete="new-password"
+                                                pattern="(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}"
+                                                title="{{ translate('messages.Must_contain_at_least_one_number_and_one_uppercase_and_lowercase_letter_and_symbol,_and_at_least_8_or_more_characters') }}"
+                                                placeholder="{{ translate('messages.password_length_placeholder', ['length' => '8+']) }}"
+                                                aria-label="8+ characters required"
+                                                data-msg="Your password is invalid. Please try again."
+                                                data-hs-toggle-password-options='{
+                                            "target": [".js-toggle-password-target-1", ".js-toggle-password-target-2"],
+                                            "defaultClass": "tio-hidden-outlined",
+                                            "showClass": "tio-visible-outlined",
+                                            "classChangeTarget": ".js-toggle-passowrd-show-icon-1"
+                                            }'>
+                                            <div class="js-toggle-password-target-1 input-group-append">
+                                                <a class="input-group-text" href="javascript:;">
+                                                    <i class="js-toggle-passowrd-show-icon-1 tio-visible-outlined"></i>
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 col-sm-6">
+                                    <div class="js-form-message form-group mb-0">
+                                        <label class="input-label"
+                                            for="signupSrConfirmPassword">{{ translate('messages.Confirm Password') }}</label>
+
+                                        <div class="input-group input-group-merge">
+                                            <input type="password" class="js-toggle-password form-control"
+                                                name="confirmPassword" id="signupSrConfirmPassword"
+                                                autocomplete="new-password"
+                                                pattern="(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}"
+                                                title="{{ translate('messages.Must_contain_at_least_one_number_and_one_uppercase_and_lowercase_letter_and_symbol,_and_at_least_8_or_more_characters') }}"
+                                                placeholder="{{ translate('messages.password_length_placeholder', ['length' => '8+']) }}"
+                                                aria-label="8+ characters required"
+                                                data-msg="Password does not match the confirm password."
+                                                data-hs-toggle-password-options='{
+                                                "target": [".js-toggle-password-target-1", ".js-toggle-password-target-2"],
+                                                "defaultClass": "tio-hidden-outlined",
+                                                "showClass": "tio-visible-outlined",
+                                                "classChangeTarget": ".js-toggle-passowrd-show-icon-2"
+                                                }'>
+                                            <div class="js-toggle-password-target-2 input-group-append">
+                                                <a class="input-group-text" href="javascript:;">
+                                                    <i class="js-toggle-passowrd-show-icon-2 tio-visible-outlined"></i>
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+
+                <div class="col-lg-12">
                     <div class="card">
                         <div class="card-header">
                             <h4 class="card-title m-0 d-flex align-items-center">
@@ -586,7 +674,10 @@
                                         <label class="input-label"
                                             for="phone">{{ translate('messages.phone') }}</label>
                                         <input type="tel" id="phone" name="phone" class="form-control"
-                                            placeholder="{{ translate('messages.Ex:') }} 017********" required>
+                                            placeholder="{{ translate('messages.Ex:') }} 017********" value="{{ old('phone') }}" required>
+                                        @error('phone')
+                                            <div class="text-danger mt-1">{{ $message }}</div>
+                                        @enderror
                                     </div>
                                 </div>
                             </div>
@@ -693,90 +784,9 @@
                         </div>
                     </div>
                 </div>
-                <!-- <div class="col-lg-12 " id="agreement_section" style="display: none;">
-                    <div>
-                        <div class="card p-20">
-                            <div class="mb-20">
-                                <h3 class="mb-1">{{ translate('Agreement') }}</h3>
-                                {{-- <p class="fz-12px mb-0">{{translate('Lorem ipsum dolor sit amet, consectetur adipiscing elit.')}}</p> --}}
-                            </div>
-                            <div class="row g-3">
-                                <div class="col-md-8 col-xxl-9">
-                                    <div class="bg--secondary rounded p-20 h-100">
-                                        {{-- <div class="form-group">
-                                            <label class="input-label mb-2 d-block title-clr fw-normal"
-                                                for="exampleFormControlInput1">{{ translate('Taxpayer Identification Number(TIN)') }}
-                                                <span class="text-danger">*</span></label>
-                                            <input type="text" name="tin"
-                                                placeholder="{{ translate('Type Your Taxpayer Identification Number(TIN)') }}"
-                                                class="form-control" required>
-                                        </div> --}}
-                                        <div class="form-group mb-0">
-                                            <label class="input-label mb-2 d-block title-clr fw-normal"
-                                                for="exampleFormControlInput1">{{ translate('Start Date') }} <span
-                                                    class="text-danger">*</span></label>
-                                            <input type="date" name="agreement_start_date" class="form-control"
-                                                required>
-                                        </div>
-                                        <div class="form-group mb-0">
-                                            <label class="input-label mb-2 d-block title-clr fw-normal"
-                                                for="exampleFormControlInput1">{{ translate('Expire Date') }} <span
-                                                    class="text-danger">*</span></label>
-                                            <input type="date" name="agreement_expire_date" class="form-control"
-                                                required>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="col-md-4 col-xxl-3">
-                                    <div class="bg--secondary rounded p-20 h-100 single-document-uploaderwrap">
-                                        <div class="d-flex align-items-center gap-1 justify-content-between mb-20">
-                                            <div>
-                                                <h4 class="mb-1 fz--14px">{{ translate('Agreement Certificate') }}</h4>
-                                                <p class="fz-12px mb-0">
-                                                    {{ translate('pdf, doc, jpg. File size : max 2 MB') }}</p>
-                                            </div>
-                                            <div class="d-flex gap-3 align-items-center">
-                                                <button type="button" id="doc_edit_btn"
-                                                    class="w-30px h-30 rounded d-flex align-items-center justify-content-center btn--primary btn px-3 icon-btn">
-                                                    <i class="tio-edit"></i>
-                                                </button>
-                                            </div>
-                                        </div>
-                                        <div>
-                                            <div id="file-assets"
-                                                data-picture-icon="{{ asset('public/assets/admin/img/picture.svg') }}"
-                                                data-document-icon="{{ asset('public/assets/admin/img/document.svg') }}"
-                                                data-blank-thumbnail="{{ asset('public/assets/admin/img/picture.svg') }}">
-                                            </div>
-
-                                            <div class="d-flex justify-content-center" id="pdf-container">
-                                                <div class="document-upload-wrapper" id="doc-upload-wrapper">
-
-                                                    <input type="file" name="agreement_certificate_image[]"
-                                                        class="document_input" accept=".doc,.docx,.pdf,.jpg,.png,.jpeg"
-                                                        multiple>
-
-                                                    <div class="textbox">
-                                                        <img width="40" height="40" class="svg"
-                                                            src="{{ asset('public/assets/admin/img/doc-uploaded.png') }}"
-                                                            alt="">
-                                                        <p class="fs-12 mb-0">
-                                                            Select files or <span class="font-semibold">Drag & Drop</span>
-                                                            here
-                                                        </p>
-                                                    </div>
-                                                </div>
-                                            </div>
 
 
-                                        </div>
-
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div> -->
+                               
                 <div class="col-lg-12">
                     <div class="btn--container justify-content-end">
                         <button type="reset" id="reset_btn"
@@ -841,7 +851,6 @@
             let subBranch = document.getElementById("sub_branch_group");
             let parentIdSelect = document.getElementById("parent_id");
             let requiredIndicator = document.getElementById("parent_id_required_indicator");
-            let owner_info_div = document.getElementById("owner_info_div");
             let agreementSection = document.getElementById("agreement_section");
             let hiddenCheck = document.getElementById("hiiden_check");
 
@@ -850,7 +859,6 @@
                 // Hide sub branch, show agreement
                 subBranch.style.display = "none";
                 agreementSection.style.display = "block";
-                owner_info_div.style.display = "block";
                 hiddenCheck.value = "1";
                 
                 // Remove required from Main Branch dropdown
@@ -862,7 +870,6 @@
                 // When unchecked (Is Main Branch = NO)
                 // Show sub branch, hide agreement
                 subBranch.style.display = "block";
-                owner_info_div.style.display = "none";
                 agreementSection.style.display = "none";
                 hiddenCheck.value = "0";
                 
@@ -1214,20 +1221,32 @@
 
             const rowId = "staff_row_" + staffIndex;
 
+            let roleOptions = '<option value="" selected disabled>{{ translate('messages.select_Role') }}</option>';
+            @foreach ($rls as $r)
+                roleOptions += '<option value="{{ $r->id }}">{{ $r->name }}</option>';
+            @endforeach
+
             const html = `
             <div class="row g-3 staff-row mb-3 p-3 border rounded" id="${rowId}">
-                <div class="col-md-4">
-                    <label>Name</label>
-                    <input type="text" class="form-control staff-name" placeholder="Enter name" required>
-                </div>
-
-                <div class="col-md-4">
-                    <label>Role</label>
-                    <input type="text" class="form-control staff-role" placeholder="Enter role" required>
+                <div class="col-md-3">
+                    <label>{{ translate('messages.first_name') }}</label>
+                    <input type="text" class="form-control staff-f-name" placeholder="{{ translate('messages.Ex:') }} John" required>
                 </div>
 
                 <div class="col-md-3">
-                    <label>Phone</label>
+                    <label>{{ translate('messages.last_name') }}</label>
+                    <input type="text" class="form-control staff-l-name" placeholder="{{ translate('messages.Ex:') }} Doe" required>
+                </div>
+
+                <div class="col-md-3">
+                    <label>{{ translate('messages.Role') }}</label>
+                    <select class="form-control staff-role-id" required>
+                        ${roleOptions}
+                    </select>
+                </div>
+
+                <div class="col-md-2">
+                    <label>{{ translate('messages.phone') }}</label>
                     <input type="tel" class="form-control staff-phone" placeholder="017********" required>
                 </div>
 
@@ -1244,7 +1263,6 @@
             updateHiddenField();
         }
 
-        
         function removeStaff(rowId) {
             document.getElementById(rowId).remove();
             updateHiddenField();
@@ -1256,8 +1274,9 @@
 
             rows.forEach(row => {
                 staffList.push({
-                    name: row.querySelector(".staff-name").value,
-                    role: row.querySelector(".staff-role").value,
+                    f_name: row.querySelector(".staff-f-name").value,
+                    l_name: row.querySelector(".staff-l-name").value,
+                    role_id: row.querySelector(".staff-role-id").value,
                     phone: row.querySelector(".staff-phone").value,
                 });
             });
@@ -1268,6 +1287,13 @@
         // Update hidden field on input change
         document.addEventListener("input", function(e) {
             if (e.target.closest(".staff-row")) {
+                updateHiddenField();
+            }
+        });
+
+        // Update hidden field on change (for select dropdown)
+        document.addEventListener("change", function(e) {
+            if (e.target.closest(".staff-row") && e.target.classList.contains('staff-role-id')) {
                 updateHiddenField();
             }
         });
