@@ -440,7 +440,7 @@ class ItemController extends Controller
     public function get_item($id)
     {
         try {
-            $item = Item::withoutGlobalScope('translate')->with(['voucherAvailability','tags', 'taxVats'])->where('id', $id)
+            $item = Item::withoutGlobalScope('translate')->with(['voucherAvailability', 'tags', 'taxVats'])->where('id', $id)
                 ->first();
             $item = Helpers::product_data_formatting_translate($item, false, false, app()->getLocale());
             return response()->json($item, 200);
@@ -1318,7 +1318,7 @@ class ItemController extends Controller
                 'unavailable_till' => 'required|in:next_day,further_notice',
             ]);
 
-            $store_id =    $request['vendor']->stores[0]->id;
+            $store_id = $request['vendor']->stores[0]->id;
 
             // Determine active_at based on unavailable_till
             $activeAt = $request->unavailable_till === 'next_day' ? now()->addDay() : null;
@@ -1350,10 +1350,14 @@ class ItemController extends Controller
             ], 500);
         }
     }
-    public function delete_voucher_availability($id)
+    public function delete_voucher_availability(Request $request, $id)
     {
         try {
-            $availability = VoucherAvailability::findOrFail($id);
+            $store_id = $request['vendor']->stores[0]->id;
+            $item_id = $id;
+
+
+            $availability = VoucherAvailability::where('store_id', $store_id)->where('item_id', $item_id);
             $availability->delete();
 
             return response()->json([
