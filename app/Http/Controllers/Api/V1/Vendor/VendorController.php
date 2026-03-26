@@ -737,12 +737,13 @@ class VendorController extends Controller
 
     public function get_items(Request $request)
     {
+     
         $limit = $request->limit ? $request->limit : 25;
         $offset = $request->offset ? $request->offset : 1;
 
         $type = $request->query('type', 'all');
         $category_id = $request->category_id ?? 0;
-        $paginator = Item::with('tags');
+        $paginator = Item::with('tags','voucherAvailability');
 
         if ($category_id != 0) {
             $paginator = $paginator->whereHas('category', function ($q) use ($category_id) {
