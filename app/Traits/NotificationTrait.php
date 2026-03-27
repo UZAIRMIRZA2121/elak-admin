@@ -9,6 +9,7 @@ trait NotificationTrait
 {
     public static function sendPushNotificationToTopic($data, $topic, $type,$web_push_link = null): bool|string
     {
+      
         if(isset($data['module_id'])){
             $module_id = $data['module_id'];
         }else{
@@ -25,11 +26,11 @@ trait NotificationTrait
             $zone_id = '';
         }
 
-//        $click_action = "";
-//        if($web_push_link){
-//            $click_action = ',
-//            "click_action": "'.$web_push_link.'"';
-//        }
+       $click_action = "";
+       if($web_push_link){
+           $click_action = ',
+           "click_action": "'.$web_push_link.'"';
+       }
 
         if (isset($data['order_id'])) {
             $postData = [
@@ -101,6 +102,7 @@ trait NotificationTrait
                 ]
             ];
         }
+     
         return self::sendNotificationToHttp($postData);
     }
 
@@ -178,7 +180,9 @@ trait NotificationTrait
 
     public static function sendNotificationToHttp(array|null $data)
     {
+     
         $config = self::get_business_settings('push_notification_service_file_content');
+     
         $key = (array)$config;
         if($key['project_id']){
             $url = 'https://fcm.googleapis.com/v1/projects/'.$key['project_id'].'/messages:send';
@@ -187,7 +191,8 @@ trait NotificationTrait
                 'Content-Type' => 'application/json',
             ];
             try {
-                Http::withHeaders($headers)->post($url, $data);
+              $a =  Http::withHeaders($headers)->post($url, $data);
+   dd($a);
             }catch (\Exception $exception){
                 return false;
             }
