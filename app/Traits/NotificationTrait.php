@@ -108,11 +108,11 @@ trait NotificationTrait
 
     public static function sendPushNotificationToDevice($fcm_token, $data, $web_push_link = null): bool|string
     {
-        //        if(isset($data['message'])){
-//            $message = $data['message'];
-//        }else{
-//            $message = '';
-//        }
+               if(isset($data['message'])){
+           $message = $data['message'];
+       }else{
+           $message = '';
+       }
         if (isset($data['conversation_id'])) {
             $conversation_id = $data['conversation_id'];
         } else {
@@ -134,11 +134,11 @@ trait NotificationTrait
             $order_type = '';
         }
 
-        //        $click_action = "";
-//        if($web_push_link){
-//            $click_action = ',
-//            "click_action": "'.$web_push_link.'"';
-//        }
+        $click_action = "";
+       if($web_push_link){
+           $click_action = ',
+           "click_action": "'.$web_push_link.'"';
+       }
         $postData = [
             'message' => [
                 "token" => $fcm_token,
