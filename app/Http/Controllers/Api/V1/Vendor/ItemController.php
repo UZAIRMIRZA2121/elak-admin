@@ -1310,67 +1310,37 @@ class ItemController extends Controller
     }
 
 
-    public function update_voucher(Request $request, $itemId)
-    {
-        try {
-            // Validate input
-            $request->validate([
-                'unavailable_till' => 'required|in:next_day,further_notice',
-            ]);
 
-            $store_id = $request['vendor']->stores[0]->id;
+   public function toggleVoucherAvailability(Request $request, $id)
+{
+    $store_id = $request['vendor']->stores[0]->id;
 
-            // Determine active_at based on unavailable_till
-            $activeAt = $request->unavailable_till === 'next_day' ? now()->addDay() : null;
+    $availability = VoucherAvailability::where('voucher_id', $id)
+        ->where('store_id', $store_id)
+        ->first();
 
-            // Update or create record
-            $voucher = VoucherAvailability::updateOrCreate(
-                [
-                    'store_id' => $store_id,
-                    'voucher_id' => $itemId,
-                ],
-                [
-                    'status' => 'not_available',
-                    'active_at' => $activeAt,
-                    'updated_at' => now(),
-                ]
-            );
+    // 👉 If exists → DELETE (make available)
+    if ($availability) {
+        $availability->delete();
 
-            return response()->json([
-                'success' => true,
-                'message' => 'Voucher updated successfully!',
-                'data' => $voucher
-            ], 200);
-
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Something went wrong!',
-                'error' => $e->getMessage()
-            ], 500);
-        }
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Voucher available now'
+        ]);
     }
-    public function delete_voucher_availability(Request $request, $id)
-    {
-        try {
-            $store_id = $request['vendor']->stores[0]->id;
-            $item_id = $id;
 
+    // 👉 If not exists → CREATE (make not available)
+    VoucherAvailability::create([
+        'voucher_id' => $id,
+        'store_id' => $store_id,
+        'status' => 'not_available',
+        'active_at' => now()
+    ]);
 
-            $availability = VoucherAvailability::where('store_id', $store_id)->where('voucher_id', $item_id);
-            $availability->delete();
+    return response()->json([
+        'status' => 'success',
+        'message' => 'Voucher not available until next day'
+    ]);
+}
 
-            return response()->json([
-                'success' => true,
-                'message' => 'Voucher availability deleted successfully!'
-            ], 200);
-
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Record not found or delete failed!',
-                'error' => $e->getMessage()
-            ], 500);
-        }
-    }
 }

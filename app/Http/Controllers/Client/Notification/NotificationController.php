@@ -54,7 +54,7 @@ class NotificationController extends BaseController
         $notification = $this->notificationRepo->add(data: $this->notificationService->getAddData(request: $request));
         $topic = $this->notificationService->getTopic(request: $request);
         $notification->image = $notification->image ? $notification->toArray()['image_full_url'] :'';
-
+        
         try {
             $this->sendPushNotificationToTopic($notification, $topic, 'push_notification');
         } catch (Exception) {

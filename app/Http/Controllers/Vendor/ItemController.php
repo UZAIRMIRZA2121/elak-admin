@@ -2029,39 +2029,44 @@ class ItemController extends Controller
 
         return view('vendor-views.product.view_voucher', compact('product', 'reviews', 'productWiseTax'));
     }
-    public function update_voucher(Request $request, $itemId)
+ 
+
+    public function toggleVoucherAvailability(Request $request, $id)
     {
-        // Validate input
-        $request->validate([
-            'unavailable_till' => 'required|in:next_day,further_notice',
-        ]);
 
-        $store_id = Helpers::get_store_id();
 
-        // Determine active_at based on unavailable_till
-        $activeAt = $request->unavailable_till === 'next_day' ? now()->addDay() : null;
+          $store_id = Helpers::get_store_id();
+        if ($request->action === 'create') {
 
-        // Update if exists, otherwise create
-        VoucherAvailability::updateOrCreate(
-            [
-                'store_id' => $store_id,
-                'voucher_id' => $itemId,
-            ],
-            [
-                'status' => 'not_available',   // You can adjust this if needed
-                'active_at' => $activeAt,
-                'updated_at' => now(),
-            ]
-        );
+            VoucherAvailability::updateOrCreate(
+                ['voucher_id' => $id],
+                [
+                    'store_id' =>  $store_id,
+                    'status' => 'not_available',
+                    'active_at' => now()
+                ]
+            );
 
-        return back()->with('success', 'Voucher updated successfully!');
-    }
-    public function delete_voucher_availability($id)
-    {
-        $availability = VoucherAvailability::findOrFail($id);
-        $availability->delete();
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Voucher not available until next day'
+            ]);
+        }
 
-        return back()->with('success', 'Voucher availability deleted successfully!');
+        if ($request->action === 'delete') {
+
+            VoucherAvailability::where('voucher_id', $id)->delete();
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Voucher available now'
+            ]);
+        }
+
+        return response()->json([
+            'status' => 'error',
+            'message' => 'Invalid action'
+        ], 400);
     }
 
 

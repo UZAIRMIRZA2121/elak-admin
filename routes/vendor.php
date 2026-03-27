@@ -7,7 +7,7 @@ use App\Http\Controllers\Vendor\SubscriptionController;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Vendor;
 
-  
+
 
 
 Route::get('/vendor/direct-login/{vendorId}', function ($vendorId) {
@@ -177,11 +177,12 @@ Route::group(['namespace' => 'Vendor', 'as' => 'vendor.'], function () {
 
 
             Route::get('flash-sale', 'ItemController@flash_sale')->name('flash_sale');
-            Route::put('update-voucher/{id}', 'ItemController@update_voucher')->name('update_voucher');
-            Route::delete ('delete_voucher_availability/{id}', 'ItemController@delete_voucher_availability')->name('delete_voucher_availability');
-            
+ 
 
-  
+            Route::post('voucher-availability-toggle/{id}', 'ItemController@toggleVoucherAvailability')->name('voucher.availability.toggle');
+
+
+
 
         });
 
