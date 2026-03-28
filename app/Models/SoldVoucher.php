@@ -9,9 +9,9 @@ class SoldVoucher extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['user_id', 'voucher_id','store_id'];
+    protected $fillable = ['user_id', 'voucher_id', 'store_id', 'order_id'];
 
-     public function user()
+    public function user()
     {
         return $this->belongsTo(User::class);
     }
@@ -20,5 +20,10 @@ class SoldVoucher extends Model
     {
         return $this->belongsTo(item::class);
     }
+    public function order()
+    {
+        return $this->belongsTo(Order::class);
+    }
+
 
 }

@@ -9,6 +9,7 @@ use App\Models\HolidayOccasion;
 use App\Models\Item;
 use App\Models\SoldVoucher;
 use App\Models\User;
+use App\Models\VoucherAvailability;
 use App\Models\VoucherSetting;
 use App\Models\WalletPayment;
 use App\Models\Zone;
@@ -195,6 +196,7 @@ trait PlaceNewOrder
             if (($request->partial_payment && $request->payment_method != 'offline_payment') || $request->payment_method == 'wallet') {
                 $order_status = 'confirmed';
             }
+
 
 
             $order->user_id = $request->user ? $request->user->id : $request['guest_id'];
@@ -505,12 +507,13 @@ trait PlaceNewOrder
                 ], 203);
             }
 
-        //   dd("dsjhvbhsd");
+            //   dd("dsjhvbhsd");
 
             if ($order_status == 'active') {
                 $order->store_id = null;
                 $order->checked = 0;
             }
+
 
 
 
@@ -531,9 +534,9 @@ trait PlaceNewOrder
                         $voucher_details = $item;
                         $order->voucher_usage_term_and_conditions = $voucher_details->usageTerms() ?? null;
 
-                        
+
                         $voucherSetting = VoucherSetting::where('item_id', $item->id)->first();
-                        
+
                         if ($voucherSetting && isset($voucherSetting->usage_limit_per_user['value']) && isset($voucherSetting->usage_limit_per_user['period'])) {
                             $limit = (int) $voucherSetting->usage_limit_per_user['value'];
                             $period = $voucherSetting->usage_limit_per_user['period'];
@@ -584,14 +587,16 @@ trait PlaceNewOrder
                             }
                         }
 
-                       
-                        SoldVoucher::create([
-                        'user_id' => $order->user_id,
-                        'voucher_id' => $cart->item_id,
-                        'store_id' => $order->store_id
-                       ]);
+                        $sold_voucher = new SoldVoucher();
+                        $sold_voucher->user_id = $order->user_id;
+                        $sold_voucher->voucher_id = $order->user_id;
+                        $sold_voucher->store_id = $order->store_id;
+                        $sold_voucher->order_id = $order->id;
 
-                        
+
+
+
+
                         if ($voucherSetting) {
 
                             // Decode JSON fields safely - model already has casts
@@ -654,9 +659,65 @@ trait PlaceNewOrder
                         // $order->voucher_term_and_conditions = $voucherSetting ?? null;
                         $order->voucher_setting = $voucherSetting ?? null;
                         $order->offer_type = $voucher_details->offer_type ?? null;
+
+
+                        $user_latitude = $request->header('latitude');
+                        $user_longitude = $request->header('longitude');
+
+                        $nearestBranch = null;
+                        $shortestDistance = 50;
+
+                        $user_latitude = $request->header('latitude');
+                        $user_longitude = $request->header('longitude');
+
+                        if ($order->voucher_type == 'Delivery/Pickup') {
+                            $branches = $item->getBranchesAttribute();
+
+                            foreach ($branches as $branch) {
+
+                                // ✅ Check availability (if exists → skip)
+                                $exists = VoucherAvailability::where('store_id', $branch->id)
+                                    ->where('voucher_id', $item->id)
+                                    ->exists();
+
+
+                                if ($exists) {
+                                    continue; // 🚀 skip this branch
+                                }
+
+
+                                $branch_lat = $branch->latitude;
+                                $branch_lng = $branch->longitude;
+
+                                // Distance calculate
+                                $distance = $this->calculateDistance(
+                                    $user_latitude,
+                                    $user_longitude,
+                                    $branch_lat,
+                                    $branch_lng
+                                );
+
+
+
+                                // ✅ Check nearest
+                                if ($distance < $shortestDistance) {
+                                    $shortestDistance = $distance;
+                                    $nearestBranch = $branch;
+                                }
+                            }
+                        }
+
                     }
                 }
             }
+
+
+            if ($order->voucher_type == 'Delivery/Pickup') {
+                $order->store_id = $nearestBranch->id ?? $order->store_id;
+               $sold_voucher->store_id =  $order->store_id;
+            }
+
+
             $order->total_order_amount = $carts[0]['total_price'] ?? null;
 
             $order->total_order_amount = $carts[0]['total_price'] ?? null;
@@ -664,6 +725,7 @@ trait PlaceNewOrder
 
             $order->gift_details = $request->gift_details ?? null;
             $order->save();
+            $sold_voucher->save();
 
 
             if ($request->order_type !== 'parcel') {
@@ -788,7 +850,6 @@ trait PlaceNewOrder
             DB::commit();
 
 
-
             $this->sentOrderPlaceNotification($request, $order, $store);
 
             return response()->json([
@@ -813,7 +874,21 @@ trait PlaceNewOrder
         ], 403);
     }
 
+    private function calculateDistance($lat1, $lon1, $lat2, $lon2)
+    {
+        $earthRadius = 6371; // KM
 
+        $dLat = deg2rad($lat2 - $lat1);
+        $dLon = deg2rad($lon2 - $lon1);
+
+        $a = sin($dLat / 2) * sin($dLat / 2) +
+            cos(deg2rad($lat1)) * cos(deg2rad($lat2)) *
+            sin($dLon / 2) * sin($dLon / 2);
+
+        $c = 2 * atan2(sqrt($a), sqrt(1 - $a));
+
+        return $earthRadius * $c; // distance in KM
+    }
 
     private function createNewUser($request)
     {

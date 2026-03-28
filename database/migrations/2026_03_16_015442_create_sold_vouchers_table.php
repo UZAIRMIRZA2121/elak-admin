@@ -16,6 +16,7 @@ return new class extends Migration
             $table->unsignedBigInteger('user_id');
             $table->unsignedBigInteger('voucher_id');
             $table->unsignedBigInteger('store_id');
+            $table->unsignedBigInteger('order_id');
             $table->timestamps();
         });
     }

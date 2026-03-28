@@ -12,6 +12,7 @@ use App\Http\Requests\Admin\NotificationAddRequest;
 use App\Http\Requests\Admin\NotificationUpdateRequest;
 use App\Services\NotificationService;
 use App\Traits\NotificationTrait;
+use Carbon\Carbon;
 use Exception;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\JsonResponse;
@@ -36,6 +37,7 @@ class NotificationController extends BaseController
 
     public function index(?Request $request): View|Collection|LengthAwarePaginator|null
     {
+       
         return $this->getAddView($request);
     }
 

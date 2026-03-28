@@ -2029,45 +2029,39 @@ class ItemController extends Controller
 
         return view('vendor-views.product.view_voucher', compact('product', 'reviews', 'productWiseTax'));
     }
- 
+
 
     public function toggleVoucherAvailability(Request $request, $id)
     {
+        $store_id = Helpers::get_store_id();
 
+        // ✅ Check if record exists
+        $existing = VoucherAvailability::where('voucher_id', $id)
+            ->where('store_id', $store_id)
+            ->first();
 
-          $store_id = Helpers::get_store_id();
-        if ($request->action === 'create') {
+        if ($existing) {
+            // ✅ If exists → delete
+            $existing->delete();
 
-            VoucherAvailability::updateOrCreate(
-                ['voucher_id' => $id],
-                [
-                    'store_id' =>  $store_id,
-                    'status' => 'not_available',
-                    'active_at' => now()
-                ]
-            );
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Voucher available now'
+            ]);
+        } else {
+            // ✅ If not exists → create
+            VoucherAvailability::create([
+                'voucher_id' => $id,
+                'store_id' => $store_id,
+                'status' => 'not_available',
+                'active_at' => now()
+            ]);
 
             return response()->json([
                 'status' => 'success',
                 'message' => 'Voucher not available until next day'
             ]);
         }
-
-        if ($request->action === 'delete') {
-
-            VoucherAvailability::where('voucher_id', $id)->delete();
-
-            return response()->json([
-                'status' => 'success',
-                'message' => 'Voucher available now'
-            ]);
-        }
-
-        return response()->json([
-            'status' => 'error',
-            'message' => 'Invalid action'
-        ], 400);
     }
-
 
 }

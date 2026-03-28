@@ -193,7 +193,7 @@ trait NotificationTrait
             try {
                 $response = Http::withHeaders($headers)->post($url, $data);
 
-                dd($response->body()); // check FCM server response
+             
             } catch (\Exception $exception) {
                 return false;
             }
