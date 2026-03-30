@@ -769,13 +769,14 @@ class OrderController extends Controller
         if (!$order) {
             return response()->json([
                 'success' => false,
-                'message' => 'Order not found.'
+                'message' => 'code is wrong.'
             ], 404);
         }
-             if ($order->order_status == 'delivered' &&  $order->payment_status == 'paid') {
+
+     if ($order->order_status == 'delivered' &&  $order->payment_status == 'paid') {
             return response()->json([
                 'success' => false,
-                'message' => 'Order already delivered or payment received.'
+                'message' => 'Code is used.'
             ], 400);
         }
 
@@ -783,7 +784,7 @@ class OrderController extends Controller
         if ($order->order_status !== 'active') {
             return response()->json([
                 'success' => false,
-                'message' => 'Order already used or processed.'
+                'message' => 'Code is used.'
             ], 400);
         }
    
