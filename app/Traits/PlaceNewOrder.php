@@ -73,7 +73,7 @@ trait PlaceNewOrder
             'gift_details' => 'nullable',
         ]);
 
-        $qr_code = Str::random(6);
+        $qr_code = strtoupper(Str::random(6));
 
         if ($validator->fails()) {
             return response()->json(['errors' => Helpers::error_processor($validator)], 403);
@@ -365,7 +365,7 @@ trait PlaceNewOrder
                 }
 
 
-                
+
 
                 $total_price = max($total_price, 0);
 
@@ -717,7 +717,7 @@ trait PlaceNewOrder
 
             if ($order->voucher_type == 'Delivery/Pickup') {
                 $order->store_id = $nearestBranch->id ?? $order->store_id;
-                $sold_voucher->store_id =  $order->store_id;
+                $sold_voucher->store_id = $order->store_id;
             }
 
 

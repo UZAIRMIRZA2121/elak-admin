@@ -745,16 +745,12 @@ class OrderController extends Controller
 
     public function orderScanUpdate(Request $request)
     {
-        $validator = Validator::make($request->all(), [
-            'order_id' => 'required'
+
+        $request->validate([
+            'order_id' => 'required',
+
         ]);
 
-        if ($validator->fails()) {
-            return response()->json([
-                'success' => false,
-                'message' => $validator->errors()->first()
-            ], 422);
-        }
 
         $qr_code = $request->order_id;
 
@@ -776,6 +772,13 @@ class OrderController extends Controller
                 'message' => 'Order not found.'
             ], 404);
         }
+             if ($order->order_status == 'delivered' &&  $order->payment_status == 'paid') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Order already delivered or payment received.'
+            ], 400);
+        }
+
 
         if ($order->order_status !== 'active') {
             return response()->json([
@@ -783,6 +786,7 @@ class OrderController extends Controller
                 'message' => 'Order already used or processed.'
             ], 400);
         }
+   
 
         $setting = $order->voucher_setting;
 
@@ -888,7 +892,7 @@ class OrderController extends Controller
         $order->checked = 1;
         $order->order_status = 'pending';
         $order->store_id = $store->id;
-        $order->qr_code = null;
+        // $order->qr_code = null;
         $order->save();
 
         return response()->json([
