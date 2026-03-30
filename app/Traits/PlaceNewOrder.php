@@ -364,6 +364,9 @@ trait PlaceNewOrder
                     }
                 }
 
+
+                
+
                 $total_price = max($total_price, 0);
 
                 $order->tax_status = 'excluded';
@@ -714,7 +717,7 @@ trait PlaceNewOrder
 
             if ($order->voucher_type == 'Delivery/Pickup') {
                 $order->store_id = $nearestBranch->id ?? $order->store_id;
-               $sold_voucher->store_id =  $order->store_id;
+                $sold_voucher->store_id =  $order->store_id;
             }
 
 
