@@ -12,11 +12,7 @@
     }
     $max_processing_time = explode('-', $order['store']['delivery_time'])[0];
     ?>
-    <?php
-    
   
-    
-    ?>
 
     <div class="content container-fluid">
         <!-- Page Header -->

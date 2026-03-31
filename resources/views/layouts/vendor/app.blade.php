@@ -1321,6 +1321,54 @@ $moduleType = $store?->module?->module_type;
 
         setInterval(checkNewCart, 3000);
     </script>
+
+
+
+
+
+    <script>
+    let startTime = document.getElementById('countdown').getAttribute('data-processing');
+    let durationMinutes = parseInt(document.getElementById('countdown').getAttribute('data-duration'));
+
+    let start = new Date(startTime.replace(' ', 'T'));
+    let endTime = new Date(start.getTime() + durationMinutes * 60 * 1000);
+
+    function updateCountdown() {
+        let now = new Date();
+        let diff = endTime - now;
+
+        if (diff <= 0) {
+            document.getElementById('countdown').innerHTML = "Time's up";
+            document.getElementById('countdown').style.color = "red";
+            return;
+        }
+
+        let hours = Math.floor(diff / (1000 * 60 * 60));
+        let minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+        let seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+        let timeString = '';
+
+        // Show hours only if > 0
+        if (hours > 0) {
+            timeString += hours + 'h ';
+        }
+
+        timeString += minutes + 'm ' + seconds + 's';
+
+        // Change color if less than 10 minutes
+        if (diff <= 10 * 60 * 1000) {
+            document.getElementById('countdown').style.color = "red";
+        } else {
+            document.getElementById('countdown').style.color = "black";
+        }
+
+        document.getElementById('countdown').innerHTML = timeString;
+    }
+
+    setInterval(updateCountdown, 1000);
+    updateCountdown();
+</script>
 </body>
 
 </html>

@@ -39,10 +39,10 @@
                                         data-message="{{ translate('messages.proceed_for_processing') }}"
                                         href="javascript:">{{ translate('messages.proceed_for_processing') }}</a>
                                 @endif
-                                <a class="btn btn--primary w-100 route-alert {{ $order['order_status'] == 'processing' ? '' : 'd-none' }}"
+                                {{-- <a class="btn btn--primary w-100 route-alert {{ $order['order_status'] == 'processing' ? '' : 'd-none' }}"
                                     data-url="{{ route('vendor.order.status', ['id' => $order['id'], 'order_status' => 'handover']) }}"
                                     data-message="{{ translate('messages.make_ready_for_handover') }}"
-                                    href="javascript:">{{ translate('messages.make_ready_for_handover') }}</a>
+                                    href="javascript:">{{ translate('messages.make_ready_for_handover') }}</a> --}}
                                 @if ( $order['order_status'] == 'handover' || $order['order_status'] == 'processing'   || ($order['order_status'] == 'picked_up' && $order->store->sub_self_delivery == 1))
                                     <a class="btn  w-100
                                     {{ $order['order_type'] == 'take_away' || $order->store->sub_self_delivery == 1 ? 'btn--primary order-status-change-alert' : 'btn--secondary  self-delivery-warning' }} "

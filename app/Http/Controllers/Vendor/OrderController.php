@@ -232,7 +232,7 @@ class OrderController extends Controller
 
     public function status(Request $request)
     {
-
+      
         $request->validate([
             'id' => 'required',
             'order_status' => 'required|in:confirmed,processing,handover,delivered,canceled',
@@ -240,9 +240,9 @@ class OrderController extends Controller
         ], [
             'id.required' => 'Order id is required!'
         ]);
-
+   
         $order = Order::where(['id' => $request->id, 'store_id' => Helpers::get_store_id()])->first();
-
+     
         if ($order->delivered != null) {
             Toastr::warning(translate('messages.cannot_change_status_after_delivered'));
             return back();
@@ -271,7 +271,7 @@ class OrderController extends Controller
                 return back();
             }
         }
-
+       
         if ($request->order_status == 'delivered') {
             $order_delivery_verification = (boolean) \App\Models\BusinessSetting::where(['key' => 'order_delivery_verification'])->first()->value;
             if ($order_delivery_verification) {
@@ -773,7 +773,7 @@ class OrderController extends Controller
             ], 404);
         }
 
-     if ($order->order_status == 'delivered' &&  $order->payment_status == 'paid') {
+        if ($order->order_status == 'delivered' && $order->payment_status == 'paid') {
             return response()->json([
                 'success' => false,
                 'message' => 'Code is used.'
@@ -787,7 +787,7 @@ class OrderController extends Controller
                 'message' => 'Code is used.'
             ], 400);
         }
-   
+
 
         $setting = $order->voucher_setting;
 

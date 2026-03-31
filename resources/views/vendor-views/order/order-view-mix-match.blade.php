@@ -12,9 +12,9 @@
     }
     $max_processing_time = explode('-', $order['store']['delivery_time'])[0];
     ?>
-    <?php
-    
-    ?>
+
+
+
 
     <style>
         .coupon-card {
@@ -124,6 +124,41 @@
             display: block;
             font-size: 1.5rem;
             font-weight: 800;
+        }
+    </style>
+    <style>
+        #countdown {
+            font-size: 18px;
+            font-weight: 600;
+            padding: 6px 12px;
+            border-radius: 6px;
+            display: inline-block;
+            background: #f5f5f5;
+            color: #333;
+            transition: all 0.3s ease;
+        }
+
+        /* Warning (less than 10 min) */
+        #countdown.warning {
+            color: #fff;
+            background: #dc3545;
+            /* red */
+            animation: pulse 1s infinite;
+        }
+
+        /* Pulse animation */
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.05);
+            }
+
+            100% {
+                transform: scale(1);
+            }
         }
     </style>
     <div class="content container-fluid">
@@ -283,7 +318,7 @@
                                     : <label
                                         class="fz--10 badge m-0 badge-soft-primary">{{ translate(str_replace('_', ' ', $order['voucher_type'])) }}</label>
                                 </h6>
-                                  <h6 class="text-capitalize">{{ translate('messages.voucher_sub_type') }}
+                                <h6 class="text-capitalize">{{ translate('messages.voucher_sub_type') }}
                                     : <label
                                         class="fz--10 badge m-0 badge-soft-primary">{{ translate(str_replace('_', ' ', $order['voucher_sub_type'])) }}</label>
                                 </h6>
@@ -327,6 +362,17 @@
                                         </span>
                                     @endif
                                 </h6>
+                                <h6>
+
+                                    @if ($order['order_status'] == 'processing')
+                                        {{ translate('messages.order_status') }} :
+                                        <span class="badge badge-soft-warning ml-2 ml-sm-3 text-capitalize">
+                                            <span id="countdown" data-processing="{{ $order->processing }}"
+                                                data-duration="{{ $order->processing_time }}"></span>
+                                        </span>
+                                    @endif
+                                </h6>
+
                                 @if ($order->order_attachment)
                                     @php
                                         $order_images = json_decode($order->order_attachment, true);
@@ -431,15 +477,13 @@
 
 
                                                 <div class="coupon-card d-flex align-items-stretch d-block m-auto ">
-                                                   <div class="coupon-left d-flex">
+                                                    <div class="coupon-left d-flex">
                                                         <div class="side-label">{{ $order['voucher_type'] }}</div>
 
                                                         <div class="image-section">
-                                                            <img 
-                                                                src="{{ $product->image_full_url ?? asset('public/assets/admin/img/160x160/img2.jpg') }}"
+                                                            <img src="{{ $product->image_full_url ?? asset('public/assets/admin/img/160x160/img2.jpg') }}"
                                                                 data-image="{{ $product->image_full_url ?? asset('public/assets/admin/img/160x160/img2.jpg') }}"
-                                                                class="img-fluid preview-image"
-                                                                style="cursor:pointer;"
+                                                                class="img-fluid preview-image" style="cursor:pointer;"
                                                                 alt="Product Image">
                                                         </div>
                                                     </div>
@@ -613,10 +657,10 @@
                                 <dl class="row text-right">
                                     <dt class="col-6">{{ translate('messages.voucher_value') }}:</dt>
                                     <dd class="col-6">
-                                        {{ \App\CentralLogics\Helpers::format_currency($order->total_order_amount ) }}
+                                        {{ \App\CentralLogics\Helpers::format_currency($order->total_order_amount) }}
                                     </dd>
 
-                                  
+
                                     {{-- <dt class="col-6">{{ translate('messages.subtotal') }}
                                         @if ($order->tax_status == 'included' || $tax_included == 1)
                                             ({{ translate('messages.TAX_Included') }})
@@ -693,7 +737,7 @@
 
                                     <dt class="col-6">{{ translate('messages.amount_to_pay') }}:</dt>
                                     <dd class="col-6">
-                                        {{ \App\CentralLogics\Helpers::format_currency($order->total_order_amount  - $order->discount_amount) }}
+                                        {{ \App\CentralLogics\Helpers::format_currency($order->total_order_amount - $order->discount_amount) }}
                                     </dd>
                                     @if ($order?->payments)
                                         @foreach ($order?->payments as $payment)
@@ -729,7 +773,7 @@
 
             <div class="col-lg-4">
                 <!-- Card -->
-                 @if (
+                @if (
                     $order->order_status != 'refund_requested' &&
                         $order->order_status != 'refunded' &&
                         $order->order_status != 'delivered')
@@ -988,7 +1032,7 @@
 
                 @endif
 
-          
+
 
                 <!-- Card -->
                 <div class="card">
@@ -1354,24 +1398,52 @@
             } else if (processing) {
                 Swal.fire({
                     title: '{{ translate('messages.Are you sure ?') }}',
-                    type: 'warning',
                     showCancelButton: true,
                     cancelButtonColor: 'default',
                     confirmButtonColor: '#FC6A57',
                     cancelButtonText: '{{ translate('messages.Cancel') }}',
                     confirmButtonText: '{{ translate('messages.submit') }}',
-                    inputPlaceholder: "{{ translate('Enter processing time') }}",
-                    input: 'text',
-                    html: message + '<br/>' +
-                        '<label>{{ translate('Enter Processing time in minutes') }}</label>',
-                    inputValue: processing,
-                    preConfirm: (processing_time) => {
-                        location.href = route + '&processing_time=' + processing_time;
+
+                    html: `
+        ${message}<br/><br/>
+        <label>{{ translate('Enter Processing time') }}</label>
+
+        <div class="d-flex gap-2">
+            <input type="number" id="processing_value" class="swal2-input" placeholder="Enter time" style="margin:0;" />
+
+            <select id="processing_unit" class="swal2-input" style="margin:0;">
+                <option value="min">Min</option>
+                <option value="hour">Hour</option>
+                <option value="day">Day</option>
+            </select>
+        </div>
+    `,
+
+                    preConfirm: () => {
+                        let value = document.getElementById('processing_value').value;
+                        let unit = document.getElementById('processing_unit').value;
+
+                        if (!value) {
+                            Swal.showValidationMessage('Please enter processing time');
+                            return false;
+                        }
+
+                        value = parseFloat(value);
+                        let minutes = value;
+
+                        if (unit === 'hour') {
+                            minutes = value * 60;
+                        } else if (unit === 'day') {
+                            minutes = value * 60 * 24;
+                        }
+
+                        location.href = route + '&processing_time=' + minutes;
                     },
+
                     allowOutsideClick: () => !Swal.isLoading()
-                })
+                });
             } else {
-                
+
                 Swal.fire({
                     title: '{{ translate('messages.Are you sure ?') }}',
                     text: message,
@@ -1433,27 +1505,27 @@
 
 
     <!-- Image Preview Modal -->
-<div class="modal fade" id="imagePreviewModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered modal-lg">
-        <div class="modal-content">
-            <div class="modal-body text-center">
-                <img id="modalPreviewImage" src="" class="img-fluid rounded">
+    <div class="modal fade" id="imagePreviewModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content">
+                <div class="modal-body text-center">
+                    <img id="modalPreviewImage" src="" class="img-fluid rounded">
+                </div>
             </div>
         </div>
     </div>
-</div>
-<script>
-document.addEventListener("DOMContentLoaded", function () {
-    const previewImages = document.querySelectorAll(".preview-image");
-    const modalImage = document.getElementById("modalPreviewImage");
-    const imageModal = new bootstrap.Modal(document.getElementById("imagePreviewModal"));
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const previewImages = document.querySelectorAll(".preview-image");
+            const modalImage = document.getElementById("modalPreviewImage");
+            const imageModal = new bootstrap.Modal(document.getElementById("imagePreviewModal"));
 
-    previewImages.forEach(img => {
-        img.addEventListener("click", function () {
-            modalImage.src = this.getAttribute("data-image");
-            imageModal.show();
+            previewImages.forEach(img => {
+                img.addEventListener("click", function() {
+                    modalImage.src = this.getAttribute("data-image");
+                    imageModal.show();
+                });
+            });
         });
-    });
-});
-</script>
+    </script>
 @endpush

@@ -737,13 +737,13 @@ class VendorController extends Controller
 
     public function get_items(Request $request)
     {
-     
+
         $limit = $request->limit ? $request->limit : 25;
         $offset = $request->offset ? $request->offset : 1;
 
         $type = $request->query('type', 'all');
         $category_id = $request->category_id ?? 0;
-        $paginator = Item::with('tags','voucherAvailability');
+        $paginator = Item::with('tags', 'voucherAvailability');
 
         if ($category_id != 0) {
             $paginator = $paginator->whereHas('category', function ($q) use ($category_id) {
@@ -1492,8 +1492,8 @@ class VendorController extends Controller
                 }
             }
         }
-            // dd($matched_config);
-   
+        // dd($matched_config);
+
 
 
         return response()->json([
@@ -1728,5 +1728,25 @@ class VendorController extends Controller
             ]
         ], 200);
     }
+    public function new_order(Request $request)
+    {
 
+        $vendor = $request['vendor'];
+        $store = $vendor->store;
+
+        $order = Order::where('store_id', $store->id)
+            ->where('checked', 0)
+            ->latest()
+            ->first();
+        $new_order = $order;
+        if ($order) {
+            $order->checked = 1;
+            $order->save();
+        }
+
+        return response()->json([
+            'success' => true,
+            'order' => $new_order
+        ]);
+    }
 }

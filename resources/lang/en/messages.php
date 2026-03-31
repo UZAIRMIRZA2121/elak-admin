@@ -8589,4 +8589,6 @@ Smartly or Earn. ',
   'Please_send_a_Feedback' => 'Please send a Feedback',
   'Low_ratings' => 'Low ratings',
   'Cancellation Policy' => 'Cancellation Policy',
+  'Enter Processing time' => 'Enter Processing time',
+  'make_completed' => 'Make completed',
 );

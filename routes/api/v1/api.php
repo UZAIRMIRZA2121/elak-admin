@@ -215,7 +215,8 @@ Route::group(['namespace' => 'Api\V1', 'middleware' => 'localization'], function
         Route::post('/scanning-voucher', 'VendorController@orderScanUpdate');
         Route::get('/flat-request', 'VendorController@new_flat_request');
         Route::put('/flat-request/{id}/{status}', 'VendorController@updateStatus');
-
+        Route::get('/new-order', 'VendorController@new_order');
+        Route::get('/mark-order-checked', 'VendorController@mark_orders_checked');
 
         Route::get('notifications', 'VendorController@get_notifications');
         Route::get('profile', 'VendorController@get_profile');
