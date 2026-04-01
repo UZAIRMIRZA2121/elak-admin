@@ -892,6 +892,8 @@ class OrderController extends Controller
         */
         $order->checked = 1;
         $order->order_status = 'pending';
+        $order->pending = Carbon::now();
+      
         $order->store_id = $store->id;
         // $order->qr_code = null;
         $order->save();

@@ -40,7 +40,7 @@ class HomeController extends Controller
      */
 
 
- 
+
     public function index()
     {
         // all cron job start here
@@ -495,9 +495,9 @@ class HomeController extends Controller
         return redirect(url('/'));
     }
 
-       private function all_cron_job()
+    private function all_cron_job()
     {
-       
+
         // 1. Expire Users
         User::where('status', 1)
             ->whereNotNull('expire_at')
@@ -508,10 +508,20 @@ class HomeController extends Controller
         // 2. Process Orders
         $orders = Order::all();
 
-        foreach ($orders as $order) {
+        $activeOrders = $orders->where('order_status', 'active');
+        $processingOrders = $orders->where('order_status', 'processing');
 
-             
-            echo $order->voucher_setting . ' - ' . $order->id . '<br>';
+        foreach ($activeOrders as $order) {
+            echo "Order ID: {$order->id}, Expire At: {$order->expire_at}, Current Time: " . Carbon::now() . "\n";
+            if ($order->expire_at && Carbon::now()->greaterThanOrEqualTo(Carbon::parse($order->expire_at))) {
+                $order->order_status = 'expired';
+                $order->save();
+            }
+        }
+        dd($activeOrders);
+
+        foreach ($processingOrders as $order) {
+
 
             $start = Carbon::parse($order->processing);
             $endTime = $start->copy()->addMinutes($order->processing_time);
@@ -567,8 +577,9 @@ class HomeController extends Controller
                 $order->save();
             }
 
-               dd(   $order->voucher_setting);
         }
+
+
     }
 
 }

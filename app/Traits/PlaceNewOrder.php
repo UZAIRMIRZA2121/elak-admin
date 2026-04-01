@@ -543,7 +543,7 @@ trait PlaceNewOrder
 
                         $expire_at = Carbon::now()->addDays((int) $value)->format('Y-m-d H:i:s');
                         $order->expire_at = $expire_at ?? null;
-                  
+
                         $voucherSetting = VoucherSetting::where('item_id', $item->id)->first();
 
                         if ($voucherSetting && isset($voucherSetting->usage_limit_per_user['value']) && isset($voucherSetting->usage_limit_per_user['period'])) {
@@ -682,45 +682,49 @@ trait PlaceNewOrder
                         if ($order->voucher_type == 'Delivery/Pickup') {
                             $branches = $item->getBranchesAttribute();
 
+
+
                             foreach ($branches as $branch) {
 
-                                // ✅ Check availability (if exists → skip)
+                                // Check availability
                                 $exists = VoucherAvailability::where('store_id', $branch->id)
                                     ->where('voucher_id', $item->id)
                                     ->exists();
 
-
                                 if ($exists) {
-                                    continue; // 🚀 skip this branch
+                                    continue;
                                 }
-
 
                                 $branch_lat = $branch->latitude;
                                 $branch_lng = $branch->longitude;
 
-                                // Distance calculate
-                                $distance = $this->calculateDistance(
-                                    $user_latitude,
-                                    $user_longitude,
-                                    $branch_lat,
-                                    $branch_lng
-                                );
+                                // Calculate distance
+                                $distance = calculateDistance($user_latitude, $user_longitude, $branch_lat, $branch_lng);
 
-
-
-                                // ✅ Check nearest
+                                // Find nearest
                                 if ($distance < $shortestDistance) {
                                     $shortestDistance = $distance;
                                     $nearestBranch = $branch;
                                 }
+
+                                // ✅ Echo each branch with distance
+                                // echo "Branch ID: {$branch->id} | Name: {$branch->name} | Distance: " . round($distance, 2) . " KM";
+
+
+                                // echo "<br>";
                             }
+                            // ✅ After loop: show nearest branch
+                            // if ($nearestBranch) {
+                            //     echo "<br><strong>Nearest Branch:</strong><br>";
+                            //     echo "Branch ID: {$nearestBranch->id} | Name: {$nearestBranch->name} | Distance: " . round($shortestDistance, 2) . " KM<br>";
+                            // }
                         }
 
                     }
                 }
             }
 
-
+        
             if ($order->voucher_type == 'Delivery/Pickup') {
                 $order->store_id = $nearestBranch->id ?? $order->store_id;
                 $sold_voucher->store_id = $order->store_id;
@@ -883,21 +887,6 @@ trait PlaceNewOrder
         ], 403);
     }
 
-    private function calculateDistance($lat1, $lon1, $lat2, $lon2)
-    {
-        $earthRadius = 6371; // KM
-
-        $dLat = deg2rad($lat2 - $lat1);
-        $dLon = deg2rad($lon2 - $lon1);
-
-        $a = sin($dLat / 2) * sin($dLat / 2) +
-            cos(deg2rad($lat1)) * cos(deg2rad($lat2)) *
-            sin($dLon / 2) * sin($dLon / 2);
-
-        $c = 2 * atan2(sqrt($a), sqrt(1 - $a));
-
-        return $earthRadius * $c; // distance in KM
-    }
 
     private function createNewUser($request)
     {

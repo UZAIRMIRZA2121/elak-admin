@@ -104,11 +104,6 @@ class CartController extends Controller
             $old_cart->delete();
         }
 
-      
-
-   
-       
-
         $cart = Cart::where('item_id', $request->item_id)->where('item_type', $model)->where('user_id', $user_id)->where('is_guest', $is_guest)->where('module_id', $request->header('moduleId'))->first();
 
 
@@ -181,6 +176,7 @@ class CartController extends Controller
         $cart->gift_details = $request->gift_details ?? null;
 
         //   $result = calculate_discount(2000, , 10);
+       
 
         //         dd($result);
 

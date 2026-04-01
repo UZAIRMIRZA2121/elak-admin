@@ -179,7 +179,27 @@
 
                 <tbody id="set-rows">
                     @foreach ($items as $key => $item)
-                        <tr>
+                        <?php
+                        $validity = null;
+                        
+                        if (isset($item->voucherSetting) && !empty($item->voucherSetting->validity_period)) {
+                            $validity = is_string($item->voucherSetting->validity_period) ? json_decode($item->voucherSetting->validity_period, true) : (is_array($item->voucherSetting->validity_period) ? $item->voucherSetting->validity_period : null);
+                        }
+                        
+                        $startDate = null;
+                        $endDate = null;
+                        $isExpired = null;
+                        
+                        if (is_array($validity) && !empty($validity['start']) && !empty($validity['end'])) {
+                            $startDate = \Carbon\Carbon::parse($validity['start'])->format('d M Y');
+                            $endDate = \Carbon\Carbon::parse($validity['end'])->format('d M Y');
+                        }
+                        if ($endDate) {
+                            $isExpired = \Carbon\Carbon::parse($endDate)->isPast();
+                        }
+                        ?>
+
+                        <tr class="{{ $isExpired ? 'table-danger' : '' }}">
                             <td>{{ $key + $items->firstItem() }}</td>
                             <td>
                                 <a class="media align-items-center" href="{{ route('vendor.item.view', [$item['id']]) }}">
@@ -213,8 +233,8 @@
                                 {{ $item->soldVouchers->count() }}
                                 @if (isset($item->voucherSetting) && !empty($item->voucherSetting->usage_limit_per_store))
                                     <?php
-                                        $storeLimit = $item->voucherSetting->usage_limit_per_store;
-                                   ?>
+                                    $storeLimit = $item->voucherSetting->usage_limit_per_store;
+                                    ?>
 
                                     @if (!empty($storeLimit['value']))
                                         / {{ $storeLimit['value'] }} - {{ $storeLimit['period'] }}
@@ -226,18 +246,12 @@
                             </td>
 
                             <td>
-                                @if (isset($item->voucherSetting) && !empty($item->voucherSetting->validity_period))
-                                    <?php
-                                    $validity = is_string($item->voucherSetting->validity_period) ? json_decode($item->voucherSetting->validity_period, true) : (is_array($item->voucherSetting->validity_period) ? $item->voucherSetting->validity_period : null);
-                                    ?>
-                                    @if (is_array($validity) && !empty($validity['start']) && !empty($validity['end']))
-                                        {{ \Carbon\Carbon::parse($validity['start'])->format('d M Y') }}
-                                        →
-                                        {{ \Carbon\Carbon::parse($validity['end'])->format('d M Y') }}
-                                    @endif
+                                @if ($startDate && $endDate)
+                                    {{ $startDate }} → {{ $endDate }}
+                                @else
+                                    N/A
                                 @endif
                             </td>
-
                             {{-- <td>
                                     <div class="d-flex">
                                         <div class="mx-auto">
