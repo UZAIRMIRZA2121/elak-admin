@@ -518,8 +518,7 @@ class HomeController extends Controller
                 $order->save();
             }
         }
-        dd($activeOrders);
-
+   
         foreach ($processingOrders as $order) {
 
 
