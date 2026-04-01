@@ -512,7 +512,7 @@ class HomeController extends Controller
         $processingOrders = $orders->where('order_status', 'processing');
 
         foreach ($activeOrders as $order) {
-            echo "Order ID: {$order->id}, Expire At: {$order->expire_at}, Current Time: " . Carbon::now() . "\n";
+            // echo "Order ID: {$order->id}, Expire At: {$order->expire_at}, Current Time: " . Carbon::now() . "\n";
             if ($order->expire_at && Carbon::now()->greaterThanOrEqualTo(Carbon::parse($order->expire_at))) {
                 $order->order_status = 'expired';
                 $order->save();
