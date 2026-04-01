@@ -91,34 +91,55 @@
         <!-- Card -->
         <div class="card">
             <!-- Header -->
-            <div class="card-header py-2  border-0">
-                <div class="search--button-wrapper justify-content-end">
+            <div class="card-header py-2 border-0">
+                <div class="d-flex justify-content-between align-items-center">
+
+                    <!-- 🎯 Buttons (LEFT) -->
+                    <div class="d-flex flex-wrap gap-2">
+
+                        {{-- Default ALL --}}
+                        <a href="{{ route('vendor.item.list') }}"
+                            class="btn btn-sm {{ !request()->has('voucher_type') ? 'btn-primary' : 'btn-outline-primary' }}">
+                            {{ translate('messages.all') }}
+                            {{-- <span class="badge bg-light text-dark ms-1">
+                                {{ $items->count() }}
+                            </span> --}}
+                        </a>
+
+                        {{-- Voucher Types --}}
+                        @foreach ($voucher_types as $type)
+                            <a href="{{ route('vendor.item.list', ['all', 'voucher_type' => $type->name]) }}"
+                                class="btn btn-sm {{ request('voucher_type') == $type->name ? 'btn-primary' : 'btn-outline-primary' }}">
+                                {{ $type->name }}
+                                {{-- <span class="fz--10 badge m-0 badge-soft-info">
+                                    {{ $items->where('voucher_ids', $type->name)->count() }}</span> --}}
+                            </a>
+                        @endforeach
+
+                    </div>
+                    <div class="d-flex flex-wrap gap-2"></div>
+                    <!-- 🔍 Search (RIGHT) -->
                     <form class="search-form">
                         @csrf
-                        <!-- Search -->
                         <div class="input-group input--group">
-                            <input id="" type="search" name="search" value="{{ request()?->search ?? null }}"
-                                class="form-control" placeholder="{{ translate('messages.ex_search_name') }}"
-                                aria-label="{{ translate('messages.search_here') }}">
-                            <button type="submit" class="btn btn--secondary"><i class="tio-search"></i></button>
+                            <input type="search" name="search" value="{{ request()?->search ?? null }}"
+                                class="form-control" placeholder="{{ translate('messages.ex_search_name') }}">
+                            <button type="submit" class="btn btn--secondary">
+                                <i class="tio-search"></i>
+                            </button>
                         </div>
-                        <!-- End Search -->
                     </form>
-                    <!-- End Unfold -->
-                    {{-- <div>
-                        <a href="{{ route('vendor.item.add-new') }}" class="btn btn--primary m-0 pull-right"><i
-                                class="tio-add-circle"></i> {{ translate('messages.add_new_item') }}</a>
-                    </div> --}}
+
                 </div>
             </div>
-            <!-- End Header -->
+        </div>
+        <!-- End Header -->
 
-
-            <!-- Table -->
-            <div class="table-responsive datatable-custom">
-                <table id="datatable"
-                    class="table table-borderless table-thead-bordered table-nowrap table-align-middle card-table"
-                    data-hs-datatables-options='{
+        <!-- Table -->
+        <div class="table-responsive datatable-custom">
+            <table id="datatable"
+                class="table table-borderless table-thead-bordered table-nowrap table-align-middle card-table"
+                data-hs-datatables-options='{
                         "columnDefs": [{
                             "targets": [],
                             "width": "5%",
@@ -134,79 +155,90 @@
                         "isShowPaging": false,
                             "paging":false
                     }'>
-                    <thead class="thead-light">
+                <thead class="thead-light">
+                    <tr>
+                        <th class="border-0">{{ translate('messages.#') }}</th>
+                        <th class="border-0 w-20p">{{ translate('messages.name') }}</th>
+                        {{-- <th class="border-0 w-20p">{{ translate('messages.category') }}</th> --}}
+                        <th class="border-0 w-20p">{{ translate('messages.discount') }}</th>
+                        <th class="border-0 w-20p">{{ translate('messages.usage') }}/{{ translate('messages.stock') }}
+                        </th>
+                        @if ($store_data->module->module_type != 'food')
+                            {{-- <th class="border-0 w-20p">{{ translate('messages.quantity') }}</th> --}}
+                        @endif
+                        {{-- <th class="border-0">{{ translate('messages.price') }}</th> --}}
+                        <th class="border-0">{{ translate('messages.Validity') }}</th>
+                        {{-- <th class="border-0 text-center">{{ translate('messages.Recommended') }}</th> --}}
+                        @if ($productWiseTax)
+                            <th class="border-0 ">{{ translate('messages.Vat/Tax') }}</th>
+                        @endif
+                        <th class="border-0 text-center">{{ translate('messages.availbility') }}</th>
+                        <th class="border-0 text-center">{{ translate('messages.action') }}</th>
+                    </tr>
+                </thead>
+
+                <tbody id="set-rows">
+                    @foreach ($items as $key => $item)
                         <tr>
-                            <th class="border-0">{{ translate('messages.#') }}</th>
-                            <th class="border-0 w-20p">{{ translate('messages.name') }}</th>
-                            {{-- <th class="border-0 w-20p">{{ translate('messages.category') }}</th> --}}
-                            <th class="border-0 w-20p">{{ translate('messages.discount') }}</th>
-                            <th class="border-0 w-20p">{{ translate('messages.usage') }}/{{ translate('messages.stock') }}
-                            </th>
-                            @if ($store_data->module->module_type != 'food')
-                                {{-- <th class="border-0 w-20p">{{ translate('messages.quantity') }}</th> --}}
-                            @endif
-                            {{-- <th class="border-0">{{ translate('messages.price') }}</th> --}}
-                            <th class="border-0">{{ translate('messages.Validity') }}</th>
-                            {{-- <th class="border-0 text-center">{{ translate('messages.Recommended') }}</th> --}}
-                            @if ($productWiseTax)
-                                <th class="border-0 ">{{ translate('messages.Vat/Tax') }}</th>
-                            @endif
-                            <th class="border-0 text-center">{{ translate('messages.availbility') }}</th>
-                            <th class="border-0 text-center">{{ translate('messages.action') }}</th>
-                        </tr>
-                    </thead>
+                            <td>{{ $key + $items->firstItem() }}</td>
+                            <td>
+                                <a class="media align-items-center" href="{{ route('vendor.item.view', [$item['id']]) }}">
+                                    <img class="avatar avatar-lg mr-3 onerror-image" src="{{ $item['image_full_url'] }}"
+                                        data-onerror-image="{{ asset('public/assets/admin/img/160x160/img2.jpg') }}"
+                                        alt="{{ $item->name }} image">
+                                    <div class="media-body">
+                                        <h5 class="text-hover-primary mb-0">{{ Str::limit($item['name'], 20, '...') }}
+                                        </h5>
+                                        <p> {{ $item->voucher_ids }}</p>
+                                    </div>
 
-                    <tbody id="set-rows">
-                        @foreach ($items as $key => $item)
-                            <tr>
-                                <td>{{ $key + $items->firstItem() }}</td>
-                                <td>
-                                    <a class="media align-items-center"
-                                        href="{{ route('vendor.item.view', [$item['id']]) }}">
-                                        <img class="avatar avatar-lg mr-3 onerror-image"
-                                            src="{{ $item['image_full_url'] }}"
-                                            data-onerror-image="{{ asset('public/assets/admin/img/160x160/img2.jpg') }}"
-                                            alt="{{ $item->name }} image">
-                                        <div class="media-body">
-                                            <h5 class="text-hover-primary mb-0">{{ Str::limit($item['name'], 20, '...') }}
-                                            </h5>
-                                            <p> {{ $item->voucher_ids }}</p>
-                                        </div>
-
-                                    </a>
-                                </td>
-                                {{-- <td>
+                                </a>
+                            </td>
+                            {{-- <td>
                                     {{ Str::limit($item->category ? $item->category->name : translate('messages.category_deleted'), 20, '...') }}
                                 </td> --}}
-                                <td>
+                            <td>
 
-                                    @if ($item->discount)
-                                        @if ($item->discount_type == 'percent')
-                                            {{ $item->discount }}%
-                                        @elseif($item->discount_type == 'amount')
-                                            {{ currency_format($item->discount) }}
-                                        @endif
+                                @if ($item->discount)
+                                    @if ($item->discount_type == 'percent')
+                                        {{ $item->discount }}%
+                                    @elseif($item->discount_type == 'amount')
+                                        {{ currency_format($item->discount) }}
                                     @endif
+                                @endif
 
-                                </td>
-                                <td>
-                                    {{ $item->orders->count() }}
-                                </td>
+                            </td>
+                            <td>
 
-                                <td>
-                                    @if (isset($item->voucherSetting) && !empty($item->voucherSetting->validity_period))
-                                        <?php
-                                        $validity = is_string($item->voucherSetting->validity_period) ? json_decode($item->voucherSetting->validity_period, true) : (is_array($item->voucherSetting->validity_period) ? $item->voucherSetting->validity_period : null);
-                                        ?>
-                                        @if (is_array($validity) && !empty($validity['start']) && !empty($validity['end']))
-                                            {{ \Carbon\Carbon::parse($validity['start'])->format('d M Y') }}
-                                            →
-                                            {{ \Carbon\Carbon::parse($validity['end'])->format('d M Y') }}
-                                        @endif
+                                {{ $item->soldVouchers->count() }}
+                                @if (isset($item->voucherSetting) && !empty($item->voucherSetting->usage_limit_per_store))
+                                    <?php
+                                        $storeLimit = $item->voucherSetting->usage_limit_per_store;
+                                   ?>
+
+                                    @if (!empty($storeLimit['value']))
+                                        / {{ $storeLimit['value'] }} - {{ $storeLimit['period'] }}
+                                    @else
+                                        / {{ translate('messages.unlimited') }}
                                     @endif
-                                </td>
+                                @endif
 
-                                {{-- <td>
+                            </td>
+
+                            <td>
+                                @if (isset($item->voucherSetting) && !empty($item->voucherSetting->validity_period))
+                                    <?php
+                                    $validity = is_string($item->voucherSetting->validity_period) ? json_decode($item->voucherSetting->validity_period, true) : (is_array($item->voucherSetting->validity_period) ? $item->voucherSetting->validity_period : null);
+                                    ?>
+                                    @if (is_array($validity) && !empty($validity['start']) && !empty($validity['end']))
+                                        {{ \Carbon\Carbon::parse($validity['start'])->format('d M Y') }}
+                                        →
+                                        {{ \Carbon\Carbon::parse($validity['end'])->format('d M Y') }}
+                                    @endif
+                                @endif
+                            </td>
+
+                            {{-- <td>
                                     <div class="d-flex">
                                         <div class="mx-auto">
                                             <label class="toggle-switch toggle-switch-sm mr-2" data-toggle="tooltip"
@@ -226,24 +258,24 @@
                                     </div>
                                 </td> --}}
 
-                                @if ($productWiseTax)
-                                    <td>
-                                        <span class="d-block font-size-sm text-body">
-                                            @forelse ($item?->taxVats?->pluck('tax.name', 'tax.tax_rate')->toArray() as $key => $tax)
-                                                <span> {{ $tax }} : <span class="font-bold">
-                                                        ({{ $key }}%)
-                                                    </span> </span>
-                                                <br>
-                                            @empty
-                                                <span> {{ translate('messages.no_tax') }} </span>
-                                            @endforelse
-                                        </span>
-                                    </td>
-                                @endif
-                              
-                                <td> 
-                                    @if ($item->voucher_ids == 'Flat discount' || $item->voucher_ids == 'Delivery/Pickup')
-                                     <label class="toggle-switch toggle-switch-sm"
+                            @if ($productWiseTax)
+                                <td>
+                                    <span class="d-block font-size-sm text-body">
+                                        @forelse ($item?->taxVats?->pluck('tax.name', 'tax.tax_rate')->toArray() as $key => $tax)
+                                            <span> {{ $tax }} : <span class="font-bold">
+                                                    ({{ $key }}%)
+                                                </span> </span>
+                                            <br>
+                                        @empty
+                                            <span> {{ translate('messages.no_tax') }} </span>
+                                        @endforelse
+                                    </span>
+                                </td>
+                            @endif
+
+                            <td>
+                                @if ($item->voucher_ids == 'Delivery/Pickup')
+                                    <label class="toggle-switch toggle-switch-sm"
                                         for="voucherAvailability{{ $item->id }}">
                                         <input type="checkbox" data-id="{{ $item->id }}"
                                             data-url="{{ route('vendor.item.voucher.availability.toggle', $item->id) }}"
@@ -255,18 +287,18 @@
                                             <span class="toggle-switch-indicator"></span>
                                         </span>
                                     </label>
-                                    @endif
-                                
-                                </td>
-                                <td>
-                                    <div class="btn--container justify-content-center">
+                                @endif
 
-                                        <a class="btn btn-sm btn-outline-info action-btn"
-                                            href="{{ route('vendor.item.view_voucher', [$item['id']]) }}"
-                                            title="{{ translate('messages.view_voucher') }}">
-                                            <i class="tio-visible"></i>
-                                        </a>
-                                        {{-- <a class="btn btn-sm btn--primary btn-outline-primary action-btn"
+                            </td>
+                            <td>
+                                <div class="btn--container justify-content-center">
+
+                                    <a class="btn btn-sm btn-outline-info action-btn"
+                                        href="{{ route('vendor.item.view_voucher', [$item['id']]) }}"
+                                        title="{{ translate('messages.view_voucher') }}">
+                                        <i class="tio-visible"></i>
+                                    </a>
+                                    {{-- <a class="btn btn-sm btn--primary btn-outline-primary action-btn"
                                             href="{{ route('vendor.item.edit', [$item['id']]) }}"
                                             title="{{ translate('messages.edit_item') }}"><i class="tio-edit"></i>
                                         </a>
@@ -276,38 +308,38 @@
                                             title="{{ translate('messages.delete_item') }}"><i
                                                 class="tio-delete-outlined"></i>
                                         </a> --}}
-                                      
-                                    </div>
 
-                                    <form action="{{ route('vendor.item.delete', [$item['id']]) }}" method="post"
-                                        id="food-{{ $item['id'] }}">
-                                        @csrf @method('delete')
-                                    </form>
-                                </td>
-                            </tr>
-                        @endforeach
-                    </tbody>
+                                </div>
+
+                                <form action="{{ route('vendor.item.delete', [$item['id']]) }}" method="post"
+                                    id="food-{{ $item['id'] }}">
+                                    @csrf @method('delete')
+                                </form>
+                            </td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
+            <hr>
+            <div class="page-area">
+                <table>
+                    <tfoot class="border-top">
+                        {!! $items->links() !!}
+                    </tfoot>
                 </table>
-                <hr>
-                <div class="page-area">
-                    <table>
-                        <tfoot class="border-top">
-                            {!! $items->links() !!}
-                        </tfoot>
-                    </table>
-                </div>
-                @if (count($items) === 0)
-                    <div class="empty--data">
-                        <img src="{{ asset('/public/assets/admin/svg/illustrations/sorry.svg') }}" alt="public">
-                        <h5>
-                            {{ translate('no_data_found') }}
-                        </h5>
-                    </div>
-                @endif
             </div>
-            <!-- End Table -->
+            @if (count($items) === 0)
+                <div class="empty--data">
+                    <img src="{{ asset('/public/assets/admin/svg/illustrations/sorry.svg') }}" alt="public">
+                    <h5>
+                        {{ translate('no_data_found') }}
+                    </h5>
+                </div>
+            @endif
         </div>
-        <!-- End Card -->
+        <!-- End Table -->
+    </div>
+    <!-- End Card -->
     </div>
     </div>
 
@@ -366,14 +398,12 @@
 
                 },
                 error: function() {
-                    
+
                     alert('Something went wrong');
                     checkbox.prop('checked', !isChecked); // revert toggle
                 }
             });
         });
-
-
     </script>
     <script>
         "use strict";

@@ -1352,7 +1352,7 @@
                     html: message + '<br/>' +
                         '<label>{{ translate('Enter Processing time in minutes') }}</label>',
                     inputValue: processing,
-                    preConfirm: (processing_time) => {
+                 w   preConfirm: (processing_time) => {
                         location.href = route + '&processing_time=' + processing_time;
                     },
                     allowOutsideClick: () => !Swal.isLoading()

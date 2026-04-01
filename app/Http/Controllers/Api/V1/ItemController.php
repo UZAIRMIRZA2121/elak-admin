@@ -520,10 +520,10 @@ class ItemController extends Controller
                 // Send how_and_condition_ids as array
                 $item['how_it_works'] = $item->usageTerms() ?? [];
                 // Return full branch data
-              $item['all_branches'] = [
-    'branches' => $item->branches(), // Each branch now has its availability inside
-];
-           
+                $item['all_branches'] = [
+                    'branches' => $item->branches(), // Each branch now has its availability inside
+                ];
+
                 $settings = $item->voucherSetting;
 
                 $item['settings'] = $settings ? [

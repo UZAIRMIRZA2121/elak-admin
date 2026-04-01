@@ -529,15 +529,21 @@ trait PlaceNewOrder
             $order->voucher_sub_type = null;
             foreach ($carts ?? [] as $cart) {
                 if (isset($cart->item_id)) {
-                    $item = Item::find($cart->item_id);
+                    $item = Item::with('voucherSetting')->find($cart->item_id);
 
                     if ($item && $item->type == 'voucher') {
                         $order->voucher_type = $item->voucher_ids;
                         $order->voucher_sub_type = $item->bundle_type;
                         $voucher_details = $item;
+
                         $order->voucher_usage_term_and_conditions = $voucher_details->usageTerms() ?? null;
+                        $voucher_setting = $item->voucherSetting()->first();
+                        $value = $voucher_setting?->offer_validity_after_purchase['value'] ?? null;
 
 
+                        $expire_at = Carbon::now()->addDays((int) $value)->format('Y-m-d H:i:s');
+                        $order->expire_at = $expire_at ?? null;
+                  
                         $voucherSetting = VoucherSetting::where('item_id', $item->id)->first();
 
                         if ($voucherSetting && isset($voucherSetting->usage_limit_per_user['value']) && isset($voucherSetting->usage_limit_per_user['period'])) {

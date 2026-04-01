@@ -249,7 +249,6 @@
                             <th class="border-0 text-center">{{ translate('messages.actions') }}</th>
                         </tr>
                     </thead>
-
                     <tbody id="set-rows">
                         @foreach ($orders as $key => $order)
                             <tr class="status-{{ $order['order_status'] }} class-all">
@@ -320,8 +319,6 @@
                                                 </dd>
                                             </div>
                                         @endif
-
-
                                         <!-- Order amount -->
                                         <div class="d-flex justify-content-between align-items-center mb-1">
                                             <dt class="mb-0">{{ translate('messages.order_amount') }}:</dt>
@@ -332,10 +329,11 @@
 
                                         <!-- Payment status -->
                                         <div class="d-flex justify-content-between align-items-center">
-                                            <dt class="mb-0">{{ translate('messages.payment_status') }}:</dt>
+
                                             <dd class="mb-0">
                                                 @if ($order->payment_status == 'paid')
-                                                    <strong class="text-success">{{ translate('messages.paid') }}</strong>
+                                                    <span
+                                                        class="fz--10 badge m-0 badge-soft-primary">{{ translate('messages.paid') }}</span>
                                                 @elseif($order->payment_status == 'partially_paid')
                                                     <strong
                                                         class="text-success">{{ translate('messages.partially_paid') }}</strong>
@@ -379,6 +377,15 @@
                                         </span>
                                     @endif
 
+                                    <h6>
+                                        @if ($order['order_status'] == 'processing')
+                                            <span class="badge badge-soft-warning m-1 ml-sm-3 text-capitalize"
+                                                id="countdown" data-processing="{{ $order->processing }}"
+                                                data-duration="{{ $order->processing_time }}"></span>
+                                        @endif
+                                    </h6>
+
+
                                     @if ($order['voucher_type'] == 'Delivery/Pickup')
                                         @if ($order['order_type'] == 'take_away')
                                             <div class="text-info mt-1">
@@ -394,21 +401,21 @@
                                             {{ $order['voucher_type'] }}
                                         </div>
                                     @endif
-                    
 
 
-                        </td>
-                        <td>
-                            <div class="btn--container justify-content-center">
-                                <a class="btn btn-sm btn--warning btn-outline-warning action-btn"
-                                    href="{{ route('vendor.order.details', ['id' => $order['id']]) }}"><i
-                                        class="tio-visible-outlined"></i></a>
-                                <a class="btn btn-sm btn--primary btn-outline-primary action-btn" target="_blank"
-                                    href="{{ route('vendor.order.generate-invoice', [$order['id']]) }}"><i
-                                        class="tio-print"></i></a>
-                            </div>
-                        </td>
-                        </tr>
+
+                                </td>
+                                <td>
+                                    <div class="btn--container justify-content-center">
+                                        <a class="btn btn-sm btn--warning btn-outline-warning action-btn"
+                                            href="{{ route('vendor.order.details', ['id' => $order['id']]) }}"><i
+                                                class="tio-visible-outlined"></i></a>
+                                        <a class="btn btn-sm btn--primary btn-outline-primary action-btn" target="_blank"
+                                            href="{{ route('vendor.order.generate-invoice', [$order['id']]) }}"><i
+                                                class="tio-print"></i></a>
+                                    </div>
+                                </td>
+                            </tr>
                         @endforeach
                     </tbody>
                 </table>

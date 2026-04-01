@@ -828,7 +828,47 @@ class Helpers
             unset($data['pharmacy_item_details']);
             unset($data['store']);
             unset($data['rating']);
+
+
+                  if ($data['type'] == 'voucher') {
+
+                if ($data->product !== "[]") {
+                    $data['product'] = $data->relatedProducts() ?? [];
+                }
+                if ($data->product_b !== "[]") {
+                    $data['product_b'] = $data->relatedProductsB() ?? [];
+                }
+                // Send how_and_condition_ids as array
+                $data['how_it_works'] = $data->usageTerms() ?? [];
+                // Return full branch data
+                $data['all_branches'] = [
+                    'branches' => $data->branches(), // Each branch now has its availability inside
+                ];
+
+                $settings = $data->voucherSetting;
+
+                $data['settings'] = $settings ? [
+                    'validity_period' => $settings->validity_period,
+                    'specific_days_of_week' => $settings->specific_days_of_week,
+                    'holidays_occasions' => $settings->holiday_occasions, // full HolidayOccasion objects via accessor
+                    'custom_blackout_dates' => $settings->custom_blackout_dates, // full CustomBlackoutData objects via accessor
+                    'age_restriction' => $settings->age_restriction,
+                    'group_size_requirement' => $settings->group_size_requirement,
+
+                    'usage_limit_per_user' => $settings->usage_limit_per_user,
+                    'usage_limit_per_store' => $settings->usage_limit_per_store,
+                    'offer_validity_after_purchase' => $settings->offer_validity_after_purchase,
+                    'general_restrictions' => $settings->general_restriction_settings,
+
+                    'status' => $settings->status,
+                ] : null;
+
+                $data['terms_conditions'] = $data->termsAndConditions() ?? [];
+
+            }
+
         }
+      
 
         return $data;
     }

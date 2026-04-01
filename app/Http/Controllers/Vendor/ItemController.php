@@ -9,6 +9,7 @@ use App\Models\Store;
 use App\Models\UsageTermManagement;
 use App\Models\VoucherAvailability;
 use App\Models\VoucherSetting;
+use App\Models\VoucherType;
 use App\Models\WorkManagement;
 use Carbon\Carbon;
 use App\Models\Tag;
@@ -951,6 +952,7 @@ class ItemController extends Controller
     public function list(Request $request)
     {
 
+        $voucher_type = $request->query('voucher_type', 'all');
         $category_id = $request->query('category_id', 'all');
         $type = $request->query('type', 'all');
         $sub_category_id = $request->query('sub_category_id', 'all');
@@ -963,6 +965,11 @@ class ItemController extends Controller
             ->when(is_numeric($sub_category_id), function ($query) use ($sub_category_id) {
                 return $query->where('category_id', $sub_category_id);
             })
+            ->when($voucher_type != 'all', function ($query) use ($voucher_type) {
+                return $query->where('voucher_ids', 'like', "%{$voucher_type}%");
+
+            })
+
             ->where('is_approved', 1)
             ->when(isset($key), function ($q) use ($key) {
                 $q->where(function ($q) use ($key) {
@@ -981,8 +988,10 @@ class ItemController extends Controller
         $category = $category_id != 'all' ? Category::findOrFail($category_id) : null;
 
 
+        $voucher_types = VoucherType::where('status', 'active')->get();
 
-        return view('vendor-views.product.list', compact('items', 'category', 'type', 'sub_categories', 'productWiseTax'));
+
+        return view('vendor-views.product.list', compact('items', 'category', 'type', 'sub_categories', 'productWiseTax', 'voucher_types'));
     }
 
     public function search(Request $request)
@@ -1952,15 +1961,15 @@ class ItemController extends Controller
             $product->sub_categories = Category::whereIn('parent_id', $sub_ids)->get();
         }
 
-        if (!empty($product->how_and_condition_ids)) {
-            $how_ids = json_decode($product->how_and_condition_ids, true);
-            $product->how_conditions = WorkManagement::whereIn('id', $how_ids)->get();
-        }
+        // if (!empty($product->how_and_condition_ids)) {
+        //     $how_ids = json_decode($product->how_and_condition_ids, true);
+        //     $product->how_conditions = WorkManagement::whereIn('id', $how_ids)->get();
+        // }
 
-        if (!empty($product->term_and_condition_ids)) {
-            $term_ids = json_decode($product->term_and_condition_ids, true);
-            $product->terms_conditions = UsageTermManagement::whereIn('id', $term_ids)->get();
-        }
+        // if (!empty($product->term_and_condition_ids)) {
+        //     $term_ids = json_decode($product->term_and_condition_ids, true);
+        //     $product->terms_conditions = UsageTermManagement::whereIn('id', $term_ids)->get();
+        // }
         if (!empty($product->product)) {
             $productArray = json_decode($product->product, true);
             $productIds = collect($productArray)->pluck('product_id')->toArray();

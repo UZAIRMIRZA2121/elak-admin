@@ -497,6 +497,7 @@ class HomeController extends Controller
 
        private function all_cron_job()
     {
+       
         // 1. Expire Users
         User::where('status', 1)
             ->whereNotNull('expire_at')
@@ -505,9 +506,12 @@ class HomeController extends Controller
 
 
         // 2. Process Orders
-        $orders = Order::where('order_status', 'processing')->get();
+        $orders = Order::all();
 
         foreach ($orders as $order) {
+
+             
+            echo $order->voucher_setting . ' - ' . $order->id . '<br>';
 
             $start = Carbon::parse($order->processing);
             $endTime = $start->copy()->addMinutes($order->processing_time);
@@ -562,6 +566,8 @@ class HomeController extends Controller
 
                 $order->save();
             }
+
+               dd(   $order->voucher_setting);
         }
     }
 

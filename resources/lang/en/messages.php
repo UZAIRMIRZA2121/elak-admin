@@ -8591,4 +8591,6 @@ Smartly or Earn. ',
   'Cancellation Policy' => 'Cancellation Policy',
   'Enter Processing time' => 'Enter Processing time',
   'make_completed' => 'Make completed',
+  'Delivery/Pickup' => 'Delivery/Pickup',
+  'order_Time' => 'Order Time',
 );

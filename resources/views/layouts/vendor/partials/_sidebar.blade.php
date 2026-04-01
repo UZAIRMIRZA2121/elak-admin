@@ -127,7 +127,7 @@
                                     </a>
                                 </li>
 
-                                <li
+                                {{-- <li
                                     class="nav-item {{ Request::is('vendor-panel/order/list/confirmed') ? 'active' : '' }}">
                                     <a class="nav-link " href="{{ route('vendor.order.list', ['confirmed']) }}"
                                         title="{{ translate('messages.confirmed_orders') }}">
@@ -139,7 +139,7 @@
                                             </span>
                                         </span>
                                     </a>
-                                </li>
+                                </li> --}}
 
                                 <li
                                     class="nav-item {{ Request::is('vendor-panel/order/list/cooking') ? 'active' : '' }}">
@@ -158,7 +158,7 @@
                                         </span>
                                     </a>
                                 </li>
-                                <li
+                                {{-- <li
                                     class="nav-item {{ Request::is('vendor-panel/order/list/ready_for_delivery') ? 'active' : '' }}">
                                     <a class="nav-link" href="{{ route('vendor.order.list', ['ready_for_delivery']) }}"
                                         title="{{ translate('messages.ready_for_delivery') }}">
@@ -170,8 +170,8 @@
                                             </span>
                                         </span>
                                     </a>
-                                </li>
-                                <li
+                                </li> --}}
+                                {{-- <li
                                     class="nav-item {{ Request::is('vendor-panel/order/list/item_on_the_way') ? 'active' : '' }}">
                                     <a class="nav-link" href="{{ route('vendor.order.list', ['item_on_the_way']) }}"
                                         title="{{ translate('messages.items_on_the_way') }}">
@@ -183,14 +183,14 @@
                                             </span>
                                         </span>
                                     </a>
-                                </li>
+                                </li> --}}
                                 <li
                                     class="nav-item {{ Request::is('vendor-panel/order/list/delivered') ? 'active' : '' }}">
                                     <a class="nav-link " href="{{ route('vendor.order.list', ['delivered']) }}"
                                         title="{{ translate('messages.delivered_orders') }}">
                                         <span class="tio-circle nav-indicator-icon"></span>
                                         <span class="text-truncate sidebar--badge-container">
-                                            {{ translate('messages.delivered') }}
+                                            {{ translate('messages.Completed') }}
                                             <span class="badge badge-soft-success badge-pill ml-1">
                                                 {{ \App\Models\Order::where(['order_status' => 'delivered', 'store_id' => \App\CentralLogics\Helpers::get_store_id()])->StoreOrder()->NotDigitalOrder()->count() }}
                                             </span>
@@ -210,7 +210,7 @@
                                         </span>
                                     </a>
                                 </li>
-                                <li
+                                {{-- <li
                                     class="nav-item {{ Request::is('vendor-panel/order/list/scheduled') ? 'active' : '' }}">
                                     <a class="nav-link" href="{{ route('vendor.order.list', ['scheduled']) }}"
                                         title="{{ translate('messages.scheduled_orders') }}">
@@ -235,7 +235,7 @@
                                             </span>
                                         </span>
                                     </a>
-                                </li>
+                                </li> --}}
                                  <li
                                     class="nav-item {{ Request::is('vendor-panel/flateorder/list/all') ? 'active' : '' }}">
                                     <a class="nav-link" href="{{ route('vendor.flate.order.list', ['all']) }}"

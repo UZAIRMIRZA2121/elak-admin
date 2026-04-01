@@ -12,120 +12,7 @@
     }
     $max_processing_time = explode('-', $order['store']['delivery_time'])[0];
     ?>
-    <?php
-    
-    ?>
-
-    <style>
-        .coupon-card {
-            width: 600px;
-            height: 200px;
-            background-color: #f1f3f8;
-            border: 4px solid #ff9800;
-            border-radius: 30px;
-            position: relative;
-            overflow: hidden;
-        }
-
-        /* Creating the Ticket Notches (Cutouts) */
-        .coupon-card::before,
-        .coupon-card::after {
-            content: '';
-            position: absolute;
-            width: 40px;
-            height: 40px;
-            background-color: #f8f9fa;
-            /* Matches page background */
-            border: 4px solid #ff9800;
-            border-radius: 50%;
-            left: 33.3%;
-            transform: translateX(-50%);
-            z-index: 10;
-        }
-
-        .coupon-card::before {
-            top: -25px;
-        }
-
-        /* Top Notch */
-        .coupon-card::after {
-            bottom: -25px;
-        }
-
-        /* Bottom Notch */
-
-        /* Left Section */
-        .coupon-left {
-            flex: 0 0 33.3%;
-            background-color: #9db2a3;
-            /* Muted green from image */
-        }
-
-        .side-label {
-            background: linear-gradient(to bottom, #ff9800, #ffc107);
-            color: white;
-            writing-mode: vertical-rl;
-            transform: rotate(180deg);
-            text-align: center;
-            padding: 10px 5px;
-            font-weight: 600;
-            font-size: 0.9rem;
-        }
-
-        .image-section img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        /* Middle Section */
-        .coupon-body {
-            flex: 1;
-            padding-left: 30px;
-            border-left: 2px dashed #ff9800;
-            /* Separator line */
-        }
-
-        .title {
-            color: #0d3b66;
-            font-weight: 700;
-            font-size: 1.8rem;
-            margin: 0;
-        }
-
-        .subtitle {
-            color: #0d3b66;
-            font-weight: 600;
-            margin-top: 10px;
-        }
-
-        /* Right Section */
-        .coupon-right {
-            padding: 15px;
-            flex: 0 0 20%;
-        }
-
-        .save-badge {
-            background: linear-gradient(135deg, #ff9800 0%, #ffeb3b 100%);
-            color: white;
-            padding: 15px 10px;
-            border-radius: 15px;
-            text-align: center;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-        }
-
-        .save-text {
-            display: block;
-            font-size: 0.75rem;
-            font-weight: bold;
-        }
-
-        .percentage {
-            display: block;
-            font-size: 1.5rem;
-            font-weight: 800;
-        }
-    </style>
+   @include('vendor-views.order._css')
     <div class="content container-fluid">
         <!-- Page Header -->
         <div class="page-header">
@@ -327,6 +214,16 @@
                                         </span>
                                     @endif
                                 </h6>
+                                     <h6>
+                                    @if ($order['order_status'] == 'processing')
+                                        {{ translate('messages.order_Time') }} :
+                                        <span class="badge badge-soft-warning ml-2 ml-sm-3 text-capitalize">
+                                            <span id="countdown" data-processing="{{ $order->processing }}"
+                                                data-duration="{{ $order->processing_time }}"></span>
+                                        </span>
+                                    @endif
+                                </h6>
+
                                 @if ($order->order_attachment)
                                     @php
                                         $order_images = json_decode($order->order_attachment, true);
@@ -757,7 +654,7 @@
                                         <span class="name">{{ translate('Amount_paid_by') }}
                                             {{ translate($pay_info->payment_method) }} </span>
                                         <span class="info">
-                                            {{App\CentralLogics\Helpers::format_currency($pay_info->amount) }} </span>
+                                            {{ App\CentralLogics\Helpers::format_currency($pay_info->amount) }} </span>
                                     </li>
                                 @endforeach
                             @else
@@ -1270,165 +1167,6 @@
 
     <!-- End Content -->
 
-
-@endsection
-@push('script_2')
-    <script src="{{ asset('public/assets/admin/js/spartan-multi-image-picker.js') }}"></script>
-    <script type="text/javascript">
-        "use strict";
-
-
-        $('.self-delivery-warning').on('click', function(event) {
-            event.preventDefault();
-            toastr.info(
-                "{{ translate('messages.Self_Delivery_is_Disable') }}", {
-                    CloseButton: true,
-                    ProgressBar: true
-                });
-        });
-
-
-
-        $('.cancelled-status').on('click', function() {
-            Swal.fire({
-                title: '{{ translate('messages.are_you_sure') }}',
-                text: '{{ translate('messages.Change status to canceled ?') }}',
-                type: 'warning',
-                html: `   <select class="form-control js-select2-custom mx-1" name="reason" id="reason">
-                    @foreach ($reasons as $r)
-                    <option value="{{ $r->reason }}">
-                            {{ $r->reason }}
-                    </option>
-                    @endforeach
-
-                    </select>`,
-                showCancelButton: true,
-                cancelButtonColor: 'default',
-                confirmButtonColor: '#FC6A57',
-                cancelButtonText: '{{ translate('messages.no') }}',
-                confirmButtonText: '{{ translate('messages.yes') }}',
-                reverseButtons: true,
-                onOpen: function() {
-                    $('.js-select2-custom').select2({
-                        minimumResultsForSearch: 5,
-                        width: '100%',
-                        placeholder: "Select Reason",
-                        language: "en",
-                    });
-                }
-            }).then((result) => {
-                if (result.value) {
-                    let reason = document.getElementById('reason').value;
-                    location.href = '{!! route('vendor.order.status', ['id' => $order['id'], 'order_status' => 'canceled']) !!}&reason=' + reason,
-                        '{{ translate('Change status to canceled ?') }}';
-                }
-            })
-
-        });
-
-        $('.order-status-change-alert').on('click', function() {
-            let route = $(this).data('url');
-            let message = $(this).data('message');
-            let verification = $(this).data('verification');
-            let processing = $(this).data('processing-time') ?? false;
-
-            if (verification) {
-                Swal.fire({
-                    title: '{{ translate('Enter order verification code') }}',
-                    input: 'text',
-                    inputAttributes: {
-                        autocapitalize: 'off'
-                    },
-                    showCancelButton: true,
-                    cancelButtonColor: 'default',
-                    confirmButtonColor: '#FC6A57',
-                    confirmButtonText: '{{ translate('messages.submit') }}',
-                    showLoaderOnConfirm: true,
-                    preConfirm: (otp) => {
-                        location.href = route + '&otp=' + otp;
-                    },
-                    allowOutsideClick: () => !Swal.isLoading()
-                })
-            } else if (processing) {
-                Swal.fire({
-                    title: '{{ translate('messages.Are you sure ?') }}',
-                    type: 'warning',
-                    showCancelButton: true,
-                    cancelButtonColor: 'default',
-                    confirmButtonColor: '#FC6A57',
-                    cancelButtonText: '{{ translate('messages.Cancel') }}',
-                    confirmButtonText: '{{ translate('messages.submit') }}',
-                    inputPlaceholder: "{{ translate('Enter processing time') }}",
-                    input: 'text',
-                    html: message + '<br/>' +
-                        '<label>{{ translate('Enter Processing time in minutes') }}</label>',
-                    inputValue: processing,
-                    preConfirm: (processing_time) => {
-                        location.href = route + '&processing_time=' + processing_time;
-                    },
-                    allowOutsideClick: () => !Swal.isLoading()
-                })
-            } else {
-                Swal.fire({
-                    title: '{{ translate('messages.Are you sure ?') }}',
-                    text: message,
-                    type: 'warning',
-                    showCancelButton: true,
-                    cancelButtonColor: 'default',
-                    confirmButtonColor: '#FC6A57',
-                    cancelButtonText: '{{ translate('messages.No') }}',
-                    confirmButtonText: '{{ translate('messages.Yes') }}',
-                    reverseButtons: true
-                }).then((result) => {
-                    if (result.value) {
-                        location.href = route;
-                    }
-                })
-            }
-
-        });
-
-        $(function() {
-            $("#coba").spartanMultiImagePicker({
-                fieldName: 'order_proof[]',
-                maxCount: 6 -
-                    {{ $order->order_proof && is_array($order->order_proof) ? count(json_decode($order->order_proof)) : 0 }},
-                rowHeight: '176px !important',
-                groupClassName: 'spartan_item_wrapper min-w-176px max-w-176px',
-                maxFileSize: '',
-                placeholderImage: {
-                    image: "{{ asset('public/assets/admin/img/upload-img.png') }}",
-                    width: '176px'
-                },
-                dropFileLabel: "Drop Here",
-                onAddRow: function(index, file) {
-
-                },
-                onRenderedPreview: function(index) {
-
-                },
-                onRemoveRow: function(index) {
-
-                },
-                onExtensionErr: function() {
-                    toastr.error(
-                        "{{ translate('messages.please_only_input_png_or_jpg_type_file') }}", {
-                            CloseButton: true,
-                            ProgressBar: true
-                        });
-                },
-                onSizeErr: function() {
-                    toastr.error("{{ translate('messages.file_size_too_big') }}", {
-                        CloseButton: true,
-                        ProgressBar: true
-                    });
-                }
-            });
-        });
-    </script>
-
-
-
     <!-- Image Preview Modal -->
     <div class="modal fade" id="imagePreviewModal" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered modal-lg">
@@ -1439,18 +1177,11 @@
             </div>
         </div>
     </div>
-    <script>
-        document.addEventListener("DOMContentLoaded", function() {
-            const previewImages = document.querySelectorAll(".preview-image");
-            const modalImage = document.getElementById("modalPreviewImage");
-            const imageModal = new bootstrap.Modal(document.getElementById("imagePreviewModal"));
+@endsection
+@push('script_2')
+    <script src="{{ asset('public/assets/admin/js/spartan-multi-image-picker.js') }}"></script>
 
-            previewImages.forEach(img => {
-                img.addEventListener("click", function() {
-                    modalImage.src = this.getAttribute("data-image");
-                    imageModal.show();
-                });
-            });
-        });
-    </script>
+ 
+        @include('vendor-views.order._scripts')
+ 
 @endpush
