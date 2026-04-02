@@ -930,175 +930,122 @@ class CustomerAuthController extends Controller
 
     private function ref_code_login($request_data)
     {
-
-        // ✅ Find user by ref_code
+        // 1. Find user by ref_code
         $user = User::where('ref_code', $request_data['ref_code'])->first();
 
         if (!$user) {
             return response()->json([
-                'errors' => [
-                    [
-                        'code' => 'auth-001',
-                        'message' => translate('User_Not_Found')
-                    ]
-                ]
+                'errors' => [['code' => 'auth-001', 'message' => translate('User_Not_Found')]]
             ], 401);
         }
-        if ($user->expire_at && Carbon::parse($user->expire_at)->isPast()) {
-            return response()->json([
-                'status' => false,
-                'message' => 'Your account has been expired'
-            ], 403);
+
+        // 2. Check Expiration (Ensuring valid Carbon parsing)
+        if ($user->expire_at) {
+            try {
+                $expiration = Carbon::parse($user->expire_at);
+                if ($expiration->isPast()) {
+                    return response()->json([
+                        'status' => false,
+                        'message' => 'Your account has been expired'
+                    ], 403);
+                }
+            } catch (\Exception $e) {
+                // If the date format is corrupted (like the '365' error), log it or handle it
+                \Log::error("Invalid expire_at format for user {$user->id}: " . $user->expire_at);
+            }
         }
 
-
-
-        // ✅ Manually login user (NO PASSWORD CHECK)
+        // 3. Manually login user
         auth()->loginUsingId($user->id);
-
-        // Load relations
         $user->load(['segment', 'client.app.banners', 'client.app.themes.colorCodes']);
-
-        // Refer code check
         $this->refer_code_check($user);
 
         $is_personal_info = $user->f_name ? 1 : 0;
         $user->login_medium = 'ref';
         $user->status = 1;
-        $city = $this->getCityFromLatLng($request_data['request']['latitude'], $request_data['request']['longitude']);
-        $user->last_active_city = $city;
+
+        // 4. Distance/City Fix: Explicitly cast coordinates to float to avoid TypeError
+        $lat = (float) ($request_data['request']['latitude'] ?? 0);
+        $lng = (float) ($request_data['request']['longitude'] ?? 0);
+        $user->last_active_city = $this->getCityFromLatLng($lat, $lng);
+
+        // 5. Expiration Logic Fix (Handling the '365' or null cases)
         $segment = $user->segment;
-
         $validationDate = null;
+
         if ($segment) {
-
             if (is_null($segment->validation_date)) {
-
-                $validationDate = Carbon::now()->addDays($segment->validity_days);
-
+                // Ensure validity_days is treated as an integer offset
+                $days = (int) ($segment->validity_days ?? 30);
+                $validationDate = Carbon::now()->addDays($days);
             } else {
-
-                $validationDate = Carbon::parse($segment->validation_date);
-
+                try {
+                    $validationDate = Carbon::parse($segment->validation_date);
+                } catch (\Exception $e) {
+                    $validationDate = Carbon::now()->addDays(30);
+                }
             }
-
-
-
         }
 
-
         if (is_null($user->activated_at)) {
-            // Check if the variable is not null before using format()
             if ($validationDate) {
                 $user->expire_at = $validationDate->format('Y-m-d');
             } else {
-                // Option A: Set a default date if validationDate is missing
                 $user->expire_at = Carbon::now()->addDays(30)->format('Y-m-d');
-
-                // Option B: Throw an error or log it if this should never be null
-                // throw new \Exception("Validation date is missing.");
             }
-
             $user->activated_at = Carbon::now();
             $user->is_active = 0;
         }
 
         $user->save();
 
-      
-        $user_email = $user->email ?? null;
-
-        // ✅ Generate Passport token
-        $token = null;
-
+        // 6. Token & Data Preparation
         $token = $user->createToken('RestaurantCustomerAuth')->accessToken;
-
         if (isset($request_data['guest_id'])) {
             $this->check_guest_cart($user, $request_data['guest_id']);
         }
 
-        // --------- APP DATA ----------
+        // Prepare App Data
         $appData = null;
-        $app = $user->client->app->first();
-
+        $app = $user->client->app->first() ?? null;
         if ($app) {
             $appData = [
                 'id' => $app->id,
-                'client_id' => $app->client_id,
                 'app_name' => $app->app_name,
-                'app_logo' => $app->app_logo,
-                'app_dec' => $app->app_dec,
-                'app_type' => $app->app_type,
-                'status' => $app->status,
-                'banner' => $app->banner,
-                'created_at' => $app->created_at,
-                'updated_at' => $app->updated_at,
-
                 'banners' => $app->banners->where('status', '1')->values(),
-
                 'themes' => $app->themes->where('status', 'active')->map(function ($theme) {
                     return [
                         'id' => $theme->id,
                         'name' => $theme->name,
-                        'status' => $theme->status,
-                        'start_date' => $theme->start_date,
-                        'end_date' => $theme->end_date,
-                        'colorCodes' => $theme->colorCodes
-                            ->where('status', 'active')
-                            ->values()
-                            ->map(function ($code) {
-                                return [
-                                    'id' => $code->id,
-                                    'color_name' => $code->color_name,
-                                    'color_code' => $code->color_code,
-                                    'color_gradient' => $code->color_gradient,
-                                    'color_type' => $code->color_type,
-                                    'status' => $code->status,
-                                    'created_at' => $code->created_at,
-                                    'updated_at' => $code->updated_at,
-                                ];
-                            }),
+                        'colorCodes' => $theme->colorCodes->where('status', 'active')->values()
                     ];
                 })->values(),
             ];
         }
-        // --------- CLIENT DATA ----------
-        $clientData = null;
-        if ($user->client) {
-            $clientData = [
-                'id' => $user->client->id,
-                'name' => $user->client->name,
-                'email' => $user->client->email,
-                'logo' => $user->client->logo,
-                'cover' => $user->client->cover,
-                'type' => $user->client->type,
-                'status' => $user->client->status,
-                'created_at' => $user->client->created_at,
-                'updated_at' => $user->client->updated_at,
-                'segment' => $user->segment,
-                'app' => $appData,
-            ];
-        }
-        // ✅ FINAL RESPONSE (exact same structure)
+
+        // 7. Final Response
         return response()->json([
             'token' => $token,
-            'is_phone_verified' => $user->phone_verified ?? 0,
-            'is_email_verified' => $user->email_verified ?? 0,
+            'is_phone_verified' => (int) ($user->phone_verified ?? 0),
+            'is_email_verified' => (int) ($user->email_verified ?? 0),
             'is_personal_info' => $is_personal_info,
-            'is_exist_user' => $is_exist_user = $this->exist_user($user),
-            'is_active' => $user->is_active ?? 0,
-            'activated_at' => $user->activated_at ?? null,
-            'expire_at' => $user->expire_at ?? null,
+            'is_exist_user' => $this->exist_user($user),
+            'is_active' => (int) ($user->is_active ?? 0),
+            'activated_at' => $user->activated_at,
+            'expire_at' => $user->expire_at,
             'login_type' => 'ref',
-            'username' => $user->username ?? null,
-            'phone' => $user->phone ?? null,
-            'email' => $user_email,
+            'username' => $user->username,
+            'phone' => $user->phone,
+            'email' => $user->email,
             'segment' => [
                 'name' => $user->segment->name ?? null,
                 'type' => $user->segment->type ?? null,
             ],
-
-            'client' => $clientData,
+            'client' => $user->client ? [
+                'id' => $user->client->id,
+                'name' => $user->client->name,
+                'app' => $appData,
+            ] : null,
         ], 200);
     }
     private function manual_login($request_data)
