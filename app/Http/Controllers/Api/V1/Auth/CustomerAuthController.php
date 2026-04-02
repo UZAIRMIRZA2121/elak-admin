@@ -691,6 +691,7 @@ class CustomerAuthController extends Controller
 
             return $this->ref_code_login($request_data);
         }
+
         if ($request->login_type == 'manual') {
             $validator = Validator::make($request->all(), [
                 'email_or_phone' => 'required',
@@ -929,9 +930,10 @@ class CustomerAuthController extends Controller
 
     private function ref_code_login($request_data)
     {
+    
         // ✅ Find user by ref_code
         $user = User::where('ref_code', $request_data['ref_code'])->first();
-
+      
         if (!$user) {
             return response()->json([
                 'errors' => [

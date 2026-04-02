@@ -197,7 +197,7 @@
                                         </span>
                                     </a>
                                 </li>
-                                <li
+                                {{-- <li
                                     class="nav-item {{ Request::is('vendor-panel/order/list/refunded') ? 'active' : '' }}">
                                     <a class="nav-link " href="{{ route('vendor.order.list', ['refunded']) }}"
                                         title="{{ translate('messages.refunded_orders') }}">
@@ -209,7 +209,7 @@
                                             </span>
                                         </span>
                                     </a>
-                                </li>
+                                </li> --}}
                                 {{-- <li
                                     class="nav-item {{ Request::is('vendor-panel/order/list/scheduled') ? 'active' : '' }}">
                                     <a class="nav-link" href="{{ route('vendor.order.list', ['scheduled']) }}"
@@ -236,7 +236,7 @@
                                         </span>
                                     </a>
                                 </li> --}}
-                                 <li
+                                 {{-- <li
                                     class="nav-item {{ Request::is('vendor-panel/flateorder/list/all') ? 'active' : '' }}">
                                     <a class="nav-link" href="{{ route('vendor.flate.order.list', ['all']) }}"
                                         title="{{ translate('Flat Request') }}">
@@ -261,7 +261,7 @@
                                             </span>
                                         </span>
                                     </a>
-                                </li>
+                                </li> --}}
                             </ul>
                         </li>
                         <!-- End Order -->

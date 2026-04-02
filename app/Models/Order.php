@@ -214,6 +214,8 @@ class Order extends Model
     {
         return $query->whereIn('order_status', ['confirmed', 'processing', 'handover']);
     }
+   
+
 
     public function scopeModule($query, $module_id)
     {

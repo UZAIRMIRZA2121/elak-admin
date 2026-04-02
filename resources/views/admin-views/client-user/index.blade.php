@@ -234,7 +234,7 @@
                                     <th class="border-0">Client Name</th>
                                     <th class="border-0">Segment</th>
                                     <th class="border-0">Status</th>
-                                    <th class="border-0">Ref Id</th>
+                                    <th class="border-0">Ref Code</th>
                                 </tr>
                             </thead>
 
@@ -288,7 +288,7 @@
 
                                         {{-- Ref ID --}}
                                         <td class="text-center">
-                                            {{ $User->ref_by ?? '--' }}
+                                            {{ $User->ref_code ?? '--' }}
                                         </td>
                                     </tr>
                                 @endforeach

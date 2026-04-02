@@ -989,9 +989,14 @@ class ItemController extends Controller
 
 
         $voucher_types = VoucherType::where('status', 'active')->get();
-
-
-        return view('vendor-views.product.list', compact('items', 'category', 'type', 'sub_categories', 'productWiseTax', 'voucher_types'));
+      
+ $voucherCounts = [
+    'Delivery/Pickup' => Item::where('type', 'voucher')->where('voucher_ids', 'Delivery/Pickup')->count(),
+    'In-Store' => Item::where('type', 'voucher')->where('voucher_ids', 'In-Store')->count(),
+    'Flat discount' => Item::where('type', 'voucher')->where('voucher_ids', 'Flat discount')->count(),
+    'Gift' => Item::where('type', 'voucher')->where('voucher_ids', 'Gift')->count(),
+];
+        return view('vendor-views.product.list', compact('items', 'category', 'type', 'sub_categories', 'productWiseTax', 'voucher_types', 'voucher_type', 'voucherCounts'));
     }
 
     public function search(Request $request)

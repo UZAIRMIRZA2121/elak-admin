@@ -1151,6 +1151,10 @@ class ItemController extends Controller
 
         $taxData = Helpers::getTaxSystemType(getTaxVatList: false);
         $productWiseTax = $taxData['productWiseTax'];
+     
+        $delieveryvoucher_count = Item::where('type', 'voucher')->where('voucherids',$request->voucher_type())->count();
+
+
 
         return view('admin-views.product.list', compact('items', 'store', 'category', 'type', 'sub_categories', 'condition', 'productWiseTax'));
     }

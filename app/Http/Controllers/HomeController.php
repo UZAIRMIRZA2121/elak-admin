@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\CentralLogics\OrderLogic;
+use App\Models\Cart;
 use App\Models\DeliveryMan;
 use App\Models\OrderPayment;
 use App\Models\OrderTransaction;
@@ -505,6 +506,11 @@ class HomeController extends Controller
             ->update(['status' => 0]);
 
 
+
+        Cart::where('type', 'Flat discount')
+            ->where('updated_at', '<', Carbon::now()->subMinutes(5))
+            ->delete();
+
         // 2. Process Orders
         $orders = Order::all();
 
@@ -518,7 +524,7 @@ class HomeController extends Controller
                 $order->save();
             }
         }
-   
+
         foreach ($processingOrders as $order) {
 
 

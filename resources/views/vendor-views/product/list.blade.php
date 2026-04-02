@@ -25,7 +25,7 @@
 
 
         <!-- End Page Header -->
-        <div class="card mb-3">
+        {{-- <div class="card mb-3">
             <!-- Header -->
             <div class="card-header py-2 border-0">
                 <h1>{{ translate('search_data') }}</h1>
@@ -85,7 +85,7 @@
                     <!-- End Veg/NonVeg filter -->
                 @endif
             </div>
-        </div>
+        </div> --}}
 
 
         <!-- Card -->
@@ -108,12 +108,17 @@
 
                         {{-- Voucher Types --}}
                         @foreach ($voucher_types as $type)
-                            <a href="{{ route('vendor.item.list', ['all', 'voucher_type' => $type->name]) }}"
-                                class="btn btn-sm {{ request('voucher_type') == $type->name ? 'btn-primary' : 'btn-outline-primary' }}">
-                                {{ $type->name }}
-                                {{-- <span class="fz--10 badge m-0 badge-soft-info">
-                                    {{ $items->where('voucher_ids', $type->name)->count() }}</span> --}}
-                            </a>
+                            @if (($voucherCounts[$type->name] ?? 0) > 0)
+                                <a href="{{ route('vendor.item.list', ['all', 'voucher_type' => $type->name]) }}"
+                                    class="btn btn-sm {{ request('voucher_type') == $type->name ? 'btn-primary' : 'btn-outline-primary' }}">
+
+                                    {{ $type->name }}
+
+                                    <span class="fz--10 badge m-0 badge-soft-info">
+                                        {{ $voucherCounts[$type->name] }}
+                                    </span>
+                                </a>
+                            @endif
                         @endforeach
 
                     </div>
