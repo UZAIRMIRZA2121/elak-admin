@@ -1071,16 +1071,13 @@
                                 </span>
 
                                 @if ($order->order_status == 'refund_requested')
-                                    <span
-                                        class="badge __badge badge-primary __badge-abs">{{ translate('messages.pending') }}</span>
+                                    <span class="badge __badge badge-primary __badge-abs">{{ translate('messages.pending') }}</span>
                                 @elseif($order->order_status == 'refunded')
-                                    <span
-                                        class="badge __badge badge-info __badge-abs">{{ translate('messages.refunded') }}</span>
+                                    <span class="badge __badge badge-info __badge-abs">{{ translate('messages.refunded') }}</span>
                                 @elseif($order->refund->order_status == 'refund_request_canceled')
-                                    <span
-                                        class="badge __badge-pill badge-danger __badge-abs">{{ translate('messages.rejected') }}</span>
+                                    <span class="badge __badge-pill badge-danger __badge-abs">{{ translate('messages.rejected') }}</span>
                                 @endif
-
+                                
                             </div>
                             <div class="card-body pt-2">
                                 <label class="input-label"

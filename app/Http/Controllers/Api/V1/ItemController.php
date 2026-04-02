@@ -544,6 +544,12 @@ class ItemController extends Controller
 
                 $item['terms_conditions'] = $item->termsAndConditions() ?? [];
 
+
+
+
+
+                
+
             }
 
 

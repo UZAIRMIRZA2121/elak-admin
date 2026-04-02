@@ -2,7 +2,9 @@
 
 namespace App\CentralLogics;
 
+use App\Models\SoldVoucher;
 use App\Models\VendorEmployee;
+use Auth;
 use DateTime;
 use App\Models\Tag;
 use App\Models\Item;
@@ -312,13 +314,79 @@ class Helpers
         })->toArray();
     }
 
-    public static function product_data_formatting($data, $multi_data = false, $trans = false, $local = 'en', $temp_product = false)
+    public static function product_data_formatting($data, $multi_data = false, $trans = false, $local = 'en', $temp_product = false, $user_id = null)
     {
-        // dd($multi_data);
         $storage = [];
-        if ($multi_data == true) {
-            foreach ($data as $item) {
+    
 
+        if ($multi_data == true) {
+
+
+            foreach ($data as $item) {
+                $availability_for_current_user = [
+                        'status' => 'available',
+                        'msg' => '✅ User can still use this voucher.'
+                    ];
+
+
+                if ($user_id && isset($item->voucherSetting->usage_limit_per_user)) {
+
+                    $usage = $item->voucherSetting->usage_limit_per_user;
+
+                    $u_value = $usage['value'] ?? 0;
+                    $u_period = $usage['period'] ?? null;
+
+                    $query = SoldVoucher::where('user_id', $user_id)
+                        ->where('voucher_id', $item->id);
+
+                    if ($u_period == 'per day') {
+                        $query->whereDate('created_at', Carbon::today());
+                    }
+
+                    if ($u_period == 'per week') {
+                        $query->whereBetween('created_at', [
+                            Carbon::now()->startOfWeek(),
+                            Carbon::now()->endOfWeek()
+                        ]);
+                    }
+
+                    if ($u_period == 'per month') {
+                        $query->whereMonth('created_at', Carbon::now()->month)
+                            ->whereYear('created_at', Carbon::now()->year);
+                    }
+
+                    if ($u_period == 'per year') {
+                        $query->whereYear('created_at', Carbon::now()->year);
+                    }
+
+                    $buy_vouchers = $query->count();
+
+                    // echo "<pre>";
+                    // echo "Voucher ID: {$item->id}\n";
+                    // echo "Used: {$buy_vouchers}\n";
+                    // echo "Limit: {$u_value}\n";
+                    // echo "Period: {$u_period}\n";
+                    // echo "</pre>";
+
+                    if ($buy_vouchers >= $u_value) {
+                        $availability_for_current_user = [
+                            'status' => 'not_available',
+                            'msg' => "❌ User has reached the maximum usage limit of {$u_value} for {$u_period}."
+                        ];
+
+                        // echo "❌ User has reached the maximum usage limit of {$u_value} for {$u_period}.";
+                    } else {
+                        $remaining = $u_value - $buy_vouchers;
+                        $availability_for_current_user = [
+                            'status' => 'available',
+                            'msg' => "✅ You can use this voucher {$remaining} more time(s) in {$u_period}."
+                        ];
+                        // echo "✅ User can still use this voucher.";
+                    }
+
+                }
+
+                $item['availability_for_current_user'] = $availability_for_current_user;
                 // dd($item['occasions_id']);
                 $variations = [];
                 if ($item->title) {
@@ -432,6 +500,10 @@ class Helpers
             }
             $data = $storage;
         } else {
+
+
+
+
             $variations = [];
             $categories = [];
             foreach (json_decode($data['category_ids']) as $value) {
@@ -543,8 +615,72 @@ class Helpers
             unset($data['allergies']);
             unset($data['generic']);
 
+
+
+
+
+
+            if ($user_id && isset($data->voucherSetting->usage_limit_per_user)) {
+              
+                $usage = $data->voucherSetting->usage_limit_per_user;
+
+                $u_value = $usage['value'] ?? 0;
+                $u_period = $usage['period'] ?? null;
+
+                $query = SoldVoucher::where('user_id', $user_id)
+                    ->where('voucher_id', $data->id);
+
+                if ($u_period == 'per day') {
+                    $query->whereDate('created_at', Carbon::today());
+                }
+
+                if ($u_period == 'per week') {
+                    $query->whereBetween('created_at', [
+                        Carbon::now()->startOfWeek(),
+                        Carbon::now()->endOfWeek()
+                    ]);
+                }
+
+                if ($u_period == 'per month') {
+                    $query->whereMonth('created_at', Carbon::now()->month)
+                        ->whereYear('created_at', Carbon::now()->year);
+                }
+
+                if ($u_period == 'per year') {
+                    $query->whereYear('created_at', Carbon::now()->year);
+                }
+
+                $buy_vouchers = $query->count();
+
+                // echo "<pre>";
+                // echo "Voucher ID: {$item->id}\n";
+                // echo "Used: {$buy_vouchers}\n";
+                // echo "Limit: {$u_value}\n";
+                // echo "Period: {$u_period}\n";
+                // echo "</pre>";
+
+                if ($buy_vouchers >= $u_value) {
+                    $availability_for_current_user = [
+                        'status' => 'not_available',
+                        'msg' => "❌ User has reached the maximum usage limit of {$u_value} for {$u_period}."
+                    ];
+
+                    // echo "❌ User has reached the maximum usage limit of {$u_value} for {$u_period}.";
+                } else {
+                    $remaining = $u_value - $buy_vouchers;
+                    $availability_for_current_user = [
+                        'status' => 'available',
+                        'msg' => "✅ You can use this voucher {$remaining} more time(s) in {$u_period}."
+                    ];
+                    // echo "✅ User can still use this voucher.";
+                }
+
+            }
+
+
+
+
         }
-        // dd($data);
         return $data;
     }
 
@@ -830,7 +966,7 @@ class Helpers
             unset($data['rating']);
 
 
-                  if ($data['type'] == 'voucher') {
+            if ($data['type'] == 'voucher') {
 
                 if ($data->product !== "[]") {
                     $data['product'] = $data->relatedProducts() ?? [];
@@ -868,7 +1004,7 @@ class Helpers
             }
 
         }
-      
+
 
         return $data;
     }
@@ -1169,62 +1305,62 @@ class Helpers
         return $data;
     }
 
-public static function order_details_data_formatting($data)
-{
-    $storage = [];
-      
-    foreach ($data as $item) {
+    public static function order_details_data_formatting($data)
+    {
+        $storage = [];
 
-        // Decode JSON fields
-        $item['add_ons'] = json_decode($item['add_ons'], true);
-        $item['variation'] = json_decode($item['variation'], true);
-        $item['item_details'] = json_decode($item['item_details'], true);
+        foreach ($data as $item) {
 
-        // ================= PRODUCT / CAMPAIGN =================
-        if (!empty($item['item_id'])) {
+            // Decode JSON fields
+            $item['add_ons'] = json_decode($item['add_ons'], true);
+            $item['variation'] = json_decode($item['variation'], true);
+            $item['item_details'] = json_decode($item['item_details'], true);
 
-            $product = \App\Models\Item::find($item['item_details']['id']);
+            // ================= PRODUCT / CAMPAIGN =================
+            if (!empty($item['item_id'])) {
 
-            $item['image_full_url']  = $product?->image_full_url;
-            $item['images_full_url'] = $product?->images_full_url ?? [];
-                 $product = $item->item;
-            // ================= VOUCHER EXTRA DATA =================
-            if ($product['type']  === 'voucher' ) {
-              // Send how_and_condition_ids as array
-                $item['how_it_works'] = $product->usageTerms() ?? [];
-                // Return full branch data
-                $item['branches'] = $product->branches(); // calls the method and returns collection
+                $product = \App\Models\Item::find($item['item_details']['id']);
 
-                $settings = $product->voucherSetting;
+                $item['image_full_url'] = $product?->image_full_url;
+                $item['images_full_url'] = $product?->images_full_url ?? [];
+                $product = $item->item;
+                // ================= VOUCHER EXTRA DATA =================
+                if ($product['type'] === 'voucher') {
+                    // Send how_and_condition_ids as array
+                    $item['how_it_works'] = $product->usageTerms() ?? [];
+                    // Return full branch data
+                    $item['branches'] = $product->branches(); // calls the method and returns collection
 
-                $item['settings'] = $settings ? [
-                    'validity_period' => (array) $settings->validity_period,
-                    'specific_days_of_week' => (array) $settings->specific_days_of_week,
-                    'holidays_occasions' => (array) $settings->holiday_occasions,
-                    'custom_blackout_dates' => (array) $settings->custom_blackout_dates,
-                    'age_restriction' => (array) $settings->age_restriction,
-                    'group_size_requirement' => (array) $settings->group_size_requirement,
-                    'usage_limit_per_user' => (array) $settings->usage_limit_per_user,
-                    'usage_limit_per_store' => (array) $settings->usage_limit_per_store,
-                    'offer_validity_after_purchase' => (array) $settings->offer_validity_after_purchase,
-                    'general_restrictions' => $settings->general_restriction_settings,
-                    'status' => $settings->status,
-                ] : null;
+                    $settings = $product->voucherSetting;
+
+                    $item['settings'] = $settings ? [
+                        'validity_period' => (array) $settings->validity_period,
+                        'specific_days_of_week' => (array) $settings->specific_days_of_week,
+                        'holidays_occasions' => (array) $settings->holiday_occasions,
+                        'custom_blackout_dates' => (array) $settings->custom_blackout_dates,
+                        'age_restriction' => (array) $settings->age_restriction,
+                        'group_size_requirement' => (array) $settings->group_size_requirement,
+                        'usage_limit_per_user' => (array) $settings->usage_limit_per_user,
+                        'usage_limit_per_store' => (array) $settings->usage_limit_per_store,
+                        'offer_validity_after_purchase' => (array) $settings->offer_validity_after_purchase,
+                        'general_restrictions' => $settings->general_restriction_settings,
+                        'status' => $settings->status,
+                    ] : null;
+                }
+
+            } else {
+                // ================= CAMPAIGN =================
+                $campaign = \App\Models\ItemCampaign::find($item['item_details']['id']);
+
+                $item['image_full_url'] = $campaign?->image_full_url;
+                $item['images_full_url'] = [];
             }
 
-        } else {
-            // ================= CAMPAIGN =================
-            $campaign = \App\Models\ItemCampaign::find($item['item_details']['id']);
-
-            $item['image_full_url']  = $campaign?->image_full_url;
-            $item['images_full_url'] = [];
+            $storage[] = $item;
         }
 
-        $storage[] = $item;
+        return $storage;
     }
-
-    return $storage;
-}
 
 
     public static function order_voucher_details_formatting_from_formatted($data)
@@ -1457,24 +1593,24 @@ public static function order_details_data_formatting($data)
 
 
 
-public static function format_currency($value)
-{
-    // Get currency symbol position
-    if (!config('currency_symbol_position')) {
-        $currency_symbol_position = BusinessSetting::where(['key' => 'currency_symbol_position'])
-            ->first()?->value;
-        Config::set('currency_symbol_position', $currency_symbol_position);
-    } else {
-        $currency_symbol_position = config('currency_symbol_position');
+    public static function format_currency($value)
+    {
+        // Get currency symbol position
+        if (!config('currency_symbol_position')) {
+            $currency_symbol_position = BusinessSetting::where(['key' => 'currency_symbol_position'])
+                ->first()?->value;
+            Config::set('currency_symbol_position', $currency_symbol_position);
+        } else {
+            $currency_symbol_position = config('currency_symbol_position');
+        }
+
+        // Format value with 2 decimal places
+        $formattedValue = number_format((float) $value, 2, '.', '');
+
+        return $currency_symbol_position == 'right'
+            ? $formattedValue . ' ' . self::currency_symbol()
+            : self::currency_symbol() . ' ' . $formattedValue;
     }
-
-    // Format value with 2 decimal places
-    $formattedValue = number_format((float)$value, 2, '.', '');
-
-    return $currency_symbol_position == 'right'
-        ? $formattedValue . ' ' . self::currency_symbol()
-        : self::currency_symbol() . ' ' . $formattedValue;
-}
 
     public static function sendNotificationToHttp(array|null $data)
     {

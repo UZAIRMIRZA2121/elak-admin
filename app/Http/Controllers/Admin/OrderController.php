@@ -583,7 +583,7 @@ class OrderController extends Controller
 
     public function status(Request $request)
     {
-      
+
         $request->validate([
             'reason' => 'required_if:order_status,canceled'
         ]);
@@ -606,10 +606,10 @@ class OrderController extends Controller
             return back();
         }
 
-        if (in_array($order->order_status, ['refunded', 'failed'])) {
-            Toastr::warning(translate('messages.you_can_not_change_the_status_of_a_completed_order'));
-            return back();
-        }
+        // if (in_array($order->order_status, ['refunded', 'failed'])) {
+        //     Toastr::warning(translate('messages.you_can_not_change_the_status_of_a_completed_order'));
+        //     return back();
+        // }
         if (!Auth::guard('admin')->check()) {
             if (in_array($order->order_status, ['refund_requested']) && BusinessSetting::where(['key' => 'refund_active_status'])->first()->value == false) {
                 Toastr::warning(translate('Refund Option is not active. Please active it from Refund Settings'));
@@ -629,6 +629,7 @@ class OrderController extends Controller
         }
 
         if ($request->order_status == 'delivered') {
+          
 
             if ($order->transaction == null) {
                 $unpaid_payment = OrderPayment::where('payment_status', 'unpaid')->where('order_id', $order->id)->first()?->payment_method;
@@ -678,6 +679,7 @@ class OrderController extends Controller
             OrderLogic::update_unpaid_order_payment(order_id: $order->id, payment_method: $order->payment_method);
 
         } else if ($request->order_status == 'refunded' && BusinessSetting::where('key', 'refund_active_status')->first()->value == 1) {
+
             if ($order->payment_status == "unpaid") {
                 Toastr::warning(translate('messages.you_can_not_refund_a_cod_order'));
                 return back();
@@ -689,16 +691,20 @@ class OrderController extends Controller
                     return back();
                 }
             }
-            
-            $refund_method = $request->refund_method ?? 'manual';
+
+            $refund_method = $request->refund_method ?? 'wallet';
+
             $wallet_status = BusinessSetting::where('key', 'wallet_status')->first()->value;
             $refund_to_wallet = BusinessSetting::where('key', 'wallet_add_refund')->first()->value;
+
+
             if ($order->payment_status == "paid" && $wallet_status == 1 && $refund_to_wallet == 1) {
-             
-                $refund_amount = round($order->order_amount - $order->delivery_charge - $order->dm_tips, config('round_up_to_digit'));
+
+                $refund_amount = round($order->total_order_amount - $order->discount_amount - $order->delivery_charge - $order->dm_tips, config('round_up_to_digit'));
                 CustomerLogic::create_wallet_transaction($order->user_id, $refund_amount, 'order_refund', $order->id);
                 Toastr::info(translate('Refunded amount added to customer wallet'));
                 $refund_method = 'wallet';
+
             } else {
                 Toastr::warning(translate('Customer Wallet Refund is not active.Plase Manage the Refund Amount Manually'));
                 $refund_method = $request->refund_method ?? 'manual';
@@ -748,6 +754,7 @@ class OrderController extends Controller
                 Toastr::error(translate('messages.Failed_to_send_mail'));
             }
         } else if ($request->order_status == 'canceled') {
+       
             if (in_array($order->order_status, ['delivered', 'canceled', 'refund_requested', 'refunded', 'failed'])) {
                 Toastr::warning(translate('messages.you_can_not_cancel_a_completed_order'));
                 return back();
@@ -782,8 +789,9 @@ class OrderController extends Controller
             $order->processing_time = ($request?->processing_time) ? $request->processing_time : explode('-', $order['store']['delivery_time'])[0];
         }
         $order[$request->order_status] = now();
-        $order->save();
 
+        $order->save();
+    
         if (!Helpers::send_order_notification($order)) {
             Toastr::warning(translate('messages.push_notification_faild'));
         }
@@ -1826,9 +1834,10 @@ class OrderController extends Controller
         if ($order->order_status == 'delivered' && $order->payment_status == 'paid') {
 
             $refund_amount = round(
-                $order->order_amount - $order->delivery_charge - $order->dm_tips,
+                $order->total_order_amount - $order->discount_amount - $order->delivery_charge - $order->dm_tips,
                 config('round_up_to_digit')
             );
+      
 
             DB::beginTransaction();
 
@@ -1851,7 +1860,8 @@ class OrderController extends Controller
 
             DB::commit();
 
-            return redirect()->back()->with('success', 'Refund request placed by admin successfully');
+            return redirect()->route('admin.order.details', $order->id)
+                ->with('success', 'Refund request placed by admin successfully');
         }
 
         return redirect()->back()->withErrors([
