@@ -930,10 +930,10 @@ class CustomerAuthController extends Controller
 
     private function ref_code_login($request_data)
     {
-    
+
         // ✅ Find user by ref_code
         $user = User::where('ref_code', $request_data['ref_code'])->first();
-      
+
         if (!$user) {
             return response()->json([
                 'errors' => [
@@ -987,20 +987,25 @@ class CustomerAuthController extends Controller
         }
 
 
-
         if (is_null($user->activated_at)) {
+            // Check if the variable is not null before using format()
+            if ($validationDate) {
+                $user->expire_at = $validationDate->format('Y-m-d');
+            } else {
+                // Option A: Set a default date if validationDate is missing
+                $user->expire_at = Carbon::now()->addDays(30)->format('Y-m-d');
 
-            $user->expire_at = $validationDate->format('Y-m-d');
+                // Option B: Throw an error or log it if this should never be null
+                // throw new \Exception("Validation date is missing.");
+            }
 
             $user->activated_at = Carbon::now();
-
             $user->is_active = 0;
-
-
         }
+
         $user->save();
 
-
+      
         $user_email = $user->email ?? null;
 
         // ✅ Generate Passport token
