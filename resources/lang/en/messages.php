@@ -8604,4 +8604,6 @@ Smartly or Earn. ',
   'active_vouchers' => 'Active vouchers',
   'redeemed_vouchers' => 'Redeemed vouchers',
   'expired_vouchers' => 'Expired vouchers',
+  'NEW Flat ORDER PLACED' => 'NEW Flat ORDER PLACED',
+  'delievered' => 'Delievered',
 );

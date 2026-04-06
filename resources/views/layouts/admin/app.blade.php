@@ -132,7 +132,7 @@ $countryCode= strtolower($country?$country->value:'auto');
                         <div class="col-12">
                             <div class="text-center">
                                 <h2 class="update_notification_text">
-                                    <i class="tio-shopping-cart-outlined"></i> {{translate('messages.You have new order, Check Please.')}}
+                                    <i class="tio-shopping-cart-outlined"></i> {{translate('messages.You have new order, Check Please.')}}111111111111111111111
                                 </h2>
                                 <hr>
                                 <button class="btn btn-primary check-order">{{translate('messages.Ok, let me check')}}</button>
@@ -667,8 +667,9 @@ if(in_array(config('module.current_module_type'),config('module.module_type') ))
                     $('#popup-modal').appendTo("body").modal('show');
                 }
                 @endif
-
+alert(11111111111)
         }else{
+            alert(2222222222);
             if (window.location.href.includes('message/list?conversation')) {
                 let conversation_id = getUrlParameter('conversation');
                 let user_id = getUrlParameter('user');
@@ -707,9 +708,11 @@ if(in_array(config('module.current_module_type'),config('module.module_type') ))
                             document.querySelector('.update_notification_text').textContent = "{{translate('messages.You have new trip, Check Please.')}}";
                         }
                         if (data.new_order > 0) {
+                            console.log('New order count:', data.order);
                             playAudio();
                             $('#popup-modal').appendTo("body").modal('show');
                         }else{
+                            alert(555555555)
                             $('#popup-modal').appendTo("body").modal('hide');
                         }
                     },

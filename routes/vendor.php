@@ -299,6 +299,7 @@ Route::group(['namespace' => 'Vendor', 'as' => 'vendor.'], function () {
                 ->name('generate-invoice');
 
             Route::get('/check-new', 'OrderController@checkNewCart')->name('check-new');
+            Route::get('/order-placed', 'OrderController@orderPlaced')->name('placed');
 
 
 

@@ -157,21 +157,43 @@ $moduleType = $store?->module?->module_type;
                 </div>
             </div>
         </div>
+
+
         <div class="modal fade" id="popup-modal">
             <div class="modal-dialog modal-dialog-centered" role="document">
                 <div class="modal-content">
                     <div class="modal-body">
                         <div class="row">
                             <div class="col-12">
-                                <div class="text-center">
+                                <div class="">
 
-                                    <h2 class="update_notification_text">
+                                    <h2 class="update_notification_text text-center">
                                         <i class="tio-shopping-cart-outlined"></i>
                                         {{ translate('messages.You have new order, Check Please.') }}
                                     </h2>
                                     <hr>
+                                    <div id="new-order-content" class="d-none">
+                                        <div
+                                            style="border-top:1px dashed #ccc;border-bottom:1px dashed #ccc;padding:15px 0;">
+                                            <p> <strong>CUSTOMER:</strong> <span id="fv-customer"></span> </p>
+                                            <p> <strong>ORDER ID:</strong> <span id="fv-item">#ORD-001</span> </p>
+                                        </div> <br> <!-- Billing Summary -->
+                                        <h6><strong>BILLING SUMMARY:</strong></h6>
+                                        <p> <strong>Total Bill: {{ config('currency') }}</strong> <span
+                                                id="fv-total"></span> </p>
+                                        <p> <strong>Discount Type:</strong> <span>Instant Discount</span> </p>
+
+                                        <p> <strong>Discount: {{ config('currency') }}</strong> <span
+                                                id="fv-discount"></span> </p>
+                                        <hr>
+                                        <h5 class="text-center"> 💰 CUSTOMER PAID: {{ config('currency') }}
+                                            <strong id="fv-pay"></strong>
+                                        </h5>
+                                        <hr>
+                                    </div>
+
                                     <button
-                                        class="btn btn-primary check-order">{{ translate('messages.Ok, let me check') }}</button>
+                                        class="btn btn-primary check-order text-center d-block m-auto">{{ translate('messages.Ok, let me check') }}</button>
                                 </div>
                             </div>
                         </div>
@@ -179,6 +201,7 @@ $moduleType = $store?->module?->module_type;
                 </div>
             </div>
         </div>
+
 
 
         <div class="modal fade" id="new-dynamic-submit-model">
@@ -596,11 +619,14 @@ $moduleType = $store?->module?->module_type;
 
 
         @if ($order_notification_type == 'manual')
+
             setInterval(function() {
+
                 $.get({
                     url: '{{ route('vendor.get-store-data') }}',
                     dataType: 'json',
                     success: function(response) {
+
                         let data = response.data;
 
                         if (data.order_type === 'trip') {
@@ -610,17 +636,47 @@ $moduleType = $store?->module?->module_type;
                         }
 
                         if (data.new_pending_order > 0) {
+
                             order_type = 'pending';
                             playAudio();
                             $('#popup-modal').appendTo("body").modal('show');
                         } else if (data.new_confirmed_order > 0) {
-                            order_type = 'confirmed';
+                            console.log('New confirmed order count:', data.order);
+                            order_type = 'delivered';
+
+                            // Check if order_data exists (it only exists if voucher_type was 'flat')
+                            if (data.order && data.order.voucher_type === 'Flat discount') {
+                                
+                                // 1. Remove the 'd-none' class to make the content visible
+                                $('#new-order-content').removeClass('d-none');
+
+                                // 2. Map the data to the HTML spans
+                                // Note: Adjust the keys (e.g., .customer_name) to match your database column names
+                                $('#fv-customer').text(data.order.customer?.f_name || 'Guest');
+                                $('#fv-item').text('#' + data.order.id);
+                                $('#fv-total').text(data.order.total_order_amount);
+                                $('#fv-discount').text(data.order.discount_amount);
+                                $('#fv-pay').text(data.order.order_amount);
+
+                                // Calculate and show the final payable amount
+                                let payable = data.order.order_amount - data.order
+                                    .coupon_discount_amount;
+                                $('#fv-pay').text(payable.toFixed(2));
+
+                                // 3. Update the Title and Icon
+                                $('#popup-modal .update_notification_text').html(`
+                                            <i class="tio-money-vs"></i> 
+                                            ${'{{ translate('messages.NEW FLAT ORDER PLACED') }}'}
+                                        `);
+                            }
+
+                            // Show the modal and play sound
                             playAudio();
                             $('#popup-modal').appendTo("body").modal('show');
                         }
                     },
                 });
-            }, 10000);
+            }, 5000);
         @endif
 
         $('.check-order').on('click', function() {
@@ -1327,48 +1383,48 @@ $moduleType = $store?->module?->module_type;
 
 
     <script>
-    let startTime = document.getElementById('countdown').getAttribute('data-processing');
-    let durationMinutes = parseInt(document.getElementById('countdown').getAttribute('data-duration'));
+        let startTime = document.getElementById('countdown').getAttribute('data-processing');
+        let durationMinutes = parseInt(document.getElementById('countdown').getAttribute('data-duration'));
 
-    let start = new Date(startTime.replace(' ', 'T'));
-    let endTime = new Date(start.getTime() + durationMinutes * 60 * 1000);
+        let start = new Date(startTime.replace(' ', 'T'));
+        let endTime = new Date(start.getTime() + durationMinutes * 60 * 1000);
 
-    function updateCountdown() {
-        let now = new Date();
-        let diff = endTime - now;
+        function updateCountdown() {
+            let now = new Date();
+            let diff = endTime - now;
 
-        if (diff <= 0) {
-            document.getElementById('countdown').innerHTML = "Time's up";
-            document.getElementById('countdown').style.color = "red";
-            return;
+            if (diff <= 0) {
+                document.getElementById('countdown').innerHTML = "Time's up";
+                document.getElementById('countdown').style.color = "red";
+                return;
+            }
+
+            let hours = Math.floor(diff / (1000 * 60 * 60));
+            let minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+            let seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+            let timeString = '';
+
+            // Show hours only if > 0
+            if (hours > 0) {
+                timeString += hours + 'h ';
+            }
+
+            timeString += minutes + 'm ' + seconds + 's';
+
+            // Change color if less than 10 minutes
+            if (diff <= 10 * 60 * 1000) {
+                document.getElementById('countdown').style.color = "red";
+            } else {
+                document.getElementById('countdown').style.color = "black";
+            }
+
+            document.getElementById('countdown').innerHTML = timeString;
         }
 
-        let hours = Math.floor(diff / (1000 * 60 * 60));
-        let minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-        let seconds = Math.floor((diff % (1000 * 60)) / 1000);
-
-        let timeString = '';
-
-        // Show hours only if > 0
-        if (hours > 0) {
-            timeString += hours + 'h ';
-        }
-
-        timeString += minutes + 'm ' + seconds + 's';
-
-        // Change color if less than 10 minutes
-        if (diff <= 10 * 60 * 1000) {
-            document.getElementById('countdown').style.color = "red";
-        } else {
-            document.getElementById('countdown').style.color = "black";
-        }
-
-        document.getElementById('countdown').innerHTML = timeString;
-    }
-
-    setInterval(updateCountdown, 1000);
-    updateCountdown();
-</script>
+        setInterval(updateCountdown, 1000);
+        updateCountdown();
+    </script>
 </body>
 
 </html>

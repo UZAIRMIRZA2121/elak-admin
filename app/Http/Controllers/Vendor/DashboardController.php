@@ -17,7 +17,7 @@ class DashboardController extends Controller
 {
     public function dashboard(Request $request)
     {
-        if(Helpers::get_store_data()->module_type == 'rental'){
+        if (Helpers::get_store_data()->module_type == 'rental') {
             return to_route('vendor.providerDashboard');
 
         }
@@ -50,54 +50,82 @@ class DashboardController extends Controller
         $top_sell = Item::orderBy("order_count", 'desc')
             ->take(6)
             ->get();
-        $most_rated_items = Item::where('avg_rating' ,'>' ,0)
-        ->orderBy('avg_rating','desc')
-        ->take(6)
-        ->get();
+        $most_rated_items = Item::where('avg_rating', '>', 0)
+            ->orderBy('avg_rating', 'desc')
+            ->take(6)
+            ->get();
         $data['top_sell'] = $top_sell;
         $data['most_rated_items'] = $most_rated_items;
 
-        if( Helpers::get_store_data()?->storeConfig?->minimum_stock_for_warning > 0){
-            $items=  Item::where('stock' ,'<=' , Helpers::get_store_data()->storeConfig->minimum_stock_for_warning );
-        } else{
-            $items=  Item::where('stock',0 );
+        if (Helpers::get_store_data()?->storeConfig?->minimum_stock_for_warning > 0) {
+            $items = Item::where('stock', '<=', Helpers::get_store_data()->storeConfig->minimum_stock_for_warning);
+        } else {
+            $items = Item::where('stock', 0);
         }
 
-        $out_of_stock_count=  Helpers::get_store_data()->module->module_type != 'food' ?  $items->orderby('stock')->latest()->count() : null;
+        $out_of_stock_count = Helpers::get_store_data()->module->module_type != 'food' ? $items->orderby('stock')->latest()->count() : null;
 
         $item = null;
-        if($out_of_stock_count == 1 ){
-            $item= $items->orderby('stock')->latest()->first();
+        if ($out_of_stock_count == 1) {
+            $item = $items->orderby('stock')->latest()->first();
         }
 
-        return view('vendor-views.dashboard', compact('data', 'earning', 'commission', 'params','out_of_stock_count','item'));
+        return view('vendor-views.dashboard', compact('data', 'earning', 'commission', 'params', 'out_of_stock_count', 'item'));
     }
 
     public function store_data()
     {
+        $store = Helpers::get_store_data();
+        $new_order = null;
+        $new_confirmed_order = 0;
 
-        $store= Helpers::get_store_data();
-        if($store->module_type == 'rental'){
-            $type='trip';
-            $new_pending_order=Trips::where(['checked' => 0])->where('provider_id', $store->id)->count();
+        if ($store->module_type == 'rental') {
+            $type = 'trip';
+            // Use the Trips model instead of DB::table to allow relationships if needed
+            $new_pending_order = Trips::where(['checked' => 0, 'provider_id' => $store->id])->count();
 
-        } else{
-            $new_pending_order = DB::table('orders')->where(['checked' => 0])->where('store_id', $store->id)->where('order_status','pending');
-            if(config('order_confirmation_model') != 'store' && !$store->sub_self_delivery)
-            {
-                $new_pending_order = $new_pending_order->where('order_type', 'take_away');
+            $trip = Trips::where(['checked' => 0, 'provider_id' => $store->id])->latest()->first();
+            if ($trip && $trip->voucher_type == 'flat') {
+                $new_order = $trip;
             }
-            $new_pending_order = $new_pending_order->count();
-            $new_confirmed_order = DB::table('orders')->where(['checked' => 0])->where('store_id', $store->id)->whereIn('order_status',['confirmed', 'accepted'])->whereNotNull('confirmed')->count();
-            $type= 'store_order';
-        }
+        } else {
+            $type = 'store_order';
 
+            // 1. Handle Pending Orders Count
+            $pending_query = Order::with('customer')->where(['checked' => 0, 'store_id' => $store->id, 'order_status' => 'pending']);
+            if (config('order_confirmation_model') != 'store' && !$store->sub_self_delivery) {
+                $pending_query->where('order_type', 'take_away');
+            }
+            $new_pending_order = $pending_query->count();
+
+            // 2. Handle Confirmed/Flat Voucher Orders
+            // Use the Order Model (not DB::table) to use .with()
+            $order_query = Order::with('customer')
+                ->where(['checked' => 0, 'store_id' => $store->id])
+                ->whereIn('order_status', ['confirmed', 'accepted', 'delivered'])
+                ->whereNotNull('confirmed');
+
+            $latest_order = $order_query->latest()->first();
+
+            if ($latest_order) {
+                $new_confirmed_order = 1;
+                // Only send the order data if it's a flat voucher
+                if ($latest_order->voucher_type == 'Flat discount') {
+                    $new_order = $latest_order;
+                }
+            }
+        }
+   
         return response()->json([
             'success' => 1,
-            'data' => ['new_pending_order' => $new_pending_order, 'new_confirmed_order' => $new_confirmed_order?? 0, 'order_type' =>$type]
+            'data' => [
+                'new_pending_order' => $new_pending_order,
+                'new_confirmed_order' => $new_confirmed_order,
+                'order_type' => $type,
+                'order' => $new_order // Will be null unless voucher_type == 'flat'
+            ]
         ]);
     }
-
     public function order_stats(Request $request)
     {
         $params = session('dash_params');
@@ -124,7 +152,7 @@ class DashboardController extends Controller
             return $query->whereDate('created_at', Carbon::today());
         })->when($this_month, function ($query) {
             return $query->whereMonth('created_at', Carbon::now());
-        })->where(['store_id' => Helpers::get_store_id()])->whereIn('order_status',['confirmed', 'accepted'])->whereNotNull('confirmed')->StoreOrder()->NotDigitalOrder()->OrderScheduledIn(30)->count();
+        })->where(['store_id' => Helpers::get_store_id()])->whereIn('order_status', ['confirmed', 'accepted'])->whereNotNull('confirmed')->StoreOrder()->NotDigitalOrder()->OrderScheduledIn(30)->count();
 
         $cooking = Order::when($today, function ($query) {
             return $query->whereDate('created_at', Carbon::today());
@@ -160,15 +188,12 @@ class DashboardController extends Controller
             return $query->whereDate('created_at', Carbon::today());
         })->when($this_month, function ($query) {
             return $query->whereMonth('created_at', Carbon::now());
-        })->Scheduled()->where(['store_id' => Helpers::get_store_id()])->where(function($q){
-            if(config('order_confirmation_model') == 'store')
-            {
-                $q->whereNotIn('order_status',['failed','canceled', 'refund_requested', 'refunded']);
-            }
-            else
-            {
-                $q->whereNotIn('order_status',['pending','failed','canceled', 'refund_requested', 'refunded'])->orWhere(function($query){
-                    $query->where('order_status','pending')->where('order_type', 'take_away');
+        })->Scheduled()->where(['store_id' => Helpers::get_store_id()])->where(function ($q) {
+            if (config('order_confirmation_model') == 'store') {
+                $q->whereNotIn('order_status', ['failed', 'canceled', 'refund_requested', 'refunded']);
+            } else {
+                $q->whereNotIn('order_status', ['pending', 'failed', 'canceled', 'refund_requested', 'refunded'])->orWhere(function ($query) {
+                    $query->where('order_status', 'pending')->where('order_type', 'take_away');
                 });
             }
 
@@ -179,13 +204,13 @@ class DashboardController extends Controller
         })->when($this_month, function ($query) {
             return $query->whereMonth('created_at', Carbon::now());
         })->where(['store_id' => Helpers::get_store_id()])
-        ->where(function($query){
-            return $query->whereNotIn('order_status',(config('order_confirmation_model') == 'store'|| \App\CentralLogics\Helpers::get_store_data()->sub_self_delivery)?['failed','canceled', 'refund_requested', 'refunded']:['pending','failed','canceled', 'refund_requested', 'refunded'])
-            ->orWhere(function($query){
-                return $query->where('order_status','pending')->where('order_type', 'take_away');
-            });
-        })
-        ->StoreOrder()->NotDigitalOrder()->count();
+            ->where(function ($query) {
+                return $query->whereNotIn('order_status', (config('order_confirmation_model') == 'store' || \App\CentralLogics\Helpers::get_store_data()->sub_self_delivery) ? ['failed', 'canceled', 'refund_requested', 'refunded'] : ['pending', 'failed', 'canceled', 'refund_requested', 'refunded'])
+                    ->orWhere(function ($query) {
+                        return $query->where('order_status', 'pending')->where('order_type', 'take_away');
+                    });
+            })
+            ->StoreOrder()->NotDigitalOrder()->count();
 
         $data = [
             'confirmed' => $confirmed,
@@ -204,7 +229,7 @@ class DashboardController extends Controller
     public function updateDeviceToken(Request $request)
     {
         $vendor = Vendor::find(Helpers::get_vendor_id());
-        $vendor->firebase_token =  $request->token;
+        $vendor->firebase_token = $request->token;
 
         $vendor->save();
 

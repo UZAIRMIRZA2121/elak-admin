@@ -44,6 +44,8 @@ class HomeController extends Controller
 
     public function index()
     {
+
+  
         // all cron job start here
         $this->all_cron_job();
         // all cron job end here

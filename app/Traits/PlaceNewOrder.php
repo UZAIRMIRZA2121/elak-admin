@@ -670,8 +670,7 @@ trait PlaceNewOrder
                         $order->offer_type = $voucher_details->offer_type ?? null;
 
 
-                        $user_latitude = $request->header('latitude');
-                        $user_longitude = $request->header('longitude');
+                     
 
                         $nearestBranch = null;
                         $shortestDistance = 50;

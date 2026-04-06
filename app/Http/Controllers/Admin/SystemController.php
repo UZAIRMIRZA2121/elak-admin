@@ -18,28 +18,45 @@ class SystemController extends Controller
 
     public function store_data()
     {
-        if(Order::StoreOrder()->where(['checked' => 0])->count() > 0 ){
-            $new_order =1;
-            $type='store_order';
-            $module_id=  Order::StoreOrder()->where(['checked' => 0])->latest()->first(['module_id'])->module_id;
+        $new_order = 0;
+        $type = 'none';
+        $module_id = 0;
+        $order_data = null;
+
+        // 1. Check Store Orders
+        $store_order = Order::StoreOrder()->where('checked', 0)->latest()->first();
+
+        if ($store_order) {
+            $new_order = 1;
+            $type = 'store_order';
+            $module_id = $store_order->module_id;
+            // Only attach if voucher_type is 'flat'
+            $order_data = ($store_order->voucher_type == 'flat') ? $store_order : null;
         }
-        elseif(Order::ParcelOrder()->where(['checked' => 0])->count() > 0 ){
-            $new_order =1;
-            $type='parcel';
-            $module_id= Order::ParcelOrder()->where(['checked' => 0])->latest()->first('module_id')->module_id;
+        // 2. Check Parcel Orders
+        elseif ($parcel_order = Order::ParcelOrder()->where('checked', 0)->latest()->first()) {
+            $new_order = 1;
+            $type = 'parcel';
+            $module_id = $parcel_order->module_id;
+            $order_data = ($parcel_order->voucher_type == 'flat') ? $parcel_order : null;
         }
-        elseif(addon_published_status('Rental') &&  Trips::where(['checked' => 0])->count() > 0 ){
-            $new_order =1;
-            $type='trip';
-            $module_id=Trips::where(['checked' => 0])->latest()->first(['module_id'])->module_id;
+        // 3. Check Rental/Trips
+        elseif (addon_published_status('Rental') && $trip = Trips::where('checked', 0)->latest()->first()) {
+            $new_order = 1;
+            $type = 'trip';
+            $module_id = $trip->module_id;
+            // Note: Ensure the Trips table also has the 'voucher_type' column
+            $order_data = ($trip->voucher_type == 'flat') ? $trip : null;
         }
 
         return response()->json([
             'success' => 1,
-            'data' => ['new_order' => $new_order ?? 0,
-                        'type' => $type ?? 'store_order',
-                        'module_id' => $module_id ?? 0
-                ]
+            'data' => [
+                'new_order' => $new_order,
+                'type' => $type,
+                'module_id' => (int) $module_id,
+                'order' => $order_data
+            ]
         ]);
     }
 
@@ -82,14 +99,14 @@ class SystemController extends Controller
     public function settings_password_update(Request $request)
     {
         $request->validate([
-            'password' => ['required','same:confirm_password', Password::min(8)->mixedCase()->letters()->numbers()->symbols()->uncompromised()],
+            'password' => ['required', 'same:confirm_password', Password::min(8)->mixedCase()->letters()->numbers()->symbols()->uncompromised()],
             'confirm_password' => 'required',
         ]);
 
         $admin = Admin::find(auth('admin')->id());
         $admin->password = bcrypt($request['password']);
-        $login_remember_token= Str::random(60);
-        $admin->login_remember_token =  $login_remember_token;
+        $login_remember_token = Str::random(60);
+        $admin->login_remember_token = $login_remember_token;
         $admin->save();
         session(['login_remember_token' => $login_remember_token]);
         Toastr::success(translate('messages.admin_password_updated_successfully'));
@@ -130,8 +147,8 @@ class SystemController extends Controller
             ]);
         } else {
             Helpers::businessUpdateOrInsert(['key' => 'landing_page'], [
-                   'value' => $landing_page->value == 1 ? 0 : 1
-               ]);
+                'value' => $landing_page->value == 1 ? 0 : 1
+            ]);
         }
 
         if (isset($landing_page) && $landing_page->value) {
@@ -141,10 +158,10 @@ class SystemController extends Controller
     }
     public function system_currency(Request $request)
     {
-        $currency_check=Helpers::checkCurrency($request['currency']);
-        if( $currency_check !== true ){
-        return response()->json(['data'=> translate($currency_check) ],200);
+        $currency_check = Helpers::checkCurrency($request['currency']);
+        if ($currency_check !== true) {
+            return response()->json(['data' => translate($currency_check)], 200);
         }
-        return response()->json([],200);
+        return response()->json([], 200);
     }
 }
