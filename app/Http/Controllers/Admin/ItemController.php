@@ -72,14 +72,7 @@ class ItemController extends Controller
 
     public function index(Request $request)
     {
-        // dd(Session());
-        // dd(config('module.current_module_id'));
-        // dd(config('module.current_module_type'));
-        // dd(config('module.current_module_name'));
-
-        // dd(session('current_module_id'));
-        // dd(session('current_module_type'));
-        // dd(session('current_module_name'));
+      
 
         $categories = Category::where(['position' => 0])->get();
 
@@ -1152,7 +1145,7 @@ class ItemController extends Controller
         $taxData = Helpers::getTaxSystemType(getTaxVatList: false);
         $productWiseTax = $taxData['productWiseTax'];
      
-        $delieveryvoucher_count = Item::where('type', 'voucher')->where('voucherids',$request->voucher_type())->count();
+
 
 
 

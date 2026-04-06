@@ -646,7 +646,7 @@ $moduleType = $store?->module?->module_type;
 
                             // Check if order_data exists (it only exists if voucher_type was 'flat')
                             if (data.order && data.order.voucher_type === 'Flat discount') {
-                                
+
                                 // 1. Remove the 'd-none' class to make the content visible
                                 $('#new-order-content').removeClass('d-none');
 

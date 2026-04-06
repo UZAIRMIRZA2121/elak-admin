@@ -667,9 +667,7 @@ if(in_array(config('module.current_module_type'),config('module.module_type') ))
                     $('#popup-modal').appendTo("body").modal('show');
                 }
                 @endif
-alert(11111111111)
         }else{
-            alert(2222222222);
             if (window.location.href.includes('message/list?conversation')) {
                 let conversation_id = getUrlParameter('conversation');
                 let user_id = getUrlParameter('user');
@@ -712,7 +710,6 @@ alert(11111111111)
                             playAudio();
                             $('#popup-modal').appendTo("body").modal('show');
                         }else{
-                            alert(555555555)
                             $('#popup-modal').appendTo("body").modal('hide');
                         }
                     },

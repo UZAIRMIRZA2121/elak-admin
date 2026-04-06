@@ -240,7 +240,7 @@ Route::group(['namespace' => 'Api\V1', 'middleware' => 'localization'], function
         Route::get('get-items-list', 'VendorController@get_items');
         Route::put('update-bank-info', 'VendorController@update_bank_info');
         Route::post('request-withdraw', 'VendorController@request_withdraw');
-
+        
         Route::put('send-order-otp', 'VendorController@send_order_otp');
 
         Route::post('make-collected-cash-payment', 'VendorController@make_payment')->name('make_payment');

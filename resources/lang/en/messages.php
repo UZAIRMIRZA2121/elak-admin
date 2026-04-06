@@ -8606,4 +8606,5 @@ Smartly or Earn. ',
   'expired_vouchers' => 'Expired vouchers',
   'NEW Flat ORDER PLACED' => 'NEW Flat ORDER PLACED',
   'delievered' => 'Delievered',
+  'NEW FLAT ORDER PLACED' => 'NEW FLAT ORDER PLACED',
 );
