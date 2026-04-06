@@ -1,7 +1,7 @@
 @php
     $voucherDetail = $order->voucherDetail;
     $voucher = $voucherDetail ? json_decode($voucherDetail->item_details) : null;
-
+   
     $items_details = $order->details;
 
     $firstDetail = $order->firstDetail;
@@ -12,12 +12,8 @@
     $main_branch = $item_details ? $item_details->store : null;
     $voucherSetting = $item_details ? App\Models\VoucherSetting::where('item_id', $item_details->id)->first() : null;
 
-    $termIds =
-        $item_details && $item_details->term_and_condition_ids
-            ? json_decode($item_details->term_and_condition_ids, true)
-            : [];
 
-    $usage_terms = !empty($termIds) ? App\Models\UsageTermManagement::whereIn('id', $termIds)->get() : collect([]);
+
 
     $gift_exist = !empty($order->gift_details) ? true : false;
 
@@ -581,9 +577,7 @@ $validity = isset($voucherSetting['validity_period']) && is_string($voucherSetti
             <div class="voucher-image-wrapper">
                 <div class="in-store-badge">
                     <span>{{ $order->voucher_type }}</span>
-
                 </div>
-
                 <img class="img-fluid rounded onerror-image"
                     src="{{ optional($item_details)->image_full_url ?? asset('public/assets/admin/img/160x160/img2.jpg') }}"
                     data-onerror-image="{{ asset('public/assets/admin/img/160x160/img2.jpg') }}"
@@ -645,7 +639,7 @@ $validity = isset($voucherSetting['validity_period']) && is_string($voucherSetti
                                         {{ \App\CentralLogics\Helpers::format_currency($order->total_order_amount) }}</del>
                                 </span>
                                 <br>
-                                <span> {{ \App\CentralLogics\Helpers::format_currency($order->order_amount) }}</span>
+                                <span> {{ \App\CentralLogics\Helpers::format_currency($order->total_order_amount - $order->discount_amount) }}</span>
                             @endif
 
 
