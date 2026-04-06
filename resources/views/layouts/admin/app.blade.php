@@ -132,7 +132,7 @@ $countryCode= strtolower($country?$country->value:'auto');
                         <div class="col-12">
                             <div class="text-center">
                                 <h2 class="update_notification_text">
-                                    <i class="tio-shopping-cart-outlined"></i> {{translate('messages.You have new order, Check Please.')}}111111111111111111111
+                                    <i class="tio-shopping-cart-outlined"></i> {{translate('messages.You have new order, Check Please.')}}
                                 </h2>
                                 <hr>
                                 <button class="btn btn-primary check-order">{{translate('messages.Ok, let me check')}}</button>

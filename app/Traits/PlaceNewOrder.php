@@ -670,7 +670,7 @@ trait PlaceNewOrder
                         $order->offer_type = $voucher_details->offer_type ?? null;
 
 
-                     
+
 
                         $nearestBranch = null;
                         $shortestDistance = 50;
@@ -707,23 +707,26 @@ trait PlaceNewOrder
                                 }
 
                                 // ✅ Echo each branch with distance
-                                // echo "Branch ID: {$branch->id} | Name: {$branch->name} | Distance: " . round($distance, 2) . " KM";
 
+                                Log::info('Branch ID: {$branch->id} | Name: {$branch->name} | Distance: " . round($distance, 2) . " KM"');
 
                                 // echo "<br>";
                             }
-                            // ✅ After loop: show nearest branch
-                            // if ($nearestBranch) {
-                            //     echo "<br><strong>Nearest Branch:</strong><br>";
-                            //     echo "Branch ID: {$nearestBranch->id} | Name: {$nearestBranch->name} | Distance: " . round($shortestDistance, 2) . " KM<br>";
-                            // }
+                            // ✅ After loop: log nearest branch
+                            if ($nearestBranch) {
+                                Log::info('Nearest Branch Found', [
+                                    'branch_id' => $nearestBranch->id,
+                                    'name' => $nearestBranch->name,
+                                    'distance_km' => round($shortestDistance, 2),
+                                ]);
+                            }
                         }
 
                     }
                 }
             }
 
-        
+
             if ($order->voucher_type == 'Delivery/Pickup') {
                 $order->store_id = $nearestBranch->id ?? $order->store_id;
                 $sold_voucher->store_id = $order->store_id;
