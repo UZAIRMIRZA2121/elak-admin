@@ -1749,4 +1749,87 @@ class VendorController extends Controller
             'order' => $new_order
         ]);
     }
+
+
+ 
+    public function balance_stats(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'type' => 'required|in:daily,monthly,yearly',
+            'date' => 'required_if:type,daily|date',
+            'month' => 'required_if:type,monthly|date_format:Y-m',
+            'year' => 'required_if:type,yearly|digits:4|integer',
+
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        $vendor = $request['vendor'];
+        $store = $vendor->store;
+
+        $type = $request->type;
+        $offset = (int) $request->query('offset', 1);
+        $limit = (int) $request->query('limit', 10);
+
+        $query = Order::where('store_id', $store->id)
+            ->select(
+                'id',
+                'total_order_amount',
+                'discount_amount',
+                'created_at'
+            );
+
+        // 🔍 Filters
+        if ($type === 'daily') {
+            $query->whereDate('created_at', Carbon::parse($request->date));
+        }
+
+        if ($type === 'monthly') {
+            $date = Carbon::parse($request->month);
+            $query->whereMonth('created_at', $date->month)
+                ->whereYear('created_at', $date->year);
+        }
+
+        if ($type === 'yearly') {
+            $query->whereYear('created_at', $request->year);
+        }
+
+        // 📊 Totals (before pagination)
+        $total_orders = $query->count();
+
+        $total_order_amount = (clone $query)->sum('total_order_amount');
+
+        $total_earning =
+            (clone $query)->sum('total_order_amount')
+            - (clone $query)->sum('discount_amount');
+
+
+        // 📦 Pagination
+        $orders = $query->skip(($offset - 1) * $limit)
+            ->take($limit)
+            ->get()
+            ->makeHidden([
+                'module_type',
+                'order_attachment_full_url',
+                'order_proof_full_url',
+                'storage',
+                'module'
+            ]);
+
+        return response()->json([
+            'success' => true,
+            'total_orders' => $total_orders,
+            'total_order_amount' => $total_order_amount,
+            'total_earning' => $total_earning,
+            'offset' => (int) $offset,
+            'limit' => (int) $limit,
+            'has_more' => ($offset * $limit) < $total_orders,
+            'orders' => $orders
+        ]);
+    }
 }

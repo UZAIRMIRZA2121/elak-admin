@@ -688,7 +688,7 @@
                 @endif
                 @if ($order['order_type'] != 'take_away')
                     <!-- Card -->
-                    <div class="card mb-2">
+                    <div class="card mb-2 d-none">
                         <!-- Header -->
                         <div class="card-header">
                             <h4 class="card-header-title">
@@ -760,7 +760,7 @@
                 <!-- End Card -->
                 @if ($order['voucher_type'] != 'In-Store')
                     <!-- order proof -->
-                    <div class="card mb-2 mt-2">
+                    <div class="card mb-2 mt-2 d-none">
                         <div class="card-header border-0 text-center pb-0">
                             <h4 class="m-0">{{ translate('messages.delivery_proof') }} </h4>
                             @if ($order['store']['sub_self_delivery'])

@@ -132,7 +132,7 @@
                             <div class="row g-2">
                                 <div class="col-sm-6 col-lg-2">
                                     <a class="order--card h-100 d-flex flex-column justify-content-between"
-                                        href="{{ route('admin.order.list', ['searching_for_deliverymen']) }}">
+                                        href="{{ route('admin.order.list', ['pending']) }}">
                                         <div class="d-flex justify-content-between align-items-center mb-3">
                                             <h6 class="card-subtitle d-flex justify-content-between m-0 align-items-center">
                                                 <span>{{ translate('messages.pending') }}</span>
@@ -160,7 +160,7 @@
                                 </div>
                                 <div class="col-sm-6 col-lg-2">
                                     <a class="order--card h-100 d-flex flex-column justify-content-between"
-                                        href="{{ route('admin.order.list', ['searching_for_deliverymen']) }}">
+                                        href="{{ route('admin.order.list', ['processing']) }}">
                                         <div class="d-flex justify-content-between align-items-center mb-3">
                                             <h6 class="card-subtitle d-flex justify-content-between m-0 align-items-center">
 
@@ -189,7 +189,7 @@
                                 </div>
                                 <div class="col-sm-6 col-lg-4">
                                     <a class="order--card h-100 d-flex flex-column justify-content-between"
-                                        href="{{ route('admin.order.list', ['searching_for_deliverymen']) }}">
+                                        href="{{ route('admin.order.list', ['delivered']) }}">
                                         <div class="d-flex justify-content-between align-items-center mb-3">
                                             <h6
                                                 class="card-subtitle d-flex justify-content-between m-0 align-items-center">
@@ -219,7 +219,7 @@
 
                                 <div class="col-sm-6 col-lg-2">
                                     <a class="order--card h-100 d-flex flex-column justify-content-between"
-                                        href="{{ route('admin.order.list', ['searching_for_deliverymen']) }}">
+                                        href="{{ route('admin.order.list', ['canceled']) }}">
                                         <div class="d-flex justify-content-between align-items-center mb-3">
                                             <h6
                                                 class="card-subtitle d-flex justify-content-between m-0 align-items-center">
@@ -249,7 +249,7 @@
 
                                 <div class="col-sm-6 col-lg-2">
                                     <a class="order--card h-100 d-flex flex-column justify-content-between"
-                                        href="{{ route('admin.order.list', ['searching_for_deliverymen']) }}">
+                                        href="{{ route('admin.order.list', ['refunded']) }}">
                                         <div class="d-flex justify-content-between align-items-center mb-3">
                                             <h6
                                                 class="card-subtitle d-flex justify-content-between m-0 align-items-center">
