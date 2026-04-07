@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Models\Item;
 use App\Models\Order;
+use App\Models\SoldVoucher;
 use App\Models\Store;
 use App\Models\Review;
 use App\Models\Allergy;
@@ -11,6 +12,7 @@ use App\Models\Category;
 use App\Models\Nutrition;
 use App\Models\GenericName;
 use App\Models\PriorityList;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use App\CentralLogics\Helpers;
 use App\Models\BusinessSetting;
@@ -462,7 +464,7 @@ class ItemController extends Controller
         return response()->json($items, 200);
     }
 
-    public function get_product($id)
+    public function get_product($id, Request $request)
     {
         try {
             $item = Item::withCount('whislists')
@@ -507,6 +509,7 @@ class ItemController extends Controller
 
             $item = Helpers::product_data_formatting($item, false, true, app()->getLocale());
             $item['store_details'] = $store;
+            $user_id = $request->header('userId') ?? null;
 
 
             if ($item['type'] == 'voucher') {
@@ -542,13 +545,131 @@ class ItemController extends Controller
                     'status' => $settings->status,
                 ] : null;
 
+if ($user_id && isset($item->voucherSetting)) {
+
+    $usage_user  = $item->voucherSetting->usage_limit_per_user;
+    $usage_store = $item->voucherSetting->usage_limit_per_store;
+
+    $query = SoldVoucher::where('voucher_id', $item->id);
+
+    $availability_for_current_user = [
+        'status' => 'available',
+        'msg' => '✅ User can still use this voucher.',
+        'user_usage' => null,
+        'store_usage' => null
+    ];
+
+    /*
+    |--------------------------------------------------------------------------
+    | USER LIMIT CHECK
+    |--------------------------------------------------------------------------
+    */
+    if (isset($usage_user)) {
+
+        $u_value  = (int)($usage_user['value'] ?? 0);
+        $u_period = $usage_user['period'] ?? null;
+
+        $userQuery = (clone $query)->where('user_id', $user_id);
+
+        if ($u_period == 'per day') {
+            $userQuery->whereDate('created_at', Carbon::today());
+        }
+
+        if ($u_period == 'Per Week') {
+
+            $userQuery->whereBetween('created_at', [
+                Carbon::now()->startOfWeek(),
+                Carbon::now()->endOfWeek()
+            ]);
+        }
+
+        if ($u_period == 'Per Month') {
+            $userQuery->whereMonth('created_at', Carbon::now()->month)->whereYear('created_at', Carbon::now()->year);
+        }
+
+        if ($u_period == 'Per Year') {
+            $userQuery->whereYear('created_at', Carbon::now()->year);
+        }
+
+        $user_used = $userQuery->count();
+        $user_remaining = max($u_value - $user_used, 0);
+
+        $availability_for_current_user['user_usage'] = [
+            'limit' => $u_value,
+            'used' => $user_used,
+            'remaining' => $user_remaining,
+            'period' => $u_period
+        ];
+
+        if ($user_used >= $u_value) {
+            $availability_for_current_user['status'] = 'not_available';
+            $availability_for_current_user['msg'] = "❌ User reached limit of {$u_value} per {$u_period}.";
+        }
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | STORE LIMIT CHECK
+    |--------------------------------------------------------------------------
+    */
+    if (isset($usage_store)) {
+
+        $s_value  = (int)($usage_store['value'] ?? 0);
+        $s_period = $usage_store['period'] ?? null;
+
+        $storeQuery = clone $query;
+
+        if ($s_period == 'Per Day') {
+            $storeQuery->whereDate('created_at', Carbon::today());
+        }
+
+        if ($s_period == 'Per Week') {
+            $storeQuery->whereBetween('created_at', [
+                Carbon::now()->startOfWeek(),
+                Carbon::now()->endOfWeek()
+            ]);
+        }
+
+        if ($s_period == 'Per Month') {
+            $storeQuery->whereMonth('created_at', Carbon::now()->month)
+                       ->whereYear('created_at', Carbon::now()->year);
+        }
+
+        if ($s_period == 'Per Year') {
+            $storeQuery->whereYear('created_at', Carbon::now()->year);
+        }
+
+        $store_used = $storeQuery->count();
+        $store_remaining = max($s_value - $store_used, 0);
+
+        $availability_for_current_user['store_usage'] = [
+            'limit' => $s_value,
+            'used' => $store_used,
+            'remaining' => $store_remaining,
+            'period' => $s_period
+        ];
+
+        if ($store_used >= $s_value) {
+            $availability_for_current_user['status'] = 'not_available';
+            $availability_for_current_user['msg'] = "❌ Store reached limit of {$s_value} per {$s_period}.";
+        }
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | FINAL ASSIGN
+    |--------------------------------------------------------------------------
+    */
+    $item['availability_for_current_user'] = $availability_for_current_user;
+}
+
                 $item['terms_conditions'] = $item->termsAndConditions() ?? [];
 
 
 
 
 
-                
+
 
             }
 

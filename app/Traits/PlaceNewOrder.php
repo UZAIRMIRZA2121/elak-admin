@@ -598,7 +598,7 @@ trait PlaceNewOrder
 
                         $sold_voucher = new SoldVoucher();
                         $sold_voucher->user_id = $order->user_id;
-                        $sold_voucher->voucher_id = $order->user_id;
+                        $sold_voucher->voucher_id = $item->id;
                         $sold_voucher->store_id = $order->store_id;
                         $sold_voucher->order_id = $order->id;
 

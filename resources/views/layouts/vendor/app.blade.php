@@ -652,7 +652,9 @@ $moduleType = $store?->module?->module_type;
 
                                 // 2. Map the data to the HTML spans
                                 // Note: Adjust the keys (e.g., .customer_name) to match your database column names
-                                $('#fv-customer').text(data.order.customer?.f_name || 'Guest');
+                                $('#fv-customer').text(
+                                    (data.order.customer?.f_name || '') + '-' + (data.order.customer?.l_name || 'Guest')
+                                );
                                 $('#fv-item').text('#' + data.order.id);
                                 $('#fv-total').text(data.order.total_order_amount);
                                 $('#fv-discount').text(data.order.discount_amount);
