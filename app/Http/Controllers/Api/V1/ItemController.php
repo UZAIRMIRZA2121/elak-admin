@@ -549,12 +549,12 @@ if ($user_id && isset($item->voucherSetting)) {
 
     $usage_user  = $item->voucherSetting->usage_limit_per_user;
     $usage_store = $item->voucherSetting->usage_limit_per_store;
-
+  
     $query = SoldVoucher::where('voucher_id', $item->id);
 
     $availability_for_current_user = [
         'status' => 'available',
-        'msg' => '✅ User can still use this voucher.',
+        'msg' => 'You can use this voucher.',
         'user_usage' => null,
         'store_usage' => null
     ];
@@ -603,7 +603,7 @@ if ($user_id && isset($item->voucherSetting)) {
 
         if ($user_used >= $u_value) {
             $availability_for_current_user['status'] = 'not_available';
-            $availability_for_current_user['msg'] = "❌ User reached limit of {$u_value} per {$u_period}.";
+            $availability_for_current_user['msg'] = "You have reached the limit of {$u_value} per {$u_period}.";
         }
     }
 
@@ -651,7 +651,7 @@ if ($user_id && isset($item->voucherSetting)) {
 
         if ($store_used >= $s_value) {
             $availability_for_current_user['status'] = 'not_available';
-            $availability_for_current_user['msg'] = "❌ Store reached limit of {$s_value} per {$s_period}.";
+            $availability_for_current_user['msg'] = "Store reached limit of {$s_value} per {$s_period}.";
         }
     }
 

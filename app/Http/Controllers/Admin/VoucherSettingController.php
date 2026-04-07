@@ -159,7 +159,7 @@ class VoucherSettingController extends Controller
 
     public function store(Request $request)
     {
-    
+
 
         $request->validate([
             'validity_period' => 'required',
@@ -214,7 +214,17 @@ class VoucherSettingController extends Controller
             ];
         })->values()->toArray();
 
+             $usage_limit_per_user = null;
+        if ($request->user_limit['value'] > 0  && !is_null($request->user_limit['period']) ) {
+          
+            $usage_limit_per_user = $request->user_limit;
+        }
+        $usage_limit_per_store = null;
+     if ($request->store_limit['value'] > 0  && !is_null($request->store_limit['period']) ) {
+            $usage_limit_per_store = $request->store_limit;
+        }
 
+  
 
         // If not exists → INSERT
         $VoucherSetting = VoucherSetting::updateOrCreate(
@@ -226,17 +236,17 @@ class VoucherSettingController extends Controller
                 'custom_blackout_dates' => $request->custom_blackout_dates ?? [],
                 'age_restriction' => $ageRestrictionData ?? [],
                 'group_size_requirement' => $groupSizeData ?? [],
-                'usage_limit_per_user' => $request->user_limit ?? [],
-                'usage_limit_per_store' => $request->store_limit ?? [],
+                'usage_limit_per_user' => $usage_limit_per_user,
+                'usage_limit_per_store' => $usage_limit_per_store ,
                 'offer_validity_after_purchase' => $request->validity_after ?? [],
                 'general_restrictions' => $request->no_other_offers ?? [],
                 'title_name' => $request->title_name,
                 'status' => "active",
             ]
         );
-
+        // dd($VoucherSetting);
         Toastr::success('Voucher Settings Saved Successfully');
-        return back();
+        return redirect()->back()->with('success', 'Voucher Settings Saved Successfully');
     }
 
 

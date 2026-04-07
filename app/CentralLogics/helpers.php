@@ -317,73 +317,140 @@ class Helpers
     public static function product_data_formatting($data, $multi_data = false, $trans = false, $local = 'en', $temp_product = false, $user_id = null)
     {
         $storage = [];
-    
+
 
         if ($multi_data == true) {
 
 
             foreach ($data as $item) {
                 $availability_for_current_user = [
-                        'status' => 'available',
-                        'msg' => '✅ User can still use this voucher.'
+                    'status' => 'available',
+                    'msg' => '✅ User can still use this voucher.'
+                ];
+
+
+                if ($user_id && isset($item->voucherSetting)) {
+
+                    $usage_user = $item->voucherSetting->usage_limit_per_user;
+                    $usage_store = $item->voucherSetting->usage_limit_per_store;
+
+                    $status = 'available';
+                    $final_msg = '✅ User can still use this voucher.';
+
+                    /*
+                    |--------------------------------------------------------------------------
+                    | USER USAGE
+                    |--------------------------------------------------------------------------
+                    */
+                    $user_usage_data = null;
+
+                    if (isset($usage_user)) {
+
+                        $u_value = $usage_user['value'] ?? 0;
+                        $u_period = $usage_user['period'] ?? null;
+
+                        $userQuery = SoldVoucher::where('user_id', $user_id)
+                            ->where('voucher_id', $item->id);
+
+                        if ($u_period == 'Per Day') {
+                            $userQuery->whereDate('created_at', Carbon::today());
+                        }
+
+                        if ($u_period == 'Per Week') {
+                            $userQuery->whereBetween('created_at', [
+                                Carbon::now()->startOfWeek(),
+                                Carbon::now()->endOfWeek()
+                            ]);
+                        }
+
+                        if ($u_period == 'per month') {
+                            $userQuery->whereMonth('created_at', Carbon::now()->month)
+                                ->whereYear('created_at', Carbon::now()->year);
+                        }
+
+                        if ($u_period == 'per year') {
+                            $userQuery->whereYear('created_at', Carbon::now()->year);
+                        }
+
+                        $used = $userQuery->count();
+                        $remaining = max($u_value - $used, 0);
+
+                        if ($used >= $u_value) {
+                            $status = 'not_available';
+                            $final_msg = "❌ User has reached the maximum usage limit of {$u_value} for {$u_period}.";
+                        }
+
+                        $user_usage_data = [
+                            'limit' => $u_value,
+                            'used' => $used,
+                            'remaining' => $remaining,
+                            'period' => $u_period
+                        ];
+                    }
+
+                    /*
+                    |--------------------------------------------------------------------------
+                    | STORE USAGE
+                    |--------------------------------------------------------------------------
+                    */
+                    $store_usage_data = null;
+
+                    if (isset($usage_store)) {
+
+                        $s_value = $usage_store['value'] ?? 0;
+                        $s_period = $usage_store['period'] ?? null;
+
+                        $storeQuery = SoldVoucher::where('voucher_id', $item->id);
+
+                        if ($s_period == 'per day') {
+                            $storeQuery->whereDate('created_at', Carbon::today());
+                        }
+
+                        if ($s_period == 'per week') {
+                            $storeQuery->whereBetween('created_at', [
+                                Carbon::now()->startOfWeek(),
+                                Carbon::now()->endOfWeek()
+                            ]);
+                        }
+
+                        if ($s_period == 'Per Month') {
+                            $storeQuery->whereMonth('created_at', Carbon::now()->month)
+                                ->whereYear('created_at', Carbon::now()->year);
+                        }
+
+                        if ($s_period == 'Per Year') {
+                            $storeQuery->whereYear('created_at', Carbon::now()->year);
+                        }
+
+                        $store_used = $storeQuery->count();
+                        $store_remaining = max($s_value - $store_used, 0);
+
+                        if ($store_used >= $s_value) {
+                            $status = 'not_available';
+                            $final_msg = "❌ Store has reached the maximum usage limit of {$s_value} for {$s_period}.";
+                        }
+
+                        $store_usage_data = [
+                            'limit' => $s_value,
+                            'used' => $store_used,
+                            'remaining' => $store_remaining,
+                            'period' => $s_period
+                        ];
+                    }
+
+                    /*
+                    |--------------------------------------------------------------------------
+                    | FINAL RESPONSE
+                    |--------------------------------------------------------------------------
+                    */
+                    $availability_for_current_user = [
+                        'status' => $status,
+                        'msg' => $final_msg,
+                        'user_usage' => $user_usage_data,
+                        'store_usage' => $store_usage_data,
                     ];
 
-
-                if ($user_id && isset($item->voucherSetting->usage_limit_per_user)) {
-
-                    $usage = $item->voucherSetting->usage_limit_per_user;
-
-                    $u_value = $usage['value'] ?? 0;
-                    $u_period = $usage['period'] ?? null;
-
-                    $query = SoldVoucher::where('user_id', $user_id)
-                        ->where('voucher_id', $item->id);
-
-                    if ($u_period == 'per day') {
-                        $query->whereDate('created_at', Carbon::today());
-                    }
-
-                    if ($u_period == 'per week') {
-                        $query->whereBetween('created_at', [
-                            Carbon::now()->startOfWeek(),
-                            Carbon::now()->endOfWeek()
-                        ]);
-                    }
-
-                    if ($u_period == 'per month') {
-                        $query->whereMonth('created_at', Carbon::now()->month)
-                            ->whereYear('created_at', Carbon::now()->year);
-                    }
-
-                    if ($u_period == 'per year') {
-                        $query->whereYear('created_at', Carbon::now()->year);
-                    }
-
-                    $buy_vouchers = $query->count();
-
-                    // echo "<pre>";
-                    // echo "Voucher ID: {$item->id}\n";
-                    // echo "Used: {$buy_vouchers}\n";
-                    // echo "Limit: {$u_value}\n";
-                    // echo "Period: {$u_period}\n";
-                    // echo "</pre>";
-
-                    if ($buy_vouchers >= $u_value) {
-                        $availability_for_current_user = [
-                            'status' => 'not_available',
-                            'msg' => "❌ User has reached the maximum usage limit of {$u_value} for {$u_period}."
-                        ];
-
-                        // echo "❌ User has reached the maximum usage limit of {$u_value} for {$u_period}.";
-                    } else {
-                        $remaining = $u_value - $buy_vouchers;
-                        $availability_for_current_user = [
-                            'status' => 'available',
-                            'msg' => "✅ You can use this voucher {$remaining} more time(s) in {$u_period}."
-                        ];
-                        // echo "✅ User can still use this voucher.";
-                    }
-
+                    $item['availability_for_current_user'] = $availability_for_current_user;
                 }
 
                 $item['availability_for_current_user'] = $availability_for_current_user;
@@ -621,7 +688,7 @@ class Helpers
 
 
             if ($user_id && isset($data->voucherSetting->usage_limit_per_user)) {
-              
+
                 $usage = $data->voucherSetting->usage_limit_per_user;
 
                 $u_value = $usage['value'] ?? 0;
