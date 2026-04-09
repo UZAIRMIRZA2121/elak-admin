@@ -1752,84 +1752,93 @@ class VendorController extends Controller
 
 
  
+
+
     public function balance_stats(Request $request)
-    {
-        $validator = Validator::make($request->all(), [
-            'type' => 'required|in:daily,monthly,yearly',
-            'date' => 'required_if:type,daily|date',
-            'month' => 'required_if:type,monthly|date_format:Y-m',
-            'year' => 'required_if:type,yearly|digits:4|integer',
+{
+    $validator = Validator::make($request->all(), [
+        'type' => 'required|in:daily,weekly,monthly,yearly',
+        'date' => 'required|date',
+    ]);
 
-        ]);
+    if ($validator->fails()) {
+        return response()->json([
+            'success' => false,
+            'errors' => $validator->errors()
+        ], 422);
+    }
 
-        if ($validator->fails()) {
-            return response()->json([
-                'success' => false,
-                'errors' => $validator->errors()
-            ], 422);
-        }
+    $vendor = $request['vendor'];
+    $store = $vendor->store;
 
-        $vendor = $request['vendor'];
-        $store = $vendor->store;
+    $date = Carbon::parse($request->date);
+    $type = $request->type;
 
-        $type = $request->type;
-        $offset = (int) $request->query('offset', 1);
-        $limit = (int) $request->query('limit', 10);
-
-        $query = Order::where('store_id', $store->id)
-            ->select(
+    // Base query
+    $query = Order::where('store_id', $store->id)->where('order_status','delivered')->select(
                 'id',
                 'total_order_amount',
                 'discount_amount',
                 'created_at'
-            );
+            );;
 
-        // 🔍 Filters
-        if ($type === 'daily') {
-            $query->whereDate('created_at', Carbon::parse($request->date));
-        }
+    // Apply date filter based on type
+    if ($type === 'daily') {
+        $query->whereDate('created_at', $date);
+    }
 
-        if ($type === 'monthly') {
-            $date = Carbon::parse($request->month);
-            $query->whereMonth('created_at', $date->month)
-                ->whereYear('created_at', $date->year);
-        }
-
-        if ($type === 'yearly') {
-            $query->whereYear('created_at', $request->year);
-        }
-
-        // 📊 Totals (before pagination)
-        $total_orders = $query->count();
-
-        $total_order_amount = (clone $query)->sum('total_order_amount');
-
-        $total_earning =
-            (clone $query)->sum('total_order_amount')
-            - (clone $query)->sum('discount_amount');
-
-
-        // 📦 Pagination
-        $orders = $query->skip(($offset - 1) * $limit)
-            ->take($limit)
-            ->get()
-            ->makeHidden([
-                'module_type',
-                'order_attachment_full_url',
-                'order_proof_full_url',
-                'storage',
-                'module'
-            ]);
-
-        return response()->json([
-            'success' => true,
-            'total_orders' => $total_orders,
-            'total_order_amount' => $total_order_amount,
-            'total_earning' => $total_earning,
-            'offset' => (int) $offset,
-            'limit' => (int) $limit,
-            'has_more' => ($offset * $limit) < $total_orders,
-            'orders' => $orders
+    if ($type === 'weekly') {
+        $query->whereBetween('created_at', [
+            $date->copy()->startOfWeek(),
+            $date->copy()->endOfWeek()
         ]);
     }
+
+    if ($type === 'monthly') {
+        $query->whereMonth('created_at', $date->month)
+              ->whereYear('created_at', $date->year);
+    }
+
+    if ($type === 'yearly') {
+        $query->whereYear('created_at', $date->year);
+    }
+
+    $offset = (int) $request->query('offset', 1);
+    $limit = (int) $request->query('limit', 10);
+
+    // Clone for calculations
+    $baseQuery = clone $query;
+
+    $total_orders = (clone $baseQuery)->count();
+
+    $total_order_amount = (clone $baseQuery)->sum('total_order_amount');
+
+    $total_earning = (clone $baseQuery)->sum('total_order_amount')
+        - (clone $baseQuery)->sum('discount_amount');
+
+    // Pagination
+    $orders = $query
+        ->skip(($offset - 1) * $limit)
+        ->take($limit)
+        ->get()
+        ->makeHidden([
+            'module_type',
+            'order_attachment_full_url',
+            'order_proof_full_url',
+            'storage',
+            'module'
+        ]);
+
+    return response()->json([
+        'success' => true,
+        'type' => $type,
+        'total_orders' => $total_orders,
+        'total_order_amount' => $total_order_amount,
+        'total_earning' => $total_earning,
+        'offset' => $offset,
+        'limit' => $limit,
+        'has_more' => ($offset * $limit) < $total_orders,
+        'orders' => $orders
+    ]);
+}
 }

@@ -258,6 +258,7 @@ class ReportController extends Controller
                 return $query->whereBetween('created_at', [now()->startOfWeek()->format('Y-m-d H:i:s'), now()->endOfWeek()->format('Y-m-d H:i:s')]);
             })->orderBy('created_at', 'desc')
             ->sum(DB::raw('original_delivery_charge + dm_tips'));
+          
         return view('admin-views.report.day-wise-report', compact('order_transactions', 'zone', 'store', 'filter', 'admin_earned', 'admin_earned_delivery_commission', 'store_earned', 'deliveryman_earned','key','from','to'));
     }
 

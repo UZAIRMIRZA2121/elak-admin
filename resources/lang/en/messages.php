@@ -8618,4 +8618,7 @@ Smartly or Earn. ',
   'The callback field is required.' => 'The callback field is required.',
   'vendor_withdraw_request_approved' => 'Vendor withdraw request approved',
   'i have done' => 'I have done',
+  'Total Discount' => 'Total Discount',
+  'Total Direct Discount' => 'Total Direct Discount',
+  'store_wallet_adjustment_successfull' => 'Store wallet adjustment successfull',
 );

@@ -7,20 +7,33 @@
 
 <?php
 $total_cash_back = 0.0;
+$total_direct_discount = 0.0;
+$total_discount = 0.0;
 ?>
 
 @foreach ($order_transactions as $ot)
+    <?php
+    $total_discount += $ot->order->discount_amount ?? 0;
+    ?>
     @if ($ot->order->offer_type == 'cash back')
-        <?php 
-            $total_cash_back += $ot->order->discount_amount ?? 0;
+        <?php
+        $total_cash_back += $ot->order->discount_amount ?? 0;
+        ?>
+    @endif
+    @if ($ot->order->offer_type == 'direct discount')
+        <?php
+        $total_direct_discount += $ot->order->discount_amount ?? 0;
         ?>
     @endif
 @endforeach
 
 
+
+
 @section('content')
 
-
+    {{ $total_direct_discount }}
+    {{ $total_discount }}
 
 
 
@@ -182,7 +195,7 @@ $total_cash_back = 0.0;
         @endphp
         <div class="mb-20">
             <div class="row g-3">
-                <div class="col-lg-8">
+                <div class="col-lg-6">
                     <div class="row g-2">
                         <div class="col-sm-6">
                             @php
@@ -333,7 +346,7 @@ $total_cash_back = 0.0;
                         </div>
                     </div>
                 </div>
-                <div class="col-lg-4">
+                <div class="col-lg-6">
                     <div class="row g-2">
                         <div class="col-md-12">
                             <div class="__card-vertical">
@@ -373,9 +386,44 @@ $total_cash_back = 0.0;
                             <div class="__card-vertical">
                                 <div class="__card-vertical-img">
                                     <img class="img"
+                                        src="{{ asset('/public/assets/admin/img/report/new/admin-earning.png') }}"
+                                        alt="">
+                                    <h4 class="name">{{ translate('Total Discount') }}</h4>
+                                    <div class="info-icon" data-toggle="tooltip" data-placement="right"
+                                        data-original-title="{{ translate('Deducting the admin discount from the admin earning amount and goes to this section.') }}">
+                                        <img src="{{ asset('/public/assets/admin/img/report/new/info1.png') }}"
+                                            alt="report/new">
+                                    </div>
+                                </div>
+                                <h4 class="earning text-0661CB">
+                                    {{ \App\CentralLogics\Helpers::number_format_short($total_discount) }}</h4>
+                            </div>
+                        </div>
+                         <div class="col-md-6">
+                            <div class="__card-vertical">
+                                <div class="__card-vertical-img">
+                                    <img class="img"
+                                        src="{{ asset('/public/assets/admin/img/report/new/admin-earning.png') }}"
+                                        alt="">
+                                    <h4 class="name">{{ translate('Direct Discount') }}</h4>
+                                    <div class="info-icon" data-toggle="tooltip" data-placement="right"
+                                        data-original-title="{{ translate('Deducting the admin discount from the admin earning amount and goes to this section.') }}">
+                                        <img src="{{ asset('/public/assets/admin/img/report/new/info1.png') }}"
+                                            alt="report/new">
+                                    </div>
+                                </div>
+                                <h4 class="earning text-0661CB">
+                                    {{ \App\CentralLogics\Helpers::number_format_short($total_direct_discount) }}</h4>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="__card-vertical">
+                                <div class="__card-vertical-img">
+                                    <img class="img"
                                         src="{{ asset('/public/assets/admin/img/report/new/deliveryman-earning.png') }}"
                                         alt="">
-                                    <h4 class="name">{{ translate('Total Cash Back Amount') }}</h4>
+                                    <h4 class="name">{{ translate('Cash Back') }}</h4>
                                     <div class="info-icon" data-toggle="tooltip" data-placement="right"
                                         data-original-title="{{ translate('Deducting the admin commission on the delivery fee, the delivery fee & tips amount goes to earning section.') }}">
                                         <img src="{{ asset('/public/assets/admin/img/report/new/info3.png') }}"
