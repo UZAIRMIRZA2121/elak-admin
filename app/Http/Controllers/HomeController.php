@@ -541,7 +541,7 @@ class HomeController extends Controller
                             ->where('order_id', $order->id)
                             ->first()?->payment_method;
 
-                        $ol = OrderLogic::create_transaction($order, 'store', null);
+                        $ol = OrderLogic::create_transaction($order, 'admin', null);
 
                         if (!$ol) {
                             // skip instead of breaking cron
