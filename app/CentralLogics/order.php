@@ -184,8 +184,11 @@ class OrderLogic
             $comission_amount = $comission_on_store_amount + $comission_on_actual_delivery_fee;
             $dm_commission = $order->original_delivery_charge - $comission_on_actual_delivery_fee;
         }
-        $store_amount = $store_amount + $order_amount + $order->total_tax_amount + $order->extra_packaging_amount - $comission_on_store_amount - $store_coupon_discount_subsidy - $flash_store_discount_amount - $order->discount_amount ;
- 
+        $store_amount = $store_amount + $order_amount + $order->total_tax_amount + $order->extra_packaging_amount - $comission_on_store_amount - $store_coupon_discount_subsidy - $flash_store_discount_amount  ;
+        if($order->offer_type == 'cash back'){
+            $store_amount = $store_amount - $order->discount_amount;
+        }
+        
       
         try{
         
