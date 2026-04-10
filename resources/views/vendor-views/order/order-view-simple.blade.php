@@ -321,7 +321,7 @@
                                 <tbody>
                                     @foreach ($order->details as $key => $detail)
                                         @if (isset($detail->item_id))
-
+                                            
 
                                             @if ($detail->item->type == 'voucher')
                                                 @php($product = \App\Models\Item::where(['id' => $detail->item['id']])->first())

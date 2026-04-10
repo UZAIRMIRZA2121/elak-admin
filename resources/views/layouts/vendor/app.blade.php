@@ -661,8 +661,7 @@ $moduleType = $store?->module?->module_type;
                                 $('#fv-pay').text(data.order.order_amount);
 
                                 // Calculate and show the final payable amount
-                                let payable = data.order.order_amount - data.order
-                                    .coupon_discount_amount;
+                                let payable = data.order.order_amount - data.order.discount_amount;
                                 $('#fv-pay').text(payable.toFixed(2));
 
                                 // 3. Update the Title and Icon

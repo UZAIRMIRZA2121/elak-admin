@@ -35,7 +35,7 @@
     <div class="col-md-12">
         <div class="row g-3">
             <!-- Panding Withdraw Card Example -->
-            <div class="col-sm-{{ isset($col_size) == true ? '3' :'4' }}">
+            <div class="col-sm-{{ isset($col_size) == true ? '3' :'4' }} d-none">
                 <div class="resturant-card shadow--card-2" >
                     <h4 class="title">{{\App\CentralLogics\Helpers::format_currency($wallet->collected_cash)}}</h4>
 

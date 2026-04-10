@@ -730,6 +730,7 @@ trait PlaceNewOrder
             if ($order->voucher_type == 'Delivery/Pickup') {
                 $order->store_id = $nearestBranch->id ?? $order->store_id;
                 $sold_voucher->store_id = $order->store_id;
+                $order->distance = round($shortestDistance, 2);
             }
 
 
@@ -836,7 +837,7 @@ trait PlaceNewOrder
                     CustomerLogic::create_loyalty_point_transaction($order->user_id, $order->id, $order->order_amount, 'order_place');
                 }
                 if ($request->payment_method == 'wallet')
-                    //   dd("dsjhvbhsd");
+                  
                     CustomerLogic::create_wallet_transaction($order->user_id, $order->order_amount, 'order_place', $order->id);
 
                 if ($request->partial_payment) {

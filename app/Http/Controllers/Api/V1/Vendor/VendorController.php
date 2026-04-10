@@ -6,6 +6,7 @@ use App\Models\Cart;
 use App\Models\Item;
 use App\Models\Admin;
 use App\Models\Order;
+use App\Models\OrderTransaction;
 use App\Models\Store;
 use App\Library\Payer;
 use App\Models\Coupon;
@@ -1492,8 +1493,6 @@ class VendorController extends Controller
                 }
             }
         }
-        // dd($matched_config);
-
 
 
         return response()->json([
@@ -1751,10 +1750,10 @@ class VendorController extends Controller
     }
 
 
- 
 
 
-    public function balance_stats(Request $request)
+
+  public function balance_stats(Request $request)
 {
     $validator = Validator::make($request->all(), [
         'type' => 'required|in:daily,weekly,monthly,yearly',
@@ -1774,15 +1773,24 @@ class VendorController extends Controller
     $date = Carbon::parse($request->date);
     $type = $request->type;
 
-    // Base query
-    $query = Order::where('store_id', $store->id)->where('order_status','delivered')->select(
-                'id',
-                'total_order_amount',
-                'discount_amount',
-                'created_at'
-            );;
+    // ✅ Get or create wallet
+    $wallet = StoreWallet::firstOrCreate(
+        ['vendor_id' => $vendor->id],
+        [
+            'total_earning' => 0,
+            'total_withdrawn' => 0,
+            'pending_withdraw' => 0,
+            'collected_cash' => 0
+        ]
+    );
 
-    // Apply date filter based on type
+    // ✅ Transactions of delivered orders
+    $query = OrderTransaction::whereHas('order', function ($q) use ($store) {
+        $q->where('store_id', $store->id)
+          ->where('order_status', 'delivered');
+    });
+
+    // ✅ Apply date filter
     if ($type === 'daily') {
         $query->whereDate('created_at', $date);
     }
@@ -1803,42 +1811,51 @@ class VendorController extends Controller
         $query->whereYear('created_at', $date->year);
     }
 
+    // ✅ Stats
+    $statsQuery = clone $query;
+    $total_store_amount = $statsQuery->sum('store_amount');
+
+    // ✅ Wallet Calculations (Credit / Debit)
+    $total_earning = (float) $wallet->total_earning; // credit
+    $total_withdrawn = (float) $wallet->total_withdrawn; // debit
+    $pending_withdraw = (float) $wallet->pending_withdraw; // debit
+    $collected_cash = (float) $wallet->collected_cash; // debit
+
+    $available_balance = $total_earning
+        - $total_withdrawn
+        - $pending_withdraw
+        - $collected_cash;
+
+    // Pagination
     $offset = (int) $request->query('offset', 1);
     $limit = (int) $request->query('limit', 10);
 
-    // Clone for calculations
-    $baseQuery = clone $query;
-
-    $total_orders = (clone $baseQuery)->count();
-
-    $total_order_amount = (clone $baseQuery)->sum('total_order_amount');
-
-    $total_earning = (clone $baseQuery)->sum('total_order_amount')
-        - (clone $baseQuery)->sum('discount_amount');
-
-    // Pagination
-    $orders = $query
+    $transactions = $query
+        ->select('order_id', 'store_amount', 'created_at')
         ->skip(($offset - 1) * $limit)
         ->take($limit)
-        ->get()
-        ->makeHidden([
-            'module_type',
-            'order_attachment_full_url',
-            'order_proof_full_url',
-            'storage',
-            'module'
-        ]);
+        ->get();
 
     return response()->json([
         'success' => true,
         'type' => $type,
-        'total_orders' => $total_orders,
-        'total_order_amount' => $total_order_amount,
-        'total_earning' => $total_earning,
+
+        // ✅ Wallet Info
+        'wallet' => [
+            'total_earning' => $total_earning,
+            'total_withdrawn' => $total_withdrawn,
+            'pending_withdraw' => $pending_withdraw,
+            'available_balance' => (float) $available_balance,
+        ],
+
+        // ✅ Transaction Stats
+        'total_store_amount' => (float) $total_store_amount,
+
         'offset' => $offset,
         'limit' => $limit,
-        'has_more' => ($offset * $limit) < $total_orders,
-        'orders' => $orders
+        'has_more' => ($offset * $limit) < $query->count(),
+
+        'transactions' => $transactions
     ]);
 }
 }

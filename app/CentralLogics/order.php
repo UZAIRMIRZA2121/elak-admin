@@ -39,8 +39,7 @@ class OrderLogic
     }
     public static function create_transaction($order, $received_by=false, $status = null)
     {
-
-    
+            
         $type = $order->order_type;
         $dm_tips_manage_status = BusinessSetting::where('key', 'dm_tips_status')->first()->value;
         $admin_subsidy = 0;
@@ -185,8 +184,12 @@ class OrderLogic
             $comission_amount = $comission_on_store_amount + $comission_on_actual_delivery_fee;
             $dm_commission = $order->original_delivery_charge - $comission_on_actual_delivery_fee;
         }
-        $store_amount = $store_amount+ $order_amount + $order->total_tax_amount + $order->extra_packaging_amount - $comission_on_store_amount - $store_coupon_discount_subsidy - $flash_store_discount_amount;
+        $store_amount = $store_amount + $order_amount + $order->total_tax_amount + $order->extra_packaging_amount - $comission_on_store_amount - $store_coupon_discount_subsidy - $flash_store_discount_amount - $order->discount_amount ;
+ 
+      
         try{
+        
+       
             OrderTransaction::insert([
                 'vendor_id' =>$type=='parcel'?null:$order->store->vendor->id,
                 'delivery_man_id'=>$order->delivery_man_id,
@@ -415,17 +418,17 @@ class OrderLogic
         $vendorWallet = StoreWallet::firstOrNew(
             ['vendor_id' => $order->store->vendor->id]
         );
-
+    
         $adminWallet->total_commission_earning = $adminWallet->total_commission_earning - $order_transaction->admin_commission + $order_transaction->delivery_fee_comission;
 
         $vendorWallet->total_earning = $vendorWallet->total_earning - $order_transaction->store_amount;
 
-        $refund_amount = $order->order_amount - $order->additional_charge - $order->extra_packaging_amount;
-
+        $refund_amount = $order->order_amount -  $order->discount_amount   - $order->additional_charge - $order->extra_packaging_amount;
+       
         $status = 'refunded_with_delivery_charge';
         if($order->order_status == 'delivered' || $order->order_status == 'refund_requested')
         {
-            $refund_amount = $order->order_amount - $order->additional_charge - $order->extra_packaging_amount - $order->delivery_charge -$order->dm_tips;
+            $refund_amount = $order->order_amount - $order->discount_amount - $order->additional_charge - $order->extra_packaging_amount - $order->delivery_charge -$order->dm_tips;
             $status = 'refunded_without_delivery_charge';
         }
         else
@@ -434,6 +437,7 @@ class OrderLogic
         }
         try
         {
+             
             DB::beginTransaction();
             $partially_paid = OrderPayment::where('payment_method','cash_on_delivery')->where('order_id',$order->id)->exists() ?? false;
 
@@ -442,14 +446,18 @@ class OrderLogic
             }
             if($received_by=='admin')
             {
+                
                 if($order->delivery_man_id && $order->payment_method != "cash_on_delivery")
                 {
+                      
                     $adminWallet->digital_received = $adminWallet->digital_received - $refund_amount;
                 }
                 else
-                {
-                    $adminWallet->manual_received = $adminWallet->manual_received - $refund_amount;
+                {  
+                      $adminWallet->digital_received = $adminWallet->digital_received - $refund_amount;
+                    // $adminWallet->manual_received = $adminWallet->manual_received - $refund_amount;
                 }
+                 
 
             }
             else if($received_by=='store')
@@ -470,6 +478,7 @@ class OrderLogic
             $adminWallet->save();
             $vendorWallet->save();
             DB::commit();
+            dd("done");
         }
         catch(\Exception $e)
         {

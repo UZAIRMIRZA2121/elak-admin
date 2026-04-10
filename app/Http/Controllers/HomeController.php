@@ -45,7 +45,7 @@ class HomeController extends Controller
     public function index()
     {
 
-  
+
         // all cron job start here
         $this->all_cron_job();
         // all cron job end here
@@ -535,11 +535,6 @@ class HomeController extends Controller
 
             if (Carbon::now()->greaterThanOrEqualTo($endTime)) {
 
-                $order->order_status = 'delivered';
-
-                // Handle Payment + Counts
-                if ($order->order_status == 'delivered') {
-
                     if ($order->transaction == null) {
 
                         $unpaid_payment = OrderPayment::where('payment_status', 'unpaid')
@@ -579,8 +574,9 @@ class HomeController extends Controller
                     if ($order->delivery_man) {
                         $order->delivery_man->increment('order_count');
                     }
-                }
-
+             
+                $order->delivered = Carbon::now();
+                $order->order_status = 'delivered';
                 $order->save();
             }
 
