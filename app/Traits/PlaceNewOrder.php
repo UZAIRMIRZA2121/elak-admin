@@ -740,7 +740,9 @@ trait PlaceNewOrder
             $order->discount_amount = $carts[0]['discount_amount'] ?? null;
 
             $order->gift_details = $request->gift_details ?? null;
-            $order->save();
+           
+            $order->store_discount_amount  = 0;
+             $order->save();
             $sold_voucher->save();
 
 
