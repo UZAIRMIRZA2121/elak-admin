@@ -109,6 +109,7 @@ class StripePaymentController extends Controller
         if ($session->payment_status == 'paid' && $session->status == 'complete') {
 
             $this->payment::where(['id' => $request['payment_id']])->update([
+                'order_status' => 'active',
                 'payment_method' => 'stripe',
                 'is_paid' => 1,
                 'transaction_id' => $session->payment_intent,

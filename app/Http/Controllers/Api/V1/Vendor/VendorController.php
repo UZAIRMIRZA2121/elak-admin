@@ -255,9 +255,8 @@ class VendorController extends Controller
 
         $baseQuery = Order::whereHas('store.vendor', function ($query) use ($vendor) {
             $query->where('id', $vendor->id);
-        })
-            ->Notpos()
-            ->NotDigitalOrder();
+        })->Notpos()->NotDigitalOrder();
+        
 
         // STATUS CONDITION (reuse)
         $baseQuery->where(function ($query) use ($vendor) {
@@ -1848,8 +1847,8 @@ class VendorController extends Controller
             'available_balance' => (float) $available_balance,
         ],
 
-        // ✅ Transaction Stats
-        'total_store_amount' => (float) $total_store_amount,
+  
+        'total_orders' => $query->count(),
 
         'offset' => $offset,
         'limit' => $limit,
