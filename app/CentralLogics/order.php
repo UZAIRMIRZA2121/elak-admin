@@ -423,7 +423,8 @@ class OrderLogic
 
                     $adminWallet->digital_received = $adminWallet->digital_received - $refund_amount;
                 } else {
-                    $adminWallet->digital_received = $adminWallet->digital_received - $refund_amount;
+                    // $adminWallet->digital_received = $adminWallet->digital_received - $refund_amount;
+                
                     // $adminWallet->manual_received = $adminWallet->manual_received - $refund_amount;
                 }
 
@@ -432,20 +433,13 @@ class OrderLogic
                 $vendorWallet->collected_cash = $vendorWallet->collected_cash - $refund_amount;
             }
 
-            // else if($received_by=='deliveryman')
-            // {
-            //     $dmWallet = DeliveryManWallet::firstOrNew(
-            //         ['delivery_man_id' => $order->delivery_man_id]
-            //     );
-            //     $dmWallet->collected_cash=$dmWallet->collected_cash - $refund_amount;
-            //     $dmWallet->save();
-            // }
+     
             $order_transaction->status = $status;
             $order_transaction->save();
             $adminWallet->save();
             $vendorWallet->save();
             DB::commit();
-            dd("done");
+           
         } catch (\Exception $e) {
             DB::rollBack();
             info($e->getMessage());
