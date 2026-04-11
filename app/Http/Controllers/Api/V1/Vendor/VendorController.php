@@ -250,15 +250,19 @@ class VendorController extends Controller
     public function get_current_orders(Request $request)
     {
         $vendor = $request['vendor'];
-
         $perPage = $request->get('limit', 20);
+        $search = $request->get('search'); // 🔍 search param
 
         $baseQuery = Order::whereHas('store.vendor', function ($query) use ($vendor) {
             $query->where('id', $vendor->id);
         })->Notpos()->NotDigitalOrder();
-        
 
-        // STATUS CONDITION (reuse)
+        // 🔍 ONLY ORDER ID SEARCH
+        if (!empty($search)) {
+            $baseQuery->where('id', $search);
+        }
+
+        // STATUS CONDITION
         $baseQuery->where(function ($query) use ($vendor) {
 
             if (config('order_confirmation_model') == 'store' || optional($vendor->stores->first())->sub_self_delivery) {
@@ -277,12 +281,12 @@ class VendorController extends Controller
             }
         });
 
-        // CLONE QUERY FOR COUNTS
+        // COUNTS
         $pendingCount = (clone $baseQuery)->where('order_status', 'pending')->count();
         $processingCount = (clone $baseQuery)->where('order_status', 'processing')->count();
         $deliveredCount = (clone $baseQuery)->where('order_status', 'delivered')->count();
 
-        // MAIN PAGINATION QUERY
+        // MAIN QUERY
         $orders = (clone $baseQuery)
             ->with('customer')
             ->orderBy('schedule_at', 'desc')
@@ -1752,109 +1756,109 @@ class VendorController extends Controller
 
 
 
-  public function balance_stats(Request $request)
-{
-    $validator = Validator::make($request->all(), [
-        'type' => 'required|in:daily,weekly,monthly,yearly',
-        'date' => 'required|date',
-    ]);
+    public function balance_stats(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'type' => 'required|in:daily,weekly,monthly,yearly',
+            'date' => 'required|date',
+        ]);
 
-    if ($validator->fails()) {
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        $vendor = $request['vendor'];
+        $store = $vendor->store;
+
+        $date = Carbon::parse($request->date);
+        $type = $request->type;
+
+        // ✅ Get or create wallet
+        $wallet = StoreWallet::firstOrCreate(
+            ['vendor_id' => $vendor->id],
+            [
+                'total_earning' => 0,
+                'total_withdrawn' => 0,
+                'pending_withdraw' => 0,
+                'collected_cash' => 0
+            ]
+        );
+
+        // ✅ Transactions of delivered orders
+        $query = OrderTransaction::whereHas('order', function ($q) use ($store) {
+            $q->where('store_id', $store->id)
+                ->where('order_status', 'delivered');
+        });
+
+        // ✅ Apply date filter
+        if ($type === 'daily') {
+            $query->whereDate('created_at', $date);
+        }
+
+        if ($type === 'weekly') {
+            $query->whereBetween('created_at', [
+                $date->copy()->startOfWeek(),
+                $date->copy()->endOfWeek()
+            ]);
+        }
+
+        if ($type === 'monthly') {
+            $query->whereMonth('created_at', $date->month)
+                ->whereYear('created_at', $date->year);
+        }
+
+        if ($type === 'yearly') {
+            $query->whereYear('created_at', $date->year);
+        }
+
+        // ✅ Stats
+        $statsQuery = clone $query;
+        $total_store_amount = $statsQuery->sum('store_amount');
+
+        // ✅ Wallet Calculations (Credit / Debit)
+        $total_earning = (float) $wallet->total_earning; // credit
+        $total_withdrawn = (float) $wallet->total_withdrawn; // debit
+        $pending_withdraw = (float) $wallet->pending_withdraw; // debit
+        $collected_cash = (float) $wallet->collected_cash; // debit
+
+        $available_balance = $total_earning
+            - $total_withdrawn
+            - $pending_withdraw
+            - $collected_cash;
+
+        // Pagination
+        $offset = (int) $request->query('offset', 1);
+        $limit = (int) $request->query('limit', 10);
+
+        $transactions = $query
+            ->select('order_id', 'store_amount', 'created_at')
+            ->skip(($offset - 1) * $limit)
+            ->take($limit)
+            ->get();
+
         return response()->json([
-            'success' => false,
-            'errors' => $validator->errors()
-        ], 422);
-    }
+            'success' => true,
+            'type' => $type,
 
-    $vendor = $request['vendor'];
-    $store = $vendor->store;
+            // ✅ Wallet Info
+            'wallet' => [
+                'total_earning' => $total_earning,
+                'total_withdrawn' => $total_withdrawn,
+                'pending_withdraw' => $pending_withdraw,
+                'available_balance' => (float) $available_balance,
+            ],
 
-    $date = Carbon::parse($request->date);
-    $type = $request->type;
 
-    // ✅ Get or create wallet
-    $wallet = StoreWallet::firstOrCreate(
-        ['vendor_id' => $vendor->id],
-        [
-            'total_earning' => 0,
-            'total_withdrawn' => 0,
-            'pending_withdraw' => 0,
-            'collected_cash' => 0
-        ]
-    );
+            'total_orders' => $query->count(),
 
-    // ✅ Transactions of delivered orders
-    $query = OrderTransaction::whereHas('order', function ($q) use ($store) {
-        $q->where('store_id', $store->id)
-          ->where('order_status', 'delivered');
-    });
+            'offset' => $offset,
+            'limit' => $limit,
+            'has_more' => ($offset * $limit) < $query->count(),
 
-    // ✅ Apply date filter
-    if ($type === 'daily') {
-        $query->whereDate('created_at', $date);
-    }
-
-    if ($type === 'weekly') {
-        $query->whereBetween('created_at', [
-            $date->copy()->startOfWeek(),
-            $date->copy()->endOfWeek()
+            'transactions' => $transactions
         ]);
     }
-
-    if ($type === 'monthly') {
-        $query->whereMonth('created_at', $date->month)
-              ->whereYear('created_at', $date->year);
-    }
-
-    if ($type === 'yearly') {
-        $query->whereYear('created_at', $date->year);
-    }
-
-    // ✅ Stats
-    $statsQuery = clone $query;
-    $total_store_amount = $statsQuery->sum('store_amount');
-
-    // ✅ Wallet Calculations (Credit / Debit)
-    $total_earning = (float) $wallet->total_earning; // credit
-    $total_withdrawn = (float) $wallet->total_withdrawn; // debit
-    $pending_withdraw = (float) $wallet->pending_withdraw; // debit
-    $collected_cash = (float) $wallet->collected_cash; // debit
-
-    $available_balance = $total_earning
-        - $total_withdrawn
-        - $pending_withdraw
-        - $collected_cash;
-
-    // Pagination
-    $offset = (int) $request->query('offset', 1);
-    $limit = (int) $request->query('limit', 10);
-
-    $transactions = $query
-        ->select('order_id', 'store_amount', 'created_at')
-        ->skip(($offset - 1) * $limit)
-        ->take($limit)
-        ->get();
-
-    return response()->json([
-        'success' => true,
-        'type' => $type,
-
-        // ✅ Wallet Info
-        'wallet' => [
-            'total_earning' => $total_earning,
-            'total_withdrawn' => $total_withdrawn,
-            'pending_withdraw' => $pending_withdraw,
-            'available_balance' => (float) $available_balance,
-        ],
-
-  
-        'total_orders' => $query->count(),
-
-        'offset' => $offset,
-        'limit' => $limit,
-        'has_more' => ($offset * $limit) < $query->count(),
-
-        'transactions' => $transactions
-    ]);
-}
 }
