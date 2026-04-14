@@ -116,13 +116,19 @@ if (!function_exists('order_place')) {
     function order_place($data)
     {
         $order = Order::find($data->attribute_id);
-        $order->order_status = '111111111confirmed';
+
         if ($order->payment_method != 'partial_payment') {
             $order->payment_method = $data->payment_method;
         }
         // $order->transaction_reference=$data->transaction_ref;
         $order->payment_status = 'paid';
         $order->confirmed = now();
+        $order->order_status = 'confirmed';
+        if ($order->voucher_type == 'Gift') {
+            $order->order_status = 'active';
+        }
+
+
         $order->save();
 
 
