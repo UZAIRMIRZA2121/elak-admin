@@ -441,6 +441,7 @@ trait PlaceNewOrder
                 $order->total_tax_amount = round($tax_amount, config('round_up_to_digit'));
                 $order->order_amount = round($total_price + $tax_amount + $order->delivery_charge, config('round_up_to_digit'));
                 $order->free_delivery_by = $free_delivery_by;
+
             } else {
 
                 $order->delivery_charge = round($original_delivery_charge, config('round_up_to_digit')) ?? 0;
@@ -510,7 +511,7 @@ trait PlaceNewOrder
                 ], 203);
             }
 
-            //   dd("dsjhvbhsd");
+
 
             if ($order_status == 'active') {
                 $order->store_id = null;
@@ -518,11 +519,7 @@ trait PlaceNewOrder
             }
 
 
-
-
             $order->order_amount = $request['order_amount'] ?? 0;
-
-            $order->order_status = $order->voucher_type === 'Flat discount' ? 'confirmed' : $order_status;
             $order->order_type = $request['order_type'] ?? $carts[0]['type'] ?? null;
 
             $order->voucher_type = null;
@@ -721,11 +718,15 @@ trait PlaceNewOrder
                                 ]);
                             }
                         }
-
+                        if ($order->voucher_type == 'Flat discount') {
+                            $order_status = 'confirmed';
+                        } elseif ($order->voucher_type == 'Gift') {
+                            $order_status = 'active';
+                        }
                     }
                 }
             }
-
+          
 
             if ($order->voucher_type == 'Delivery/Pickup') {
                 $order->store_id = $nearestBranch->id ?? $order->store_id;
@@ -742,10 +743,9 @@ trait PlaceNewOrder
             $order->gift_details = $request->gift_details ?? null;
 
             $order->store_discount_amount = 0;
+
             $order->save();
             $sold_voucher->save();
-
-
             if ($request->order_type !== 'parcel') {
                 $taxMapCollection = collect($taxMap);
                 foreach ($order_details as $key => $item) {
@@ -864,7 +864,7 @@ trait PlaceNewOrder
             if ($order->is_guest == 0 && $order->user_id) {
                 $this->createCashBackHistory($order->order_amount, $order->user_id, $order->id);
             }
-
+      
             DB::commit();
 
 
@@ -874,7 +874,7 @@ trait PlaceNewOrder
                 'message' => translate('messages.order_placed_successfully'),
                 'order_id' => $order->id,
                 'total_ammount' => $order->order_amount,
-                'status' => $order->order_status,
+                'status' => $order_status,
                 'created_at' => $order->created_at,
                 'user_id' => (int) $order->user_id,
             ], 200);
