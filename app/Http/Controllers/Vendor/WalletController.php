@@ -32,26 +32,81 @@ class WalletController extends Controller
 {
     public function index()
     {
-        $data =  data_get($this->getWithdrawMethods() , 'data' , [] );
-        $withdrawal_methods =  data_get($this->getWithdrawMethods() , 'withdrawal_methods' , [] );
-        $withdraw_req = WithdrawRequest::with(['vendor','method'])->where('vendor_id', Helpers::get_vendor_id())->latest()->paginate(config('default_pagination'));
-        return view('vendor-views.wallet.index', compact('withdraw_req','withdrawal_methods','data'));
+        $data = data_get($this->getWithdrawMethods(), 'data', []);
+        $withdrawal_methods = data_get($this->getWithdrawMethods(), 'withdrawal_methods', []);
+        $withdraw_req = WithdrawRequest::with(['vendor', 'method'])->where('vendor_id', Helpers::get_vendor_id())->latest()->paginate(config('default_pagination'));
+        return view('vendor-views.wallet.index', compact('withdraw_req', 'withdrawal_methods', 'data'));
+    }
+    public function all_index()
+    {
+
+        $storeId = Helpers::get_store_data()->id;
+
+        $all_stores = Store::with(['vendor.wallet'])
+            ->where(function ($query) use ($storeId) {
+                $query->where('parent_id', $storeId)
+                    ->orWhere('id', $storeId);
+            })
+            ->get();
+
+
+
+        $data = data_get($this->getWithdrawMethods(), 'data', []);
+        $withdrawal_methods = data_get($this->getWithdrawMethods(), 'withdrawal_methods', []);
+        // Extract vendor IDs
+        $vendorIds = $all_stores->pluck('vendor_id');
+
+        // Withdraw requests for all those vendors
+        $withdraw_req = WithdrawRequest::with(['vendor', 'method'])
+            ->whereIn('vendor_id', $vendorIds)
+            ->latest()
+            ->paginate(config('default_pagination'));
+
+        return view('vendor-views.wallet.all-index', compact('withdraw_req', 'withdrawal_methods', 'data', 'all_stores', 'vendorIds'));
+    }
+    public function all_store_balances()
+    {
+
+        $storeId = Helpers::get_store_data()->id;
+
+        $all_stores = Store::with(['vendor.wallet'])
+            ->where(function ($query) use ($storeId) {
+                $query->where('parent_id', $storeId)
+                    ->orWhere('id', $storeId);
+            })
+            ->get();
+
+
+
+        $data = data_get($this->getWithdrawMethods(), 'data', []);
+        $withdrawal_methods = data_get($this->getWithdrawMethods(), 'withdrawal_methods', []);
+        // Extract vendor IDs
+        $vendorIds = $all_stores->pluck('vendor_id');
+
+        // Withdraw requests for all those vendors
+        $withdraw_req = WithdrawRequest::with(['vendor', 'method'])
+            ->whereIn('vendor_id', $vendorIds)
+            ->latest()
+            ->paginate(config('default_pagination'));
+
+        return view('vendor-views.wallet.all-store-balances', compact('withdraw_req', 'withdrawal_methods', 'data', 'all_stores', 'vendorIds'));
     }
     public function w_request(Request $request)
     {
+
         $method = WithdrawalMethod::find($request['withdraw_method']);
         $fields = array_column($method->method_fields, 'input_name');
         $values = $request->all();
 
         $method_data = [];
         foreach ($fields as $field) {
-            if(key_exists($field, $values)) {
+            if (key_exists($field, $values)) {
                 $method_data[$field] = $values[$field];
             }
         }
 
         $w = StoreWallet::where('vendor_id', Helpers::get_vendor_id())->first();
-        if ((string) $w->balance >=  (string)$request['amount'] && (string)$request['amount'] > .01) {
+        if ((string) $w->balance >= (string) $request['amount'] && (string) $request['amount'] > .01) {
             $data = [
                 'vendor_id' => Helpers::get_vendor_id(),
                 'amount' => $request['amount'],
@@ -64,18 +119,15 @@ class WalletController extends Controller
             ];
             DB::table('withdraw_requests')->insert($data);
             StoreWallet::where('vendor_id', Helpers::get_vendor_id())->increment('pending_withdraw', $request['amount']);
-            try
-            {
-                $admin= Admin::where('role_id', 1)->first();
-                $wallet_transaction = WithdrawRequest::where('vendor_id',Helpers::get_vendor_id())->latest()->first();
-                if( Helpers::get_store_data()?->module?->module_type !== 'rental' && config('mail.status') && Helpers::get_mail_status('withdraw_request_mail_status_admin') == '1' &&   Helpers::getNotificationStatusData('admin','withdraw_request','mail_status')) {
-                    Mail::to($admin['email'])->send(new WithdrawRequestMail('pending',$wallet_transaction));
-                } elseif(Helpers::get_store_data()?->module?->module_type == 'rental' && addon_published_status('Rental') && config('mail.status') && Helpers::get_mail_status('rental_withdraw_request_mail_status_admin') == '1' &&   Helpers::getRentalNotificationStatusData('admin','provider_withdraw_request','mail_status') ){
-                    Mail::to($admin['email'])->send(new ProviderWithdrawRequestMail('pending',$wallet_transaction));
-                 }
-            }
-            catch(\Exception $e)
-            {
+            try {
+                $admin = Admin::where('role_id', 1)->first();
+                $wallet_transaction = WithdrawRequest::where('vendor_id', Helpers::get_vendor_id())->latest()->first();
+                if (Helpers::get_store_data()?->module?->module_type !== 'rental' && config('mail.status') && Helpers::get_mail_status('withdraw_request_mail_status_admin') == '1' && Helpers::getNotificationStatusData('admin', 'withdraw_request', 'mail_status')) {
+                    Mail::to($admin['email'])->send(new WithdrawRequestMail('pending', $wallet_transaction));
+                } elseif (Helpers::get_store_data()?->module?->module_type == 'rental' && addon_published_status('Rental') && config('mail.status') && Helpers::get_mail_status('rental_withdraw_request_mail_status_admin') == '1' && Helpers::getRentalNotificationStatusData('admin', 'provider_withdraw_request', 'mail_status')) {
+                    Mail::to($admin['email'])->send(new ProviderWithdrawRequestMail('pending', $wallet_transaction));
+                }
+            } catch (\Exception $e) {
                 info($e->getMessage());
             }
             Toastr::success('Withdraw request has been sent.');
@@ -83,6 +135,62 @@ class WalletController extends Controller
         }
 
         Toastr::error('invalid request.!');
+        return redirect()->back();
+    }
+
+    public function w_all_request(Request $request)
+    {
+
+        $method = WithdrawalMethod::find($request['withdraw_method']);
+        $fields = array_column($method->method_fields, 'input_name');
+        $values = $request->all();
+
+        $method_data = [];
+        foreach ($fields as $field) {
+            if (key_exists($field, $values)) {
+                $method_data[$field] = $values[$field];
+            }
+        }
+
+        $vendor_ids = json_decode($request->vendor_ids, true);
+        if (!is_array($vendor_ids)) {
+            $vendor_ids = [];
+        }
+
+        $wallets = StoreWallet::whereIn('vendor_id', $vendor_ids)->get();
+
+        foreach ($wallets as $wallet) {
+
+
+            // ✅ Skip if wallet is null (extra safety)
+            if (!$wallet) {
+                continue;
+            }
+
+
+            // ✅ Check balance
+          
+      
+                $balance = $wallet->total_earning - ($wallet->total_withdrawn + $wallet->pending_withdraw);
+                $a = DB::table('withdraw_requests')->insert([
+                    'vendor_id' => $wallet->vendor_id,
+                    'amount' => $balance,
+                    'transaction_note' => null,
+                    'withdrawal_method_id' => $request['withdraw_method'],
+                    'withdrawal_method_fields' => json_encode($method_data),
+                    'approved' => 0,
+                    'created_at' => now(),
+                    'updated_at' => now()
+                ]);
+
+          
+                // ✅ Increment pending withdraw
+                $wallet->increment('pending_withdraw', $balance);
+           
+        }
+     
+
+        Toastr::success('Withdraw requests have been sent.');
         return redirect()->back();
     }
 
@@ -102,26 +210,27 @@ class WalletController extends Controller
     {
         $method = WithdrawalMethod::ofStatus(1)->where('id', $request->method_id)->first();
 
-        return response()->json(['content'=>$method], 200);
+        return response()->json(['content' => $method], 200);
     }
 
 
-    public function make_wallet_adjustment(){
+    public function make_wallet_adjustment()
+    {
         $wallet = StoreWallet::firstOrNew(
-            ['vendor_id' =>Helpers::get_vendor_id()]
+            ['vendor_id' => Helpers::get_vendor_id()]
         );
 
-        $wallet_earning =  round($wallet->total_earning -($wallet->total_withdrawn + $wallet->pending_withdraw) , 8);
-        $adj_amount =  round($wallet->collected_cash - $wallet_earning , 8);
+        $wallet_earning = round($wallet->total_earning - ($wallet->total_withdrawn + $wallet->pending_withdraw), 8);
+        $adj_amount = round($wallet->collected_cash - $wallet_earning, 8);
 
-        if($wallet->collected_cash == 0 || $wallet_earning == 0 || ($wallet_earning  == $wallet->balance ) ){
+        if ($wallet->collected_cash == 0 || $wallet_earning == 0 || ($wallet_earning == $wallet->balance)) {
             Toastr::info(translate('Already_Adjusted'));
             return back();
         }
 
-        if($adj_amount > 0 ){
-            $wallet->total_withdrawn =  $wallet->total_withdrawn + $wallet_earning ;
-            $wallet->collected_cash =   $wallet->collected_cash - $wallet_earning ;
+        if ($adj_amount > 0) {
+            $wallet->total_withdrawn = $wallet->total_withdrawn + $wallet_earning;
+            $wallet->collected_cash = $wallet->collected_cash - $wallet_earning;
 
             $data = [
                 'vendor_id' => Helpers::get_vendor_id(),
@@ -135,11 +244,11 @@ class WalletController extends Controller
                 'updated_at' => now()
             ];
 
-        } else{
+        } else {
 
             $data = [
                 'vendor_id' => Helpers::get_vendor_id(),
-                'amount' => $wallet->collected_cash ,
+                'amount' => $wallet->collected_cash,
                 'transaction_note' => "Store_wallet_adjustment_full",
                 'withdrawal_method_id' => null,
                 'withdrawal_method_fields' => null,
@@ -148,8 +257,8 @@ class WalletController extends Controller
                 'created_at' => now(),
                 'updated_at' => now()
             ];
-            $wallet->total_withdrawn =  $wallet->total_withdrawn + $wallet->collected_cash ;
-            $wallet->collected_cash =   0;
+            $wallet->total_withdrawn = $wallet->total_withdrawn + $wallet->collected_cash;
+            $wallet->collected_cash = 0;
 
         }
 
@@ -159,7 +268,8 @@ class WalletController extends Controller
         return back();
     }
 
-    Public function make_payment(Request $request){
+    public function make_payment(Request $request)
+    {
         $validator = Validator::make($request->all(), [
             'store_id' => 'required',
             'payment_gateway' => 'required',
@@ -170,18 +280,18 @@ class WalletController extends Controller
             return response()->json(['errors' => Helpers::error_processor($validator)], 403);
         }
 
-        $store =Store::findOrfail($request->store_id);
+        $store = Store::findOrfail($request->store_id);
 
         $payer = new Payer(
-            $store->name ,
+            $store->name,
             $store->email,
             $store->phone,
             ''
         );
-        $store_logo= BusinessSetting::where(['key' => 'logo'])->first();
+        $store_logo = BusinessSetting::where(['key' => 'logo'])->first();
         $additional_data = [
-            'business_name' => BusinessSetting::where(['key'=>'business_name'])->first()?->value,
-            'business_logo' => \App\CentralLogics\Helpers::get_full_url('business',$store_logo?->value,$store_logo?->storage[0]?->value ?? 'public' )
+            'business_name' => BusinessSetting::where(['key' => 'business_name'])->first()?->value,
+            'business_logo' => \App\CentralLogics\Helpers::get_full_url('business', $store_logo?->value, $store_logo?->storage[0]?->value ?? 'public')
         ];
         $payment_info = new PaymentInfo(
             success_hook: 'collect_cash_success',
@@ -191,51 +301,53 @@ class WalletController extends Controller
             payment_platform: 'web',
             payer_id: $store->vendor->id,
             receiver_id: '100',
-            additional_data:  $additional_data,
-            payment_amount: $request->amount ,
-            external_redirect_link:  route('vendor.wallet.index'),
+            additional_data: $additional_data,
+            payment_amount: $request->amount,
+            external_redirect_link: route('vendor.wallet.index'),
             attribute: 'store_collect_cash_payments',
             attribute_id: $store->vendor->id,
         );
 
-        $receiver_info = new Receiver('Admin','example.png');
+        $receiver_info = new Receiver('Admin', 'example.png');
         $redirect_link = Payment::generate_link($payer, $payment_info, $receiver_info);
 
         return redirect($redirect_link);
 
     }
 
-    public function wallet_payment_list(Request $request){
+    public function wallet_payment_list(Request $request)
+    {
 
-        $data =  data_get($this->getWithdrawMethods() , 'data' , [] );
-        $withdrawal_methods =  data_get($this->getWithdrawMethods() , 'withdrawal_methods' , [] );
+        $data = data_get($this->getWithdrawMethods(), 'data', []);
+        $withdrawal_methods = data_get($this->getWithdrawMethods(), 'withdrawal_methods', []);
 
         $key = isset($request['search']) ? explode(' ', $request['search']) : [];
         $account_transaction = AccountTransaction::
-        when(isset($key), function ($query) use ($key) {
-            return $query->where(function ($q) use ($key) {
-                foreach ($key as $value) {
-                    $q->orWhere('ref', 'like', "%{$value}%");
-                }
-            });
-        })
+            when(isset($key), function ($query) use ($key) {
+                return $query->where(function ($q) use ($key) {
+                    foreach ($key as $value) {
+                        $q->orWhere('ref', 'like', "%{$value}%");
+                    }
+                });
+            })
             ->where('type', 'collected')
-            ->where('created_by' , 'store')
+            ->where('created_by', 'store')
             ->where('from_id', Helpers::get_vendor_id())
             ->where('from_type', 'store')
             ->latest()->paginate(config('default_pagination'));
-        return view('vendor-views.wallet.payment_list', compact('account_transaction','withdrawal_methods','data'));
+        return view('vendor-views.wallet.payment_list', compact('account_transaction', 'withdrawal_methods', 'data'));
     }
-    public function getDisbursementList(Request $request){
+    public function getDisbursementList(Request $request)
+    {
 
-        $data =  data_get($this->getWithdrawMethods() , 'data' , [] );
-        $withdrawal_methods =  data_get($this->getWithdrawMethods() , 'withdrawal_methods' , [] );
+        $data = data_get($this->getWithdrawMethods(), 'data', []);
+        $withdrawal_methods = data_get($this->getWithdrawMethods(), 'withdrawal_methods', []);
 
         $key = isset($request['search']) ? explode(' ', $request['search']) : [];
 
-        $disbursements=DisbursementDetails::with('store','withdraw_method')
+        $disbursements = DisbursementDetails::with('store', 'withdraw_method')
             ->where('store_id', Helpers::get_store_id())
-            ->when(isset($key), function ($q) use ($key){
+            ->when(isset($key), function ($q) use ($key) {
                 $q->where(function ($q) use ($key) {
                     foreach ($key as $value) {
                         $q->orWhere('disbursement_id', 'like', "%{$value}%")
@@ -244,21 +356,22 @@ class WalletController extends Controller
                 });
             })
             ->latest()->paginate(config('default_pagination'));
-        return view('vendor-views.wallet.disbursement', compact('disbursements','withdrawal_methods','data'));
+        return view('vendor-views.wallet.disbursement', compact('disbursements', 'withdrawal_methods', 'data'));
     }
-    private function getWithdrawMethods(){
+    private function getWithdrawMethods()
+    {
         $withdrawal_methods = WithdrawalMethod::ofStatus(1)->get();
 
-        $published_status =0;
+        $published_status = 0;
         $payment_published_status = config('get_payment_publish_status');
         if (isset($payment_published_status[0]['is_published'])) {
             $published_status = $payment_published_status[0]['is_published'];
         }
 
-        $methods = DB::table('addon_settings')->where('is_active',1)->where('settings_type', 'payment_config')
+        $methods = DB::table('addon_settings')->where('is_active', 1)->where('settings_type', 'payment_config')
 
-            ->when($published_status == 0, function($q){
-                $q->whereIn('key_name', ['ssl_commerz','paypal','stripe','razor_pay','senang_pay','paytabs','paystack','paymob_accept','paytm','flutterwave','liqpay','bkash','mercadopago']);
+            ->when($published_status == 0, function ($q) {
+                $q->whereIn('key_name', ['ssl_commerz', 'paypal', 'stripe', 'razor_pay', 'senang_pay', 'paytabs', 'paystack', 'paymob_accept', 'paytm', 'flutterwave', 'liqpay', 'bkash', 'mercadopago']);
             })
             ->get();
         $env = env('APP_ENV') == 'live' ? 'live' : 'test';
@@ -278,11 +391,11 @@ class WalletController extends Controller
         }
 
         $result = [
-            'data' => $data ,
-            'withdrawal_methods' => $withdrawal_methods ,
+            'data' => $data,
+            'withdrawal_methods' => $withdrawal_methods,
         ];
 
-        return  $result;
+        return $result;
     }
     public function getDisbursementExport(Request $request)
     {

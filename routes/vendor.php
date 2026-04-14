@@ -206,7 +206,10 @@ Route::group(['namespace' => 'Vendor', 'as' => 'vendor.'], function () {
 
         Route::group(['prefix' => 'wallet', 'as' => 'wallet.', 'middleware' => ['module:wallet', 'subscription:wallet']], function () {
             Route::get('/', 'WalletController@index')->name('index');
+            Route::get('all', 'WalletController@all_index')->name('all.index');
+            Route::get('all/store-balances', 'WalletController@all_store_balances')->name('all.balances');
             Route::post('request', 'WalletController@w_request')->name('withdraw-request');
+            Route::post('all/request', 'WalletController@w_all_request')->name('all.withdraw-request');
             Route::delete('close/{id}', 'WalletController@close_request')->name('close-request');
             Route::get('method-list', 'WalletController@method_list')->name('method-list');
             Route::post('make-collected-cash-payment', 'WalletController@make_payment')->name('make_payment');

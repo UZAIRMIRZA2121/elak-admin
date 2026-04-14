@@ -236,7 +236,7 @@
                                         </span>
                                     </a>
                                 </li> --}}
-                                 {{-- <li
+                                {{-- <li
                                     class="nav-item {{ Request::is('vendor-panel/flateorder/list/all') ? 'active' : '' }}">
                                     <a class="nav-link" href="{{ route('vendor.flate.order.list', ['all']) }}"
                                         title="{{ translate('Flat Request') }}">
@@ -318,7 +318,7 @@
                                         <span class="text-truncate">{{ translate('messages.list') }}</span>
                                     </a>
                                 </li>
-{{-- 
+                                {{-- 
                                 @if (\App\CentralLogics\Helpers::get_mail_status('product_approval'))
                                     <li
                                         class="nav-item {{ Request::is('vendor-panel/item/pending/item/list') || Request::is('vendor-panel/item/requested/item/view/*') ? 'active' : '' }}">
@@ -548,8 +548,7 @@
                     @endif
 
                     <!-- DeliveryMan -->
-                    {{-- @if (
-                        \App\CentralLogics\Helpers::employee_module_permission_check('deliveryman') || App\CentralLogics\Helpers::employee_module_permission_check('deliveryman_list'))
+                    {{-- @if (\App\CentralLogics\Helpers::employee_module_permission_check('deliveryman') || App\CentralLogics\Helpers::employee_module_permission_check('deliveryman_list'))
                         <li class="nav-item">
                             <small class="nav-subtitle"
                                 title="{{ translate('messages.deliveryman_section') }}">{{ translate('messages.deliveryman_section') }}</small>
@@ -601,6 +600,20 @@
 
 
                     @if (\App\CentralLogics\Helpers::employee_module_permission_check('wallet'))
+                        @if ($store_data->parent_id == null || $store_data->parent_id == '')
+                            <!-- StoreWallet -->
+                            <li
+                                class="navbar-vertical-aside-has-menu {{ Request::is('vendor-panel/wallet/all') ? 'active' : '' }}">
+                                <a class="js-navbar-vertical-aside-menu-link nav-link"
+                                    href="{{ route('vendor.wallet.all.index') }}"
+                                    title="{{ translate('messages.my_wallet') }}">
+                                    <i class="tio-table nav-icon"></i>
+                                    <span
+                                        class="navbar-vertical-aside-mini-mode-hidden-elements text-truncate">{{ translate('messages.my_all_wallets') }}</span>
+                                </a>
+                            </li>
+                        @endif
+
                         <!-- StoreWallet -->
                         <li
                             class="navbar-vertical-aside-has-menu {{ Request::is('vendor-panel/wallet') ? 'active' : '' }}">

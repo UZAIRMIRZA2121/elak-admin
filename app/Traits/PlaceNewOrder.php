@@ -740,9 +740,9 @@ trait PlaceNewOrder
             $order->discount_amount = $carts[0]['discount_amount'] ?? null;
 
             $order->gift_details = $request->gift_details ?? null;
-           
-            $order->store_discount_amount  = 0;
-             $order->save();
+
+            $order->store_discount_amount = 0;
+            $order->save();
             $sold_voucher->save();
 
 
@@ -839,7 +839,7 @@ trait PlaceNewOrder
                     CustomerLogic::create_loyalty_point_transaction($order->user_id, $order->id, $order->order_amount, 'order_place');
                 }
                 if ($request->payment_method == 'wallet')
-                  
+
                     CustomerLogic::create_wallet_transaction($order->user_id, $order->order_amount, 'order_place', $order->id);
 
                 if ($request->partial_payment) {
@@ -1323,9 +1323,10 @@ trait PlaceNewOrder
                 $product = Item::with('module')->active()->find($c['item_id']);
             }
             if ($product) {
-                if ($product->type == 'voucher' && $product->voucher_ids == 'In-Store') {
-                    $status = 'active';
-
+                if ($product->type == 'voucher') {
+                    if ($product->voucher_ids == 'Gift' && $product->voucher_ids == 'In-Store') {
+                        $status = 'active';
+                    }
                 }
 
 
