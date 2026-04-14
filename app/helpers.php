@@ -116,7 +116,7 @@ if (!function_exists('order_place')) {
     function order_place($data)
     {
         $order = Order::find($data->attribute_id);
-        $order->order_status = 'confirmed';
+        $order->order_status = '111111111confirmed';
         if ($order->payment_method != 'partial_payment') {
             $order->payment_method = $data->payment_method;
         }
