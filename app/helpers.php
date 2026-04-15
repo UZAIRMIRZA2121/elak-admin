@@ -123,9 +123,12 @@ if (!function_exists('order_place')) {
         // $order->transaction_reference=$data->transaction_ref;
         $order->payment_status = 'paid';
         $order->confirmed = now();
-        $order->order_status = 'pending';
+        $order->order_status = 'inactive';
+
         if ($order->voucher_type == 'Gift' || $order->voucher_type == 'In-Store') {
             $order->order_status = 'active';
+        } elseif ($order->voucher_type == 'Delivery/Pickup' || $order->voucher_type == 'Flat discount') {
+            $order->order_status = 'pending';
         }
 
 

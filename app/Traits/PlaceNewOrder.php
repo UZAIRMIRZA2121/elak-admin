@@ -192,10 +192,10 @@ trait PlaceNewOrder
             $order->qr_code = $qr_code;
 
 
-            $order_status = 'pending';
-            if (($request->partial_payment && $request->payment_method != 'offline_payment') || $request->payment_method == 'wallet') {
-                $order_status = 'confirmed';
-            }
+            $order_status = 'inactive';
+            // if (($request->partial_payment && $request->payment_method != 'offline_payment') || $request->payment_method == 'wallet') {
+            //     $order_status = 'confirmed';
+            // }
 
 
 
@@ -728,6 +728,11 @@ trait PlaceNewOrder
                 $order->store_id = $nearestBranch->id ?? $order->store_id;
                 $sold_voucher->store_id = $order->store_id;
                 $order->distance = round($shortestDistance, 2);
+            }
+            if ($order->voucher_type == 'Gift' || $order->voucher_type == 'In-Store') {
+                 $order_status = 'active';
+            } elseif ($order->voucher_type == 'Delivery/Pickup' || $order->voucher_type == 'Flat discount') {
+                 $order_status = 'pending';
             }
 
 
