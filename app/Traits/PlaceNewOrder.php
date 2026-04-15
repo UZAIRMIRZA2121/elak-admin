@@ -718,15 +718,11 @@ trait PlaceNewOrder
                                 ]);
                             }
                         }
-                        if ($order->voucher_type == 'Flat discount') {
-                            $order_status = 'confirmed';
-                        } elseif ($order->voucher_type == 'Gift') {
-                            $order_status = 'active';
-                        }
+
                     }
                 }
             }
-          
+
 
             if ($order->voucher_type == 'Delivery/Pickup') {
                 $order->store_id = $nearestBranch->id ?? $order->store_id;
@@ -743,7 +739,7 @@ trait PlaceNewOrder
             $order->gift_details = $request->gift_details ?? null;
 
             $order->store_discount_amount = 0;
-
+            $order->order_status = $order_status;
             $order->save();
             $sold_voucher->save();
             if ($request->order_type !== 'parcel') {
@@ -864,7 +860,7 @@ trait PlaceNewOrder
             if ($order->is_guest == 0 && $order->user_id) {
                 $this->createCashBackHistory($order->order_amount, $order->user_id, $order->id);
             }
-      
+
             DB::commit();
 
 

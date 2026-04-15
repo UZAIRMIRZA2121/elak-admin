@@ -123,8 +123,8 @@ if (!function_exists('order_place')) {
         // $order->transaction_reference=$data->transaction_ref;
         $order->payment_status = 'paid';
         $order->confirmed = now();
-        $order->order_status = 'confirmed';
-        if ($order->voucher_type == 'Gift') {
+        $order->order_status = 'pending';
+        if ($order->voucher_type == 'Gift' || $order->voucher_type == 'In-Store') {
             $order->order_status = 'active';
         }
 

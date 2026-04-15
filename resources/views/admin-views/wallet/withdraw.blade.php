@@ -117,7 +117,7 @@
                                 <td>
                                     @if($wr->vendor)
                                     <a class="deco-none" title="{{ $wr->vendor->stores[0]->name }}"
-                                        href="{{route('admin.store.view',[$wr->vendor->stores[0]->id,'module_id'=>$wr->vendor->stores[0]->module_id])}}">{{ Str::limit($wr->vendor->stores[0]->name, 20, '...') }}</a>
+                                        href="{{route('admin.store.view',[$wr->vendor->stores[0]->id,'module_id'=>$wr->vendor->stores[0]->module_id])}}">{{ Str::limit($wr->vendor->stores[0]->name, 20, '...') }}{{ $wr->vendor->stores[0]->parent_id == null ? ' -Main' : '' }}</a>
                                     @else
                                     {{translate('messages.store deleted!') }}
                                     @endif

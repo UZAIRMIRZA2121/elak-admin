@@ -8628,4 +8628,5 @@ Smartly or Earn. ',
   'all_store_balances' => 'All store balances',
   'total_balance' => 'Total balance',
   'its your all branches balance' => 'Its your all branches balance',
+  'TID:5645641564156415641' => 'TID:5645641564156415641',
 );

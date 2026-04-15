@@ -1554,6 +1554,8 @@ class VendorController extends Controller
 
     public function withdraw(Request $request)
     {
+
+   
         $key = isset($request['search']) ? explode(' ', $request['search']) : [];
         $all = session()->has('withdraw_status_filter') && session('withdraw_status_filter') == 'all' ? 1 : 0;
         $active = session()->has('withdraw_status_filter') && session('withdraw_status_filter') == 'approved' ? 1 : 0;
