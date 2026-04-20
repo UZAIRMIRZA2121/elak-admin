@@ -7,6 +7,7 @@ namespace App\Http\Controllers\Vendor;
 use App\Models\Admin;
 use App\Models\Store;
 use App\Library\Payer;
+use App\Models\StorePaymentMethod;
 use App\Traits\Payment;
 use App\Library\Receiver;
 use App\Models\StoreWallet;
@@ -169,26 +170,26 @@ class WalletController extends Controller
 
 
             // ✅ Check balance
-          
-      
-                $balance = $wallet->total_earning - ($wallet->total_withdrawn + $wallet->pending_withdraw);
-                $a = DB::table('withdraw_requests')->insert([
-                    'vendor_id' => $wallet->vendor_id,
-                    'amount' => $balance,
-                    'transaction_note' => null,
-                    'withdrawal_method_id' => $request['withdraw_method'],
-                    'withdrawal_method_fields' => json_encode($method_data),
-                    'approved' => 0,
-                    'created_at' => now(),
-                    'updated_at' => now()
-                ]);
 
-          
-                // ✅ Increment pending withdraw
-                $wallet->increment('pending_withdraw', $balance);
-           
+
+            $balance = $wallet->total_earning - ($wallet->total_withdrawn + $wallet->pending_withdraw);
+            $a = DB::table('withdraw_requests')->insert([
+                'vendor_id' => $wallet->vendor_id,
+                'amount' => $balance,
+                'transaction_note' => null,
+                'withdrawal_method_id' => $request['withdraw_method'],
+                'withdrawal_method_fields' => json_encode($method_data),
+                'approved' => 0,
+                'created_at' => now(),
+                'updated_at' => now()
+            ]);
+
+
+            // ✅ Increment pending withdraw
+            $wallet->increment('pending_withdraw', $balance);
+
         }
-     
+
 
         Toastr::success('Withdraw requests have been sent.');
         return redirect()->back();
@@ -203,6 +204,41 @@ class WalletController extends Controller
         $wr->delete();
         Toastr::success('request closed!');
         return back();
+    }
+
+    public function under_review_completed($id)
+    {
+        try {
+
+            $wr = WithdrawRequest::find($id);
+
+            if (!$wr) {
+                Toastr::error('Request not found!');
+                return back();
+            }
+
+            // Optional: only allow if status is "under review (2)"
+            if ($wr->approved != 2) {
+                Toastr::warning('This request is not under review!');
+                return back();
+            }
+
+            // Mark as completed (0 or your completed status)
+            $wr->approved = 0;
+            $wr->transaction_note = "Review Completed" ; //under-review
+            $wr->save();
+           
+            Toastr::success('Review completed successfully!');
+            return back();
+
+        } catch (\Exception $e) {
+
+            dd([
+                'error' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+            ]);
+        }
     }
 
 
@@ -426,5 +462,87 @@ class WalletController extends Controller
             return Excel::download(new DisbursementHistoryExport($data), 'Disbursementlist.csv');
         }
     }
+    public function method_store(Request $request)
+    {
+        try {
 
+            $values = $request->all();
+
+            // Get store
+            $store = Store::find(Helpers::get_store_id());
+
+            if (!$store) {
+                throw new \Exception('Store not found');
+            }
+
+            // ✅ Only allow MAIN store
+            if (is_null($store->parent_id)) {
+                Toastr::error('Sub stores are not allowed to add payment methods.');
+                return redirect()->back();
+            }
+
+            // Get withdrawal method
+            $method = WithdrawalMethod::findOrFail($request->withdraw_method);
+
+            // Extract dynamic fields
+            $fields = array_column($method->method_fields ?? [], 'input_name');
+
+            $method_data = [];
+
+            foreach ($fields as $field) {
+                if (array_key_exists($field, $values)) {
+                    $method_data[$field] = $values[$field];
+                }
+            }
+
+            // ==============================
+            // MAIN STORE SAVE
+            // ==============================
+            StorePaymentMethod::updateOrCreate(
+                [
+                    'store_id' => $store->id,
+                ],
+                [
+                    'method_id' => $request->withdraw_method,
+                    'value' => $method_data,
+                ]
+            );
+
+            // ==============================
+            // CHILD STORES SYNC
+            // ==============================
+            $childStores = Store::where('parent_id', $store->id)->get();
+
+            foreach ($childStores as $child) {
+
+                StorePaymentMethod::updateOrCreate(
+                    [
+                        'store_id' => $child->id,
+                    ],
+                    [
+                        'method_id' => $request->withdraw_method,
+                        'value' => $method_data,
+                    ]
+                );
+            }
+
+            Toastr::success('Payment method saved successfully.');
+            return redirect()->back();
+
+        } catch (\Exception $e) {
+
+            // 🔥 DEBUG MODE (use dd if needed)
+            if (config('app.debug')) {
+                dd([
+                    'error_message' => $e->getMessage(),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
+                ]);
+            }
+
+            // Production safe message
+            Toastr::error('Something went wrong while saving payment method.');
+            return redirect()->back();
+        }
+    }
 }

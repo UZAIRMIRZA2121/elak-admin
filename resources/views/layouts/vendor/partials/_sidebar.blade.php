@@ -585,8 +585,6 @@
                     @endif --}}
                     <!-- End DeliveryMan -->
 
-
-
                     @if (
                         \App\CentralLogics\Helpers::employee_module_permission_check('wallet') ||
                             \App\CentralLogics\Helpers::employee_module_permission_check('wallet_method'))
@@ -595,6 +593,26 @@
                             <small class="nav-subtitle"
                                 title="{{ translate('messages.Wallet Management') }}">{{ translate('messages.Wallet Management') }}</small>
                             <small class="tio-more-horizontal nav-subtitle-replacer"></small>
+                        </li>
+                        <li
+                            class="navbar-vertical-aside-has-menu {{ Request::is('vendor/report/day-wise-report') ? 'active' : '' }}">
+                            <a class="nav-link " href="{{ route('vendor.report.day-wise-report') }}"
+                                title="{{ translate('messages.day_wise_report') }}">
+                                <span class="tio-money nav-icon"></span>
+                                <span class="text-truncate">{{ translate('messages.day_wise_report') }}</span>
+                            </a>
+                        </li>
+                        <li
+                            class="navbar-vertical-aside-has-menu {{ Request::is('vendor/report/day-wise-report') ? 'active' : '' }}">
+                            <a class="nav-link " href="#" data-toggle="modal"
+                                    data-target="#balance-modal"
+                                title="{{ translate('messages.day_wise_report') }}">
+                                <span class="tio-money nav-icon"></span>
+                                <span class="text-truncate">{{ translate('messages.add_withdraw_method') }}</span>
+                    
+                                  
+                              
+                            </a>
                         </li>
                     @endif
 

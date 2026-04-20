@@ -10,6 +10,8 @@
 
 @elseif($withdraw->approved ==0)
 <label class="badge badge-soft-primary mb-0">{{translate('Pending')}}</label>
+@elseif($withdraw->approved == 2)
+<label class="badge badge-soft-warning mb-0">{{translate('Under Review')}}</label>
 @else
 
 <label class="badge badge-soft-danger mb-0">{{translate('Denied')}}</label>

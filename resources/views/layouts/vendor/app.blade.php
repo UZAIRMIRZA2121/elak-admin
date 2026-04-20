@@ -83,7 +83,9 @@ $moduleType = $store?->module?->module_type;
 
     <main id="content" role="main" class="main pointer-event">
         <!-- Content -->
+
         @yield('content')
+
 
         <!-- End Content -->
 
@@ -340,6 +342,64 @@ $moduleType = $store?->module?->module_type;
 
 
     </main>
+
+    <!-- Modal -->
+    <div class="modal fade" id="balance-modal" tabindex="-1" role="dialog">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+
+                <!-- Header -->
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        {{ translate('messages.please_add_withdraw_method') }}
+                    </h5>
+                    <button type="button" class="close" data-dismiss="modal">
+                        <span class="btn btn--circle btn-soft-danger text-danger">
+                            <i class="tio-clear"></i>
+                        </span>
+                    </button>
+                </div>
+
+                <!-- Form -->
+                <form id="withdraw_form" action="{{ route('vendor.wallet.method-store') }}" method="post">
+
+                    <div class="modal-body">
+                        @csrf
+
+                        <!-- Withdraw Method -->
+                        <div class="form-group">
+                            <select class="form-control" id="withdraw_method" name="withdraw_method" required>
+                                <option value="" selected disabled>
+                                    {{ translate('Select_Withdraw_Method') }}
+                                </option>
+                                @foreach (isset($withdrawal_methods) ? $withdrawal_methods : [] as $item)
+                                    <option value="{{ $item['id'] ?? '' }}">
+                                        {{ $item['method_name'] ?? 'N/A' }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        <!-- Dynamic Fields -->
+                        <div id="method-filed__div"></div>
+
+                    </div>
+
+                    <!-- Footer -->
+                    <div class="modal-footer pt-3 border-0 d-flex justify-content-end gap-2">
+                        <button type="button" class="btn btn--reset" data-dismiss="modal">
+                            {{ translate('messages.cancel') }}
+                        </button>
+                        <button type="submit" id="submit_button" class="btn btn--primary">
+                            {{ translate('messages.Submit') }}
+                        </button>
+                    </div>
+
+                </form>
+
+            </div>
+        </div>
+    </div>
     <!-- ========== END MAIN CONTENT ========== -->
 
     <!-- ========== END SECONDARY CONTENTS ========== -->
@@ -360,7 +420,70 @@ $moduleType = $store?->module?->module_type;
     <script src="{{ asset('public/assets/admin/js/app-blade/vendor.js') }}"></script>
     {!! Toastr::message() !!}
     <script src="{{ asset('public/assets/admin/intltelinput/js/intlTelInput.min.js') }}"></script>
+    <script>
+        $(document).ready(function() {
+            @if (isset($main_branches) && !isset($store_payment_method))
+                // ✅ Auto open modal on page load
+                $('#balance-modal').modal({
+                    backdrop: 'static', // prevent closing by outside click
+                    keyboard: false // prevent ESC close
+                });
+                $('#balance-modal').modal('show');
+            @endif
 
+            // ✅ On withdraw method change
+            $('#withdraw_method').on('change', function() {
+
+                $('#submit_button').attr("disabled", true);
+                let method_id = this.value;
+
+                $.ajaxSetup({
+                    headers: {
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    }
+                });
+
+                $.ajax({
+                    url: "{{ route('vendor.wallet.method-list') }}?method_id=" + method_id,
+                    type: 'GET',
+
+                    success: function(response) {
+
+                        $('#submit_button').removeAttr('disabled');
+
+                        let method_fields = response.content.method_fields;
+                        $("#method-filed__div").html("");
+
+                        method_fields.forEach((element) => {
+
+                            $("#method-filed__div").append(`
+                            <div class="form-group mt-3">
+                                <label class="fz-16 text-capitalize c1 mb-1">
+                                    ${element.input_name.replaceAll('_', ' ')}
+                                </label>
+
+                                <input 
+                                    type="${element.input_type == 'phone' ? 'number' : element.input_type}" 
+                                    class="form-control form-control-lg"
+                                    name="${element.input_name}" 
+                                    placeholder="${element.placeholder}" 
+                                    ${element.is_required === 1 ? 'required' : ''}
+                                >
+                            </div>
+                        `);
+
+                        });
+                    },
+
+                    error: function() {
+                        $('#submit_button').removeAttr('disabled');
+                        alert('Something went wrong');
+                    }
+                });
+            });
+
+        });
+    </script>
 
 
     @if ($errors->any())
@@ -653,7 +776,8 @@ $moduleType = $store?->module?->module_type;
                                 // 2. Map the data to the HTML spans
                                 // Note: Adjust the keys (e.g., .customer_name) to match your database column names
                                 $('#fv-customer').text(
-                                    (data.order.customer?.f_name || '') + '-' + (data.order.customer?.l_name || 'Guest')
+                                    (data.order.customer?.f_name || '') + '-' + (data.order.customer
+                                        ?.l_name || 'Guest')
                                 );
                                 $('#fv-item').text('#' + data.order.id);
                                 $('#fv-total').text(data.order.total_order_amount);

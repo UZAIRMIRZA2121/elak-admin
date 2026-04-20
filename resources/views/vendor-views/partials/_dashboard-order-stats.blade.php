@@ -1,4 +1,4 @@
-<div class="col-sm-6 col-lg-3">
+{{-- <div class="col-sm-6 col-lg-3">
     <!-- Card -->
     <a class="resturant-card dashboard--card card--bg-1" href="{{route('vendor.order.list',['confirmed'])}}">
        <h4 class="title">{{$data['confirmed']}}</h4>
@@ -6,24 +6,49 @@
        <img src="{{asset('public/assets/admin/img/dashboard/1.png')}}" alt="img" class="resturant-icon">
     </a>
     <!-- End Card -->
-</div>
+</div> --}}
 
-<div class="col-sm-6 col-lg-3">
+
+<div class="col-sm-6 col-lg-4">
     <!-- Card -->
-    <a class="resturant-card dashboard--card card--bg-2" href="{{route('vendor.order.list',['cooking'])}}">
-        @php($store_data=\App\CentralLogics\Helpers::get_store_data())
-       <h4 class="title">{{$data['cooking']}}</h4>
-        @if($store_data->module->module_type == 'food')
-       <span class="subtitle">{{translate('messages.cooking')}}</span>
-        @else
-       <span class="subtitle">{{translate('messages.processing')}}</span>
-        @endif
-       <img src="{{asset('public/assets/admin/img/dashboard/2.png')}}" alt="img" class="resturant-icon">
+    <a class="resturant-card dashboard--card card--bg-4" href="{{ route('vendor.order.list', ['pending']) }}">
+        <h4 class="title">{{ $data['pending'] }}</h4>
+        <span class="subtitle">{{ translate('messages.pending') }}</span>
+        <img src="{{ asset('public/assets/admin/img/dashboard/1.png') }}" alt="img" class="resturant-icon">
     </a>
     <!-- End Card -->
 </div>
 
-<div class="col-sm-6 col-lg-3">
+
+
+<div class="col-sm-6 col-lg-4">
+    <!-- Card -->
+    <a class="resturant-card dashboard--card card--bg-2" href="{{ route('vendor.order.list', ['cooking']) }}">
+        @php($store_data = \App\CentralLogics\Helpers::get_store_data())
+        <h4 class="title">{{ $data['cooking'] }}</h4>
+        @if ($store_data->module->module_type == 'food')
+            <span class="subtitle">{{ translate('messages.cooking') }}</span>
+        @else
+            <span class="subtitle">{{ translate('messages.processing') }}</span>
+        @endif
+        <img src="{{ asset('public/assets/admin/img/dashboard/2.png') }}" alt="img" class="resturant-icon">
+    </a>
+    <!-- End Card -->
+</div>
+
+<div class="col-sm-6 col-lg-4">
+    <!-- Card -->
+    <a class="resturant-card dashboard--card card--bg-3" href="{{ route('vendor.order.list', ['delivered']) }}">
+        <h4 class="title"> {{ $data['delivered'] }}</h4>
+        <span class="subtitle">{{ translate('messages.completed') }}</span>
+        <img src="{{ asset('public/assets/admin/img/dashboard/1.png') }}" alt="img" class="resturant-icon">
+    </a>
+    <!-- End Card -->
+</div>
+
+
+
+{{-- <div class="col-sm-6 col-lg-3">
     <!-- Card -->
     <a class="resturant-card dashboard--card card--bg-3" href="{{route('vendor.order.list',['ready_for_delivery'])}}">
        <h4 class="title">{{$data['ready_for_delivery']}}</h4>
@@ -42,64 +67,68 @@
     </a>
     <!-- End Card -->
 </div>
-
-
+ --}}
+{{-- 
 <div class="col-12">
     <div class="row g-2">
         <div class="col-sm-6 col-lg-3">
-            <a class="order--card h-100" href="{{route('vendor.order.list',['delivered'])}}">
+            <a class="order--card h-100" href="{{ route('vendor.order.list', ['delivered']) }}">
                 <div class="d-flex justify-content-between align-items-center">
                     <h6 class="card-subtitle d-flex justify-content-between m-0 align-items-center">
-                        <img src="{{asset('/public/assets/admin/img/dashboard/statistics/1.png')}}" alt="dashboard" class="oder--card-icon">
-                        <span>{{translate('messages.delivered')}}</span>
+                        <img src="{{ asset('/public/assets/admin/img/dashboard/statistics/1.png') }}" alt="dashboard"
+                            class="oder--card-icon">
+                        <span>{{ translate('messages.delivered') }}</span>
                     </h6>
                     <span class="card-title text-success">
-                        {{$data['delivered']}}
+                        {{ $data['delivered'] }}
                     </span>
                 </div>
             </a>
         </div>
 
         <div class="col-sm-6 col-lg-3">
-            <a class="order--card h-100" href="{{route('vendor.order.list',['refunded'])}}">
+            <a class="order--card h-100" href="{{ route('vendor.order.list', ['refunded']) }}">
                 <div class="d-flex justify-content-between align-items-center">
                     <h6 class="card-subtitle d-flex justify-content-between m-0 align-items-center">
-                        <img src="{{asset('/public/assets/admin/img/dashboard/statistics/2.png')}}" alt="dashboard" class="oder--card-icon">
-                        <span>{{translate('messages.refunded')}}</span>
+                        <img src="{{ asset('/public/assets/admin/img/dashboard/statistics/2.png') }}" alt="dashboard"
+                            class="oder--card-icon">
+                        <span>{{ translate('messages.refunded') }}</span>
                     </h6>
                     <span class="card-title text-danger">
-                        {{$data['refunded']}}
+                        {{ $data['refunded'] }}
                     </span>
                 </div>
             </a>
         </div>
 
         <div class="col-sm-6 col-lg-3">
-            <a class="order--card h-100" href="{{route('vendor.order.list',['scheduled'])}}">
+            <a class="order--card h-100" href="{{ route('vendor.order.list', ['scheduled']) }}">
                 <div class="d-flex justify-content-between align-items-center">
                     <h6 class="card-subtitle d-flex justify-content-between m-0 align-items-center">
-                        <img src="{{asset('/public/assets/admin/img/dashboard/statistics/3.png')}}" alt="dashboard" class="oder--card-icon">
-                        <span>{{translate('messages.scheduled')}}</span>
+                        <img src="{{ asset('/public/assets/admin/img/dashboard/statistics/3.png') }}" alt="dashboard"
+                            class="oder--card-icon">
+                        <span>{{ translate('messages.scheduled') }}</span>
                     </h6>
                     <span class="card-title text-primary">
-                        {{$data['scheduled']}}
+                        {{ $data['scheduled'] }}
                     </span>
                 </div>
             </a>
         </div>
 
         <div class="col-sm-6 col-lg-3">
-            <a class="order--card h-100" href="{{route('vendor.order.list',['all'])}}">
+            <a class="order--card h-100" href="{{ route('vendor.order.list', ['all']) }}">
                 <div class="d-flex justify-content-between align-items-center">
                     <h6 class="card-subtitle d-flex justify-content-between m-0 align-items-center">
-                        <img src="{{asset('/public/assets/admin/img/dashboard/statistics/4.png')}}" alt="dashboard" class="oder--card-icon">
-                        <span>{{translate('messages.all')}}</span>
+                        <img src="{{ asset('/public/assets/admin/img/dashboard/statistics/4.png') }}" alt="dashboard"
+                            class="oder--card-icon">
+                        <span>{{ translate('messages.all') }}</span>
                     </h6>
                     <span class="card-title text-info">
-                        {{$data['all']}}
+                        {{ $data['all'] }}
                     </span>
                 </div>
             </a>
         </div>
     </div>
-</div>
+</div> --}}

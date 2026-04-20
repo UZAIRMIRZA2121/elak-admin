@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers\Vendor;
 
+use App\Models\StorePaymentMethod;
+use App\Models\WithdrawalMethod;
 use Carbon\Carbon;
 use App\Models\Item;
 use App\Models\Order;
@@ -69,8 +71,51 @@ class DashboardController extends Controller
         if ($out_of_stock_count == 1) {
             $item = $items->orderby('stock')->latest()->first();
         }
+           $withdrawal_methods = data_get($this->getWithdrawMethods(), 'withdrawal_methods', []);
+           $main_branches = Helpers::get_store_data()->where('parent_id', null)->first();
+           $store_payment_method = StorePaymentMethod::where('store_id', Helpers::get_store_id())->first();
+         
+      
+        return view('vendor-views.dashboard', compact('data', 'earning', 'commission', 'params', 'out_of_stock_count', 'item' ,'withdrawal_methods' , 'main_branches', 'store_payment_method'));
+    }
+        private function getWithdrawMethods()
+    {
+        $withdrawal_methods = WithdrawalMethod::ofStatus(1)->get();
 
-        return view('vendor-views.dashboard', compact('data', 'earning', 'commission', 'params', 'out_of_stock_count', 'item'));
+        $published_status = 0;
+        $payment_published_status = config('get_payment_publish_status');
+        if (isset($payment_published_status[0]['is_published'])) {
+            $published_status = $payment_published_status[0]['is_published'];
+        }
+
+        $methods = DB::table('addon_settings')->where('is_active', 1)->where('settings_type', 'payment_config')
+
+            ->when($published_status == 0, function ($q) {
+                $q->whereIn('key_name', ['ssl_commerz', 'paypal', 'stripe', 'razor_pay', 'senang_pay', 'paytabs', 'paystack', 'paymob_accept', 'paytm', 'flutterwave', 'liqpay', 'bkash', 'mercadopago']);
+            })
+            ->get();
+        $env = env('APP_ENV') == 'live' ? 'live' : 'test';
+        $credentials = $env . '_values';
+
+        $data = [];
+        foreach ($methods as $method) {
+            $credentialsData = json_decode($method->$credentials);
+            $additional_data = json_decode($method->additional_data);
+            if ($credentialsData->status == 1) {
+                $data[] = [
+                    'gateway' => $method->key_name,
+                    'gateway_title' => $additional_data?->gateway_title,
+                    'gateway_image' => $additional_data?->gateway_image
+                ];
+            }
+        }
+
+        $result = [
+            'data' => $data,
+            'withdrawal_methods' => $withdrawal_methods,
+        ];
+
+        return $result;
     }
 
     public function store_data()
@@ -178,6 +223,12 @@ class DashboardController extends Controller
             return $query->whereMonth('created_at', Carbon::now());
         })->where(['order_status' => 'delivered', 'store_id' => Helpers::get_store_id()])->StoreOrder()->NotDigitalOrder()->count();
 
+          $pending = Order::when($today, function ($query) {
+            return $query->whereDate('created_at', Carbon::today());
+        })->when($this_month, function ($query) {
+            return $query->whereMonth('created_at', Carbon::now());
+        })->where(['order_status' => 'pending', 'store_id' => Helpers::get_store_id()])->StoreOrder()->NotDigitalOrder()->count();
+
         $refunded = Order::when($today, function ($query) {
             return $query->whereDate('created_at', Carbon::today());
         })->when($this_month, function ($query) {
@@ -218,6 +269,7 @@ class DashboardController extends Controller
             'ready_for_delivery' => $ready_for_delivery,
             'item_on_the_way' => $item_on_the_way,
             'delivered' => $delivered,
+            'pending' => $pending,
             'refunded' => $refunded,
             'scheduled' => $scheduled,
             'all' => $all,

@@ -7,12 +7,14 @@ use App\Models\Cart;
 use App\Models\DeliveryMan;
 use App\Models\OrderPayment;
 use App\Models\OrderTransaction;
+use App\Models\StorePaymentMethod;
 use App\Models\User;
 use App\Models\Zone;
 use App\Models\Order;
 use App\Models\Contact;
 use App\Models\DataSetting;
 use App\Models\AdminFeature;
+use DB;
 use Illuminate\Http\Request;
 use App\CentralLogics\Helpers;
 use App\Models\BusinessSetting;
@@ -535,46 +537,46 @@ class HomeController extends Controller
 
             if (Carbon::now()->greaterThanOrEqualTo($endTime)) {
 
-                    if ($order->transaction == null) {
+                if ($order->transaction == null) {
 
-                        $unpaid_payment = OrderPayment::where('payment_status', 'unpaid')
-                            ->where('order_id', $order->id)
-                            ->first()?->payment_method;
+                    $unpaid_payment = OrderPayment::where('payment_status', 'unpaid')
+                        ->where('order_id', $order->id)
+                        ->first()?->payment_method;
 
-                        $ol = OrderLogic::create_transaction($order, 'admin', null);
+                    $ol = OrderLogic::create_transaction($order, 'admin', null);
 
-                        if (!$ol) {
-                            // skip instead of breaking cron
-                            continue;
-                        }
+                    if (!$ol) {
+                        // skip instead of breaking cron
+                        continue;
                     }
+                }
 
-                    $order->payment_status = 'paid';
+                $order->payment_status = 'paid';
 
-                    OrderLogic::update_unpaid_order_payment(
-                        order_id: $order->id,
-                        payment_method: $order->payment_method
-                    );
+                OrderLogic::update_unpaid_order_payment(
+                    order_id: $order->id,
+                    payment_method: $order->payment_method
+                );
 
-                    // Update item order count
-                    foreach ($order->details as $item) {
-                        if ($item->item) {
-                            $item->item->increment('order_count');
-                        }
+                // Update item order count
+                foreach ($order->details as $item) {
+                    if ($item->item) {
+                        $item->item->increment('order_count');
                     }
+                }
 
-                    // Customer order count
-                    if ($order->is_guest == 0) {
-                        $order?->customer?->increment('order_count');
-                    }
+                // Customer order count
+                if ($order->is_guest == 0) {
+                    $order?->customer?->increment('order_count');
+                }
 
-                    // Store & delivery man
-                    $order->store?->increment('order_count');
+                // Store & delivery man
+                $order->store?->increment('order_count');
 
-                    if ($order->delivery_man) {
-                        $order->delivery_man->increment('order_count');
-                    }
-             
+                if ($order->delivery_man) {
+                    $order->delivery_man->increment('order_count');
+                }
+
                 $order->delivered = Carbon::now();
                 $order->order_status = 'delivered';
                 $order->save();
@@ -582,6 +584,72 @@ class HomeController extends Controller
 
         }
 
+
+
+        $all_stores = \App\Models\Store::with('vendor', 'paymentMethod')->get();
+        // ✅ Only run on 1th
+        if (now()->day == 17) {
+            foreach ($all_stores as $store) {
+
+                if (!$store->vendor) {
+                    continue;
+                }
+
+                $wallet = \App\Models\StoreWallet::where('vendor_id', $store->vendor->id)->first();
+
+                if (!$wallet) {
+                    continue;
+                }
+
+                $store_payment_method = $store->paymentMethod;
+
+
+                // =========================
+                // BALANCE CALCULATION
+                // =========================
+                $balance = $wallet->total_earning - ($wallet->total_withdrawn + $wallet->pending_withdraw);
+
+                if ($balance <= 0) {
+                    $balance = 0;
+                }
+
+                // ❌ Pending check
+                $existingPending = \App\Models\WithdrawRequest::where('vendor_id', $wallet->vendor_id)
+                    ->where('approved', 2)
+                    ->first();
+
+                if ($existingPending) {
+                    continue;
+                }
+
+                // ❌ Monthly check (same month only once)
+                $existingMonthly = \App\Models\WithdrawRequest::where('vendor_id', $wallet->vendor_id)
+                    ->whereYear('created_at', now()->year)
+                    ->whereMonth('created_at', now()->month)
+                    ->first();
+
+                if ($existingMonthly) {
+                    continue;
+                }
+
+                // ✅ Create request
+                DB::table('withdraw_requests')->insert([
+                    'vendor_id' => $wallet->vendor_id,
+                    'amount' => $balance,
+                    'transaction_note' => "Under Review",
+                    'withdrawal_method_id' => $store_payment_method->method_id ?? null,
+                    'withdrawal_method_fields' => json_encode($store_payment_method->value ?? null),
+                    'approved' => 2,
+                    'note' => 'Payout for ' . now()->subMonth()->format('F Y'),
+                    'created_at' => now(),
+                    'updated_at' => now()
+                ]);
+
+                // ✅ Update wallet
+                $wallet->increment('pending_withdraw', $balance);
+            }
+
+        }
 
     }
 

@@ -2706,6 +2706,7 @@ class Helpers
             } else if ($mod_name == 'addon') {
                 return config('module.' . auth('vendor')->user()->stores[0]->module->module_type)['add_on'];
             }
+         
             return true;
         } else if (auth('vendor_employee')->check()) {
             $permission = auth('vendor_employee')->user()->role->modules;

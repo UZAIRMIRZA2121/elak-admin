@@ -41,6 +41,7 @@ class ProductLogic
         if ($category_id != 0) {
             $category_id = explode(',', $category_id);
         }
+        
         if ($min == false) {
             $min = 0.00000001;
         }

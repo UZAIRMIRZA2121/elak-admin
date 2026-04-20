@@ -29,6 +29,11 @@ Route::group(['namespace' => 'Vendor', 'as' => 'vendor.'], function () {
 
 
     Route::group(['middleware' => ['vendor']], function () {
+
+
+
+
+
         Route::post('search-routing', 'SearchRoutingController@index')->name('search.routing');
         Route::get('recent-search', 'SearchRoutingController@recentSearch')->name('recent.search');
         Route::post('store-clicked-route', 'SearchRoutingController@storeClickedRoute')->name('store.clicked.route');
@@ -44,6 +49,7 @@ Route::group(['namespace' => 'Vendor', 'as' => 'vendor.'], function () {
             Route::post('/store-reply/{id}', 'ReviewController@update_reply')->name('review-reply');
         });
         Route::get('site_direction', 'BusinessSettingsController@site_direction_vendor')->name('site_direction');
+
 
 
         Route::group(['prefix' => 'pos', 'as' => 'pos.'], function () {
@@ -177,7 +183,7 @@ Route::group(['namespace' => 'Vendor', 'as' => 'vendor.'], function () {
 
 
             Route::get('flash-sale', 'ItemController@flash_sale')->name('flash_sale');
- 
+
 
             Route::post('voucher-availability-toggle/{id}', 'ItemController@toggleVoucherAvailability')->name('voucher.availability.toggle');
 
@@ -210,7 +216,9 @@ Route::group(['namespace' => 'Vendor', 'as' => 'vendor.'], function () {
             Route::get('all/store-balances', 'WalletController@all_store_balances')->name('all.balances');
             Route::post('request', 'WalletController@w_request')->name('withdraw-request');
             Route::post('all/request', 'WalletController@w_all_request')->name('all.withdraw-request');
+            Route::get('under-review-completed/{id}', 'WalletController@under_review_completed')->name('under-review-completed');
             Route::delete('close/{id}', 'WalletController@close_request')->name('close-request');
+            Route::post('method-store', 'WalletController@method_store')->name('method-store');
             Route::get('method-list', 'WalletController@method_list')->name('method-list');
             Route::post('make-collected-cash-payment', 'WalletController@make_payment')->name('make_payment');
             Route::post('make-wallet-adjustment', 'WalletController@make_wallet_adjustment')->name('make_wallet_adjustment');
@@ -345,6 +353,10 @@ Route::group(['namespace' => 'Vendor', 'as' => 'vendor.'], function () {
         });
 
         Route::group(['prefix' => 'report', 'as' => 'report.'], function () {
+            Route::get('day-wise-report', 'ReportController@day_wise_report')->name('day-wise-report');
+            Route::post('day-wise-report-search', 'ReportController@day_search')->name('day-wise-report-search');
+            Route::get('day-wise-report-export', 'ReportController@day_wise_export')->name('day-wise-report-export');
+
             Route::post('set-date', 'ReportController@set_date')->name('set-date');
             Route::group(['middleware' => ['module:expense_report', 'subscription:expense_report']], function () {
                 Route::get('expense-report', 'ReportController@expense_report')->name('expense-report');
@@ -361,3 +373,5 @@ Route::group(['namespace' => 'Vendor', 'as' => 'vendor.'], function () {
         });
     });
 });
+
+

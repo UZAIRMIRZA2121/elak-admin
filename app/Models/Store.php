@@ -966,5 +966,10 @@ class Store extends Model
         return $this->hasOne(VoucherAvailability::class, 'store_id', 'id')
             ->where('voucher_id', $voucherId);
     }
+
+    public function paymentMethod()
+    {
+        return $this->hasOne(StorePaymentMethod::class, 'store_id'); // optional if needed on store table
+    }
 }
 

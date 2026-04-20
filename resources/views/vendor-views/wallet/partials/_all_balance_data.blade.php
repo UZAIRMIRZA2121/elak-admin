@@ -13,13 +13,10 @@
     $pending_withdraw = $wallets->sum('pending_withdraw');
     $total_withdrawn = $wallets->sum('total_withdrawn');
     $total_earning = $wallets->sum('total_earning');
-
-    $total_balance =  $total_earning - ($total_withdrawn + $pending_withdraw);
-
+    
+    $total_balance = $total_earning - ($total_withdrawn + $pending_withdraw);
     
     $wallet_earning = round($total_earning - ($total_withdrawn + $pending_withdraw), 8);
-    
-
     
     $digital_payment = App\CentralLogics\Helpers::get_business_settings('digital_payment');
     $digital_payment = $digital_payment['status'];
@@ -29,13 +26,12 @@
 
 
 
-    <!-- Store Wallet Balance -->
+
+
     <div class="col-md-12">
         <div class="row g-3">
-        
-
             <!-- Earnings (Monthly) Card Example -->
-            <div class="col-sm-{{ isset($col_size) == true ? '3' : '4' }}">
+              <div class="col-sm-3">
                 <div class="resturant-card shadow--card-2">
                     <h4 class="title">
                         {{ \App\CentralLogics\Helpers::format_currency($total_balance > 0 ? $total_balance : 0) }}
@@ -45,67 +41,10 @@
                         src="{{ asset('/public/assets/admin/img/transactions/image_w_balance.png') }}" alt="public">
                 </div>
             </div>
-            <!-- Pending Requests Card Example -->
-            <div class="col-sm-{{ isset($col_size) == true ? '6' : '4' }}">
-                <div class="resturant-card shadow--card-2">
-                    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
-                        <div>
-
-                            @if ($total_balance > 0)
-                                <h4 class="title">
-                                    {{ \App\CentralLogics\Helpers::format_currency(abs($wallet_earning)) }}</h4>
 
 
-                                @if ($total_balance == $wallet_earning)
-                                    <span class="subtitle">{{ translate('messages.Withdrawable_Balance') }}</span>
-                                @else
-                                    <span class="subtitle">{{ translate('messages.Balance') }}
-                                        <small>{{ translate('Unadjusted') }} </small>
-                                    </span>
-                                @endif
-                            @endif
-
-
-                        </div>
-
-                        @if ($total_balance > 0)
-                            <div class="d-flex gap-2 flex-wrap">
-                                @if ($disbursement_type == 'manual')
-                                    <a href="javascript:"
-                                        @if (count($withdrawal_methods) !== 0) class="btn btn--primary d-flex gap-1 align-items-center text-nowrap"
-                                       data-toggle="modal" data-target="#balance-modal"
-                                        @else
-                                            class="btn btn--primary d-flex gap-1 align-items-center text-nowrap withdrawal-methods-disable"
-                                        data-message="{{ translate('Withdraw_methods_are_not_available') }}" @endif>{{ translate('messages.request_withdraw') }}
-
-                                        <span class="form-label-secondary  d-flex" data-toggle="tooltip"
-                                            data-placement="right"
-                                            data-original-title="{{ translate('As_you_have_more_‘Withdrawable_Balance’_than_‘Cash_in_Hand’,_you_need_to_request_for_withdrawal_from_Admin') }}">
-                                            <i class="tio-info-outined"> </i> </span>
-                                    </a>
-                                @endif
-                            </div>
-                        @elseif($total_balance < 0)
-                            <div class="d-flex gap-2 flex-wrap">
-
-                            
-
-                           
-                            </div>
-                        @endif
-
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-
-
-    <div class="col-md-12">
-        <div class="row g-3">
             <!-- Panding Withdraw Card Example -->
-            <div class="col-sm-4">
+            <div class="col-sm-3">
                 <div class="resturant-card  bg--3">
                     <h4 class="title">{{ \App\CentralLogics\Helpers::format_currency($pending_withdraw) }}
                     </h4>
@@ -116,7 +55,7 @@
             </div>
 
             <!-- Earnings (Monthly) Card Example -->
-            <div class="col-sm-4">
+            <div class="col-sm-3">
                 <div class="resturant-card  bg--2">
                     <h4 class="title">{{ \App\CentralLogics\Helpers::format_currency($total_withdrawn) }}</h4>
                     <span class="subtitle">{{ translate('messages.Total_Withdrawn') }}</span>
@@ -127,7 +66,7 @@
 
 
             <!-- Pending Requests Card Example -->
-            <div class="col-sm-4">
+            <div class="col-sm-3">
                 <div class="resturant-card  bg--1">
                     <h4 class="title">{{ \App\CentralLogics\Helpers::format_currency($total_earning) }}</h4>
                     <span class="subtitle">{{ translate('messages.total_earning') }}</span>
@@ -154,8 +93,8 @@
             </div>
 
             <form id="withdraw_form" action="{{ route('vendor.wallet.all.withdraw-request') }}" method="post">
-                <input type="text" name="vendor_ids" value="{{$vendorIds}}">
-          
+                <input type="text" name="vendor_ids" value="{{ $vendorIds }}">
+
                 <div class="modal-body">
                     @csrf
                     <div class="">

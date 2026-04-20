@@ -60,7 +60,8 @@ class ItemController extends Controller
 
         $items = ProductLogic::get_latest_products($zone_id, $request['limit'], $request['offset'], $request['store_id'], $request['category_id'], $type, $min, $max, $product_id, $filter, $rating_count);
         $items['categories'] = $items['categories'];
-        $items['products'] = Helpers::product_data_formatting($items['products'], true, false, app()->getLocale());
+        $user_id =  $request->header('userId') ?? null;
+        $items['products'] = Helpers::product_data_formatting($items['products'], true, false, app()->getLocale() ,false, $user_id);
         return response()->json($items, 200);
     }
 
