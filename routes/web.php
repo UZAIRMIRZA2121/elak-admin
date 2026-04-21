@@ -19,6 +19,7 @@ use App\Http\Controllers\SslCommerzPaymentController;
 use App\Http\Controllers\VoucherController as UserVoucherController;
 use App\Http\Controllers\ClientSideController;
 use Illuminate\Support\Facades\Http;
+use App\Http\Controllers\CyberSourceController;
 
 /*
 |--------------------------------------------------------------------------
@@ -31,8 +32,11 @@ use Illuminate\Support\Facades\Http;
 |
 */
 
+Route::get('/payment', function () {
+    return view('payment');
+});
 
-
+Route::post('/cybersource-test', [CyberSourceController::class, 'testPayment']);
 Route::get('/voucher/{qr_code}/download', [UserVoucherController::class, 'downloadVoucher'])->name('voucher.download');
 Route::get('/share-voucher/{qr_code}', [UserVoucherController::class, 'shareVoucher'])->name('voucher.share');
 

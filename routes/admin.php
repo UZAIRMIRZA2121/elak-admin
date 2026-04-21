@@ -718,7 +718,7 @@ Route::group(['namespace' => 'Admin', 'as' => 'admin.'], function () {
                 Route::post('/image-upload', 'FileManagerController@upload')->name('image-upload');
                 Route::delete('/delete/{file_path}', 'FileManagerController@destroy')->name('destroy');
             });
-
+            
             // Route::group(['prefix' => 'external-system', 'as' => 'external-system.'], function () {
             //     Route::get('drivemond-configuration', 'ExternalConfigurationController@index')->name('drivemond-configuration');
             //     Route::post('update-drivemond-configuration', 'ExternalConfigurationController@updateDrivemondConfiguration')->name('update-drivemond-configuration');

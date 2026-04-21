@@ -23,7 +23,7 @@ class NotificationController extends Controller
         $zone_id= json_decode($zone_id,true)  ?? [];
 
         try {
-            $notifications = Notification::active()->where('tergat', 'customer')->where(function($q)use($zone_id){
+            $notifications = Notification::with(['voucher:id,name,description,image'])->active()->where('tergat', 'customer')->where(function($q)use($zone_id){
                 $q->whereNull('zone_id')->orWhereIn('zone_id', $zone_id);
             })->where('updated_at', '>=', \Carbon\Carbon::today()->subDays(15))->get();
             $notifications->append('data');

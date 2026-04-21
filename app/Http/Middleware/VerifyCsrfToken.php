@@ -12,8 +12,25 @@ class VerifyCsrfToken extends Middleware
      * @var array
      */
     protected $except = [
-        '/external-login-from-drivemond','/api/v1/customer/external-update-data',
-            'api/v1/vendor/orderscan-update',
-        '/api/v1/get-customer','/payment*','/pay-via-ajax', '/success','/cancel','/fail','/ipn','/payment-razor/*','/paytm-response','/liqpay-callback','/paytm-response','/mercadopago/make-payment','/flutterwave-pay','/paytabs-response','/vendor-panel/item/food-variation-generate','/vendor-panel/item/variation-generate'
+        '/external-login-from-drivemond',
+        '/api/v1/customer/external-update-data',
+        '/cybersource-test',
+        'api/v1/vendor/orderscan-update',
+        '/api/v1/get-customer',
+        '/payment*',
+        '/pay-via-ajax',
+        '/success',
+        '/cancel',
+        '/fail',
+        '/ipn',
+        '/payment-razor/*',
+        '/paytm-response',
+        '/liqpay-callback',
+        '/paytm-response',
+        '/mercadopago/make-payment',
+        '/flutterwave-pay',
+        '/paytabs-response',
+        '/vendor-panel/item/food-variation-generate',
+        '/vendor-panel/item/variation-generate'
     ];
 }

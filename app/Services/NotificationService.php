@@ -22,6 +22,9 @@ class NotificationService
             'tergat' => $request->tergat,
             'status' => 1,
             'zone_id' => $request->zone=='all'?null:$request->zone,
+            'notification_link' => $request->notification_link ?? null,
+            'voucher_id' => $request->voucher_id ?? null,
+
         ];
     }
     public function getUpdateData(Object $request, object $notification): array

@@ -9,6 +9,7 @@ use App\Http\Controllers\AuthController;
 use App\WebSockets\Handler\DMLocationSocketHandler;
 use BeyondCode\LaravelWebSockets\Facades\WebSocketsRouter;
 use App\Http\Controllers\Api\V1\CartController;
+
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -19,6 +20,7 @@ use App\Http\Controllers\Api\V1\CartController;
 | is assigned the "api" middleware group. Enjoy building your API!
 |
 */
+
 
 
 Route::post('/check-ref-id', [AuthController::class, 'checkRefId']);

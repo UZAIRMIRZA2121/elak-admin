@@ -522,12 +522,62 @@ class HomeController extends Controller
         $processingOrders = $orders->where('order_status', 'processing');
 
         foreach ($activeOrders as $order) {
-            // echo "Order ID: {$order->id}, Expire At: {$order->expire_at}, Current Time: " . Carbon::now() . "\n";
+            // echo "Order ID: {$order->id}, Expire At: {$order->expire_at}, Current Time: " . Carbon::now() . "<br>";
+
+
+
+            if ($order->expire_at) {
+
+                $expiryDate = Carbon::parse($order->expire_at)->startOfDay();
+                $today = Carbon::today();
+
+                $daysLeft = $today->diffInDays($expiryDate, false);
+
+            
+                if (in_array($daysLeft, [1, 2])) {
+
+                    // prevent duplicate (same day)
+                    $alreadySentToday = DB::table('user_notifications')
+                        ->where('user_id', $order->user_id)
+                        ->whereDate('created_at', Carbon::today())
+                        ->where('data->order_id', $order->id)
+                        ->where('data->type', 'voucher_expiry')
+                        ->exists();
+
+                    if ($alreadySentToday) {
+                        continue;
+                    }
+
+                    $message = $daysLeft == 1
+                        ? "Your voucher will expire tomorrow."
+                        : "Your voucher will expire in 2 days.";
+
+                    $data = [
+                        'title' => 'Voucher Expiry Reminder',
+                        'description' => $message,
+                        'order_id' => $order->id,
+                        'expiry_date' => $order->expire_at,
+                        'image' => '',
+                        'type' => 'voucher_expiry',
+                    ];
+
+                    DB::table('user_notifications')->insert([
+                        'data' => json_encode($data),
+                        'user_id' => $order->user_id,
+                        'created_at' => now(),
+                        'updated_at' => now()
+                    ]);
+                }
+            }
             if ($order->expire_at && Carbon::now()->greaterThanOrEqualTo(Carbon::parse($order->expire_at))) {
+
                 $order->order_status = 'expired';
                 $order->save();
             }
+
         }
+     
+
 
         foreach ($processingOrders as $order) {
 
@@ -583,8 +633,6 @@ class HomeController extends Controller
             }
 
         }
-
-
 
         $all_stores = \App\Models\Store::with('vendor', 'paymentMethod')->get();
         // ✅ Only run on 1th

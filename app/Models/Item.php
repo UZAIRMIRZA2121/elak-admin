@@ -1008,4 +1008,8 @@ class Item extends Model
         return $this->hasMany(SoldVoucher::class, 'voucher_id');
     }
 
+    public function notifications()
+    {
+        return $this->hasMany(Notification::class, 'voucher_id');
+    }
 }

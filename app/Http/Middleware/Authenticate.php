@@ -14,7 +14,7 @@ class Authenticate extends Middleware
      */
     protected function redirectTo($request)
     {
-        dd($request->all());
+
         if($request->is('api/*')) {
             return route('authentication-failed');
         }

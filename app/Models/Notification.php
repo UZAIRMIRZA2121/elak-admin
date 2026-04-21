@@ -56,11 +56,11 @@ class Notification extends Model
     public function getDataAttribute(): array
     {
         return [
-            "title"=> $this->title,
-            "description"=> $this->description,
-            "order_id"=> "",
-            "image"=> $this->image,
-            "type"=> "push_notification"
+            "title" => $this->title,
+            "description" => $this->description,
+            "order_id" => "",
+            "image" => $this->image,
+            "type" => "push_notification"
         ];
     }
 
@@ -87,20 +87,21 @@ class Notification extends Model
      */
     public function getCreatedAtAttribute($value): string
     {
-        return date('Y-m-d H:i:s',strtotime($value));
+        return date('Y-m-d H:i:s', strtotime($value));
     }
 
-    public function getImageFullUrlAttribute(){
+    public function getImageFullUrlAttribute()
+    {
         $value = $this->image;
         if (count($this->storage) > 0) {
             foreach ($this->storage as $storage) {
                 if ($storage['key'] == 'image') {
-                    return Helpers::get_full_url('notification',$value,$storage['value']);
+                    return Helpers::get_full_url('notification', $value, $storage['value']);
                 }
             }
         }
 
-        return Helpers::get_full_url('notification',$value,'public');
+        return Helpers::get_full_url('notification', $value, 'public');
     }
 
     public function storage()
@@ -118,11 +119,17 @@ class Notification extends Model
         });
         static::addGlobalScope(new ZoneScope);
     }
+
+    public function voucher()
+    {
+        return $this->belongsTo(Item::class, 'voucher_id')
+            ->select('id', 'name', 'description', 'image');
+    }
     protected static function boot()
     {
         parent::boot();
         static::saved(function ($model) {
-            if($model->isDirty('image')){
+            if ($model->isDirty('image')) {
                 $value = Helpers::getDisk();
 
                 DB::table('storages')->updateOrInsert([

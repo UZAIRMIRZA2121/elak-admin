@@ -10,6 +10,7 @@ use App\Exports\PushNotificationExport;
 use App\Http\Controllers\BaseController;
 use App\Http\Requests\Admin\NotificationAddRequest;
 use App\Http\Requests\Admin\NotificationUpdateRequest;
+use App\Models\Item;
 use App\Services\NotificationService;
 use App\Traits\NotificationTrait;
 use Carbon\Carbon;
@@ -37,7 +38,7 @@ class NotificationController extends BaseController
 
     public function index(?Request $request): View|Collection|LengthAwarePaginator|null
     {
-       
+      
         return $this->getAddView($request);
     }
 
@@ -48,11 +49,16 @@ class NotificationController extends BaseController
             dataLimit: config('default_pagination'),
         );
         $zones = $this->zoneRepo->getList();
-        return view(NotificationViewPath::INDEX[VIEW], compact('notifications','zones'));
+
+        $all_voucher = Item::where('type', 'voucher')->get();
+
+
+        return view(NotificationViewPath::INDEX[VIEW], compact('notifications','zones','all_voucher'));
     }
 
     public function add(NotificationAddRequest $request): JsonResponse
     {
+       
         $notification = $this->notificationRepo->add(data: $this->notificationService->getAddData(request: $request));
         $topic = $this->notificationService->getTopic(request: $request);
         $notification->image = $notification->image ? $notification->toArray()['image_full_url'] :'';
@@ -61,10 +67,10 @@ class NotificationController extends BaseController
             $this->sendPushNotificationToTopic($notification, $topic, 'push_notification');
          
         } catch (Exception) {
-            dd(123);
+          
             Toastr::warning(translate('messages.push_notification_failed'));
         }
-
+   
         return response()->json();
     }
 

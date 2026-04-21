@@ -18,7 +18,7 @@
         "doctrine/dbal": "^3.3",
         "firebase/php-jwt": "^6.4",
         "gregwar/captcha": "^1.1",
-        "guzzlehttp/guzzle": "^7.0.1",
+        "guzzlehttp/guzzle": "^7.9",
         "intervention/image": "^2.5",
         "iyzico/iyzipay-php": "^2.0",
         "kreait/firebase-php": "^7.12",

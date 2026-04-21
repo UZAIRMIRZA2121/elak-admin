@@ -7596,6 +7596,7 @@ class BusinessSettingsController extends Controller
 
     public function notification_setup(Request $request)
     {
+   
 
         abort_if(!addon_published_status('Rental') && $request?->module == 'rental',404 );
 
