@@ -8648,4 +8648,5 @@ Smartly or Earn. ',
   'https://www.zevo.info' => 'Https://www.zevo.info',
   'link_not_found' => 'Link not found',
   'احصل على خصم مميز' => 'احصل على خصم مميز',
+  'Viza commission' => 'Viza commission',
 );

@@ -317,19 +317,7 @@ $total_discount = 0.0;
                                     // ->sum(DB::raw('order_amount - original_delivery_charge'));
                                     ->sum(DB::raw('order_amount - delivery_charge - dm_tips'));
                             @endphp
-                            <a class="__card-3 h-100" href="#">
-                                <img src="{{ asset('/public/assets/admin/img/report/new/trx3.png') }}" class="icon"
-                                    alt="report/new">
-                                <h3 class="title text-FF5A54">
-                                    {{ \App\CentralLogics\Helpers::number_format_short($canceled) }}
-                                </h3>
-                                <h6 class="subtitle">{{ translate('Refunded Transaction') }}</h6>
-                                <div class="info-icon" data-toggle="tooltip" data-placement="top"
-                                    data-original-title="{{ translate('If the order is successfully refunded, the full order amount goes to this section without the delivery fee and delivery tips.') }}">
-                                    <img src="{{ asset('/public/assets/admin/img/report/new/info3.png') }}"
-                                        alt="report/new">
-                                </div>
-                            </a>
+                          
                         </div>
                     </div>
                 </div>
@@ -341,7 +329,7 @@ $total_discount = 0.0;
                                     <img class="img"
                                         src="{{ asset('/public/assets/admin/img/report/new/admin-earning.png') }}"
                                         alt="">
-                                    <h4 class="name">{{ translate('Admin Earning') }}</h4>
+                                    <h4 class="name">{{ translate('Viza commission') }}</h4>
                                     <div class="info-icon" data-toggle="tooltip" data-placement="right"
                                         data-original-title="{{ translate('Deducting the admin discount from the admin earning amount and goes to this section.') }}">
                                         <img src="{{ asset('/public/assets/admin/img/report/new/info1.png') }}"
@@ -386,41 +374,7 @@ $total_discount = 0.0;
                                     {{ \App\CentralLogics\Helpers::number_format_short($total_discount) }}</h4>
                             </div>
                         </div>
-                        <div class="col-md-6">
-                            <div class="__card-vertical">
-                                <div class="__card-vertical-img">
-                                    <img class="img"
-                                        src="{{ asset('/public/assets/admin/img/report/new/admin-earning.png') }}"
-                                        alt="">
-                                    <h4 class="name">{{ translate('Direct Discount') }}</h4>
-                                    <div class="info-icon" data-toggle="tooltip" data-placement="right"
-                                        data-original-title="{{ translate('Deducting the admin discount from the admin earning amount and goes to this section.') }}">
-                                        <img src="{{ asset('/public/assets/admin/img/report/new/info1.png') }}"
-                                            alt="report/new">
-                                    </div>
-                                </div>
-                                <h4 class="earning text-0661CB">
-                                    {{ \App\CentralLogics\Helpers::number_format_short($total_direct_discount) }}</h4>
-                            </div>
-                        </div>
-
-                        <div class="col-md-6">
-                            <div class="__card-vertical">
-                                <div class="__card-vertical-img">
-                                    <img class="img"
-                                        src="{{ asset('/public/assets/admin/img/report/new/deliveryman-earning.png') }}"
-                                        alt="">
-                                    <h4 class="name">{{ translate('Cash Back') }}</h4>
-                                    <div class="info-icon" data-toggle="tooltip" data-placement="right"
-                                        data-original-title="{{ translate('Deducting the admin commission on the delivery fee, the delivery fee & tips amount goes to earning section.') }}">
-                                        <img src="{{ asset('/public/assets/admin/img/report/new/info3.png') }}"
-                                            alt="report/new">
-                                    </div>
-                                </div>
-                                <h4 class="earning text-FF7500">
-                                    {{ \App\CentralLogics\Helpers::number_format_short($total_cash_back) }}</h4>
-                            </div>
-                        </div>
+                
                     </div>
                 </div>
             </div>
@@ -509,15 +463,16 @@ $total_discount = 0.0;
                         </thead>
                         <tbody id="set-rows">
                             @foreach ($order_transactions as $k => $ot)
+                              @if (!$ot->status)
                                 <tr scope="row">
                                     <td>{{ $k + $order_transactions->firstItem() }}</td>
                                     @if ($ot->order->order_type == 'parcel')
                                         <td><a
-                                                href="{{ route('admin.transactions.parcel.order.details', $ot->order_id) }}">{{ $ot->order_id }}</a>
+                                                href="{{ route('vendor.order.details', ['id' => $ot['order_id']]) }}">{{ $ot->order_id }}</a>
                                         </td>
                                     @else
                                         <td><a
-                                                href="{{ route('admin.transactions.order.details', $ot->order_id) }}">{{ $ot->order_id }}</a>
+                                                href="{{ route('vendor.order.details', ['id' => $ot['order_id']]) }}">{{ $ot->order_id }}</a>
                                         </td>
                                     @endif
                                     <td class="text-capitalize">
@@ -530,10 +485,9 @@ $total_discount = 0.0;
                                     </td>
                                     <td class="white-space-nowrap">
                                         @if ($ot->order->customer)
-                                            <a class="text-body text-capitalize"
-                                                href="{{ route('admin.users.customer.view', [$ot->order['user_id']]) }}">
+                                        
                                                 <strong>{{ $ot->order->customer['f_name'] . ' ' . $ot->order->customer['l_name'] }}</strong>
-                                            </a>
+                                           
                                         @else
                                             <label
                                                 class="badge badge-danger">{{ translate('messages.invalid_customer_data') }}</label>
@@ -590,6 +544,7 @@ $total_discount = 0.0;
                                         </div>
                                     </td>
                                 </tr>
+                                @endif
                             @endforeach
                         </tbody>
                     </table>

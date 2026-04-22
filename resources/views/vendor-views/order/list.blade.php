@@ -251,6 +251,7 @@
                     </thead>
                     <tbody id="set-rows">
                         @foreach ($orders as $key => $order)
+                        @if ($order['order_status'] != 'refunded' || $order['order_status'] != 'refund_request'|| $order['order_status'] != 'active' || $order['order_status'] != 'canceled')
                             <tr class="status-{{ $order['order_status'] }} class-all">
                                 <td class="">
                                     {{ $key + $orders->firstItem() }}
@@ -416,6 +417,7 @@
                                     </div>
                                 </td>
                             </tr>
+                               @endif
                         @endforeach
                     </tbody>
                 </table>
