@@ -10,7 +10,10 @@ use App\Exports\PushNotificationExport;
 use App\Http\Controllers\BaseController;
 use App\Http\Requests\Admin\NotificationAddRequest;
 use App\Http\Requests\Admin\NotificationUpdateRequest;
+use App\Models\Client;
 use App\Models\Item;
+use App\Models\Segment;
+use App\Models\Store;
 use App\Services\NotificationService;
 use App\Traits\NotificationTrait;
 use Carbon\Carbon;
@@ -32,13 +35,12 @@ class NotificationController extends BaseController
         protected NotificationRepositoryInterface $notificationRepo,
         protected NotificationService $notificationService,
         protected ZoneRepositoryInterface $zoneRepo
-    )
-    {
+    ) {
     }
 
     public function index(?Request $request): View|Collection|LengthAwarePaginator|null
     {
-      
+
         return $this->getAddView($request);
     }
 
@@ -50,45 +52,46 @@ class NotificationController extends BaseController
         );
         $zones = $this->zoneRepo->getList();
 
-        $all_voucher = Item::where('type', 'voucher')->get();
+        $clients = Client::all();
+        $stores = Store::all();
 
-
-        return view(NotificationViewPath::INDEX[VIEW], compact('notifications','zones','all_voucher'));
+        return view(NotificationViewPath::INDEX[VIEW], compact('notifications', 'zones',  'clients', 'stores'));
     }
 
     public function add(NotificationAddRequest $request): JsonResponse
     {
-       
+
         $notification = $this->notificationRepo->add(data: $this->notificationService->getAddData(request: $request));
         $topic = $this->notificationService->getTopic(request: $request);
-        $notification->image = $notification->image ? $notification->toArray()['image_full_url'] :'';
-        
+        $notification->image = $notification->image ? $notification->toArray()['image_full_url'] : '';
+
         try {
             $this->sendPushNotificationToTopic($notification, $topic, 'push_notification');
-         
+
         } catch (Exception) {
-          
+
             Toastr::warning(translate('messages.push_notification_failed'));
         }
-   
+
         return response()->json();
     }
+
 
     public function getUpdateView(string|int $id): View
     {
         $notification = $this->notificationRepo->getFirstWhere(params: ['id' => $id]);
         $zones = $this->zoneRepo->getList();
-        return view(NotificationViewPath::UPDATE[VIEW], compact('notification','zones'));
+        return view(NotificationViewPath::UPDATE[VIEW], compact('notification', 'zones'));
     }
 
     public function update(NotificationUpdateRequest $request, $id): RedirectResponse
     {
         $notification = $this->notificationRepo->getFirstWhere(params: ['id' => $id]);
-        $notification = $this->notificationRepo->update(id: $id ,data: $this->notificationService->getUpdateData(request: $request,notification: $notification));
+        $notification = $this->notificationRepo->update(id: $id, data: $this->notificationService->getUpdateData(request: $request, notification: $notification));
 
         $topic = $this->notificationService->getTopic(request: $request);
         $notification = $this->notificationRepo->getFirstWhere(params: ['id' => $id]);
-        $notification->image = $notification->image ? $notification->toArray()['image_full_url'] :'';
+        $notification->image = $notification->image ? $notification->toArray()['image_full_url'] : '';
 
         try {
             $this->sendPushNotificationToTopic($notification, $topic, 'push_notification');
@@ -102,7 +105,7 @@ class NotificationController extends BaseController
 
     public function updateStatus(Request $request): RedirectResponse
     {
-        $this->notificationRepo->update(id: $request['id'] ,data: ['status'=>$request['status']]);
+        $this->notificationRepo->update(id: $request['id'], data: ['status' => $request['status']]);
         Toastr::success(translate('messages.notification_status_updated'));
         return back();
     }
@@ -117,13 +120,25 @@ class NotificationController extends BaseController
     public function exportList(Request $request): BinaryFileResponse
     {
         $notifications = $this->notificationRepo->getExportList($request);
-        $data=[
-            'data' =>$notifications,
-            'search' =>$request['search'] ?? null
+        $data = [
+            'data' => $notifications,
+            'search' => $request['search'] ?? null
         ];
-        if($request['type'] == 'csv'){
+        if ($request['type'] == 'csv') {
             return Excel::download(new PushNotificationExport($data), Notification::EXPORT_CSV);
         }
         return Excel::download(new PushNotificationExport($data), Notification::EXPORT_XLSX);
+    }
+    public function getClientSegments(Request $request)
+    {
+        $segments = Segment::where('client_id', $request->client_id)->where('status', 'active')->get();
+
+        return response()->json($segments);
+    }
+    public function getStoreVouchers(Request $request)
+    {
+        $vouchers = Item::where('type', 'voucher')->where('store_id', $request->store_id)->get();
+
+        return response()->json($vouchers);
     }
 }

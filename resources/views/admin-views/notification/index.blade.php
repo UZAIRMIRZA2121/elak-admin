@@ -26,19 +26,41 @@
                         <form action="{{ route('admin.notification.store') }}" method="post" enctype="multipart/form-data"
                             id="notification">
                             @csrf
+                            <input type="hidden" name="tergat" class="form-control" value="customer">
                             <div class="row gy-3">
                                 <div class="col-lg-6">
                                     <div class="row g-2">
-                                        <div class="col-6">
+                                        <div class="col-4">
                                             <div class="form-group mb-0">
-                                                <label class="input-label"
-                                                    for="exampleFormControlInput1">{{ translate('messages.title') }}</label>
-                                                <input type="text" name="notification_title" class="form-control"
-                                                    placeholder="{{ translate('messages.new_notification') }}" required
-                                                    maxlength="191">
+                                                <label class="input-label">
+                                                    {{ translate('messages.clients') }}
+                                                </label>
+
+                                                <select name="client_id" id="client_id" class="form-control">
+                                                    <option value="">
+                                                        {{ translate('messages.select_client') }}
+                                                    </option>
+
+                                                    @foreach ($clients as $client)
+                                                        <option value="{{ $client->id }}">
+                                                            {{ $client->name }}
+                                                        </option>
+                                                    @endforeach
+                                                </select>
                                             </div>
                                         </div>
-                                        <div class="col-6">
+
+                                        <!-- Segment Dropdown -->
+                                        <div class="col-4">
+                                            <div class="form-group mb-0">
+                                                <label class="input-label">Segments</label>
+
+                                                <select name="segment_id" id="segment_id" class="form-control">
+                                                    <option value="">Select Segment</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="col-4">
                                             <div class="form-group mb-0">
                                                 <label class="input-label"
                                                     for="exampleFormControlInput1">{{ translate('messages.zone') }}</label>
@@ -51,34 +73,67 @@
                                                 </select>
                                             </div>
                                         </div>
-                                        <div class="col-6">
-                                            <div class="form-group mb-0">
-                                                <label class="input-label"
-                                                    for="tergat">{{ translate('messages.send_to') }}</label>
-
-                                                <select name="tergat" class="form-control" id="tergat"
-                                                    data-placeholder="{{ translate('messages.select_tergat') }}" required>
-                                                    <option value="customer">{{ translate('messages.customer') }}</option>
-                                                    {{-- <option value="deliveryman">{{translate('messages.deliveryman')}}</option> --}}
-                                                    <option value="store">{{ translate('messages.store') }}</option>
-                                                </select>
-                                            </div>
-                                        </div>
-                                        <div class="col-6">
-                                            <div class="form-group mb-0">
-                                                <label class="input-label"
-                                                    for="voucher_id">{{ translate('messages.vouchers') }}</label>
-                                                <select name="voucher_id" class="form-control" id=""
-                                                    data-placeholder="{{ translate('messages.select_voucher_id') }}">
-                                                    <option value="">{{ translate('messages.select_voucher') }}
-                                                    </option>
-                                                    @foreach ($all_voucher as $voucher)
-                                                        <option value="{{ $voucher->id }}">{{ $voucher->name }}</option>
-                                                    @endforeach
-                                                </select>
-                                            </div>
-                                        </div>
                                         <div class="col-12">
+                                            <div class="form-group mb-0">
+                                                <label class="input-label"
+                                                    for="exampleFormControlInput1">{{ translate('messages.title') }}</label>
+                                                <input type="text" name="notification_title" class="form-control"
+                                                    placeholder="{{ translate('messages.new_notification') }}" required
+                                                    maxlength="191">
+                                            </div>
+                                        </div>
+
+                                        <div class="col-12">
+                                            <div class="form-group mb-0">
+                                                <label class="input-label"
+                                                    for="exampleFormControlInput1">{{ translate('messages.description') }}</label>
+                                                <textarea name="description" class="form-control" maxlength="1000" required></textarea>
+                                            </div>
+                                        </div>
+                                        <div class="col-12 mb-3">
+                                            <label class="input-label d-block">Type</label>
+
+                                            <label class="mr-3">
+                                                <input type="radio" name="type" value="normal" checked> Normal
+                                            </label>
+
+                                            <label>
+                                                <input type="radio" name="type" value="voucher"> Voucher
+                                            </label>
+                                        </div>
+
+                                    
+                                            <div class="col-6" id="voucher_section_store" style="display: none;">
+                                                <div class="form-group mb-0">
+                                                    <label class="input-label">
+                                                        {{ translate('messages.store') }}
+                                                    </label>
+
+                                                    <select name="store_id" id="store_id" class="form-control">
+                                                        <option value="">{{ translate('messages.select_store') }}
+                                                        </option>
+
+                                                        @foreach ($stores as $store)
+                                                            <option value="{{ $store->id }}">{{ $store->name }}
+                                                            </option>
+                                                        @endforeach
+                                                    </select>
+                                                </div>
+                                            </div>
+
+                                            <!-- Voucher Dropdown -->
+                                            <div class="col-6" id="voucher_section_id" style="display: none;">
+                                                <div class="form-group mb-0">
+                                                    <label class="input-label">Vouchers</label>
+
+                                                    <select name="voucher_id" id="voucher_id" class="form-control" disabled>
+                                                        <option value="">Select Voucher</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                     
+
+                                        <div class="col-12"  id="normal_section_link">
                                             <div class="form-group mb-0">
                                                 <label class="input-label"
                                                     for="exampleFormControlInput1">{{ translate('messages.link') }}</label>
@@ -87,16 +142,9 @@
                                                     maxlength="191">
                                             </div>
                                         </div>
-                                        <div class="col-12">
-                                            <div class="form-group mb-0">
-                                                <label class="input-label"
-                                                    for="exampleFormControlInput1">{{ translate('messages.description') }}</label>
-                                                <textarea name="description" class="form-control" maxlength="1000" required></textarea>
-                                            </div>
-                                        </div>
                                     </div>
                                 </div>
-                                <div class="col-lg-6">
+                                <div class="col-lg-6" id="normal_section_img">
                                     <div class="h-100 d-flex flex-column">
                                         <label class="d-block text-center mt-auto mb-0">
                                             {{ translate('messages.image') }}
@@ -250,7 +298,7 @@
                                         <td class="text-uppercase">
                                             {{ translate($notification->voucher->name ?? 'messages.voucher_not_found') }}
                                         </td>
-                                        <td >
+                                        <td>
                                             @if ($notification->notification_link)
                                                 <a href="{{ $notification->notification_link }}" target="_blank"
                                                     rel="noopener noreferrer">
@@ -275,11 +323,11 @@
                                         </td>
                                         <td>
                                             <div class="btn--container justify-content-center">
-                                                <a class="btn action-btn btn--primary btn-outline-primary"
+                                                {{-- <a class="btn action-btn btn--primary btn-outline-primary"
                                                     href="{{ route('admin.notification.edit', [$notification['id']]) }}"
                                                     title="{{ translate('messages.edit_notification') }}"><i
                                                         class="tio-edit"></i>
-                                                </a>
+                                                </a> --}}
                                                 <a class="btn action-btn btn--danger btn-outline-danger form-alert"
                                                     href="javascript:" data-id="notification-{{ $notification['id'] }}"
                                                     data-message="{{ translate('Want to delete this notification ?') }}"
@@ -383,4 +431,158 @@
             $('#customFileEg1').val(null);
         })
     </script>
+
+    <script>
+        $(document).ready(function() {
+
+            $('#client_id').on('change', function() {
+
+                let client_id = $(this).val();
+
+                // disable + reset
+                $('#segment_id')
+                    .prop('disabled', true)
+                    .html('<option value="">Loading...</option>');
+
+                if (client_id) {
+
+                    $.ajax({
+                        url: "{{ route('admin.notification.get-segments') }}",
+                        type: 'GET',
+                        data: {
+                            client_id: client_id
+                        },
+
+                        success: function(response) {
+
+                            $('#segment_id').empty();
+                            $('#segment_id').append('<option value="">Select Segment</option>');
+
+                            $.each(response, function(key, segment) {
+                                $('#segment_id').append(
+                                    `<option value="${segment.id}">${segment.name}</option>`
+                                );
+                            });
+
+                            // enable after success
+                            $('#segment_id').prop('disabled', false);
+                        },
+
+                        error: function() {
+                            // agar error aaye to bhi enable karo
+                            $('#segment_id')
+                                .prop('disabled', false)
+                                .html('<option value="">Failed to load</option>');
+                        }
+                    });
+
+                } else {
+                    $('#segment_id')
+                        .prop('disabled', true)
+                        .html('<option value="">Select Segment</option>');
+                }
+
+            });
+
+        });
+    </script>
+
+    <script>
+        $(document).ready(function() {
+
+            $('#store_id').on('change', function() {
+
+                let store_id = $(this).val();
+
+                // disable + loading
+                $('#voucher_id')
+                    .prop('disabled', true)
+                    .html('<option value="">Loading...</option>');
+
+                if (store_id) {
+
+                    $.ajax({
+                        url: "{{ route('admin.notification.get-store-vouchers') }}",
+                        type: 'GET',
+                        data: {
+                            store_id: store_id
+                        },
+
+                        success: function(response) {
+
+                            $('#voucher_id').empty();
+                            $('#voucher_id').append('<option value="">Select Voucher</option>');
+
+                            $.each(response, function(key, voucher) {
+                                $('#voucher_id').append(
+                                    `<option value="${voucher.id}">${voucher.name}</option>`
+                                );
+                            });
+
+                            $('#voucher_id').prop('disabled', false);
+                        },
+
+                        error: function() {
+                            $('#voucher_id')
+                                .prop('disabled', false)
+                                .html('<option value="">Failed to load</option>');
+                        }
+                    });
+
+                } else {
+                    $('#voucher_id')
+                        .prop('disabled', true)
+                        .html('<option value="">Select Voucher</option>');
+                }
+
+            });
+
+        });
+    </script>
+<script>
+$(document).ready(function() {
+
+    function toggleFields(type) {
+
+        if (type === 'normal') {
+
+            // show normal
+            $('#normal_section_img').show();
+            $('#normal_section_link').show();
+
+            // hide voucher
+            $('#voucher_section_store').hide();
+            $('#voucher_section_id').hide();
+
+            // required handling
+            $('input[name="notification_link"]').prop('required', true);
+            $('#store_id, #voucher_id').prop('required', false);
+
+        } else {
+
+            // hide normal
+            $('#normal_section_img').hide();
+            $('#normal_section_link').hide();
+
+            // show voucher
+            $('#voucher_section_store').show();
+            $('#voucher_section_id').show();
+
+            // required handling
+            $('input[name="notification_link"]').prop('required', false);
+            $('#store_id, #voucher_id').prop('required', true);
+        }
+    }
+
+    // on change
+    $('input[name="type"]').on('change', function() {
+        toggleFields($(this).val());
+    });
+
+    // page load par bhi correct state set karo
+    let initialType = $('input[name="type"]:checked').val();
+    toggleFields(initialType);
+
+});
+</script>
 @endpush
