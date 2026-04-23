@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 class ReviewsController extends Controller
 {
     public function list(){
+       
         $reviews=Review::with(['item','customer'])->latest()->paginate(config('default_pagination'));
         return view('admin-views.reviews.list',compact('reviews'));
     }

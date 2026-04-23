@@ -8654,4 +8654,7 @@ Smartly or Earn. ',
   'my MIX-MATCH' => 'My MIX-MATCH',
   'Gift Final Test Voucher' => 'Gift Final Test Voucher',
   'Pay your bill and have 20% discount' => 'Pay your bill and have 20% discount',
+  'Food_deleted!' => 'Food deleted!',
+  'visibility' => 'Visibility',
+  'edit_review' => 'Edit review',
 );

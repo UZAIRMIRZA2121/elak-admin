@@ -125,6 +125,7 @@ Route::group(['namespace' => 'Admin', 'as' => 'admin.'], function () {
             Route::post('search', 'VoucherController@search')->name('search');
             Route::post('store/{store_id}/search', 'VoucherController@search_store')->name('store-search');
             Route::get('reviews', 'VoucherController@review_list')->name('reviews');
+            Route::post('update-review', 'VoucherController@update_review')->name('review.update');
             // Route::post('reviews/search', 'VoucherController@review_search')->name('reviews.search');
             Route::get('remove-image', 'VoucherController@remove_image')->name('remove-image');
             Route::get('view/{id}', 'VoucherController@view')->name('view');

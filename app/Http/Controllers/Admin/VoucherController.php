@@ -1303,7 +1303,6 @@ class VoucherController extends Controller
         $reviews = Review::with('item')
             ->when(isset($key), function ($query) use ($key, $request) {
                 $query->where(function ($query) use ($key, $request) {
-
                     $query->whereHas('item', function ($query) use ($key) {
                         foreach ($key as $value) {
                             $query->where('name', 'like', "%{$value}%");
@@ -2333,5 +2332,27 @@ class VoucherController extends Controller
     //     $category = $category_id != 'all' ? Category::findOrFail($category_id) : null;
     //     return view('admin-views.voucher.product_gallery', compact('items', 'store', 'category', 'type'));
     // }
+
+
+
+
+    public function update_review(Request $request)
+    {
+        $request->validate([
+            'id' => 'required|exists:reviews,id',
+            'rating' => 'required|integer|min:1|max:5',
+            'comment' => 'nullable|string'
+        ]);
+
+        $review = Review::find($request->id);
+        $review->rating = $request->rating;
+        $review->comment = $request->comment;
+        $review->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Review updated successfully'
+        ]);
+    }
 
 }
