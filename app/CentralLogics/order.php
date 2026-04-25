@@ -181,7 +181,6 @@ class OrderLogic
             $store_amount = $store_amount - $order->discount_amount;
         }
 
-        dd($store_amount, $comission_amount, $order->commission_paid_by, $order_amount);
 
         try {
             OrderTransaction::insert([
