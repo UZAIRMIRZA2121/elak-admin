@@ -745,6 +745,7 @@ trait PlaceNewOrder
 
             $order->store_discount_amount = 0;
             $order->order_status = $order_status;
+            $order->commission_paid_by = $store->commission_paid_by;
             $order->save();
             $sold_voucher->save();
             if ($request->order_type !== 'parcel') {

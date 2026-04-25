@@ -640,7 +640,7 @@ class VendorController extends Controller
 
     public function view(Request $request, $store_id, $tab = null, $sub_tab = 'cash')
     {
-
+           
         $voucher_ids = $request->voucher_ids;
         $bundle_type = $request->bundle_type;
         $category_search = $request->category;
@@ -648,10 +648,6 @@ class VendorController extends Controller
         $item_type = $request?->item_type;
         $key = explode(' ', request()->search);
         $store = Store::findOrFail($store_id);
-
-
-
-        //    dd($item_type);
 
 
         if (addon_published_status('Rental') && $store->module_type == 'rental') {
@@ -788,10 +784,6 @@ class VendorController extends Controller
                     })
                     ->latest()->paginate(25);
             } else {
-
-
-
-
                 $foods = Item::withoutGlobalScope(\App\Scopes\StoreScope::class)
                     ->where('store_id', $store->id)
                     ->where('type', 'food')
@@ -947,7 +939,7 @@ class VendorController extends Controller
 
 
 
-
+     
         return view('admin-views.vendor.view.index', compact('store', 'wallet'));
     }
 

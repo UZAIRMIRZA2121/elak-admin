@@ -152,6 +152,7 @@ class Store extends Model
         'limit_from',
         'limit_to',
         'flate_discount',
+        'commission_paid_by',
     ];
     /**
      * @var string[]

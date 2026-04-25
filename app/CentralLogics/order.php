@@ -100,6 +100,7 @@ class OrderLogic
 
 
             $comission = isset($order->store->comission) == null ? \App\Models\BusinessSetting::where('key', 'admin_commission')->first()->value : $order->store->comission;
+
             $dm_tips = $dm_tips_manage_status ? $order->dm_tips : 0;
             // $order_amount = $order->order_amount - $order->delivery_charge - $order->total_tax_amount - $dm_tips;
 
@@ -113,7 +114,6 @@ class OrderLogic
                     Helpers::expenseCreate(amount: $store_d_amount, type: 'discount_on_product', datetime: now(), created_by: 'vendor', order_id: $order->id, store_id: $order->store->id);
                     Helpers::expenseCreate(amount: $amount_admin, type: 'discount_on_product', datetime: now(), created_by: 'admin', order_id: $order->id);
                 }
-
             }
 
             if ($order->store_discount_amount > 0 && $order->discount_on_product_by == 'admin') {
@@ -160,24 +160,30 @@ class OrderLogic
                 $subscription_mode = 1;
                 $commission_percentage = 0;
             } else {
-                $comission_on_store_amount = ($comission ? ($order_amount / 100) * $comission : 0);
+                if ($order->commission_paid_by == 'customer') {
+                    $order_amount_paid = $order->total_order_amount - $order->discount_amount;
+                } else {
+        
+                    $order_amount_paid = $order->order_amount;
+                }
+                $comission_on_store_amount = ($comission ? ($order_amount_paid) / 100 * $comission : 0);
                 $subscription_mode = 0;
                 $commission_percentage = $comission;
             }
-
             $comission_amount = $comission_on_store_amount + $comission_on_actual_delivery_fee;
+
             $dm_commission = $order->original_delivery_charge - $comission_on_actual_delivery_fee;
         }
+
         $store_amount = $store_amount + $order_amount + $order->total_tax_amount + $order->extra_packaging_amount - $comission_on_store_amount - $store_coupon_discount_subsidy - $flash_store_discount_amount;
+
         if ($order->offer_type == 'cash back') {
             $store_amount = $store_amount - $order->discount_amount;
         }
 
-
+        dd($store_amount, $comission_amount, $order->commission_paid_by, $order_amount);
 
         try {
-
-
             OrderTransaction::insert([
                 'vendor_id' => $type == 'parcel' ? null : $order->store->vendor->id,
                 'delivery_man_id' => $order->delivery_man_id,
@@ -250,7 +256,7 @@ class OrderLogic
                         $adminWallet->digital_received = $adminWallet->digital_received + ($order->order_amount - $order->partially_paid_amount);
                     }
 
-                    
+
                 } else if ($received_by == 'store' && $type != 'parcel' && ($order->payment_method == "cash_on_delivery" || $unpaid_pay_method == 'cash_on_delivery')) {
                     $store_over_flow = true;
                     $vendorWallet->collected_cash = $vendorWallet->collected_cash + ($order->order_amount - $order->partially_paid_amount);
@@ -424,7 +430,7 @@ class OrderLogic
                     $adminWallet->digital_received = $adminWallet->digital_received - $refund_amount;
                 } else {
                     // $adminWallet->digital_received = $adminWallet->digital_received - $refund_amount;
-                
+
                     // $adminWallet->manual_received = $adminWallet->manual_received - $refund_amount;
                 }
 
@@ -433,13 +439,13 @@ class OrderLogic
                 $vendorWallet->collected_cash = $vendorWallet->collected_cash - $refund_amount;
             }
 
-     
+
             $order_transaction->status = $status;
             $order_transaction->save();
             $adminWallet->save();
             $vendorWallet->save();
             DB::commit();
-           
+
         } catch (\Exception $e) {
             DB::rollBack();
             info($e->getMessage());
