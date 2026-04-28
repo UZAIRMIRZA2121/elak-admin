@@ -1457,68 +1457,192 @@ class VendorController extends Controller
     }
 
 
-    public function new_flat_request(Request $request)
-    {
+ public function new_flat_request(Request $request)
+{
+    // 1️⃣ Get current vendor/store
+    $vendor = $request['vendor'];
 
-        // 1️⃣ Get the current store ID
-        $vendor = $request['vendor'];
+    // 2️⃣ Get latest pending cart
+    $cart = Cart::where('status', 'pending')
+        ->where('store_id', $vendor->store->id)
+        ->latest()
+        ->first();
 
-
-        // Fetch latest pending cart
-        $cart = Cart::where('status', 'pending')->where('store_id', $vendor->store->id)->latest()->first();
-
-        if (!$cart) {
-            return response()->json(['success' => false]);
-        }
-
-        // Prepare user object
-        $user = $cart->is_guest
-            ? [
-                'name' => json_decode($cart->delivery_address, true)['contact_person_name'] ?? 'Guest',
-                'phone' => json_decode($cart->delivery_address, true)['contact_person_number'] ?? '-'
-            ]
-            : [
-                'name' => $cart->user->f_name . ' ' . $cart->user->l_name,
-                'phone' => $cart->user->phone
-            ];
-
-        $cart_total = $cart->total_price;
-
-        $configs = json_decode($cart->item->discount_configuration, true);
-
-        $matched_config = null;
-
-        if (!empty($configs)) {
-            foreach ($configs as $config) {
-                if ($cart_total >= $config['min_amount'] && $cart_total <= $config['max_amount']) {
-                    $matched_config = $config;
-                    break;
-                }
-            }
-        }
-
-
+    if (!$cart) {
         return response()->json([
-            'success' => true,
-
-
-            'cart' => [
-                'id' => $cart->id,
-                'quantity' => $cart->quantity,
-                'price' => $cart->price,
-                'total_price' => $cart->total_price,
-                'discount_amount' => $cart->discount_amount,
-                'status' => $cart->status,
-                'type' => $cart->type,
-                'matched_config' => $matched_config,
-                'created' => strtotime($cart->created_at)
-            ],
-
-            // 'item' => $cart->item,
-            'user' => $user
+            'success' => false
         ]);
     }
 
+    /*
+    |--------------------------------------------------------------------------
+    | User Info
+    |--------------------------------------------------------------------------
+    */
+    $user = $cart->is_guest
+        ? [
+            'name' => json_decode($cart->delivery_address, true)['contact_person_name'] ?? 'Guest',
+            'phone' => json_decode($cart->delivery_address, true)['contact_person_number'] ?? '-'
+        ]
+        : [
+            'name' => $cart->user->f_name . ' ' . $cart->user->l_name,
+            'phone' => $cart->user->phone
+        ];
+
+    /*
+    |--------------------------------------------------------------------------
+    | Cart + Item
+    |--------------------------------------------------------------------------
+    */
+    $cartTotal = (float) $cart->total_price;
+    $item = $cart->item;
+
+    if (!$item) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Item not found for this cart'
+        ]);
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Discount Configuration
+    |--------------------------------------------------------------------------
+    */
+    $configs = json_decode($item->discount_configuration, true);
+
+    $matchedConfig = null;
+
+    $bonusPercentage = 0;
+    $bonusAmount = 0;
+
+    /*
+    |--------------------------------------------------------------------------
+    | Visa Commission Config
+    |--------------------------------------------------------------------------
+    | Example: 4%
+    */
+    $visaCommissionRate = 4;
+
+    $visaCommissionAmount = 0;
+    $finalDiscountAmount = 0;
+    $finalDiscountPercent = 0;
+    $finalPayableAmount = $cartTotal;
+
+    if (!empty($configs)) {
+        foreach ($configs as $config) {
+            $min = (float) $config['min_amount'];
+            $max = (float) $config['max_amount'];
+            $bonus = (float) $config['bonus_percentage'];
+
+            if ($cartTotal >= $min && $cartTotal <= $max) {
+                $matchedConfig = $config;
+                $bonusPercentage = $bonus;
+
+                /*
+                |--------------------------------------------------------------------------
+                | Step 1: Original Bonus
+                |--------------------------------------------------------------------------
+                */
+                $bonusAmount = ($cartTotal * $bonusPercentage) / 100;
+
+                /*
+                |--------------------------------------------------------------------------
+                | Step 2: Customer pays after bonus
+                |--------------------------------------------------------------------------
+                */
+                $amountAfterBonus = $cartTotal - $bonusAmount;
+
+                /*
+                |--------------------------------------------------------------------------
+                | Step 3: Visa Commission on paid amount
+                |--------------------------------------------------------------------------
+                | Example:
+                | 80 × 4% = 3.2
+                */
+                $visaCommissionAmount =
+                    ($amountAfterBonus * $visaCommissionRate) / 100;
+
+                /*
+                |--------------------------------------------------------------------------
+                | Step 4: Final Discount Amount
+                |--------------------------------------------------------------------------
+                | Formula:
+                | Bonus - Visa Commission
+                */
+                $finalDiscountAmount =
+                    $bonusAmount - $visaCommissionAmount;
+
+                /*
+                |--------------------------------------------------------------------------
+                | Step 5: Final Discount %
+                |--------------------------------------------------------------------------
+                | Formula:
+                | ((Bonus - Commission) / Original Price) × 100
+                */
+                if ($cartTotal > 0) {
+                    $finalDiscountPercent =
+                        ($finalDiscountAmount / $cartTotal) * 100;
+                }
+
+                /*
+                |--------------------------------------------------------------------------
+                | Step 6: Final Payable Amount
+                |--------------------------------------------------------------------------
+                */
+                $finalPayableAmount =
+                    $cartTotal - $finalDiscountAmount;
+
+                break;
+            }
+        }
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Final Response
+    |--------------------------------------------------------------------------
+    */
+    return response()->json([
+        'success' => true,
+
+        'cart' => [
+            'id' => $cart->id,
+            'quantity' => $cart->quantity,
+            'price' => $cart->price,
+            'total_price' => $cart->total_price,
+            'discount_amount' => $cart->discount_amount,
+            'status' => $cart->status,
+            'type' => $cart->type,
+            'created' => strtotime($cart->created_at),
+
+            /*
+            |--------------------------------------------------------------------------
+            | Discount + Commission Calculated Values
+            |--------------------------------------------------------------------------
+            */
+            'matched_config' => $matchedConfig,
+            'bonus_percentage' => $bonusPercentage,
+            'bonus_amount' => round($bonusAmount, 2),
+
+            'visa_commission_rate' => $visaCommissionRate,
+            'visa_commission_amount' => round($visaCommissionAmount, 2),
+
+            'final_discount_amount' => round($finalDiscountAmount, 2),
+            'final_discount_percent' => round($finalDiscountPercent, 2),
+
+            'final_payable_amount' => round($finalPayableAmount, 2),
+        ],
+
+        'item' => [
+            'id' => $item->id,
+            'name' => $item->name,
+            'discount_configuration' => $item->discount_configuration,
+        ],
+
+        'user' => $user
+    ]);
+}
     public function updateStatus($id, $status)
     {
         $allowedStatus = ['approved', 'rejected'];
