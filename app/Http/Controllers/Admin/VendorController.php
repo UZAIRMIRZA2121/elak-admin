@@ -1399,7 +1399,9 @@ class VendorController extends Controller
 
     public function updateStoreSettings(Store $store, Request $request)
     {
+       
         if ($request?->tab == 'business_plan') {
+            $store->commission_paid_by = $request->commission_paid_by ? $request->commission_paid_by : 'store';
             $store->comission = $request->comission_status ? $request->comission : null;
             $store->save();
             Toastr::success(translate('messages.Commission_updated'));

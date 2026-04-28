@@ -1297,205 +1297,234 @@ $moduleType = $store?->module?->module_type;
 
         }
 
-
         function checkNewCart() {
+    console.log("========== checkNewCart START ==========");
 
-            $.ajax({
+    $.ajax({
+        url: "{{ route('vendor.flate.order.check-new') }}",
+        method: "GET",
 
-                url: "{{ route('vendor.flate.order.check-new') }}",
+        beforeSend: function () {
+            console.log("AJAX request sent...");
+        },
 
-                method: "GET",
+        success: function (response) {
+            console.log("FULL RESPONSE:", response);
 
-                success: function(response) {
+            /*
+            If deleted
+            */
+            if (!response.success || !response.cart) {
+                console.log("No valid cart found OR success=false");
 
-                    /*
-                    If deleted
-                    */
+                $('#newCartModal').modal('hide');
 
-                    if (!response.success || !response.cart) {
-
-                        $('#newCartModal').modal('hide');
-
-
-                        if (countdownInterval) {
-                            clearInterval(countdownInterval);
-                            countdownInterval = null;
-                        }
-
-                        currentCartId = null;
-
-                        return;
-                    }
-
-
-                    const cart = response.cart;
-
-                    const user = response.user;
-
-                    const item = response.item;
-
-
-                    /*
-                    Prevent reload same cart
-                    */
-
-                    if (currentCartId === cart.id) {
-                        return;
-                    }
-
-
-                    currentCartId = cart.id;
-
-
-
-                    /*
-                    Discount Config
-                    */
-
-                    let config =
-                        JSON.parse(item.discount_configuration);
-
-
-                    let totalBill =
-                        Number(cart.total_price);
-
-
-                    let selectedTier = '';
-
-                    let bonusAmount = 0;
-
-                    let tierFound = false;
-
-
-
-                    config.forEach(function(row) {
-
-                        let min = Number(row.min_amount);
-
-                        let max = Number(row.max_amount);
-
-                        let bonus =
-                            Number(row.bonus_percentage);
-
-
-                        if (totalBill >= min && totalBill <= max) {
-
-                            selectedTier =
-                                "$" + min + " - $" + max +
-                                " (" + bonus + "% Bonus)";
-
-
-                            bonusAmount =
-                                (totalBill * bonus) / 100;
-
-
-                            tierFound = true;
-                        }
-
-                    });
-
-
-
-                    if (!tierFound) {
-                        return;
-                    }
-
-
-                    let finalPay =
-                        totalBill - bonusAmount;
-
-
-
-                    /*
-                    Fill Modal
-                    */
-
-                    $('#nc-item-discount-configuration')
-                        .text(selectedTier);
-
-
-                    $('#nc-customer')
-                        .text(user.name);
-
-
-                    $('#nc-phone')
-                        .text(user.phone);
-
-
-                    $('#nc-item')
-                        .text(item.name);
-
-
-                    $('#nc-qty')
-                        .text(cart.quantity);
-
-
-                    $('#nc-total')
-                        .text("$" + totalBill.toFixed(2));
-
-
-                    $('#nc-bonus')
-                        .text("$" + bonusAmount.toFixed(2));
-
-
-                    $('#nc-pay')
-                        .text("$" + finalPay.toFixed(2));
-
-
-
-                    /*
-                    URLs
-                    */
-
-                    let approveUrl =
-                        "{{ route('vendor.flate.order.update-status', ['id' => ':id', 'status' => 'approved']) }}";
-
-                    let rejectUrl =
-                        "{{ route('vendor.flate.order.update-status', ['id' => ':id', 'status' => 'rejected']) }}";
-
-
-                    approveUrl =
-                        approveUrl.replace(':id', cart.id);
-
-
-                    rejectUrl =
-                        rejectUrl.replace(':id', cart.id);
-
-
-
-                    $('#nc-approve')
-                        .attr('href', approveUrl);
-
-
-                    $('#nc-reject')
-                        .attr('href', rejectUrl);
-
-
-
-                    /*
-                    Show Modal
-                    */
-
-                    $('#newCartModal')
-                        .modal('show');
-
-
-
-                    /*
-                    Start Countdown
-                    */
-
-                    startCountdown(cart, rejectUrl);
-
-
+                if (countdownInterval) {
+                    clearInterval(countdownInterval);
+                    countdownInterval = null;
                 }
 
+                currentCartId = null;
+                return;
+            }
+
+            const cart = response.cart;
+            const user = response.user;
+            const item = response.item;
+
+            console.log("Cart:", cart);
+            console.log("User:", user);
+            console.log("Item:", item);
+
+            /*
+            Prevent reload same cart
+            */
+            if (currentCartId === cart.id) {
+                console.log("Same cart already loaded. Skipping...");
+                return;
+            }
+
+            currentCartId = cart.id;
+
+            /*
+            Safety check
+            */
+            if (!item) {
+                console.error("Item is NULL from backend");
+                return;
+            }
+
+            /*
+            Discount Config
+            */
+            let config = [];
+
+            try {
+                config = JSON.parse(item.discount_configuration);
+                console.log("Parsed discount config:", config);
+            } catch (e) {
+                console.error("JSON Parse Error:", e);
+                return;
+            }
+
+            let totalBill = Number(cart.total_price);
+
+            let selectedTier = '';
+            let bonusAmount = 0;
+            let visaCommission = 0;
+            let finalDiscountAmount = 0;
+            let finalDiscountPercent = 0;
+            let finalPay = 0;
+
+            let tierFound = false;
+
+            /*
+            Visa Commission Rate = 4%
+            */
+            const visaCommissionRate = 4;
+
+            console.log("Total Bill:", totalBill);
+
+            config.forEach(function (row, index) {
+                let min = Number(row.min_amount);
+                let max = Number(row.max_amount);
+                let bonus = Number(row.bonus_percentage);
+
+                console.log(`Checking Tier ${index}:`, {
+                    min,
+                    max,
+                    bonus
+                });
+
+                if (totalBill >= min && totalBill <= max) {
+                    /*
+                    Original Bonus
+                    */
+                    bonusAmount = (totalBill * bonus) / 100;
+
+                    /*
+                    Customer pays after bonus
+                    */
+                    let amountAfterBonus = totalBill - bonusAmount;
+
+                    /*
+                    Visa Commission on paid amount
+                    Example:
+                    80 × 4% = 3.2
+                    */
+                    visaCommission = (amountAfterBonus * visaCommissionRate) / 100;
+
+                    /*
+                    Final Discount Amount
+                    Formula:
+                    Original Bonus - Visa Commission
+                    */
+                    finalDiscountAmount = bonusAmount - visaCommission;
+
+                    /*
+                    Final Discount %
+                    Formula:
+                    ((Bonus - Commission) / Original Price) × 100
+                    */
+                    finalDiscountPercent =
+                        (finalDiscountAmount / totalBill) * 100;
+
+                    /*
+                    Final customer payment
+                    */
+                    finalPay = totalBill - finalDiscountAmount;
+
+                    selectedTier =
+                        "$" + min + " - $" + max +
+                        " (" + bonus + "% Bonus)";
+
+                    tierFound = true;
+
+                    console.log("Matched Tier Found:", {
+                        selectedTier,
+                        bonusAmount,
+                        visaCommission,
+                        finalDiscountAmount,
+                        finalDiscountPercent,
+                        finalPay
+                    });
+                }
             });
 
+            if (!tierFound) {
+                console.log("No matching discount tier found");
+                return;
+            }
+
+            /*
+            Fill Modal
+            */
+            $('#nc-item-discount-configuration').text(
+                selectedTier + " | Final Discount: " +
+                finalDiscountPercent.toFixed(2) + "%"
+            );
+
+            $('#nc-customer').text(user.name);
+            $('#nc-phone').text(user.phone);
+            $('#nc-item').text(item.name);
+            $('#nc-qty').text(cart.quantity);
+
+            $('#nc-total').text("$" + totalBill.toFixed(2));
+
+            /*
+            Show original bonus
+            */
+            $('#nc-bonus').text(
+                "$" + bonusAmount.toFixed(2) +
+                " (Commission: $" + visaCommission.toFixed(2) + ")"
+            );
+
+            /*
+            Final payment after commission adjustment
+            */
+            $('#nc-pay').text("$" + finalPay.toFixed(2));
+
+            console.log("Modal data filled successfully");
+
+            /*
+            URLs
+            */
+            let approveUrl =
+                "{{ route('vendor.flate.order.update-status', ['id' => ':id', 'status' => 'approved']) }}";
+
+            let rejectUrl =
+                "{{ route('vendor.flate.order.update-status', ['id' => ':id', 'status' => 'rejected']) }}";
+
+            approveUrl = approveUrl.replace(':id', cart.id);
+            rejectUrl = rejectUrl.replace(':id', cart.id);
+
+            $('#nc-approve').attr('href', approveUrl);
+            $('#nc-reject').attr('href', rejectUrl);
+
+            /*
+            Show Modal
+            */
+            console.log("Trying to open modal now...");
+            $('#newCartModal').modal('show');
+
+            /*
+            Start Countdown
+            */
+            // startCountdown(cart, rejectUrl);
+
+            console.log("========== checkNewCart END ==========");
+        },
+
+        error: function (xhr, status, error) {
+            console.error("AJAX ERROR:");
+            console.log("Status:", status);
+            console.log("Error:", error);
+            console.log("Response Text:", xhr.responseText);
         }
+    });
+}
 
-
-
+   
         /*
         Check Every 3 Seconds
         */

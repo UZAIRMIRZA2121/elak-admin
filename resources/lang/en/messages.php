@@ -8657,4 +8657,7 @@ Smartly or Earn. ',
   'Food_deleted!' => 'Food deleted!',
   'visibility' => 'Visibility',
   'edit_review' => 'Edit review',
+  'Commission_Paid_By' => 'Commission Paid By',
+  'Commission_Paid_By_customer' => 'Commission Paid By customer',
+  'udpate' => 'Udpate',
 );

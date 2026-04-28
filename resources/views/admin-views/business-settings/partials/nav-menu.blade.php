@@ -41,6 +41,7 @@
         </ul>
         <!-- End Nav -->
     </div>
+    
     @if (!(Request::is('admin/business-settings/language') || Request::is('admin/business-settings/business-setup/refund-settings') || Request::is('admin/business-settings/business-setup/automated-message')))
     <div class="d-flex flex-wrap justify-content-end align-items-center flex-grow-1">
         <div class="blinkings active">
