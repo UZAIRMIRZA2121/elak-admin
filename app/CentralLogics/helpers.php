@@ -514,6 +514,8 @@ class Helpers
                 $item['food_variations'] = $item['food_variations'] ? json_decode($item['food_variations'], true) : '';
                 $item['module_type'] = $item->module->module_type;
                 $item['store_name'] = $item->store?->name;
+                $item['store_commission'] = $item->store?->comission ?? 0;
+                $item['commission_paid_by'] = $item->store?->commission_paid_by ?? 'store';
                 $item['is_campaign'] = $item->store?->campaigns_count > 0 ? 1 : 0;
                 $item['zone_id'] = $item->store?->zone_id;
                 $running_flash_sale = FlashSaleItem::Active()->whereHas('flashSale', function ($query) {

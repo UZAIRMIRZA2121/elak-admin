@@ -209,7 +209,7 @@ class CategoryController extends Controller
         
         $data = CategoryLogic::products($id, $zone_id, $request['limit'], $request['offset'], $type);
         $data['products'] = Helpers::product_data_formatting($data['products'], true, false, app()->getLocale()  ,  false ,$user_id);
-      
+          
         return response()->json($data, 200);
     }
 
