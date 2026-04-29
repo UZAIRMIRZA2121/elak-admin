@@ -161,9 +161,12 @@ class OrderLogic
                 $commission_percentage = 0;
             } else {
                 if ($order->commission_paid_by == 'customer') {
+                 
                     $order_amount_paid = $order->total_order_amount - $order->discount_amount;
+                    
                 } else {
-        
+                   
+
                     $order_amount_paid = $order->order_amount;
                 }
                 $comission_on_store_amount = ($comission ? ($order_amount_paid) / 100 * $comission : 0);
@@ -180,7 +183,23 @@ class OrderLogic
         if ($order->offer_type == 'cash back') {
             $store_amount = $store_amount - $order->discount_amount;
         }
-
+        dd($comission_amount , $order_amount_paid);
+       echo "<pre>";
+echo "Order ID: " . $order->id . "<br>";
+echo "Order Amount: " . $order_amount_paid . "<br>";
+echo "Commission on Store Amount: " . $comission_amount . "<br>";
+echo "Commission on Actual Delivery Fee: " . $comission_on_actual_delivery_fee . "<br>";
+echo "Store Amount: " . $store_amount . "<br>";
+echo "DM Commission: " . $dm_commission . "<br>";
+echo "DM Tips: " . $dm_tips . "<br>";
+echo "Admin Subsidy: " . $admin_subsidy . "<br>";
+echo "Admin Coupon Discount Subsidy: " . $admin_coupon_discount_subsidy . "<br>";
+echo "Store Coupon Discount Subsidy: " . $store_coupon_discount_subsidy . "<br>";
+echo "Store Discount Amount: " . $store_discount_amount . "<br>";
+echo "Flash Admin Discount Amount: " . $flash_admin_discount_amount . "<br>";
+echo "Flash Store Discount Amount: " . $flash_store_discount_amount . "<br>";
+echo "Referral Bonus Amount: " . $ref_bonus_amount . "<br>";
+echo "</pre>";
 
         try {
             OrderTransaction::insert([

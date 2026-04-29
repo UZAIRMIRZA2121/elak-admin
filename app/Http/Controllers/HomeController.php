@@ -520,7 +520,7 @@ class HomeController extends Controller
 
         $activeOrders = $orders->where('order_status', 'active');
         $processingOrders = $orders->where('order_status', 'processing');
-
+  
         foreach ($activeOrders as $order) {
             // echo "Order ID: {$order->id}, Expire At: {$order->expire_at}, Current Time: " . Carbon::now() . "<br>";
 
@@ -586,7 +586,7 @@ class HomeController extends Controller
             $endTime = $start->copy()->addMinutes($order->processing_time);
 
             if (Carbon::now()->greaterThanOrEqualTo($endTime)) {
-
+ 
                 if ($order->transaction == null) {
 
                     $unpaid_payment = OrderPayment::where('payment_status', 'unpaid')
@@ -599,7 +599,7 @@ class HomeController extends Controller
                         // skip instead of breaking cron
                         continue;
                     }
-                }
+                }  
 
                 $order->payment_status = 'paid';
 
@@ -627,13 +627,13 @@ class HomeController extends Controller
                     $order->delivery_man->increment('order_count');
                 }
 
-                $order->delivered = Carbon::now();
-                $order->order_status = 'delivered';
+                // $order->delivered = Carbon::now();
+                // $order->order_status = 'delivered';
                 $order->save();
             }
 
         }
-
+die;
         $all_stores = \App\Models\Store::with('vendor', 'paymentMethod')->get();
         // ✅ Only run on 1th
         if (now()->day == 17) {
