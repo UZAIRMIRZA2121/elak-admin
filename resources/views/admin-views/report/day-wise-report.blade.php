@@ -516,10 +516,10 @@ $total_discount = 0.0;
 
 
                                 <th class="border-0">{{ translate('messages.coupon_discount') }}</th>
-                                <th class="border-0">{{ translate('messages.admin_commission') }}</th>
-                                <th class="min-w-140 text-capitalize">{{ translate('admin_net_income') }}</th>
+                                <th class="border-0">{{ translate('messages.viza_commission') }}</th>
+                                {{-- <th class="min-w-140 text-capitalize">{{ translate('admin_net_income') }}</th> --}}
                                 <th class="min-w-140 text-capitalize">{{ translate('store_net_income') }}</th>
-                                <th class="border-0 min-w-120">{{ translate('messages.amount_received_by') }}</th>
+                                {{-- <th class="border-0 min-w-120">{{ translate('messages.amount_received_by') }}</th> --}}
                                 <th class="border-top border-bottom text-capitalize">
                                     {{ translate('messages.payment_method') }}</th>
                                 <th class="border-0">{{ translate('messages.payment_status') }}</th>
@@ -581,12 +581,7 @@ $total_discount = 0.0;
                                     </td>
                                     {{-- referral_discount --}}
 
-                                    {{-- discounted_amount
-                                    <td class="white-space-nowrap">
-                                        {{ \App\CentralLogics\Helpers::format_currency($ot->order['coupon_discount_amount'] + $ot->order['store_discount_amount'] + $ot->order['flash_store_discount_amount'] + $ot->order['flash_admin_discount_amount'] + $ot->order['ref_bonus_amount']) }}
-                                    </td> --}}
-
-
+                             
 
 
 
@@ -597,9 +592,9 @@ $total_discount = 0.0;
 
 
                                     {{-- admin_net_income --}}
-                                    <td class="white-space-nowrap">
+                                    {{-- <td class="white-space-nowrap">
                                         {{ \App\CentralLogics\Helpers::format_currency($ot->admin_commission - $ot->order['flash_admin_discount_amount']) }}
-                                    </td>
+                                    </td> --}}
 
                                     {{-- store_net_income --}}
                                     <td class="white-space-nowrap">

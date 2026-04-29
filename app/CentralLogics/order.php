@@ -99,7 +99,8 @@ class OrderLogic
         } else {
 
 
-            $comission = isset($order->store->comission) == null ? \App\Models\BusinessSetting::where('key', 'admin_commission')->first()->value : $order->store->comission;
+            $comission = $order->commission > 0 ? $order->commission : 0;
+
 
             $dm_tips = $dm_tips_manage_status ? $order->dm_tips : 0;
             // $order_amount = $order->order_amount - $order->delivery_charge - $order->total_tax_amount - $dm_tips;
@@ -160,19 +161,10 @@ class OrderLogic
                 $subscription_mode = 1;
                 $commission_percentage = 0;
             } else {
-                if ($order->commission_paid_by == 'customer') {
-                 
-                    $order_amount_paid = $order->total_order_amount - $order->discount_amount;
-                    
-                } else {
-                   
-
-                    $order_amount_paid = $order->order_amount;
-                }
-                $comission_on_store_amount = ($comission ? ($order_amount_paid) / 100 * $comission : 0);
                 $subscription_mode = 0;
                 $commission_percentage = $comission;
             }
+
             $comission_amount = $comission_on_store_amount + $comission_on_actual_delivery_fee;
 
             $dm_commission = $order->original_delivery_charge - $comission_on_actual_delivery_fee;
@@ -183,23 +175,17 @@ class OrderLogic
         if ($order->offer_type == 'cash back') {
             $store_amount = $store_amount - $order->discount_amount;
         }
-        dd($comission_amount , $order_amount_paid);
-       echo "<pre>";
-echo "Order ID: " . $order->id . "<br>";
-echo "Order Amount: " . $order_amount_paid . "<br>";
-echo "Commission on Store Amount: " . $comission_amount . "<br>";
-echo "Commission on Actual Delivery Fee: " . $comission_on_actual_delivery_fee . "<br>";
-echo "Store Amount: " . $store_amount . "<br>";
-echo "DM Commission: " . $dm_commission . "<br>";
-echo "DM Tips: " . $dm_tips . "<br>";
-echo "Admin Subsidy: " . $admin_subsidy . "<br>";
-echo "Admin Coupon Discount Subsidy: " . $admin_coupon_discount_subsidy . "<br>";
-echo "Store Coupon Discount Subsidy: " . $store_coupon_discount_subsidy . "<br>";
-echo "Store Discount Amount: " . $store_discount_amount . "<br>";
-echo "Flash Admin Discount Amount: " . $flash_admin_discount_amount . "<br>";
-echo "Flash Store Discount Amount: " . $flash_store_discount_amount . "<br>";
-echo "Referral Bonus Amount: " . $ref_bonus_amount . "<br>";
-echo "</pre>";
+        $order_discount_amount = $order->discount_amount;
+
+        if ($order->commission_paid_by == 'store') {
+            $order_discount_amount -= $order->commission_amount;
+
+        } 
+        $store_amount -= $order->commission_amount;
+        $comission_amount += $order->commission_amount;
+
+
+
 
         try {
             OrderTransaction::insert([
@@ -223,7 +209,7 @@ echo "</pre>";
                 'created_at' => now(),
                 'updated_at' => now(),
                 'delivery_fee_comission' => isset($comission_on_actual_delivery_fee) ? $comission_on_actual_delivery_fee : 0,
-                'discount_amount_by_store' => $store_coupon_discount_subsidy + $store_d_amount + $store_subsidy + $order->discount_amount,
+                'discount_amount_by_store' => $store_coupon_discount_subsidy + $store_d_amount + $store_subsidy + $order_discount_amount,
                 'additional_charge' => $order->additional_charge,
                 'extra_packaging_amount' => $order->extra_packaging_amount,
                 'ref_bonus_amount' => $order->ref_bonus_amount,
