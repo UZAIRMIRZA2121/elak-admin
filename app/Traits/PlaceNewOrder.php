@@ -730,6 +730,7 @@ trait PlaceNewOrder
                 $order->distance = round($shortestDistance, 2);
             }
             if ($order->voucher_type == 'Gift' || $order->voucher_type == 'In-Store') {
+
                 $order_status = 'active';
             } elseif ($order->voucher_type == 'Delivery/Pickup' || $order->voucher_type == 'Flat discount') {
                 $order_status = 'pending';
@@ -745,11 +746,15 @@ trait PlaceNewOrder
 
             $order->store_discount_amount = 0;
             $order->order_status = $order_status;
+
             if ($store->comission > 0 && $request->commission_amount > 0) {
                 $order->commission_amount = $request->commission_amount ?? 0;
-                $order->commission = $store->comission;
+                $order->commission = $store->comission ?? 0;
                 $order->commission_paid_by = $store->commission_paid_by;
 
+            }
+            if ($order->voucher_type == 'Gift') {
+                $order->commission_paid_by = 'store';
             }
             $order->save();
             $sold_voucher->save();

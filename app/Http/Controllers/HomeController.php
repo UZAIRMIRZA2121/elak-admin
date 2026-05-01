@@ -627,13 +627,13 @@ class HomeController extends Controller
                     $order->delivery_man->increment('order_count');
                 }
 
-                // $order->delivered = Carbon::now();
-                // $order->order_status = 'delivered';
+                $order->delivered = Carbon::now();
+                $order->order_status = 'delivered';
                 $order->save();
             }
 
         }
-die;
+
         $all_stores = \App\Models\Store::with('vendor', 'paymentMethod')->get();
         // ✅ Only run on 1th
         if (now()->day == 17) {

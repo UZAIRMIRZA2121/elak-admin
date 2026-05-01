@@ -379,8 +379,8 @@ class VendorController extends Controller
             'bonus_tiers' => 'nullable|max:200',
             'limit_to' => 'nullable|max:200',
             'flate_discount' => 'nullable|max:200',
-            'email' => 'required|unique:vendors,email,'.$store->vendor->id,
-            'phone' => 'required|regex:/^([0-9\s\-\+\(\)]*)$/|min:10|max:20|unique:vendors,phone,'.$store->vendor->id,
+            'email' => 'required|unique:vendors,email,' . $store->vendor->id,
+            'phone' => 'required|regex:/^([0-9\s\-\+\(\)]*)$/|min:10|max:20|unique:vendors,phone,' . $store->vendor->id,
 
 
         ];
@@ -640,7 +640,7 @@ class VendorController extends Controller
 
     public function view(Request $request, $store_id, $tab = null, $sub_tab = 'cash')
     {
-           
+
         $voucher_ids = $request->voucher_ids;
         $bundle_type = $request->bundle_type;
         $category_search = $request->category;
@@ -939,7 +939,7 @@ class VendorController extends Controller
 
 
 
-     
+
         return view('admin-views.vendor.view.index', compact('store', 'wallet'));
     }
 
@@ -1399,11 +1399,26 @@ class VendorController extends Controller
 
     public function updateStoreSettings(Store $store, Request $request)
     {
-       
+
         if ($request?->tab == 'business_plan') {
-            $store->commission_paid_by = $request->commission_paid_by ? $request->commission_paid_by : 'store';
-            $store->comission = $request->comission_status ? $request->comission : null;
+
+            $commission_paid_by = $request->commission_paid_by ? $request->commission_paid_by : 'store';
+            $commission = $request->comission_status ? $request->comission : null;
+
+            // 1️⃣ Update current store
+            $store->commission_paid_by = $commission_paid_by;
+            $store->comission = $commission;
             $store->save();
+
+            // 2️⃣ Update all child stores using save()
+            $childStores = Store::where('parent_id', $store->id)->get();
+
+            foreach ($childStores as $child) {
+                $child->commission_paid_by = $commission_paid_by;
+                $child->comission = $commission;
+                $child->save();
+            }
+
             Toastr::success(translate('messages.Commission_updated'));
             return back();
         }
@@ -1549,7 +1564,7 @@ class VendorController extends Controller
     public function withdraw(Request $request)
     {
 
-   
+
         $key = isset($request['search']) ? explode(' ', $request['search']) : [];
         $all = session()->has('withdraw_status_filter') && session('withdraw_status_filter') == 'all' ? 1 : 0;
         $active = session()->has('withdraw_status_filter') && session('withdraw_status_filter') == 'approved' ? 1 : 0;

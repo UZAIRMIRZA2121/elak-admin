@@ -8660,4 +8660,6 @@ Smartly or Earn. ',
   'Commission_Paid_By' => 'Commission Paid By',
   'Commission_Paid_By_customer' => 'Commission Paid By customer',
   'udpate' => 'Udpate',
+  'commission_paid_by_customer' => 'Commission paid by customer',
+  'commission_paid_by_store' => 'Commission paid by store',
 );

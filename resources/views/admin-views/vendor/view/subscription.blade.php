@@ -48,21 +48,16 @@
 
                                             <div class="col-xl-6 col-xxl-5">
                                                 <div class="mt-3">
-                                                    <label
-                                                        class="d-flex mb-1 justify-content-between switch toggle-switch-sm text-dark text-capitalize"
-                                                        for="commission_paid_by">
-                                                        <span>
-                                                            {{ translate('messages.Commission_Paid_By_customer') }}
-                                                            <span class="input-label-secondary" data-toggle="tooltip"
-                                                                data-placement="right"
-                                                                title="Select who will pay the commission: Customer or Store">
-                                                                <img
-                                                                    src="{{ asset('/public/assets/admin/img/info-circle.svg') }}">
-                                                            </span>
-                                                        </span>
 
-                                                        <input type="checkbox" class="toggle-switch-input"
-                                                            name="commission_paid_by" id="commission_paid_by"
+                                                    {{-- Customer Toggle --}}
+                                                    <label
+                                                        class="d-flex mb-2 justify-content-between switch toggle-switch-sm text-dark"
+                                                        for="commission_customer">
+
+                                                        <span>{{ translate('messages.commission_paid_by_customer') }}</span>
+
+                                                        <input type="checkbox" class="toggle-switch-input commission-toggle"
+                                                            id="commission_customer" name="commission_paid_by"
                                                             value="customer"
                                                             {{ isset($store->commission_paid_by) && $store->commission_paid_by == 'customer' ? 'checked' : '' }}>
 
@@ -71,7 +66,25 @@
                                                         </span>
                                                     </label>
 
+                                                    {{-- Store Toggle --}}
+                                                    <label
+                                                        class="d-flex justify-content-between switch toggle-switch-sm text-dark"
+                                                        for="commission_store">
+
+                                                        <span>{{ translate('messages.commission_paid_by_store') }}</span>
+
+                                                        <input type="checkbox" class="toggle-switch-input commission-toggle"
+                                                            id="commission_store" name="commission_paid_by_store"
+                                                            value="store"
+                                                            {{ isset($store->commission_paid_by) && $store->commission_paid_by == 'store' ? 'checked' : '' }}>
+
+                                                        <span class="toggle-switch-label">
+                                                            <span class="toggle-switch-indicator"></span>
+                                                        </span>
+                                                    </label>
+
                                                 </div>
+
                                                 <div>
                                                     <label
                                                         class="d-flex mb-1 justify-content-between switch toggle-switch-sm text-dark text-capitalize"
@@ -563,6 +576,26 @@
 @endsection
 
 @push('script_2')
+    <script>
+        const customerToggle = document.getElementById('commission_customer');
+        const storeToggle = document.getElementById('commission_store');
+
+        customerToggle.addEventListener('change', function() {
+            if (this.checked) {
+                storeToggle.checked = false;
+            } else {
+                storeToggle.checked = true;
+            }
+        });
+
+        storeToggle.addEventListener('change', function() {
+            if (this.checked) {
+                customerToggle.checked = false;
+            } else {
+                customerToggle.checked = true;
+            }
+        });
+    </script>
     <script>
         $('.plan-slider').owlCarousel({
             loop: false,

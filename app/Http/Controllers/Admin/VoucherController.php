@@ -2344,6 +2344,7 @@ class VoucherController extends Controller
             'comment' => 'nullable|string'
         ]);
 
+
         $review = Review::find($request->id);
         $review->rating = $request->rating;
         $review->comment = $request->comment;
@@ -2353,6 +2354,27 @@ class VoucherController extends Controller
             'success' => true,
             'message' => 'Review updated successfully'
         ]);
+    }
+    public function update_store_review(Request $request)
+    {
+      
+        $ratings = $request->ratings;
+   
+        // Optional validation
+        foreach ($ratings as $key => $value) {
+            if ($value < 0) {
+                $ratings[$key] = 0;
+            }
+        }
+    
+        $store = Store::findOrFail($request->store_id);
+ 
+        $store->rating = json_encode($ratings);
+        $store->save();
+     
+
+        Toastr::success('Ratings updated successfully');
+        return back();
     }
 
 }

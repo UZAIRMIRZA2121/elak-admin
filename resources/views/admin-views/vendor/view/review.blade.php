@@ -11,6 +11,48 @@
     <div class="content container-fluid">
         @include('admin-views.vendor.view.partials._header', ['store' => $store])
         <!-- Page Heading -->
+        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#ratingModal">
+            Update Ratings
+        </button>
+        <div class="modal fade" id="ratingModal" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <form action="{{ route('admin.Voucher.store.review.update') }}" method="POST">
+                        @csrf
+                        <input type="hidden" name="store_id" value="{{ $store->id }}">
+
+                        <div class="modal-header">
+                            <h5 class="modal-title">Update Star Counts</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+
+                        <div class="modal-body">
+
+                            @php
+                                $ratings = json_decode(
+                                    $store->rating_counts ?? '{"1":0,"2":0,"3":0,"4":0,"5":0}',
+                                    true,
+                                );
+                            @endphp
+
+                            @foreach ($ratings as $star => $count)
+                                <div class="mb-2">
+                                    <label>{{ $star }} Star</label>
+                                    <input type="number" name="ratings[{{ $star }}]" value="{{ $count }}"
+                                        class="form-control">
+                                </div>
+                            @endforeach
+
+                        </div>
+
+                        <div class="modal-footer">
+                            <button type="submit" class="btn btn-success">Save</button>
+                        </div>
+
+                    </form>
+                </div>
+            </div>
+        </div>
         <div class="tab-content">
             <div class="tab-pane fade show active" id="product">
                 <div class="resturant-review-top" id="store_details">
@@ -287,7 +329,7 @@
                                 <tbody id="set-rows">
 
                                     @foreach ($reviews as $key => $review)
-                                           <tr id="review-row-{{ $review->id }}">
+                                        <tr id="review-row-{{ $review->id }}">
                                             <td class="text-center">{{ $key + $reviews->firstItem() }}</td>
                                             <td>{{ $review->review_id }}</td>
                                             <td>
