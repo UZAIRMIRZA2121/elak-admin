@@ -17,7 +17,7 @@ use App\Models\WalletBonus;
 class CustomerLogic
 {    public static function create_wallet_transaction($user_id, float $amount, $transaction_type, $referance)
     {
-    //    dd($referance);
+       
         if (BusinessSetting::where('key', 'wallet_status')->first()->value != 1) return false;
         $user = User::find($user_id);
         $current_balance = $user->wallet_balance;
@@ -31,6 +31,8 @@ class CustomerLogic
         $debit = 0.0;
         $credit = 0.0;
         $admin_bonus = 0.0;
+
+     
         
         if (in_array($transaction_type, ['add_fund_by_admin', 'add_fund', 'order_refund', 'loyalty_point', 'referrer','CashBack','subscription_refund'])) {
             $credit = $amount;
@@ -65,36 +67,7 @@ class CustomerLogic
         $user->wallet_balance = $current_balance + $credit + $admin_bonus - $debit;
 
 
-          $order = Order::where(['id' => $referance, 'user_id' => $user_id])->first();
-
-        if ($order->voucher_type == 'Flat discount') {
-            if ($order->transaction == null) {
-                $unpaid_payment = OrderPayment::where('payment_status', 'unpaid')->where('order_id', $order->id)->first()?->payment_method;
-                $unpaid_pay_method = 'digital_payment';
-                if ($unpaid_payment) {
-                    $unpaid_pay_method = $unpaid_payment;
-                }
-                if ($order->payment_method == 'cash_on_delivery' || $unpaid_pay_method == 'cash_on_delivery') {
-                    $ol = OrderLogic::create_transaction($order, 'store', null);
-                } else {
-                    $ol = OrderLogic::create_transaction($order, 'admin', null);
-                }
-                if (!$ol) {
-                    Toastr::warning(translate('messages.faield_to_create_order_transaction'));
-                    return back();
-                }
-                $order->order_status = 'delivered';
-                $order->delivered = Carbon::now();
-                $order->save();
-            }
-
-            $order->payment_status = 'paid';
-
-            OrderLogic::update_unpaid_order_payment(order_id: $order->id, payment_method: $order->payment_method);
-
-        }
-
-
+  
         try {
             DB::beginTransaction();
             $user->save();

@@ -8664,4 +8664,5 @@ Smartly or Earn. ',
   'commission_paid_by_store' => 'Commission paid by store',
   'commission_rate_info' => 'Commission rate info',
   'commission_paid_by_store_for_all_gift_vouchers' => 'Commission paid by store for all gift vouchers',
+  'failed_to_transfer' => 'Failed to transfer',
 );

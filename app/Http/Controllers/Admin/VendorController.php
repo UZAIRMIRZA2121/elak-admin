@@ -67,7 +67,7 @@ class VendorController extends Controller
     public function store(Request $request)
     {
 
-
+   
         $rules = [
 
             'name.0' => 'required',
@@ -158,11 +158,11 @@ class VendorController extends Controller
 
 
 
-        if (Vendor::where(['phone' => $phone])->exists()) {
-            $validator->getMessageBag()->add('phone', translate('messages.phone_already_taken'));
-            return back()->withErrors($validator)
-                ->withInput();
-        }
+        // if (Vendor::where(['phone' => $phone])->exists()) {
+        //     $validator->getMessageBag()->add('phone', translate('messages.phone_already_taken'));
+        //     return back()->withErrors($validator)
+        //         ->withInput();
+        // }
 
         if (Vendor::where(['email' => $request->email])->exists()) {
             $validator->getMessageBag()->add('email', translate('messages.email_already_taken'));
@@ -311,10 +311,11 @@ class VendorController extends Controller
                 }
             }
         } catch (\Exception $ex) {
+            dd($ex->getMessage());
             info($ex->getMessage());
         }
 
-
+      
         Toastr::success(translate('messages.store_added_successfully'));
         return redirect('admin/store/list');
     }

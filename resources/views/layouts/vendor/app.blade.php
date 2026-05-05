@@ -1476,7 +1476,7 @@ $moduleType = $store?->module?->module_type;
                     */
                     $('#nc-bonus').text(
                         "$" + bonusAmount.toFixed(2) +
-                        " (Commission: $" + visaCommission.toFixed(2) + ")"
+                        " (Visa Commission: $" + visaCommission.toFixed(2) + ")"
                     );
 
                     /*
