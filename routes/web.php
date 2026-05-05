@@ -32,11 +32,18 @@ use App\Http\Controllers\CyberSourceController;
 |
 */
 
-Route::get('/payment', function () {
-    return view('payment');
-});
+Route::get('/cybersource-form', [CyberSourceController::class, 'form']);
+Route::post('/cybersource-pay', [CyberSourceController::class, 'testPayment']);
+Route::get('/cybersource-logs', [CyberSourceController::class, 'logs']);
 
-Route::post('/cybersource-test', [CyberSourceController::class, 'testPayment']);
+
+Route::get('/secure-form', [CyberSourceController::class, 'secureForm']);
+Route::post('/secure-sign', [CyberSourceController::class, 'generateSignature']);
+
+
+
+
+
 Route::get('/voucher/{qr_code}/download', [UserVoucherController::class, 'downloadVoucher'])->name('voucher.download');
 Route::get('/share-voucher/{qr_code}', [UserVoucherController::class, 'shareVoucher'])->name('voucher.share');
 

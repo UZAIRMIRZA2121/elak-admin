@@ -82,9 +82,9 @@
                                                             <span class="toggle-switch-indicator"></span>
                                                         </span>
                                                     </label>
+                                                    <p class="form-label text-danger">* {{ translate('messages.commission_paid_by_store_for_all_gift_vouchers') }} *</p>
 
                                                 </div>
-
                                                 <div>
                                                     <label
                                                         class="d-flex mb-1 justify-content-between switch toggle-switch-sm text-dark text-capitalize"
