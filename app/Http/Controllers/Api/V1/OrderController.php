@@ -91,20 +91,20 @@ class OrderController extends Controller
         }
         $user_id = $request->user ? $request->user->id : $request['guest_id'];
 
-        $paginator = Order::with(['store', 'delivery_man.rating', 'parcel_category', 'refund:order_id,admin_note,customer_note'])->withCount('details')->where(['user_id' => $user_id])->whereIn('order_status', ['confirmed', 'processing', 'handover', 'accepted', 'picked_up', 'pending', 'delivered', 'canceled', 'refund_requested', 'refund_request_canceled', 'refunded', 'failed', 'active'])
+        $paginator = Order::with(['store', 'delivery_man.rating', 'parcel_category', 'refund:order_id,admin_note,customer_note'])->withCount('details')->where(['user_id' => $user_id])->whereIn('order_status', ['confirmed', 'processing', 'handover', 'accepted', 'picked_up', 'pending', 'delivered', 'canceled', 'refund_requested', 'refund_request_canceled', 'refunded', 'failed', 'active', 'expired'])
             ->when(isset($request->user), function ($query) {
                 $query->where('is_guest', 0);
             })
 
             ->Notpos()->latest()->paginate($request['limit'], ['*'], 'page', $request['offset']);
-        $orders = array_map(function ($data) {
-
+            $orders = array_map(function ($data) {
 
             $data['delivery_address'] = $data['delivery_address'] ? json_decode($data['delivery_address']) : $data['delivery_address'];
             $data['store'] = $data['store'] ? Helpers::store_data_formatting($data['store']) : $data['store'];
             $data['delivery_man'] = $data['delivery_man'] ? Helpers::deliverymen_data_formatting([$data['delivery_man']]) : $data['delivery_man'];
             $data['refund_cancellation_note'] = $data['refund'] ? $data['refund']['admin_note'] : null;
             $data['refund_customer_note'] = $data['refund'] ? $data['refund']['customer_note'] : null;
+
 
             /* ================= VOUCHER ITEMS ================= */
             $data['voucher_items'] = Helpers::order_voucher_details_formatting_from_formatted(

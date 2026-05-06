@@ -329,7 +329,7 @@ class ClientSideController extends Controller
                     'client_id' => $request->select_client,
                     'role' => 'user',
                     'status' => 0,
-                    'ref_by' => $randomRef,
+                    'ref_code' => $randomRef,
                     'created_at' => now(),
                     'updated_at' => now(),
                 ];
@@ -911,6 +911,7 @@ class ClientSideController extends Controller
         Toastr::success("Themes Updated Successfully!");
         return back();
     }
+    
     public function client_data($id, Request $request)
     {
         $Segment = Segment::where('client_id', $id)->get();
