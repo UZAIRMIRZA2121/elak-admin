@@ -245,7 +245,7 @@ class ConfigController extends Controller
 
         $active_addon_payment_lists = $published_status == 1 ? $this->getPaymentMethods() : $this->getDefaultPaymentMethods();
 
-
+        dd($active_addon_payment_lists ,  $published_status);
         $digital_payment_infos = array(
             'digital_payment' => (boolean) ($digital_payment['status'] == 1 ? true : false),
             'plugin_payment_gateways' => (boolean) ($published_status ? true : false),
@@ -896,8 +896,8 @@ class ConfigController extends Controller
         if (!Schema::hasTable('addon_settings')) {
             return [];
         }
-
-        $methods = Setting::where('is_active', 1)->whereIn('settings_type', ['payment_config'])->whereIn('key_name', ['ssl_commerz', 'paypal', 'stripe', 'razor_pay', 'senang_pay', 'paytabs', 'paystack', 'paymob_accept', 'paytm', 'flutterwave', 'liqpay', 'bkash', 'mercadopago'])->get();
+         
+        $methods = Setting::where('is_active', 1)->whereIn('settings_type', ['payment_config'])->whereIn('key_name', ['ssl_commerz', 'paypal', 'stripe', 'razor_pay', 'senang_pay', 'paytabs', 'paystack', 'paymob_accept', 'paytm', 'flutterwave', 'liqpay', 'bkash', 'mercadopago','cybersource'])->get();
 
         $env = env('APP_ENV') == 'live' ? 'live' : 'live';
     
