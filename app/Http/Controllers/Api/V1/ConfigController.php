@@ -245,7 +245,7 @@ class ConfigController extends Controller
 
         $active_addon_payment_lists = $published_status == 1 ? $this->getPaymentMethods() : $this->getDefaultPaymentMethods();
 
-        dd($active_addon_payment_lists ,  $published_status);
+        
         $digital_payment_infos = array(
             'digital_payment' => (boolean) ($digital_payment['status'] == 1 ? true : false),
             'plugin_payment_gateways' => (boolean) ($published_status ? true : false),
