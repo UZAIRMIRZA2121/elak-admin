@@ -189,6 +189,7 @@
         <!-- Tab Content -->
         <div class="row digital_payment_methods  {{ $is_published }} mt-3 g-3">
             @foreach($data_values->sortByDesc('is_active') as $payment_key => $payment)
+     
                 <div class="col-md-6 mb-4">
                     <div class="card">
                         <form action="{{env('APP_MODE')!='demo'?route('admin.business-settings.third-party.payment-method-update'):'javascript:'}}" method="POST"

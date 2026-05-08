@@ -95,21 +95,21 @@ class BusinessSettingsController extends Controller
         } else if ($tab == 'automated-message') {
             $key = explode(' ', $request['search']);
             $messages = AutomatedMessage::orderBy('id', 'desc')
-            ->when($request?->search ,function($query)use($key) {
-                foreach ($key as $value) {
-                $query->where('message' ,'like', "%{$value}%");
-                };
-            })
+                ->when($request?->search, function ($query) use ($key) {
+                    foreach ($key as $value) {
+                        $query->where('message', 'like', "%{$value}%");
+                    };
+                })
                 ->paginate(config('default_pagination'));
-                $language = getWebConfig('language');
+            $language = getWebConfig('language');
 
-            return view('admin-views.business-settings.automated_message', compact( 'messages','language'));
+            return view('admin-views.business-settings.automated_message', compact('messages', 'language'));
         }
     }
 
     public function update_priority(Request $request)
     {
-        $list = ['category_list', 'popular_store', 'recommended_store', 'special_offer', 'popular_item', 'best_reviewed_item', 'item_campaign', 'latest_items', 'all_stores', 'category_sub_category_item', 'product_search', 'basic_medicine', 'common_condition', 'brand', 'brand_item', 'latest_stores','top_offer_near_me_stores'];
+        $list = ['category_list', 'popular_store', 'recommended_store', 'special_offer', 'popular_item', 'best_reviewed_item', 'item_campaign', 'latest_items', 'all_stores', 'category_sub_category_item', 'product_search', 'basic_medicine', 'common_condition', 'brand', 'brand_item', 'latest_stores', 'top_offer_near_me_stores'];
         foreach ($list as $item) {
             Helpers::businessUpdateOrInsert(['key' => $item . '_default_status'], [
                 'value' => $request[$item . '_default_status'] ?? 0
@@ -285,7 +285,7 @@ class BusinessSettingsController extends Controller
             'home_delivery_status' => 'required_without:takeaway_status',
             'takeaway_status' => 'required_without:home_delivery_status',
         ]);
-        $key_datas=[
+        $key_datas = [
             'order_cancelation_rate_limit_status' => 'order_cancelation_rate_limit_status',
             'order_cancelation_rate_block_limit' => 'order_cancelation_rate_block_limit',
             'order_cancelation_rate_warning_limit' => 'order_cancelation_rate_warning_limit',
@@ -296,17 +296,17 @@ class BusinessSettingsController extends Controller
             'takeaway_status' => 'takeaway_status',
             'schedule_order_slot_duration_time_format' => 'schedule_order_slot_duration_time_format',
             'takeaway_status' => 'takeaway_status',
-            ];
+        ];
 
-        if($request->order_cancelation_rate_limit_status &&  $request->order_cancelation_rate_warning_limit >  $request->order_cancelation_rate_block_limit ){
+        if ($request->order_cancelation_rate_limit_status && $request->order_cancelation_rate_warning_limit > $request->order_cancelation_rate_block_limit) {
             Toastr::error(translate('messages.Providers_will_be_blocked_with_out_warning.Warning_rate_must_be_smaller'));
             return back();
         }
-        foreach($key_datas as $key => $request_key){
-                Helpers::businessUpdateOrInsert(['key' => $key], [
-                    'value' => $request->{$request_key} ?? 0
-                ]);
-            }
+        foreach ($key_datas as $key => $request_key) {
+            Helpers::businessUpdateOrInsert(['key' => $key], [
+                'value' => $request->{$request_key} ?? 0
+            ]);
+        }
 
         $time = $request['schedule_order_slot_duration'];
         if ($request['schedule_order_slot_duration_time_format'] == 'hour') {
@@ -412,7 +412,9 @@ class BusinessSettingsController extends Controller
     private function dmSchedule()
     {
         $key = [
-            'dm_disbursement_time_period', 'dm_disbursement_week_start', 'dm_disbursement_create_time'
+            'dm_disbursement_time_period',
+            'dm_disbursement_week_start',
+            'dm_disbursement_create_time'
         ];
         $settings = array_column(BusinessSetting::whereIn('key', $key)->get()->toArray(), 'value', 'key');
 
@@ -445,7 +447,9 @@ class BusinessSettingsController extends Controller
     private function storeSchedule()
     {
         $key = [
-            'store_disbursement_time_period', 'store_disbursement_week_start', 'store_disbursement_create_time'
+            'store_disbursement_time_period',
+            'store_disbursement_week_start',
+            'store_disbursement_create_time'
         ];
         $settings = array_column(BusinessSetting::whereIn('key', $key)->get()->toArray(), 'value', 'key');
 
@@ -618,7 +622,7 @@ class BusinessSettingsController extends Controller
             'value' => $request['admin_free_delivery_status'] && $request['admin_free_delivery_option'] == 'free_delivery_by_order_amount' ? $request['free_delivery_over'] : null
         ]);
         Helpers::businessUpdateOrInsert(['key' => 'admin_free_delivery_option'], [
-            'value' => $request['admin_free_delivery_status'] && $request['admin_free_delivery_option'] ?  $request['admin_free_delivery_option'] : null
+            'value' => $request['admin_free_delivery_status'] && $request['admin_free_delivery_option'] ? $request['admin_free_delivery_option'] : null
         ]);
 
         Helpers::businessUpdateOrInsert(['key' => 'additional_charge_status'], [
@@ -654,7 +658,7 @@ class BusinessSettingsController extends Controller
         Helpers::businessUpdateOrInsert(['key' => 'delivery_charge_comission'], [
             'value' => $request['admin_comission_in_delivery_charge']
         ]);
-// dd( $request['commission_business_model']);
+        // dd( $request['commission_business_model']);
 
         if (!isset($request->subscription_business_model) && !isset($request->commission_business_model)) {
             Toastr::error(translate('You_must_select_at_least_one_business_model_between_commission_and_subscription'));
@@ -673,8 +677,10 @@ class BusinessSettingsController extends Controller
 
             if (Helpers::commission_check() == 0) {
                 Store::where('store_business_model', 'commission')
-                    ->update(['store_business_model' => 'unsubscribed',
-                        'status' => 0,]);
+                    ->update([
+                        'store_business_model' => 'unsubscribed',
+                        'status' => 0,
+                    ]);
             }
 
 
@@ -804,14 +810,14 @@ class BusinessSettingsController extends Controller
                 }
             }
         }
-        $data_values = Setting::whereIn('settings_type', ['payment_config'])->whereIn('key_name', ['ssl_commerz', 'paypal', 'stripe', 'razor_pay', 'senang_pay', 'paytabs', 'paystack', 'paymob_accept', 'paytm', 'flutterwave', 'liqpay', 'bkash', 'mercadopago'])->get();
+        $data_values = Setting::whereIn('settings_type', ['payment_config'])->whereIn('key_name', ['ssl_commerz', 'paypal', 'stripe', 'cybersource', 'razor_pay', 'senang_pay', 'paytabs', 'paystack', 'paymob_accept', 'paytm', 'flutterwave', 'liqpay', 'bkash', 'mercadopago'])->get();
 
         return view('admin-views.business-settings.payment-index', compact('published_status', 'payment_url', 'data_values'));
     }
 
     public function payment_update(Request $request, $name)
     {
-        // dd($name);
+        dd($name);
         if (env('APP_MODE') == 'demo') {
             Toastr::info(translate('messages.update_option_is_disable_for_demo'));
             return back();
@@ -946,6 +952,31 @@ class BusinessSettingsController extends Controller
             } else {
                 BusinessSetting::where(['key' => 'stripe'])->update([
                     'key' => 'stripe',
+                    'value' => json_encode([
+                        'status' => $request['status'],
+                        'api_key' => $request['api_key'],
+                        'published_key' => $request['published_key'],
+                    ]),
+                    'updated_at' => now(),
+                ]);
+            }
+        } elseif ($name == 'cybersource') {
+            dd($request->all());
+            $payment = BusinessSetting::where('key', 'cybersource')->first();
+            if (isset($payment) == false) {
+                Helpers::businessInsert([
+                    'key' => 'cybersource',
+                    'value' => json_encode([
+                        'status' => 1,
+                        'api_key' => '',
+                        'published_key' => '',
+                    ]),
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+            } else {
+                BusinessSetting::where(['key' => 'cybersource'])->update([
+                    'key' => 'cybersource',
                     'value' => json_encode([
                         'status' => $request['status'],
                         'api_key' => $request['api_key'],
@@ -1119,7 +1150,7 @@ class BusinessSettingsController extends Controller
         $request['status'] = $request->status ?? 0;
 
         $validation = [
-            'gateway' => 'required|in:ssl_commerz,paypal,stripe,razor_pay,senang_pay,paytabs,paystack,paymob_accept,paytm,flutterwave,liqpay,bkash,mercadopago',
+            'gateway' => 'required|in:ssl_commerz,paypal,stripe,razor_pay,cybersource,senang_pay,paytabs,paystack,paymob_accept,paytm,flutterwave,liqpay,bkash,mercadopago',
             'mode' => 'required|in:live,test'
         ];
 
@@ -1142,6 +1173,17 @@ class BusinessSettingsController extends Controller
                 'status' => 'required|in:1,0',
                 'api_key' => 'required_if:status,1',
                 'published_key' => 'required_if:status,1',
+            ];
+        } elseif ($request['gateway'] == 'cybersource') {
+
+            $additional_data = [
+                'status' => 'required|in:1,0',
+                'gateway' => 'required|in:cybersource',
+                'mode' => 'required|in:test,live',
+                'merchant_id' => 'required_if:status,1',
+                'api_key' => 'required_if:status,1',
+                'secret_key' => 'required_if:status,1',
+                'base_url' => 'required_if:status,1|url',
             ];
         } elseif ($request['gateway'] == 'razor_pay') {
             $additional_data = [
@@ -1284,10 +1326,10 @@ class BusinessSettingsController extends Controller
                 $name = \App\Models\BusinessSetting::where('key', 'business_name')->first();
                 $logo = \App\Models\BusinessSetting::where('key', 'logo')->first();
 
-                $app_minimum_version_android=BusinessSetting::where(['key'=>'app_minimum_version_android'])->first()?->value;
-                $app_url_android=BusinessSetting::where(['key'=>'app_url_android'])->first()?->value;
-                $app_minimum_version_ios=BusinessSetting::where(['key'=>'app_minimum_version_ios'])->first()?->value;
-                $app_url_ios=BusinessSetting::where(['key'=>'app_url_ios'])->first()?->value;
+                $app_minimum_version_android = BusinessSetting::where(['key' => 'app_minimum_version_android'])->first()?->value;
+                $app_url_android = BusinessSetting::where(['key' => 'app_url_android'])->first()?->value;
+                $app_minimum_version_ios = BusinessSetting::where(['key' => 'app_minimum_version_ios'])->first()?->value;
+                $app_url_ios = BusinessSetting::where(['key' => 'app_url_ios'])->first()?->value;
 
                 $response = Http::post($driveMondBaseUrl->value . '/api/store-configurations', [
                     'mart_business_name' => $name->value ?? "6amMart",
@@ -1944,8 +1986,10 @@ class BusinessSettingsController extends Controller
     private function update_data($request, $key_data)
     {
         $data = DataSetting::firstOrNew(
-            ['key' => $key_data,
-                'type' => 'admin_landing_page'],
+            [
+                'key' => $key_data,
+                'type' => 'admin_landing_page'
+            ],
         );
 
         $data->value = $request->{$key_data}[array_search('default', $request->lang)];
@@ -1986,8 +2030,10 @@ class BusinessSettingsController extends Controller
     private function policy_status_update($key_data, $status)
     {
         $data = DataSetting::firstOrNew(
-            ['key' => $key_data,
-                'type' => 'admin_landing_page'],
+            [
+                'key' => $key_data,
+                'type' => 'admin_landing_page'
+            ],
         );
         $data->value = $status;
         $data->save();
@@ -2518,40 +2564,40 @@ class BusinessSettingsController extends Controller
     }
     public function update_fcm_messages_rental(Request $request)
     {
-            $messageKeys = [
-                'trip_pending_message' => 'trip_pending_message',
-                'trip_confirm_message' => 'trip_confirm_message',
-                'trip_ongoing_message' => 'trip_ongoing_message',
-                'trip_complete_message' => 'trip_complete_message',
-                'trip_cancel_message' => 'trip_cancel_message',
-            ];
+        $messageKeys = [
+            'trip_pending_message' => 'trip_pending_message',
+            'trip_confirm_message' => 'trip_confirm_message',
+            'trip_ongoing_message' => 'trip_ongoing_message',
+            'trip_complete_message' => 'trip_complete_message',
+            'trip_cancel_message' => 'trip_cancel_message',
+        ];
 
-            foreach ($messageKeys as $requestKey => $notificationKey) {
+        foreach ($messageKeys as $requestKey => $notificationKey) {
 
-                $notification = NotificationMessage::firstOrNew([
-                    'module_type' => 'rental',
-                    'key' => $notificationKey,
-                ]);
+            $notification = NotificationMessage::firstOrNew([
+                'module_type' => 'rental',
+                'key' => $notificationKey,
+            ]);
 
 
-                $notification->message = $request[$requestKey][array_search('en', $request->lang)];
-                $notification->status = isset($request[$requestKey . '_status']) && $request[$requestKey . '_status'] == 1 ? 1 : 0;
-                $notification->save();
+            $notification->message = $request[$requestKey][array_search('en', $request->lang)];
+            $notification->status = isset($request[$requestKey . '_status']) && $request[$requestKey . '_status'] == 1 ? 1 : 0;
+            $notification->save();
 
-                foreach ($request->lang as $index => $locale) {
-                    if (!empty($request[$requestKey][$index])) {
-                        Translation::updateOrInsert(
-                            [
-                                'translationable_type' => NotificationMessage::class,
-                                'translationable_id' => $notification->id,
-                                'locale' => $locale,
-                                'key' => $notificationKey,
-                            ],
-                            ['value' => $request[$requestKey][$index]]
-                        );
-                    }
+            foreach ($request->lang as $index => $locale) {
+                if (!empty($request[$requestKey][$index])) {
+                    Translation::updateOrInsert(
+                        [
+                            'translationable_type' => NotificationMessage::class,
+                            'translationable_id' => $notification->id,
+                            'locale' => $locale,
+                            'key' => $notificationKey,
+                        ],
+                        ['value' => $request[$requestKey][$index]]
+                    );
                 }
             }
+        }
 
         Toastr::success(translate('messages.message_updated'));
         return back();
@@ -2617,9 +2663,9 @@ class BusinessSettingsController extends Controller
 
     public function updateSocialLogin($service, Request $request)
     {
-        $login_setup_status = Helpers::get_business_settings($service.'_login_status')??0;
-        if($login_setup_status && ($request['status']==0)){
-            Toastr::warning(translate($service.'_login_status_is_enabled_in_login_setup._First_disable_from_login_setup.'));
+        $login_setup_status = Helpers::get_business_settings($service . '_login_status') ?? 0;
+        if ($login_setup_status && ($request['status'] == 0)) {
+            Toastr::warning(translate($service . '_login_status_is_enabled_in_login_setup._First_disable_from_login_setup.'));
             return redirect()->back();
         }
         $socialLogin = BusinessSetting::where('key', 'social_login')->first();
@@ -2639,7 +2685,7 @@ class BusinessSettingsController extends Controller
         }
 
         Helpers::businessUpdateOrInsert(['key' => 'social_login'], [
-            'value' =>$credential_array
+            'value' => $credential_array
         ]);
 
         Toastr::success(translate('messages.credential_updated', ['service' => $service]));
@@ -2680,73 +2726,82 @@ class BusinessSettingsController extends Controller
         return redirect()->back();
     }
 
-    public function login_settings(){
-        $data = array_column(BusinessSetting::whereIn('key',['manual_login_status','otp_login_status','social_login_status','google_login_status','facebook_login_status','apple_login_status','email_verification_status','phone_verification_status'
-        ])->get(['key','value'])->toArray(), 'value', 'key');
+    public function login_settings()
+    {
+        $data = array_column(BusinessSetting::whereIn('key', [
+            'manual_login_status',
+            'otp_login_status',
+            'social_login_status',
+            'google_login_status',
+            'facebook_login_status',
+            'apple_login_status',
+            'email_verification_status',
+            'phone_verification_status'
+        ])->get(['key', 'value'])->toArray(), 'value', 'key');
 
-        return view('admin-views.login-setup.login_page',compact('data'));
+        return view('admin-views.login-setup.login_page', compact('data'));
     }
 
     public function login_settings_update(Request $request)
     {
         $social_login = [];
-        $social_login_data=Helpers::get_business_settings('social_login') ?? [];
+        $social_login_data = Helpers::get_business_settings('social_login') ?? [];
         foreach ($social_login_data as $social) {
-            $social_login[$social['login_medium']] = (boolean)$social['status'];
+            $social_login[$social['login_medium']] = (boolean) $social['status'];
         }
-        $social_login_data=Helpers::get_business_settings('apple_login') ?? [];
+        $social_login_data = Helpers::get_business_settings('apple_login') ?? [];
         foreach ($social_login_data as $social) {
-            $social_login[$social['login_medium']] = (boolean)$social['status'];
+            $social_login[$social['login_medium']] = (boolean) $social['status'];
         }
 
-        $is_firebase_active=Helpers::get_business_settings('firebase_otp_verification') ?? 0;
+        $is_firebase_active = Helpers::get_business_settings('firebase_otp_verification') ?? 0;
 
-        $is_sms_active= Setting::whereJsonContains('live_values->status','1')->where('settings_type', 'sms_config')->exists();
+        $is_sms_active = Setting::whereJsonContains('live_values->status', '1')->where('settings_type', 'sms_config')->exists();
 
-        $is_mail_active= config('mail.status');
+        $is_mail_active = config('mail.status');
 
-        if(!$request['manual_login_status'] && !$request['otp_login_status'] && !$request['social_login_status']){
+        if (!$request['manual_login_status'] && !$request['otp_login_status'] && !$request['social_login_status']) {
             Session::flash('select-one-method', true);
             return back();
         }
 
-        if($request['otp_login_status'] && !$is_sms_active && !$is_firebase_active){
+        if ($request['otp_login_status'] && !$is_sms_active && !$is_firebase_active) {
             Session::flash('sms-config', true);
             return back();
         }
 
-        if(!$request['manual_login_status'] && !$request['otp_login_status'] && $request['social_login_status']){
-            if(!$request['google_login_status'] && !$request['facebook_login_status']){
+        if (!$request['manual_login_status'] && !$request['otp_login_status'] && $request['social_login_status']) {
+            if (!$request['google_login_status'] && !$request['facebook_login_status']) {
                 Session::flash('select-one-method-android', true);
                 return back();
             }
         }
-        if( $request['social_login_status'] &&  !$request['google_login_status'] && !$request['facebook_login_status'] && !$request['apple_login_status']){
+        if ($request['social_login_status'] && !$request['google_login_status'] && !$request['facebook_login_status'] && !$request['apple_login_status']) {
             Session::flash('select-one-method-social-login', true);
             return back();
         }
 
-        if(($request['social_login_status'] && $request['google_login_status'] && !isset($social_login['google'])) || ($request['social_login_status'] && ($request['google_login_status'] && isset($social_login['google'])) && !$social_login['google'])){
+        if (($request['social_login_status'] && $request['google_login_status'] && !isset($social_login['google'])) || ($request['social_login_status'] && ($request['google_login_status'] && isset($social_login['google'])) && !$social_login['google'])) {
             Session::flash('setup-google', true);
             return back();
         }
 
-        if(($request['social_login_status'] && $request['facebook_login_status'] && !isset($social_login['facebook'])) || ($request['social_login_status'] && ($request['facebook_login_status'] && isset($social_login['facebook'])) && !$social_login['facebook'])){
+        if (($request['social_login_status'] && $request['facebook_login_status'] && !isset($social_login['facebook'])) || ($request['social_login_status'] && ($request['facebook_login_status'] && isset($social_login['facebook'])) && !$social_login['facebook'])) {
             Session::flash('setup-facebook', true);
             return back();
         }
 
-        if(($request['social_login_status'] && $request['apple_login_status'] && !isset($social_login['apple'])) || ($request['social_login_status'] && ($request['apple_login_status'] && isset($social_login['apple'])) && !$social_login['apple'])){
+        if (($request['social_login_status'] && $request['apple_login_status'] && !isset($social_login['apple'])) || ($request['social_login_status'] && ($request['apple_login_status'] && isset($social_login['apple'])) && !$social_login['apple'])) {
             Session::flash('setup-apple', true);
             return back();
         }
 
-        if($request['phone_verification_status'] && !$is_sms_active && !$is_firebase_active){
+        if ($request['phone_verification_status'] && !$is_sms_active && !$is_firebase_active) {
             Session::flash('sms-config-verification', true);
             return back();
         }
 
-        if($request['email_verification_status'] && !$is_mail_active){
+        if ($request['email_verification_status'] && !$is_mail_active) {
             Session::flash('mail-config-verification', true);
             return back();
         }
@@ -2765,15 +2820,15 @@ class BusinessSettingsController extends Controller
         ]);
 
         Helpers::businessUpdateOrInsert(['key' => 'google_login_status'], [
-            'value' => $request['social_login_status']?($request['google_login_status'] ? 1 : 0):0
+            'value' => $request['social_login_status'] ? ($request['google_login_status'] ? 1 : 0) : 0
         ]);
 
         Helpers::businessUpdateOrInsert(['key' => 'facebook_login_status'], [
-            'value' => $request['social_login_status']?($request['facebook_login_status'] ? 1 : 0):0
+            'value' => $request['social_login_status'] ? ($request['facebook_login_status'] ? 1 : 0) : 0
         ]);
 
         Helpers::businessUpdateOrInsert(['key' => 'apple_login_status'], [
-            'value' => $request['social_login_status']?($request['apple_login_status'] ? 1 : 0):0
+            'value' => $request['social_login_status'] ? ($request['apple_login_status'] ? 1 : 0) : 0
         ]);
 
         Helpers::businessUpdateOrInsert(['key' => 'email_verification_status'], [
@@ -2815,23 +2870,23 @@ class BusinessSettingsController extends Controller
 
     public function firebase_otp_index(Request $request)
     {
-        $is_sms_active= Setting::whereJsonContains('live_values->status','1')->where('settings_type', 'sms_config')
-        ->exists();
-        $is_mail_active= config('mail.status');
-        return view('admin-views.business-settings.firebase-otp-index',compact('is_sms_active','is_mail_active'));
+        $is_sms_active = Setting::whereJsonContains('live_values->status', '1')->where('settings_type', 'sms_config')
+            ->exists();
+        $is_mail_active = config('mail.status');
+        return view('admin-views.business-settings.firebase-otp-index', compact('is_sms_active', 'is_mail_active'));
     }
 
     public function firebase_otp_update(Request $request)
     {
-        $login_setup_status = Helpers::get_business_settings('otp_login_status')??0;
-        $phone_verification_status = Helpers::get_business_settings('phone_verification_status')??0;
-        $is_sms_active= Setting::whereJsonContains('live_values->status','1')->where('settings_type', 'sms_config')
+        $login_setup_status = Helpers::get_business_settings('otp_login_status') ?? 0;
+        $phone_verification_status = Helpers::get_business_settings('phone_verification_status') ?? 0;
+        $is_sms_active = Setting::whereJsonContains('live_values->status', '1')->where('settings_type', 'sms_config')
             ->exists();
-        if(!$is_sms_active && $login_setup_status && ($request['firebase_otp_verification']==0)){
+        if (!$is_sms_active && $login_setup_status && ($request['firebase_otp_verification'] == 0)) {
             Toastr::warning(translate('otp_login_status_is_enabled_in_login_setup._First_disable_from_login_setup.'));
             return redirect()->back();
         }
-        if(!$is_sms_active && $phone_verification_status && ($request['firebase_otp_verification']==0)){
+        if (!$is_sms_active && $phone_verification_status && ($request['firebase_otp_verification'] == 0)) {
             Toastr::warning(translate('phone_verification_status_is_enabled_in_login_setup._First_disable_from_login_setup.'));
             return redirect()->back();
         }
@@ -2896,7 +2951,7 @@ class BusinessSettingsController extends Controller
             ]);
         }
 
-//        $credentials=\App\CentralLogics\Helpers::get_business_settings('s3_credential');
+        //        $credentials=\App\CentralLogics\Helpers::get_business_settings('s3_credential');
 //        $config=\App\CentralLogics\Helpers::get_business_data('local_storage');
 //
 //        $s3Credentials = [
@@ -2909,7 +2964,7 @@ class BusinessSettingsController extends Controller
 //            'AWS_ENDPOINT' => $credentials['end_point']
 //        ];
 
-//        // Load existing environment file into an array
+        //        // Load existing environment file into an array
 //        $envFile = file(base_path('.env'), FILE_IGNORE_NEW_LINES);
 //        $data = [];
 //        foreach ($envFile as $line) {
@@ -3667,11 +3722,11 @@ class BusinessSettingsController extends Controller
             $earning_seller_image->save();
 
 
-            if($request['playstore_url_status'] && !$request['playstore_url']){
+            if ($request['playstore_url_status'] && !$request['playstore_url']) {
                 Toastr::error(translate('messages.playstore download_url_is_empty'));
                 return back();
             }
-            if($request['apple_store_url_status'] && !$request['apple_store_url']){
+            if ($request['apple_store_url_status'] && !$request['apple_store_url']) {
                 Toastr::error(translate('messages.App_store download_url_is_empty'));
                 return back();
             }
@@ -3697,11 +3752,11 @@ class BusinessSettingsController extends Controller
             $earning_delivery_image->save();
 
 
-            if($request['playstore_url_status'] && !$request['playstore_url']){
+            if ($request['playstore_url_status'] && !$request['playstore_url']) {
                 Toastr::error(translate('messages.playstore download_url_is_empty'));
                 return back();
             }
-            if($request['apple_store_url_status'] && !$request['apple_store_url']){
+            if ($request['apple_store_url_status'] && !$request['apple_store_url']) {
                 Toastr::error(translate('messages.App_store download_url_is_empty'));
                 return back();
             }
@@ -4077,7 +4132,7 @@ class BusinessSettingsController extends Controller
 
             Toastr::success(translate('messages.contact_section_updated'));
         } elseif ($tab == 'available-zone-section') {
-            if($request['available_zone_status']){
+            if ($request['available_zone_status']) {
                 $request->validate([
                     'available_zone_title.0' => 'required',
 
@@ -4108,10 +4163,10 @@ class BusinessSettingsController extends Controller
             $available_zone_image = DataSetting::where('type', 'admin_landing_page')->where('key', 'available_zone_image')->first();
             if ($available_zone_image == null) {
 
-                if($request['available_zone_status']){
+                if ($request['available_zone_status']) {
                     $request->validate([
                         'image' => 'required',
-                        ]);
+                    ]);
                 }
 
                 $available_zone_image = new DataSetting();
@@ -4176,7 +4231,7 @@ class BusinessSettingsController extends Controller
                 }
             }
 
-            Helpers::dataUpdateOrInsert(['type' => 'admin_landing_page','key' => 'available_zone_status'], [
+            Helpers::dataUpdateOrInsert(['type' => 'admin_landing_page', 'key' => 'available_zone_status'], [
                 'value' => $request['available_zone_status']
             ]);
 
@@ -4668,7 +4723,7 @@ class BusinessSettingsController extends Controller
 
             Toastr::success(translate('messages.download_app_section_updated'));
         } elseif ($tab == 'available-zone-section') {
-            if($request['available_zone_status']){
+            if ($request['available_zone_status']) {
                 $request->validate([
                     'available_zone_title.0' => 'required',
 
@@ -4699,10 +4754,10 @@ class BusinessSettingsController extends Controller
             $available_zone_image = DataSetting::where('type', 'react_landing_page')->where('key', 'available_zone_image')->first();
             if ($available_zone_image == null) {
 
-                if($request['available_zone_status']){
+                if ($request['available_zone_status']) {
                     $request->validate([
                         'image' => 'required',
-                        ]);
+                    ]);
                 }
 
                 $available_zone_image = new DataSetting();
@@ -4767,7 +4822,7 @@ class BusinessSettingsController extends Controller
                 }
             }
 
-            Helpers::dataUpdateOrInsert(['type' => 'react_landing_page','key' => 'available_zone_status'], [
+            Helpers::dataUpdateOrInsert(['type' => 'react_landing_page', 'key' => 'available_zone_status'], [
                 'value' => $request['available_zone_status']
             ]);
 
@@ -4853,7 +4908,7 @@ class BusinessSettingsController extends Controller
             Toastr::success(translate('messages.earning_section_updated'));
         } elseif ($tab == 'earning-seller-link') {
 
-            if($request->join_seller_react_status !== null ){
+            if ($request->join_seller_react_status !== null) {
                 $join_seller_react_status = DataSetting::where('type', 'react_landing_page')->where('key', 'join_seller_react_status')->first();
                 if ($join_seller_react_status == null) {
                     $join_seller_react_status = new DataSetting();
@@ -4861,11 +4916,11 @@ class BusinessSettingsController extends Controller
 
                 $join_seller_react_status->key = 'join_seller_react_status';
                 $join_seller_react_status->type = 'react_landing_page';
-                $join_seller_react_status->value = $request->join_seller_react_status  ? 0 : 1 ;
+                $join_seller_react_status->value = $request->join_seller_react_status ? 0 : 1;
                 $join_seller_react_status->save();
 
-            Toastr::success(translate('messages.Seller_Section_Content_status_updated'));
-            return back();
+                Toastr::success(translate('messages.Seller_Section_Content_status_updated'));
+                return back();
             }
 
 
@@ -4993,7 +5048,7 @@ class BusinessSettingsController extends Controller
             Toastr::success(translate('messages.seller_links_updated'));
         } elseif ($tab == 'earning-dm-link') {
 
-            if($request->join_DM_react_status !== null ){
+            if ($request->join_DM_react_status !== null) {
                 $join_DM_react_status = DataSetting::where('type', 'react_landing_page')->where('key', 'join_DM_react_status')->first();
                 if ($join_DM_react_status == null) {
                     $join_DM_react_status = new DataSetting();
@@ -5001,11 +5056,11 @@ class BusinessSettingsController extends Controller
 
                 $join_DM_react_status->key = 'join_DM_react_status';
                 $join_DM_react_status->type = 'react_landing_page';
-                $join_DM_react_status->value = $request->join_DM_react_status  ? 0 : 1 ;
+                $join_DM_react_status->value = $request->join_DM_react_status ? 0 : 1;
                 $join_DM_react_status->save();
 
-            Toastr::success(translate('messages.Seller_Section_Content_status_updated'));
-            return back();
+                Toastr::success(translate('messages.Seller_Section_Content_status_updated'));
+                return back();
             }
             $earning_dm_title = DataSetting::where('type', 'react_landing_page')->where('key', 'earning_dm_title')->first();
             if ($earning_dm_title == null) {
@@ -5911,7 +5966,7 @@ class BusinessSettingsController extends Controller
 
             Toastr::success(translate('messages.criteria_added_successfully'));
         } elseif ($tab == 'available-zone-section') {
-            if($request['available_zone_status']){
+            if ($request['available_zone_status']) {
                 $request->validate([
                     'available_zone_title.0' => 'required',
 
@@ -5942,10 +5997,10 @@ class BusinessSettingsController extends Controller
             $available_zone_image = DataSetting::where('type', 'flutter_landing_page')->where('key', 'available_zone_image')->first();
 
             if ($available_zone_image == null) {
-                if($request['available_zone_status']){
+                if ($request['available_zone_status']) {
                     $request->validate([
                         'image' => 'required',
-                        ]);
+                    ]);
                 }
 
                 $available_zone_image = new DataSetting();
@@ -6010,7 +6065,7 @@ class BusinessSettingsController extends Controller
                 }
             }
 
-            Helpers::dataUpdateOrInsert(['type' => 'flutter_landing_page','key' => 'available_zone_status'], [
+            Helpers::dataUpdateOrInsert(['type' => 'flutter_landing_page', 'key' => 'available_zone_status'], [
                 'value' => $request['available_zone_status']
             ]);
 
@@ -6322,7 +6377,7 @@ class BusinessSettingsController extends Controller
             Toastr::success(translate('messages.landing_page_module_updated'));
         } elseif ($tab == 'join-seller') {
 
-            if($request->join_seller_flutter_status !== null ){
+            if ($request->join_seller_flutter_status !== null) {
                 $join_seller_flutter_status = DataSetting::where('type', 'flutter_landing_page')->where('key', 'join_seller_flutter_status')->first();
                 if ($join_seller_flutter_status == null) {
                     $join_seller_flutter_status = new DataSetting();
@@ -6330,11 +6385,11 @@ class BusinessSettingsController extends Controller
 
                 $join_seller_flutter_status->key = 'join_seller_flutter_status';
                 $join_seller_flutter_status->type = 'flutter_landing_page';
-                $join_seller_flutter_status->value = $request->join_seller_flutter_status  ? 0 : 1 ;
+                $join_seller_flutter_status->value = $request->join_seller_flutter_status ? 0 : 1;
                 $join_seller_flutter_status->save();
 
-            Toastr::success(translate('messages.join_as_seller_section_status_updated'));
-            return back();
+                Toastr::success(translate('messages.join_as_seller_section_status_updated'));
+                return back();
             }
 
             $join_seller_title = DataSetting::where('type', 'flutter_landing_page')->where('key', 'join_seller_title')->first();
@@ -6460,7 +6515,7 @@ class BusinessSettingsController extends Controller
             Toastr::success(translate('messages.join_as_seller_data_updated'));
         } elseif ($tab == 'join-delivery') {
 
-            if($request->join_DM_flutter_status !== null ){
+            if ($request->join_DM_flutter_status !== null) {
                 $join_DM_flutter_status = DataSetting::where('type', 'flutter_landing_page')->where('key', 'join_DM_flutter_status')->first();
                 if ($join_DM_flutter_status == null) {
                     $join_DM_flutter_status = new DataSetting();
@@ -6468,11 +6523,11 @@ class BusinessSettingsController extends Controller
 
                 $join_DM_flutter_status->key = 'join_DM_flutter_status';
                 $join_DM_flutter_status->type = 'flutter_landing_page';
-                $join_DM_flutter_status->value = $request->join_DM_flutter_status  ? 0 : 1 ;
+                $join_DM_flutter_status->value = $request->join_DM_flutter_status ? 0 : 1;
                 $join_DM_flutter_status->save();
 
-            Toastr::success(translate('messages.join_as_seller_section_status_updated'));
-            return back();
+                Toastr::success(translate('messages.join_as_seller_section_status_updated'));
+                return back();
             }
 
 
@@ -7298,7 +7353,11 @@ class BusinessSettingsController extends Controller
 
     public function login_url_page()
     {
-        $data = array_column(DataSetting::whereIn('key', ['store_employee_login_url', 'store_login_url', 'admin_employee_login_url', 'admin_login_url'
+        $data = array_column(DataSetting::whereIn('key', [
+            'store_employee_login_url',
+            'store_login_url',
+            'admin_employee_login_url',
+            'admin_login_url'
         ])->get(['key', 'value'])->toArray(), 'value', 'key');
 
         return view('admin-views.login-setup.login_setup', compact('data'));
@@ -7558,21 +7617,21 @@ class BusinessSettingsController extends Controller
             $item->tags()->sync(json_decode($data->tag_ids));
             if ($item->module->module_type == 'pharmacy') {
                 PharmacyItemDetails::updateOrInsert(
-                        ['item_id' => $item->id],
-                        [
-                            'common_condition_id' => $data->condition_id,
-                            'is_basic' => $data->basic ?? 0,
-                            'is_prescription_required' => $data->is_prescription_required ?? 0,
-                        ]
-                    );
+                    ['item_id' => $item->id],
+                    [
+                        'common_condition_id' => $data->condition_id,
+                        'is_basic' => $data->basic ?? 0,
+                        'is_prescription_required' => $data->is_prescription_required ?? 0,
+                    ]
+                );
             }
             if ($item->module->module_type == 'ecommerce') {
                 EcommerceItemDetails::updateOrInsert(
-                        ['item_id' => $item->id],
-                        [
-                            'brand_id' => $data->brand_id,
-                        ]
-                    );
+                    ['item_id' => $item->id],
+                    [
+                        'brand_id' => $data->brand_id,
+                    ]
+                );
             }
             $item?->translations()?->delete();
             Translation::where('translationable_type', 'App\Models\TempProduct')->where('translationable_id', $data->id)->update([
@@ -7596,23 +7655,23 @@ class BusinessSettingsController extends Controller
 
     public function notification_setup(Request $request)
     {
-   
 
-        abort_if(!addon_published_status('Rental') && $request?->module == 'rental',404 );
+
+        abort_if(!addon_published_status('Rental') && $request?->module == 'rental', 404);
 
         if (NotificationSetting::count() == 0) {
             Helpers::notificationDataSetup();
         }
-        if(addon_published_status('Rental') && $request?->module == 'rental'){
+        if (addon_published_status('Rental') && $request?->module == 'rental') {
             Helpers::getRentalAdminNotificationSetupDatasetup();
         }
 
         Helpers::addNewAdminNotificationSetupDataSetup();
 
-        $data = NotificationSetting::where('module_type', $request?->module == 'rental' ? 'rental'  : 'all')
-        ->when($request?->type == null || $request?->type == 'admin', function ($query) {
-            $query->where('type', 'admin');
-        })
+        $data = NotificationSetting::where('module_type', $request?->module == 'rental' ? 'rental' : 'all')
+            ->when($request?->type == null || $request?->type == 'admin', function ($query) {
+                $query->where('type', 'admin');
+            })
             ->when($request?->type == 'store', function ($query) {
                 $query->where('type', 'store');
             })
@@ -7629,7 +7688,7 @@ class BusinessSettingsController extends Controller
 
         $business_name = BusinessSetting::where('key', 'business_name')->first()?->value;
 
-        return view(  $request?->module == 'rental' ? 'admin-views.business-settings.notification_setup_rental' : 'admin-views.business-settings.notification_setup', compact('business_name', 'data'));
+        return view($request?->module == 'rental' ? 'admin-views.business-settings.notification_setup_rental' : 'admin-views.business-settings.notification_setup', compact('business_name', 'data'));
 
     }
 
