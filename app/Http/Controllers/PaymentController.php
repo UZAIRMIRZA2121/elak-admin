@@ -55,8 +55,12 @@ class PaymentController extends Controller
         session()->put('customer_id', $request['customer_id']);
         session()->put('payment_platform', $request['payment_platform']);
         session()->put('order_id', $request->order_id);
-
-        $order = Order::where(['id' => $request->order_id, 'user_id' => $request['customer_id']])->first();
+        $order = Order::where([
+            'id' => $request->order_id,
+            'user_id' => $request->customer_id
+        ])->first();
+     
+    
         if (!$order) {
             return response()->json(['errors' => ['code' => 'order-payment', 'message' => 'Data not found']], 403);
         }
@@ -114,7 +118,7 @@ class PaymentController extends Controller
             'business_name' => BusinessSetting::where(['key' => 'business_name'])->first()?->value,
             'business_logo' => \App\CentralLogics\Helpers::get_full_url('business', $store_logo?->value, $store_logo?->storage[0]?->value ?? 'public')
         ];
-
+            
         $payment_info = new PaymentInfo(
             success_hook: 'order_place',
             failure_hook: 'order_failed',
@@ -129,7 +133,7 @@ class PaymentController extends Controller
             attribute: 'order',
             attribute_id: $order->id
         );
-
+   
         $receiver_info = new Receiver('receiver_name', 'example.png');
 
         $redirect_link = Payment::generate_link($payer, $payment_info, $receiver_info);
@@ -142,7 +146,7 @@ class PaymentController extends Controller
     {
 
         $order = Order::where(['id' => session('order_id'), 'user_id' => session('customer_id')])->first();
-        
+
         if ($order->voucher_type == 'Flat discount') {
             if ($order->transaction == null) {
                 $unpaid_payment = OrderPayment::where('payment_status', 'unpaid')->where('order_id', $order->id)->first()?->payment_method;
@@ -159,9 +163,9 @@ class PaymentController extends Controller
                     Toastr::warning(translate('messages.faield_to_create_order_transaction'));
                     return back();
                 }
-                        $order->order_status = 'delivered';
-        $order->delivered = Carbon::now();
-        $order->save();
+                $order->order_status = 'delivered';
+                $order->delivered = Carbon::now();
+                $order->save();
             }
 
             $order->payment_status = 'paid';

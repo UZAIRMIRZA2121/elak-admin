@@ -72,7 +72,7 @@ class ItemController extends Controller
 
     public function index(Request $request)
     {
-      
+
 
         $categories = Category::where(['position' => 0])->get();
 
@@ -86,7 +86,7 @@ class ItemController extends Controller
 
     public function store(Request $request)
     {
-       
+
         $validator = Validator::make($request->all(), [
             'name.0' => 'required',
             'name.*' => 'max:191',
@@ -309,7 +309,7 @@ class ItemController extends Controller
             }
         }
         //combinations end
-  
+
         if (!empty($request->file('item_images'))) {
             foreach ($request->item_images as $img) {
                 $image_name = Helpers::upload('product/', 'png', $img);
@@ -352,7 +352,7 @@ class ItemController extends Controller
                 array_push($food_variations, $temp_variation);
             }
         }
- 
+
         $item->food_variations = json_encode($food_variations);
         $item->variations = json_encode($variations);
         $item->price = $request->price;
@@ -367,7 +367,7 @@ class ItemController extends Controller
         $item->add_ons = $request->has('addon_ids') ? json_encode($request->addon_ids) : json_encode([]);
         $item->store_id = $request->store_id;
         $item->maximum_cart_quantity = $request->maximum_cart_quantity;
-       $veg = $request->veg ?? 0; // default to 0 if not sent
+        $veg = $request->veg ?? 0; // default to 0 if not sent
 
         $item->module_id = Config::get('module.current_module_id');
         $module_type = Config::get('module.current_module_type');
@@ -415,7 +415,7 @@ class ItemController extends Controller
 
         Helpers::add_or_update_translations(request: $request, key_data: 'name', name_field: 'name', model_name: 'Item', data_id: $item->id, data_value: $item->name);
         Helpers::add_or_update_translations(request: $request, key_data: 'description', name_field: 'description', model_name: 'Item', data_id: $item->id, data_value: $item->description);
-  
+
         return response()->json(['success' => translate('messages.product_added_successfully')], 200);
     }
 
@@ -481,7 +481,7 @@ class ItemController extends Controller
             'name.0' => 'required',
             'name.*' => 'max:191',
             'category_id' => 'required',
-            'price' => 'required|numeric|between:.01,999999999999.99',
+            'price' => 'nullable|numeric',
             'store_id' => 'required',
             'description' => 'array',
             'description.*' => 'max:1000',
@@ -494,14 +494,17 @@ class ItemController extends Controller
             'name.0.required' => translate('default_name_is_required'),
             'description.0.required' => translate('default_description_is_required'),
         ]);
-
+       $request['price'] = $request->price ?? "0";
+       $request['discount'] = $request->discount ?? "0";
         if ($request['discount_type'] == 'percent') {
             $dis = ($request['price'] / 100) * $request['discount'];
         } else {
             $dis = $request['discount'];
         }
+   
 
-        if ($request['price'] <= $dis) {
+        if ($dis > 0 &&  $request['price'] <= $dis) {
+               
             $validator->getMessageBag()->add('unit_price', translate("Discount amount can't be greater than 100%"));
         }
 
@@ -709,7 +712,7 @@ class ItemController extends Controller
         $item->stock = $request->current_stock ?? 0;
         $item->is_halal = $request->is_halal ?? 0;
         $item->organic = $request->organic ?? 0;
-       $veg = $request->veg ?? 0; // default to 0 if not sent
+        $veg = $request->veg ?? 0; // default to 0 if not sent
 
         $item->images = $images;
         if (Helpers::get_mail_status('product_approval') && $request?->temp_product) {
@@ -1144,7 +1147,7 @@ class ItemController extends Controller
 
         $taxData = Helpers::getTaxSystemType(getTaxVatList: false);
         $productWiseTax = $taxData['productWiseTax'];
-     
+
 
 
 
@@ -1654,7 +1657,7 @@ class ItemController extends Controller
                 return $q->where('store_id', $store_id);
             })
             ->when(is_numeric($category_id), function ($query) use ($category_id) {
-                return $query->whereRaw("JSON_CONTAINS(category_ids, '{\"id\": \"".$category_id."\"}')");
+                return $query->whereRaw("JSON_CONTAINS(category_ids, '{\"id\": \"" . $category_id . "\"}')");
             })
             ->when($item_type != 'all', function ($query) use ($item_type) {
                 return $query->where('type', $item_type);

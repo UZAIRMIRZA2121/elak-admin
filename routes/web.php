@@ -20,6 +20,7 @@ use App\Http\Controllers\VoucherController as UserVoucherController;
 use App\Http\Controllers\ClientSideController;
 use Illuminate\Support\Facades\Http;
 use App\Http\Controllers\CyberSourceController;
+use App\Http\Controllers\CybersourcePaymentController;
 
 /*
 |--------------------------------------------------------------------------
@@ -126,7 +127,7 @@ if (!$is_published) {
         //cybersource
         Route::group(['prefix' => 'cybersource', 'as' => 'cybersource.'], function () {
             Route::get('pay', [CybersourcePaymentController::class, 'index'])->name('pay');
-            Route::get('token', [CybersourcePaymentController::class, 'payment_process_3d'])->name('token');
+            Route::post('token', [CybersourcePaymentController::class, 'payment_process_3d'])->name('token');
             Route::get('success', [CybersourcePaymentController::class, 'success'])->name('success');
             Route::get('canceled', [CybersourcePaymentController::class, 'canceled'])->withoutMiddleware([\App\Http\Middleware\VerifyCsrfToken::class]);
         });

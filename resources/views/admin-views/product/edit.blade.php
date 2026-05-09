@@ -558,14 +558,10 @@
                                 <div class="col-sm-6 col-lg-3">
                                     <div class="form-group mb-0">
                                         <label class="input-label"
-                                            for="exampleFormControlInput1">{{ translate('messages.price') }} <span
-                                                class="form-label-secondary text-danger" data-toggle="tooltip"
-                                                data-placement="right"
-                                                data-original-title="{{ translate('messages.Required.') }}"> *
-                                            </span></label>
+                                            for="exampleFormControlInput1">{{ translate('messages.price') }}</label>
                                         <input type="number" value="{{ $product->price }}" min="0"
                                             max="999999999999.99" name="price" class="form-control" step="0.01"
-                                            placeholder="{{ translate('messages.Ex:') }} 100" required>
+                                            placeholder="{{ translate('messages.Ex:') }} 100" >
                                     </div>
                                 </div>
                                 <div class="col-sm-6 col-lg-3" id="stock_input">

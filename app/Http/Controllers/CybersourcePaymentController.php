@@ -47,14 +47,14 @@ class CybersourcePaymentController extends Controller
 
     public function index(Request $request)
     {
-        $paymentData = [
+        $data = [
             'amount' => session('payment_amount', 100),
             'currency' => session('payment_currency', 'USD'),
             'customer_name' => auth()->user()->name ?? 'Guest',
             'customer_email' => auth()->user()->email ?? 'guest@example.com',
         ];
 
-        return view('payment.cybersource.index', compact('paymentData'));
+        return view('payment-views.cybersource', compact('data'));
     }
 
     public function payment_process_3d(Request $request)
@@ -62,36 +62,25 @@ class CybersourcePaymentController extends Controller
         $config = $this->getConfig();
 
         $payload = [
-            'clientReferenceInformation' => [
-                'code' => uniqid('CS_'),
+            "targetOrigins" => [
+                url('/')
             ],
-            'orderInformation' => [
-                'amountDetails' => [
-                    'totalAmount' => session('payment_amount', 100),
-                    'currency' => session('payment_currency', 'USD'),
-                ],
-                'billTo' => [
-                    'firstName' => auth()->user()->name ?? 'Guest',
-                    'lastName' => 'User',
-                    'address1' => 'Address',
-                    'locality' => 'Faisalabad',
-                    'administrativeArea' => 'Punjab',
-                    'postalCode' => '38000',
-                    'country' => 'PK',
-                    'email' => auth()->user()->email ?? 'guest@example.com',
-                    'phoneNumber' => '03001234567',
-                ],
-            ],
+            "clientVersion" => "0.21"
         ];
 
-        $response = Http::withHeaders($this->getHeaders())
-            ->withBasicAuth($config['api_key'], $config['secret_key'])
-            ->post($config['base_url'] . '/pts/v2/payments', $payload);
+        $response = \Illuminate\Support\Facades\Http::withHeaders([
+            'Content-Type' => 'application/json',
+            'Accept' => 'application/json',
+            'v-c-merchant-id' => $config['merchant_id'],
+        ])->withBasicAuth(
+                $config['api_key'],
+                $config['secret_key']
+            )->post(
+                $config['base_url'] . '/up/v1/capture-contexts',
+                $payload
+            );
 
-        return response()->json([
-            'success' => $response->successful(),
-            'response' => $response->json(),
-        ]);
+        return response()->json($response->json());
     }
 
     public function success(Request $request)
@@ -107,4 +96,6 @@ class CybersourcePaymentController extends Controller
             'message' => 'Payment was canceled',
         ]);
     }
+
+
 }

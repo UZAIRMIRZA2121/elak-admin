@@ -60,116 +60,95 @@ class VendorController extends Controller
 {
     public function index()
     {
+        
         $rls = EmployeeRole::get();
         return view('admin-views.vendor.index', compact('rls'));
     }
-
+    
     public function store(Request $request)
-    {
+{
+    $rules = [
+        'name.0' => 'required',
+        'name.*' => 'max:191',
+        'address' => 'required|max:1000',
+        'latitude' => 'required|numeric',
+        'longitude' => 'required|numeric',
+        'voucher_id' => 'nullable|max:200',
+        'parent_id' => 'nullable|max:200',
+        'type' => 'nullable|max:200',
+        'email' => 'required|unique:vendors',
+        'password' => 'required',
+        'zone_id' => 'required',
+        'logo' => 'required',
+        'agreement_certificate_image.*' => 'nullable|mimes:doc,docx,pdf,jpg,png,jpeg|max:5000',
+    ];
 
-   
-        $rules = [
+    if ($request->hiiden_check == "1") {
+        $type_value = "main";
+        $parent_id = null;
 
-            'name.0' => 'required',
-            'name.*' => 'max:191',
-            'address' => 'required|max:1000',
-            'latitude' => 'required|numeric',
-            'longitude' => 'required|numeric',
-            'voucher_id' => 'nullable|max:200',
-            'parent_id' => 'nullable|max:200',
-            'type' => 'nullable|max:200',
-            'email' => 'required|unique:vendors',
-            'minimum_delivery_time' => 'nullable',
-            'maximum_delivery_time' => 'nullable',
-            'delivery_time_type' => 'nullable',
-            'password' => 'required',
-            'zone_id' => 'required',
-            'logo' => 'required',
-            'tin' => 'nullable',
-            'staff_data' => 'nullable',
-            'agreement_start_date' => 'nullable',
-            'agreement_expire_date' => 'nullable',
-            'agreement_certificate_image' => 'nullable',
-            'agreement_certificate_image.*' => 'mimes:doc,docx,pdf,jpg,png,jpeg|max:5000',
-        ];
+        $rules['phone'] = 'required|regex:/^([0-9\s\-\+\(\)]*)$/|min:10|max:20';
+    } else {
+        $type_value = "sub branch";
+        $parent_id = $request->parent_id;
+    }
 
+    $validator = Validator::make($request->all(), $rules, [
+        'name.0.required' => translate('default_name_is_required'),
+    ]);
 
+    if ($validator->fails()) {
+        return back()->withErrors($validator)->withInput();
+    }
 
-        if ($request->hiiden_check == "1") {
-            $type_value = "main";
-            $parent_id = "";
-            $rules['phone'] = 'required|regex:/^([0-9\s\-\+\(\)]*)$/|min:10|max:20';
-            // dd("main");
-        } else {
-            $type_value = "sub branch";
-            $parent_id = $request->parent_id;
-            // dd("sub branch");
+    // Zone validation
+    if ($request->zone_id) {
+        $zone = Zone::query()
+            ->whereContains(
+                'coordinates',
+                new Point((float) $request->latitude, (float) $request->longitude, POINT_SRID)
+            )
+            ->where('id', $request->zone_id)
+            ->first();
+
+        if (!$zone) {
+            $validator->getMessageBag()->add(
+                'latitude',
+                translate('messages.coordinates_out_of_zone')
+            );
+
+            return back()->withErrors($validator)->withInput();
         }
-        $store = Store::where('id', $request->parent_id)->first();
+    }
 
-        // Make sure store exists
-        if ($store) {
-            // Split full name by space
-            $nameParts = explode(' ', $store->name);
+    // Email exists check
+    if (Vendor::where('email', $request->email)->exists()) {
+        $validator->getMessageBag()->add(
+            'email',
+            translate('messages.email_already_taken')
+        );
 
-            $firstName = $nameParts[0]; // First word as first name
-            $lastName = isset($nameParts[1]) ? $nameParts[1] : ''; // Second word as last name (if exists)
-            $phone = $store->phone;
+        return back()->withErrors($validator)->withInput();
+    }
 
+    DB::beginTransaction();
 
+    try {
+        // =========================
+        // Prepare Vendor Data
+        // =========================
+        $fullName = $request->name[0] ?? '';
+        $address = $request->address[0] ?? '';
+        $phone = $request->phone ?? '';
 
-        } else {
-            $firstName = $request->f_name;// First word as first name
-            $lastName = $request->l_name;
-            $phone = $request->phone;
-        }
+        $nameParts = explode(' ', trim($fullName), 2);
 
-        $validator = Validator::make($request->all(), $rules, [
-            'f_name.required' => translate('messages.first_name_is_required'),
-            'name.0.required' => translate('default_name_is_required'),
-        ]);
+        $firstName = $nameParts[0] ?? '';
+        $lastName = $nameParts[1] ?? '';
 
-
-        if ($request->zone_id) {
-            $zone = Zone::query()
-                ->whereContains('coordinates', new Point((float) $request->latitude, (float) $request->longitude, POINT_SRID))
-                ->where('id', $request->zone_id)
-                ->first();
-            if (!$zone) {
-                $validator->getMessageBag()->add('latitude', translate('messages.coordinates_out_of_zone'));
-                return back()->withErrors($validator)
-                    ->withInput();
-            }
-        }
-        if ($request->delivery_time_type == 'min') {
-            $minimum_delivery_time = (int) $request->input('minimum_delivery_time');
-            if ($minimum_delivery_time < 10) {
-                $validator->getMessageBag()->add('minimum_delivery_time', translate('messages.minimum_delivery_time_should_be_more_than_10_min'));
-                return back()->withErrors($validator)
-                    ->withInput();
-            }
-        }
-        if ($validator->fails()) {
-            return back()
-                ->withErrors($validator)
-                ->withInput();
-        }
-
-
-
-
-        // if (Vendor::where(['phone' => $phone])->exists()) {
-        //     $validator->getMessageBag()->add('phone', translate('messages.phone_already_taken'));
-        //     return back()->withErrors($validator)
-        //         ->withInput();
-        // }
-
-        if (Vendor::where(['email' => $request->email])->exists()) {
-            $validator->getMessageBag()->add('email', translate('messages.email_already_taken'));
-            return back()->withErrors($validator)
-                ->withInput();
-        }
-
+        // =========================
+        // Create Vendor
+        // =========================
         $vendor = new Vendor();
         $vendor->f_name = $firstName;
         $vendor->l_name = $lastName;
@@ -178,7 +157,10 @@ class VendorController extends Controller
         $vendor->password = bcrypt($request->password);
         $vendor->save();
 
-        $certificate_paths = []; // default empty
+        // =========================
+        // Upload Agreement Files
+        // =========================
+        $certificate_paths = [];
 
         if ($request->hasFile('agreement_certificate_image')) {
             foreach ($request->file('agreement_certificate_image') as $file) {
@@ -188,137 +170,123 @@ class VendorController extends Controller
             }
         }
 
+        // =========================
+        // Create Store
+        // =========================
+        $store = new Store();
+        $defaultIndex = array_search('default', $request->lang);
 
-        $store = new Store;
-
-        $store->name = $request->name[array_search('default', $request->lang)];
-        $store->phone = $request->phone;
+        $store->name = $request->name[$defaultIndex];
+        $store->phone = $phone;
         $store->email = $request->email;
-
-        // logo upload
         $store->logo = Helpers::upload('store/', 'png', $request->file('logo'));
-
-        // cover photo upload
-        $store->cover_photo = Helpers::upload('store/cover/', 'png', $request->file('cover_photo'));
-
-        // address
-        $store->address = $request->address[array_search('default', $request->lang)];
+        $store->cover_photo = Helpers::upload(
+            'store/cover/',
+            'png',
+            $request->file('cover_photo')
+        );
+        $store->address = $request->address[$defaultIndex];
         $store->latitude = $request->latitude;
         $store->longitude = $request->longitude;
-
         $store->vendor_id = $vendor->id;
         $store->zone_id = $request->zone_id;
-
-        // optional fields
-        // $store->bonus_tiers = $request->bonus_tiers ?? null;
-        // $store->limit_from = $request->limit_from ?? null;
-        // $store->limit_to = $request->limit_to ?? null;
-        // $store->flate_discount = $request->flate_discount ?? null;
-
         $store->parent_id = $parent_id;
         $store->type = $type_value;
-
-        // json values
         $store->voucher_id = json_encode($request->voucher_id);
-        // $store->category_id = json_encode($request->category_id);
         $store->staff_data = $request->staff_data;
-
-        // agreement fields
         $store->agreement_start_date = $request->agreement_start_date;
         $store->agreement_expire_date = $request->agreement_expire_date;
         $store->agreement_detail = $request->agreement_detail;
         $store->agreement_certificate_image = json_encode($certificate_paths);
 
-        // delivery time
-        $store->delivery_time = $request->minimum_delivery_time
-            . '-' .
-            $request->maximum_delivery_time
-            . ' ' .
+        $store->delivery_time =
+            $request->minimum_delivery_time .
+            '-' .
+            $request->maximum_delivery_time .
+            ' ' .
             $request->delivery_time_type;
 
         $store->module_id = Config::get('module.current_module_id');
 
+        $slug = Str::slug($request->name[$defaultIndex]);
+        $store->slug = $slug . '-' . uniqid();
 
-        try {
+        $store->save();
 
-            // save data
-            $store->save();
-
-
-            // $store->module->increment('stores_count');
-            if (config('module.' . $store->module->module_type)['always_open']) {
-                StoreLogic::insert_schedule($store->id);
-            }
-            $default_lang = str_replace('_', '-', app()->getLocale());
-            $data = [];
-            foreach ($request->lang as $index => $key) {
-                if ($default_lang == $key && !($request->name[$index])) {
-                    if ($key != 'default') {
-                        array_push($data, array(
-                            'translationable_type' => 'App\Models\Store',
-                            'translationable_id' => $store->id,
-                            'locale' => $key,
-                            'key' => 'name',
-                            'value' => $store->name,
-                        ));
-                    }
-                } else {
-                    if ($request->name[$index] && $key != 'default') {
-                        array_push($data, array(
-                            'translationable_type' => 'App\Models\Store',
-                            'translationable_id' => $store->id,
-                            'locale' => $key,
-                            'key' => 'name',
-                            'value' => $request->name[$index],
-                        ));
-                    }
-                }
-                if ($default_lang == $key && !($request->address[$index])) {
-                    if ($key != 'default') {
-                        array_push($data, array(
-                            'translationable_type' => 'App\Models\Store',
-                            'translationable_id' => $store->id,
-                            'locale' => $key,
-                            'key' => 'address',
-                            'value' => $store->address,
-                        ));
-                    }
-                } else {
-                    if ($request->address[$index] && $key != 'default') {
-                        array_push($data, array(
-                            'translationable_type' => 'App\Models\Store',
-                            'translationable_id' => $store->id,
-                            'locale' => $key,
-                            'key' => 'address',
-                            'value' => $request->address[$index],
-                        ));
-                    }
-                }
-            }
-            Translation::insert($data);
-
-            if ($request->staff_data) {
-                $staff_data = json_decode($request->staff_data, true);
-                foreach ($staff_data as $staff) {
-                    $vendor_employee = new VendorEmployee();
-                    $vendor_employee->f_name = $staff['f_name'];
-                    $vendor_employee->l_name = $staff['l_name'];
-                    $vendor_employee->phone = $staff['phone'];
-                    $vendor_employee->employee_role_id = $staff['role_id'];
-                    $vendor_employee->vendor_id = $vendor->id;
-                    $vendor_employee->store_id = $store->id;
-                    $vendor_employee->save();
-                }
-            }
-        } catch (\Exception $ex) {
-            dd($ex->getMessage());
-            info($ex->getMessage());
+        // =========================
+        // Store Schedule
+        // =========================
+        if (config('module.' . $store->module->module_type)['always_open']) {
+            StoreLogic::insert_schedule($store->id);
         }
 
-      
+        // =========================
+        // Store Translations
+        // =========================
+        $translations = [];
+
+        foreach ($request->lang as $index => $lang) {
+            if ($lang == 'default') {
+                continue;
+            }
+
+            $translatedName = $request->name[$index] ?: $request->name[$defaultIndex];
+            $translatedAddress = $request->address[$index] ?: $request->address[$defaultIndex];
+
+            $translations[] = [
+                'translationable_type' => 'App\Models\Store',
+                'translationable_id' => $store->id,
+                'locale' => $lang,
+                'key' => 'name',
+                'value' => $translatedName,
+            ];
+
+            $translations[] = [
+                'translationable_type' => 'App\Models\Store',
+                'translationable_id' => $store->id,
+                'locale' => $lang,
+                'key' => 'address',
+                'value' => $translatedAddress,
+            ];
+        }
+
+        if (!empty($translations)) {
+            Translation::insert($translations);
+        }
+
+        // =========================
+        // Save Staff
+        // =========================
+        if ($request->staff_data) {
+            $staffData = json_decode($request->staff_data, true);
+
+            foreach ($staffData as $staff) {
+                $vendorEmployee = new VendorEmployee();
+                $vendorEmployee->f_name = $staff['f_name'];
+                $vendorEmployee->l_name = $staff['l_name'];
+                $vendorEmployee->phone = $staff['phone'];
+                $vendorEmployee->employee_role_id = $staff['role_id'];
+                $vendorEmployee->vendor_id = $vendor->id;
+                $vendorEmployee->store_id = $store->id;
+                $vendorEmployee->save();
+            }
+        }
+
+        DB::commit();
+
         Toastr::success(translate('messages.store_added_successfully'));
         return redirect('admin/store/list');
+
+    } catch (\Exception $e) {
+        DB::rollBack();
+        info($e->getMessage());
+
+        return back()->withErrors([
+            'error' => $e->getMessage()
+        ])->withInput();
     }
+}
+
 
     public function edit($id)
     {
@@ -1060,7 +1028,7 @@ class VendorController extends Controller
 
             ->sum('amount');
 
-        // dd($stores);
+       
 
         return view('admin-views.vendor.list', compact('stores', 'zone', 'type', 'total_store', 'active_stores', 'inactive_stores', 'recent_stores', 'total_transaction', 'comission_earned', 'store_withdraws'));
     }
