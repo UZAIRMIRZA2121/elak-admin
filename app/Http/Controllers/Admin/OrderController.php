@@ -137,7 +137,7 @@ class OrderController extends Controller
                     }
                 });
             })
-            ->StoreOrder()
+            // ->StoreOrder()
             ->module(Config::get('module.current_module_id'))
             ->orderBy('schedule_at', 'desc')
             ->paginate(config('default_pagination'));

@@ -476,6 +476,7 @@ class ItemController extends Controller
 
     public function update(Request $request, $id)
     {
+        
         $validator = Validator::make($request->all(), [
             'name' => 'array',
             'name.0' => 'required',
@@ -494,8 +495,10 @@ class ItemController extends Controller
             'name.0.required' => translate('default_name_is_required'),
             'description.0.required' => translate('default_description_is_required'),
         ]);
+      
        $request['price'] = $request->price ?? "0";
        $request['discount'] = $request->discount ?? "0";
+        
         if ($request['discount_type'] == 'percent') {
             $dis = ($request['price'] / 100) * $request['discount'];
         } else {
@@ -507,11 +510,12 @@ class ItemController extends Controller
                
             $validator->getMessageBag()->add('unit_price', translate("Discount amount can't be greater than 100%"));
         }
+     
+        // if ($request['price'] <= $dis || $validator->fails()) {
+        //     return response()->json(['errors' => Helpers::error_processor($validator)]);
+        // }
 
-        if ($request['price'] <= $dis || $validator->fails()) {
-            return response()->json(['errors' => Helpers::error_processor($validator)]);
-        }
-
+        
         $item = Item::withoutGlobalScope(StoreScope::class)->find($id);
         $tag_ids = [];
         if ($request->tags != null) {
@@ -798,6 +802,7 @@ class ItemController extends Controller
                     Mail::to($item?->store?->vendor?->email)->send(new \App\Mail\VendorProductMail($item?->store?->name, 'approved'));
                 }
             } catch (\Exception $e) {
+        
                 info($e->getMessage());
             }
         }
