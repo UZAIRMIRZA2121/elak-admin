@@ -989,13 +989,13 @@ class ItemController extends Controller
 
 
         $voucher_types = VoucherType::where('status', 'active')->get();
-      
- $voucherCounts = [
-    'Delivery/Pickup' => Item::where('type', 'voucher')->where('voucher_ids', 'Delivery/Pickup')->count(),
-    'In-Store' => Item::where('type', 'voucher')->where('voucher_ids', 'In-Store')->count(),
-    'Flat discount' => Item::where('type', 'voucher')->where('voucher_ids', 'Flat discount')->count(),
-    'Gift' => Item::where('type', 'voucher')->where('voucher_ids', 'Gift')->count(),
-];
+
+        $voucherCounts = [
+            'Delivery/Pickup' => Item::where('type', 'voucher')->where('voucher_ids', 'Delivery/Pickup')->count(),
+            'In-Store' => Item::where('type', 'voucher')->where('voucher_ids', 'In-Store')->count(),
+            'Flat discount' => Item::where('type', 'voucher')->where('voucher_ids', 'Flat discount')->count(),
+            'Gift' => Item::where('type', 'voucher')->where('voucher_ids', 'Gift')->count(),
+        ];
         return view('vendor-views.product.list', compact('items', 'category', 'type', 'sub_categories', 'productWiseTax', 'voucher_types', 'voucher_type', 'voucherCounts'));
     }
 
@@ -2008,10 +2008,41 @@ class ItemController extends Controller
                     $holidays = json_decode($holidays, true);
                 }
 
+
                 $blackoutDates = $product->VoucherSetting->custom_blackout_dates;
+
+                // Decode JSON if stored as string
                 if (is_string($blackoutDates)) {
                     $blackoutDates = json_decode($blackoutDates, true);
                 }
+
+                // Normalize to array of IDs only
+                $blackoutDates = collect($blackoutDates)
+                    ->flatten()
+                    ->filter()
+                    ->map(function ($item) {
+                        // If item is an Eloquent model
+                        if ($item instanceof \App\Models\CustomBlackoutData) {
+                            return $item->id;
+                        }
+
+                        // If item is an array like ['id' => 5]
+                        if (is_array($item)) {
+                            return $item['id'] ?? null;
+                        }
+
+                        // If item is already a scalar ID
+                        return is_numeric($item) ? (int) $item : null;
+                    })
+                    ->filter()
+                    ->unique()
+                    ->values()
+                    ->toArray();
+
+                $product->CustomBlackoutDates = !empty($blackoutDates)
+                    ? CustomBlackoutData::whereIn('id', $blackoutDates)->get()
+                    : collect();
+
 
                 $generalRestrictions = $product->VoucherSetting->general_restrictions;
                 if (is_string($generalRestrictions)) {
@@ -2022,10 +2053,7 @@ class ItemController extends Controller
                 $product->HolidayOccasion = !empty($holidays)
                     ? HolidayOccasion::whereIn('id', $holidays)->get()
                     : collect();
-
-                $product->CustomBlackoutDates = !empty($blackoutDates)
-                    ? CustomBlackoutData::whereIn('id', $blackoutDates)->get()
-                    : collect();
+        
 
                 $product->GeneralRestrictions = !empty($generalRestrictions)
                     ? GeneralRestriction::whereIn('id', $generalRestrictions)->get()

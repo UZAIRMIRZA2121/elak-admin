@@ -324,9 +324,8 @@
                                             
 
                                             @if ($detail->item->type == 'voucher')
+
                                                 @php($product = \App\Models\Item::where(['id' => $detail->item['id']])->first())
-
-
                                                 <div class="coupon-card d-flex align-items-stretch d-block m-auto ">
                                                     <div class="coupon-left d-flex">
                                                         <div class="side-label">{{ $order['voucher_type'] }}</div>

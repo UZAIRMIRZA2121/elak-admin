@@ -1426,8 +1426,7 @@ $moduleType = $store?->module?->module_type;
                             Formula:
                             ((Bonus - Commission) / Original Price) × 100
                             */
-                            finalDiscountPercent =
-                                (finalDiscountAmount / totalBill) * 100;
+                            finalDiscountPercent =  (finalDiscountAmount / totalBill) * 100;
 
                             /*
                             Final customer payment
@@ -1460,8 +1459,7 @@ $moduleType = $store?->module?->module_type;
                     Fill Modal
                     */
                     $('#nc-item-discount-configuration').text(
-                        selectedTier + " | Final Discount: " +
-                        finalDiscountPercent.toFixed(2) + "%"
+                        selectedTier 
                     );
 
                     $('#nc-customer').text(user.name);
