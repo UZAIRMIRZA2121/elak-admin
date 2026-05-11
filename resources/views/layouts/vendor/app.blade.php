@@ -1482,7 +1482,7 @@ $moduleType = $store?->module?->module_type;
                     /*
                     Final payment after commission adjustment
                     */
-                    $('#nc-pay').text("$" + finalPay.toFixed(2));
+                    $('#nc-pay').text("$" + cart.price.toFixed(2));
 
                     console.log("Modal data filled successfully");
 

@@ -998,6 +998,7 @@ class OrderController extends Controller
                 'id' => $cart->id,
                 'quantity' => $cart->quantity,
                 'total_price' => $cart->total_price * $cart->quantity,
+                'price' => $cart->price,
                 'status' => $cart->status,
                 'created' => strtotime($cart->created_at)
             ],
