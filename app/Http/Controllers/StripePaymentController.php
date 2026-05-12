@@ -55,6 +55,7 @@ class StripePaymentController extends Controller
 
     public function payment_process_3d(Request $request): JsonResponse
     {
+       
         $data = $this->payment::where(['id' => $request['payment_id']])->where(['is_paid' => 0])->first();
         if (!isset($data)) {
             return response()->json($this->response_formatter(GATEWAYS_DEFAULT_204), 200);
@@ -107,9 +108,7 @@ class StripePaymentController extends Controller
       
 
         if ($session->payment_status == 'paid' && $session->status == 'complete') {
-
             $this->payment::where(['id' => $request['payment_id']])->update([
-           
                 'payment_method' => 'stripe',
                 'is_paid' => 1,
                 'transaction_id' => $session->payment_intent,
