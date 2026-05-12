@@ -102,7 +102,7 @@ class CybersourcePaymentController extends Controller
             'receiver_image' => $receiverInformation['image'] ?? '',
         ];
 
-        return view('payment-views.cybersource', compact('data', 'payment_req'));
+        return view('payment-views.cybersource.cybersource', compact('data', 'payment_req'));
     }
 
 
@@ -255,7 +255,7 @@ class CybersourcePaymentController extends Controller
                 $payment_req->transaction_id = $body['id'] ?? null;
                 $payment_req->is_paid = 1;
                 $payment_req->save();
-                
+
 
                 $order = Order::where('id', $payment_req->attribute_id)->first();
 
