@@ -123,6 +123,13 @@ class CybersourcePaymentController extends Controller
 
             $payment_req = PaymentRequest::where('id', $payment->payment_id)->first();
 
+            if ($payment_req->is_paid == 1) {
+                return response()->json([
+                    'error' => true,
+                    'message' => 'Payment already Paid'
+                ], 404);
+            }
+
             if (!$payment_req) {
                 return response()->json([
                     'error' => true,
@@ -282,18 +289,19 @@ class CybersourcePaymentController extends Controller
 
                 return response()->json([
                     'success' => true,
+                    'order_id' => $payment_req->attribute_id,
                     'message' => 'Payment completed successfully',
                     'transaction_id' => $body['id'] ?? null,
-                    'payment_status' => 'paid',
-                    'response' => $body
+                    'payment_status' => 'paid'
 
                 ], 200);
             }
 
             return response()->json([
                 'success' => false,
+                'order_id' => $payment_req->attribute_id,
                 'message' => 'Payment Failed: ' . ($body['message'] ?? 'Unknown error'),
-                'payment_status' => 'failed'  ,
+                'payment_status' => 'failed',
                 'response' => $body
             ], 400);
 
