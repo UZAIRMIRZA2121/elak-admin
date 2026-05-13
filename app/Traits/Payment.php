@@ -74,13 +74,18 @@ trait Payment
             'phonepe' => 'payment/phonepe/pay',
             'cashfree' => 'payment/cashfree/pay',
             'instamojo' => 'payment/instamojo/pay',
-         
+
         ];
 
 
         if (array_key_exists($payment->payment_method, $routes)) {
-            return $payment;
+      
+            if ($payment->payment_method == 'cybersource') {
+                return $payment;
+            }else{
             return url("{$routes[$payment->payment_method]}/?payment_id={$payment->id}");
+            }
+
         } else {
             return false;
         }
