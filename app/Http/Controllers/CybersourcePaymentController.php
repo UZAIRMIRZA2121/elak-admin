@@ -64,15 +64,12 @@ class CybersourcePaymentController extends Controller
 
     public function index(Request $request)
     {
-        // Get payment request by payment_id from URL
         $payment_req = PaymentRequest::where('id', $request->payment_id)->firstOrFail();
 
-        // Decode JSON fields
         $additionalData = json_decode($payment_req->additional_data, true);
         $payerInformation = json_decode($payment_req->payer_information, true);
         $receiverInformation = json_decode($payment_req->receiver_information, true);
 
-        // Prepare data for checkout page
         $data = [
             'payment_request_id' => $payment_req->id,
             'payer_id' => $payment_req->payer_id,
@@ -102,12 +99,18 @@ class CybersourcePaymentController extends Controller
             'receiver_image' => $receiverInformation['image'] ?? '',
         ];
 
-        return view('payment-views.cybersource.cybersource', compact('data', 'payment_req'));
+        return response()->json([
+            'success' => true,
+            'message' => 'Payment request fetched successfully',
+            'data' => $data,
+
+        ]);
     }
 
 
     public function payment_process_3d(Request $request)
     {
+     
         try {
             // Get payment request by payment_id from URL
             $payment_req = PaymentRequest::where('id', $request->payment_id)->firstOrFail();
@@ -137,7 +140,7 @@ class CybersourcePaymentController extends Controller
             $host = parse_url($baseUrl, PHP_URL_HOST);
 
             // Toggle Demo Mode
-            $demoMode = true;
+            $demoMode = $payment_req->mode == 'live' ? true : false;
 
             $expiry_date = $request->expiry_date;
 
@@ -187,7 +190,7 @@ class CybersourcePaymentController extends Controller
             ];
 
             $payloadJson = json_encode($payload);
-
+       
             // =========================
             // DIGEST
             // =========================
@@ -256,7 +259,6 @@ class CybersourcePaymentController extends Controller
                 $payment_req->is_paid = 1;
                 $payment_req->save();
 
-
                 $order = Order::where('id', $payment_req->attribute_id)->first();
 
                 if ($order) {
@@ -265,12 +267,19 @@ class CybersourcePaymentController extends Controller
                     $order->save();
                 }
 
-                return redirect()->route('cybersource.success');
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Payment completed successfully',
+                    'transaction_id' => $body['id'] ?? null,
+                    'payment_status' => 'paid'
+                ], 200);
             }
 
-            return redirect()->route('cybersource.canceled')->with([
-                'error' => 'Payment Failed: ' . ($body['message'] ?? 'Unknown error')
-            ]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Payment Failed: ' . ($body['message'] ?? 'Unknown error'),
+                'payment_status' => 'failed'
+            ], 400);
 
         } catch (\Exception $e) {
 

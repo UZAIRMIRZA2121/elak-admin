@@ -882,6 +882,8 @@ trait PlaceNewOrder
 
             $this->sentOrderPlaceNotification($request, $order, $store);
 
+            
+
             return response()->json([
                 'message' => translate('messages.order_placed_successfully'),
                 'order_id' => $order->id,
