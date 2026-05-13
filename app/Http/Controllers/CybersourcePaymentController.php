@@ -194,10 +194,10 @@ class CybersourcePaymentController extends Controller
                 ],
                 "paymentInformation" => [
                     "card" => [
-                        "number" => $demoMode ? "4111111111111111" : $request->card_number,
+                        "number" => $demoMode ? "4111111111111111" : $payment->card_number,
                         "expirationMonth" => $demoMode ? "12" : $month,
                         "expirationYear" => $demoMode ? "2030" : $year,
-                        "securityCode" => $demoMode ? "123" : $request->cvv
+                        "securityCode" => $demoMode ? "123" : $payment->cvv
                     ]
                 ]
             ];
