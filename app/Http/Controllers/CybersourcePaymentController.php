@@ -123,12 +123,12 @@ class CybersourcePaymentController extends Controller
 
             $payment_req = PaymentRequest::where('id', $payment->payment_id)->first();
 
-            if ($payment_req->is_paid == 1) {
-                return response()->json([
-                    'error' => true,
-                    'message' => 'Payment already Paid'
-                ], 404);
-            }
+            // if ($payment_req->is_paid == 1) {
+            //     return response()->json([
+            //         'error' => true,
+            //         'message' => 'Payment already Paid'
+            //     ], 404);
+            // }
 
             if (!$payment_req) {
                 return response()->json([
