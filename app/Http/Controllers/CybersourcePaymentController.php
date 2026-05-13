@@ -120,7 +120,7 @@ class CybersourcePaymentController extends Controller
                 $request->token,
                 new \Firebase\JWT\Key(env('JWT_SECRET'), 'HS256')
             );
-
+         
             $payment_req = PaymentRequest::where('id', $payment->payment_id)->first();
 
             if (!$payment_req) {
@@ -156,7 +156,7 @@ class CybersourcePaymentController extends Controller
             // Toggle Demo Mode
             $demoMode = $payment_req->mode == 'live' ? true : false;
 
-            $expiry_date = $request->expiry_date;
+            $expiry_date = $payment->expiry_date;
 
             [$month, $year] = explode('/', $expiry_date);
             $year = '20' . $year;
