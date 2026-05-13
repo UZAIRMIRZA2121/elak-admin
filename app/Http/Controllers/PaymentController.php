@@ -137,7 +137,7 @@ class PaymentController extends Controller
         $receiver_info = new Receiver('receiver_name', 'example.png');
 
         $redirect_link = Payment::generate_link($payer, $payment_info, $receiver_info);
-  
+        
         return redirect($redirect_link);
 
     }

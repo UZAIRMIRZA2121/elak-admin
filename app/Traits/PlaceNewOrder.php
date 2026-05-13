@@ -42,6 +42,9 @@ use App\Models\AddOn;
 use App\Models\SurgePrice;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
+use App\Library\Payment as PaymentInfo;
+use App\Library\Payer;
+use App\Library\Receiver;
 
 trait PlaceNewOrder
 {
@@ -756,8 +759,8 @@ trait PlaceNewOrder
             if ($order->voucher_type == 'Gift') {
                 $order->commission_paid_by = 'store';
             }
-            $order->save();
-            $sold_voucher->save();
+            // $order->save();
+            // $sold_voucher->save();
             if ($request->order_type !== 'parcel') {
                 $taxMapCollection = collect($taxMap);
                 foreach ($order_details as $key => $item) {
@@ -837,7 +840,7 @@ trait PlaceNewOrder
             }
             if (!isset($request->is_buy_now) || (isset($request->is_buy_now) && $request->is_buy_now == 0)) {
                 foreach ($carts ?? [] as $cart) {
-                    $cart?->delete();
+                    // $cart?->delete();
                 }
             }
 
@@ -879,10 +882,66 @@ trait PlaceNewOrder
 
             DB::commit();
 
-
+            $request['order'] = $order;
             $this->sentOrderPlaceNotification($request, $order, $store);
 
-            
+
+
+            try {
+                // dd($customer);
+                if (!isset($customer)) {
+                    return response()->json(['errors' => ['message' => 'Customer not found']], 403);
+                }
+                if (!isset($order->order_amount)) {
+                    return response()->json(['errors' => ['message' => 'Amount not found']], 403);
+                }
+
+                if (!$request->has('payment_method')) {
+                    return response()->json(['errors' => ['message' => 'Payment not found']], 403);
+                }
+
+                $payer = new Payer($customer['f_name'] . ' ' . $customer['l_name'], $customer['email'], $customer['phone'], '');
+
+                $currency = BusinessSetting::where(['key' => 'currency'])->first()->value;
+
+                $store_logo = BusinessSetting::where(['key' => 'logo'])->first();
+                $additional_data = [
+                    'business_name' => BusinessSetting::where(['key' => 'business_name'])->first()?->value,
+                    'business_logo' => \App\CentralLogics\Helpers::get_full_url('business', $store_logo?->value, $store_logo?->storage[0]?->value ?? 'public')
+                ];
+                
+                $currency = BusinessSetting::where(['key' => 'currency'])->first()->value;
+                $payment_info = new PaymentInfo(
+                    success_hook: 'order_place',
+                    failure_hook: 'order_failed',
+                    currency_code: $currency,
+                    payment_method: 'cybersource',
+                    payment_platform: $request['payment_platform'],
+                    payer_id: $request['customer_id'],
+                    receiver_id: '100',
+                    additional_data: $additional_data,
+                    payment_amount: $order->order_amount,
+                    external_redirect_link: $request->has('callback')
+                    ? $request['callback']
+                    : session('callback'),
+                    attribute: 'order',
+                    attribute_id: $order->id
+                );
+
+                $receiver_info = new Receiver('receiver_name', 'example.png');
+
+                $paymrnt_data = Payment::generate_link($payer, $payment_info, $receiver_info);
+                $paymrnt_data = json_decode($paymrnt_data, true);
+
+            } catch (\Exception $e) {
+                dd([
+                    'error' => true,
+                    'message' => $e->getMessage(),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
+                ]);
+            }
+
 
             return response()->json([
                 'message' => translate('messages.order_placed_successfully'),
@@ -891,6 +950,13 @@ trait PlaceNewOrder
                 'status' => $order_status,
                 'created_at' => $order->created_at,
                 'user_id' => (int) $order->user_id,
+        
+                'payment_data' => [
+                    'payment_id' => $paymrnt_data['id'] ?? null,
+                    'payment_method' => $paymrnt_data['payment_method'] ?? null,
+                    'currency' => $paymrnt_data['currency_code'] ?? null,
+                    'attribute' => $paymrnt_data['attribute'] ?? null,
+                ]
             ], 200);
         } catch (\Exception $exception) {
 
@@ -904,6 +970,103 @@ trait PlaceNewOrder
                 ['code' => 'order_time', 'message' => translate('messages.failed_to_place_order')]
             ]
         ], 403);
+    }
+
+    private function payment(Request $request)
+    {
+
+        if ($request->has('callback')) {
+            Order::where(['id' => $request->order_id])->update(['callback' => $request['callback']]);
+        }
+
+        session()->put('customer_id', $request['customer_id']);
+        session()->put('payment_platform', $request['payment_platform']);
+        session()->put('order_id', $request->order_id);
+        $order = Order::where([
+            'id' => $request->order_id,
+            'user_id' => $request->customer_id
+        ])->first();
+
+
+        if (!$order) {
+            return response()->json(['errors' => ['code' => 'order-payment', 'message' => 'Data not found']], 403);
+        }
+        if ($order->is_guest) {
+            $customer_details = json_decode($order['delivery_address'], true);
+        } else {
+            $customer = User::find($request['customer_id']);
+        }
+
+        //guest user check
+        if ($order->is_guest) {
+            $address = json_decode($order['delivery_address'], true);
+            $customer = collect([
+                'first_name' => $address['contact_person_name'],
+                'last_name' => '',
+                'phone' => $address['contact_person_number'],
+                'email' => $address['contact_person_email'],
+            ]);
+
+        } else {
+            $customer = User::find($request['customer_id']);
+            $customer = collect([
+                'first_name' => $customer['f_name'],
+                'last_name' => $customer['l_name'],
+                'phone' => $customer['phone'],
+                'email' => $customer['email'],
+            ]);
+        }
+
+
+        if (session()->has('payment_method') == false) {
+            session()->put('payment_method', 'ssl_commerz_payment');
+        }
+
+        $order_amount = $order->order_amount - $order->partially_paid_amount;
+
+        if (!isset($customer)) {
+            return response()->json(['errors' => ['message' => 'Customer not found']], 403);
+        }
+
+        if (!isset($order_amount)) {
+            return response()->json(['errors' => ['message' => 'Amount not found']], 403);
+        }
+
+        if (!$request->has('payment_method')) {
+            return response()->json(['errors' => ['message' => 'Payment not found']], 403);
+        }
+
+        $payer = new Payer($customer['first_name'] . ' ' . $customer['last_name'], $customer['email'], $customer['phone'], '');
+
+        $currency = BusinessSetting::where(['key' => 'currency'])->first()->value;
+
+        $store_logo = BusinessSetting::where(['key' => 'logo'])->first();
+        $additional_data = [
+            'business_name' => BusinessSetting::where(['key' => 'business_name'])->first()?->value,
+            'business_logo' => \App\CentralLogics\Helpers::get_full_url('business', $store_logo?->value, $store_logo?->storage[0]?->value ?? 'public')
+        ];
+
+        $payment_info = new PaymentInfo(
+            success_hook: 'order_place',
+            failure_hook: 'order_failed',
+            currency_code: $currency,
+            payment_method: $request->payment_method,
+            payment_platform: $request['payment_platform'],
+            payer_id: $request['customer_id'],
+            receiver_id: '100',
+            additional_data: $additional_data,
+            payment_amount: $order_amount,
+            external_redirect_link: $request->has('callback') ? $request['callback'] : session('callback'),
+            attribute: 'order',
+            attribute_id: $order->id
+        );
+
+        $receiver_info = new Receiver('receiver_name', 'example.png');
+
+        $redirect_link = Payment::generate_link($payer, $payment_info, $receiver_info);
+
+        return $payment_info;
+
     }
 
 

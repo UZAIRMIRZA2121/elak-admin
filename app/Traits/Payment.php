@@ -76,7 +76,10 @@ trait Payment
             'instamojo' => 'payment/instamojo/pay',
          
         ];
+
+
         if (array_key_exists($payment->payment_method, $routes)) {
+            return $payment;
             return url("{$routes[$payment->payment_method]}/?payment_id={$payment->id}");
         } else {
             return false;
