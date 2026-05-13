@@ -120,7 +120,7 @@ class CybersourcePaymentController extends Controller
                 $request->token,
                 new \Firebase\JWT\Key(env('JWT_SECRET'), 'HS256')
             );
-         
+
             $payment_req = PaymentRequest::where('id', $payment->payment_id)->first();
 
             if (!$payment_req) {
@@ -284,14 +284,17 @@ class CybersourcePaymentController extends Controller
                     'success' => true,
                     'message' => 'Payment completed successfully',
                     'transaction_id' => $body['id'] ?? null,
-                    'payment_status' => 'paid'
+                    'payment_status' => 'paid',
+                    'response' => $body
+
                 ], 200);
             }
 
             return response()->json([
                 'success' => false,
                 'message' => 'Payment Failed: ' . ($body['message'] ?? 'Unknown error'),
-                'payment_status' => 'failed'
+                'payment_status' => 'failed'  ,
+                'response' => $body
             ], 400);
 
         } catch (\Exception $e) {
