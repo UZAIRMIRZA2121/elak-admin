@@ -8,7 +8,9 @@ use App\Models\Setting;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+
 use Firebase\JWT\JWT;
+use Firebase\JWT\Key;
 
 class CybersourcePaymentController extends Controller
 {
@@ -109,20 +111,24 @@ class CybersourcePaymentController extends Controller
     }
 
 
+
     public function payment_process_3d(Request $request)
     {
 
-
-
-
-        $decoded = JWT::decode($request->token, new Key(env('JWT_SECRET'), 'HS256'));
-
-        dd($decoded);
-
         try {
-            // Get payment request by payment_id from URL
-            $payment_req = PaymentRequest::where('id', $request->payment_id)->firstOrFail();
+            $payment = JWT::decode(
+                $request->token,
+                new \Firebase\JWT\Key(env('JWT_SECRET'), 'HS256')
+            );
 
+            $payment_req = PaymentRequest::where('id', $payment->payment_id)->first();
+
+            if (!$payment_req) {
+                return response()->json([
+                    'error' => true,
+                    'message' => 'Payment request not found'
+                ], 404);
+            }
             // Decode JSON fields
             $additionalData = json_decode($payment_req->additional_data, true);
             $payerInformation = json_decode($payment_req->payer_information, true);
