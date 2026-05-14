@@ -748,7 +748,7 @@ trait PlaceNewOrder
             $order->gift_details = $request->gift_details ?? null;
 
             $order->store_discount_amount = 0;
-            $order->order_status = $order_status;
+
 
             if ($store->comission > 0 && $request->commission_amount > 0) {
                 $order->commission_amount = $request->commission_amount ?? 0;
@@ -809,7 +809,7 @@ trait PlaceNewOrder
                             }
 
                             if ($voucher_type == 'Flat discount') {
-                                  $order_status = 'delivered';
+                                $order_status = 'delivered';
                                 CustomerLogic::create_wallet_transaction($order->user_id, $order->discount_amount, 'add_fund', $order->id);
                             }
                         }
@@ -819,6 +819,9 @@ trait PlaceNewOrder
 
 
                 }
+                
+                $order->order_status = $order_status;
+                $order->save();
 
 
 
