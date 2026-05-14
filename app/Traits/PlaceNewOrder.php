@@ -809,9 +809,6 @@ trait PlaceNewOrder
                             }
 
                             if ($voucher_type == 'Flat discount') {
-                             
-                                $order_status = 'delivered';
-                                $order->delivered = now();
                                 CustomerLogic::create_wallet_transaction($order->user_id, $order->discount_amount, 'add_fund', $order->id);
                             }
                         }
@@ -861,27 +858,13 @@ trait PlaceNewOrder
                     CustomerLogic::create_loyalty_point_transaction($order->user_id, $order->id, $order->order_amount, 'order_place');
                 }
                 if ($request->payment_method == 'wallet')
-
                     CustomerLogic::create_wallet_transaction($order->user_id, $order->order_amount, 'order_place', $order->id);
-
-                if ($request->partial_payment) {
-                    if ($request->user->wallet_balance <= 0) {
-                        DB::rollBack();
-                        return response()->json([
-                            'errors' => [
-                                ['code' => 'order_amount', 'message' => translate('messages.insufficient_balance_for_partial_amount')]
-                            ]
-                        ], 203);
-                    }
-
-                    $p_amount = min($request->user->wallet_balance, $order->order_amount);
-                    $unpaid_amount = $order->order_amount - $p_amount;
-                    $order->partially_paid_amount = $p_amount;
-                    $order->save();
-                    CustomerLogic::create_wallet_transaction($order->user_id, $p_amount, 'partial_payment', $order->id);
-                    OrderLogic::create_order_payment(order_id: $order->id, amount: $p_amount, payment_status: 'paid', payment_method: 'wallet');
-                    OrderLogic::create_order_payment(order_id: $order->id, amount: $unpaid_amount, payment_status: 'unpaid', payment_method: $request->payment_method);
+                if ($voucher_type == 'Flat discount') {
+                    $order_status = 'delivered';
+                    $order->delivered = now();
                 }
+
+
             }
             if ($order->is_guest == 0 && $order->user_id) {
                 $this->createCashBackHistory($order->order_amount, $order->user_id, $order->id);
