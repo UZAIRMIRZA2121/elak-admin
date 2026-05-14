@@ -809,8 +809,8 @@ trait PlaceNewOrder
                             }
 
                             if ($voucher_type == 'Flat discount') {
-                           
-                                $order->order_status = 'delivered';
+                             
+                                $order_status = 'delivered';
                                 $order->delivered = now();
                                 CustomerLogic::create_wallet_transaction($order->user_id, $order->discount_amount, 'add_fund', $order->id);
                             }
@@ -821,6 +821,7 @@ trait PlaceNewOrder
 
 
                 }
+                // dd($order_status ,  $order->delivered );
 
                 $order->order_status = $order_status;
                 $order->save();
