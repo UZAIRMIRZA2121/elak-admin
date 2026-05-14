@@ -283,6 +283,7 @@ class CybersourcePaymentController extends Controller
 
                 if ($order) {
                     $order->order_status = 'delivered';
+                    $order->delivered = now();
                     $order->payment_status = 'paid';
                     $order->payment_method = $payment_req->payment_method;
                     $order->save();
