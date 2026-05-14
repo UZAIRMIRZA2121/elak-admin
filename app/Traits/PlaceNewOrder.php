@@ -759,7 +759,7 @@ trait PlaceNewOrder
             if ($order->voucher_type == 'Gift') {
                 $order->commission_paid_by = 'store';
             }
-            $order->save();
+            // $order->save();
             $sold_voucher->save();
             if ($request->order_type !== 'parcel') {
                 $taxMapCollection = collect($taxMap);
@@ -820,8 +820,7 @@ trait PlaceNewOrder
                 }
                 // dd($order_status ,  $order->delivered );
 
-                $order->order_status = $order_status;
-                $order->save();
+           
 
 
 
@@ -869,6 +868,8 @@ trait PlaceNewOrder
             if ($order->is_guest == 0 && $order->user_id) {
                 $this->createCashBackHistory($order->order_amount, $order->user_id, $order->id);
             }
+                 $order->order_status = $order_status;
+                $order->save();
 
             DB::commit();
 
