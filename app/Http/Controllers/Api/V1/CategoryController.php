@@ -118,6 +118,15 @@ class CategoryController extends Controller
                 };
             }
 
+            $categories = $categories->where(function ($query) use ($zone_id) {
+
+                foreach ($zone_id as $zone) {
+                    $query->orWhereRaw("FIND_IN_SET(?, categories.zone_ids)", [$zone]);
+                }
+
+            });
+
+
 
             $categories = $categories->get()
                 ->map(function ($category) {
@@ -173,19 +182,19 @@ class CategoryController extends Controller
         }
 
         $zone_id = $request->header('zoneId');
-         $user_id = $request->header('userId');
+        $user_id = $request->header('userId');
 
         $type = $request->query('type', 'all');
 
         $data = CategoryLogic::recommended_products($zone_id, $request['limit'], $request['offset'], $type);
-        $data['products'] = Helpers::product_data_formatting($data['products'], true, false, app()->getLocale() , false , $user_id);
+        $data['products'] = Helpers::product_data_formatting($data['products'], true, false, app()->getLocale(), false, $user_id);
         return response()->json($data, 200);
     }
 
     public function get_products($id, Request $request)
     {
-        
-     
+
+
         if (!$request->hasHeader('zoneId')) {
             $errors = [];
             array_push($errors, ['code' => 'zoneId', 'message' => translate('messages.zone_id_required')]);
@@ -197,7 +206,7 @@ class CategoryController extends Controller
             'limit' => 'required',
             'offset' => 'required',
         ]);
-     
+
         if ($validator->fails()) {
             return response()->json(['errors' => Helpers::error_processor($validator)], 403);
         }
@@ -206,10 +215,10 @@ class CategoryController extends Controller
         $user_id = $request->header('userId');
 
         $type = $request->query('type', 'all');
-        
+
         $data = CategoryLogic::products($id, $zone_id, $request['limit'], $request['offset'], $type);
-        $data['products'] = Helpers::product_data_formatting($data['products'], true, false, app()->getLocale()  ,  false ,$user_id);
-          
+        $data['products'] = Helpers::product_data_formatting($data['products'], true, false, app()->getLocale(), false, $user_id);
+
         return response()->json($data, 200);
     }
 
@@ -233,13 +242,13 @@ class CategoryController extends Controller
         }
 
         $zone_id = $request->header('zoneId');
-         $user_id = $request->header('userId');
+        $user_id = $request->header('userId');
 
         $type = $request->query('type', 'all');
         $category_ids = $request['category_ids'] ? json_decode($request['category_ids']) : '';
 
         $data = CategoryLogic::category_products($category_ids, $zone_id, $request['limit'], $request['offset'], $type);
-        $data['products'] = Helpers::product_data_formatting($data['products'], true, false, app()->getLocale() , false , $user_id);
+        $data['products'] = Helpers::product_data_formatting($data['products'], true, false, app()->getLocale(), false, $user_id);
         return response()->json($data, 200);
     }
 
@@ -342,12 +351,12 @@ class CategoryController extends Controller
         }
 
         $zone_id = $request->header('zoneId');
-         $user_id = $request->header('userId');
+        $user_id = $request->header('userId');
 
         $type = $request->query('type', 'all');
 
         $data = CategoryLogic::featured_category_products($zone_id, $request['limit'], $request['offset'], $type);
-        $data['products'] = Helpers::product_data_formatting($data['products'], true, false, app()->getLocale() , false , $user_id);
+        $data['products'] = Helpers::product_data_formatting($data['products'], true, false, app()->getLocale(), false, $user_id);
         return response()->json($data, 200);
     }
 
