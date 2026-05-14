@@ -809,6 +809,7 @@ trait PlaceNewOrder
                             }
 
                             if ($voucher_type == 'Flat discount') {
+                                  $order_status = 'delivered';
                                 CustomerLogic::create_wallet_transaction($order->user_id, $order->discount_amount, 'add_fund', $order->id);
                             }
                         }

@@ -58,9 +58,9 @@ class OrderController extends Controller
         if (session()->has('order_filter')) {
             $request = json_decode(session('order_filter'));
         }
-        Order::where(['checked' => 0])->update(['checked' => 1]);
+        Order::where('checked', 0)->update([   'checked' => 1 ]);
 
-        $orders = Order::with(['customer', 'store'])
+        $orders = Order::with(['customer', 'store'])->where('payment_status', 'paid')
             ->when(isset($module_id), function ($query) use ($module_id) {
                 return $query->module($module_id);
             })
@@ -672,22 +672,22 @@ class OrderController extends Controller
             OrderLogic::update_unpaid_order_payment(order_id: $order->id, payment_method: $order->payment_method);
 
         } else if ($request->order_status == 'refunded' && BusinessSetting::where('key', 'refund_active_status')->first()->value == 1) {
-    
+
 
             if ($order->payment_status == "unpaid") {
                 Toastr::warning(translate('messages.you_can_not_refund_a_cod_order'));
                 return back();
             }
-           
+
             if (isset($order->delivered)) {
-                   
+
                 $rt = OrderLogic::refund_order($order);
                 if (!$rt) {
                     Toastr::warning(translate('messages.faield_to_create_order_transaction'));
                     return back();
                 }
             }
-  
+
             $refund_method = $request->refund_method ?? 'wallet';
 
             $wallet_status = BusinessSetting::where('key', 'wallet_status')->first()->value;
