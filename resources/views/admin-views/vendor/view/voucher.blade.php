@@ -326,9 +326,9 @@
                                                         </a>
                                                       
                                                               <a class="ml-2 btn btn-sm btn--warning btn-outline-warning action-btn data-info-show"
-                                            href="{{ route('admin.VoucherSetting.add-new', ['id' => $item->id]) }}">
-                                            <i class="tio-settings"></i>
-                                        </a>
+                                                                    href="{{ route('admin.VoucherSetting.add-new', ['id' => $food['id']]) }}">
+                                                                    <i class="tio-settings"></i>
+                                                                </a>
 
 
 
