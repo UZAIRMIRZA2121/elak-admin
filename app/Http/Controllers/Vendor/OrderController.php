@@ -33,7 +33,7 @@ class OrderController extends Controller
         $key = explode(' ', request()?->search);
         Order::where(['checked' => 0])->where('store_id', Helpers::get_store_id())->update(['checked' => 1]);
 
-        $orders = Order::with(['customer'])->where('payment_status', 'paid')
+        $orders = Order::with(['customer'])->where('payment_status', 'paid')->whereIn('order_status', ['pending', 'processing', 'delivered'])
             ->when($type, function ($query, $type) {
                 return $query->where('voucher_type', $type);
             })
