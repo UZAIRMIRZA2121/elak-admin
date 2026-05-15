@@ -366,7 +366,7 @@
                                         </span>
                                     @elseif($order['order_status'] == 'delivered')
                                         <span class="badge badge-soft-success">
-                                            {{ translate('messages.delivered') }}
+                                            {{ translate('messages.completed') }}
                                         </span>
                                     @elseif($order['order_status'] == 'failed')
                                         <span class="badge badge-soft-danger">

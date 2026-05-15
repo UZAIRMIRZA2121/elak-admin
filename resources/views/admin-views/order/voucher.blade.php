@@ -551,7 +551,7 @@
                                 value="delivered"
                                 {{ isset($orderstatus) ? (in_array('delivered', $orderstatus) ? 'checked' : '') : '' }}>
                             <label class="custom-control-label"
-                                for="orderStatus5">{{ translate('messages.delivered') }}</label>
+                                for="orderStatus5">{{ translate('messages.completed') }}</label>
                         </div>
 
                         <div class="custom-control custom-radio mb-2">

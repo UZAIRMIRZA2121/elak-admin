@@ -320,7 +320,7 @@
                                         </span>
                                     @elseif($order['order_status'] == 'delivered')
                                         <span class="badge badge-soft-success ml-2 ml-sm-3 text-capitalize">
-                                            {{ translate('messages.delivered') }}
+                                            {{ translate('messages.completed') }}
                                         </span>
                                     @elseif($order['order_status'] == 'failed')
                                         <span class="badge badge-soft-danger ml-2 ml-sm-3 text-capitalize">
@@ -1130,7 +1130,7 @@
                                                 <a class="dropdown-item {{ $order['order_status'] == 'delivered' ? 'active' : '' }} route-alert"
                                                     data-url="{{ route('admin.order.status', ['id' => $order['id'], 'order_status' => 'delivered']) }}"
                                                     data-message="{{ translate('Change status to delivered (payment status will be paid if not)?') }}"
-                                                    href="javascript:">{{ translate('messages.delivered') }}</a>
+                                                    href="javascript:">{{ translate('messages.completed') }}</a>
                                                 <a
                                                     class="dropdown-item {{ $order['order_status'] == 'canceled' ? 'active' : '' }} canceled-status">{{ translate('messages.canceled') }}</a>
                                             </div>

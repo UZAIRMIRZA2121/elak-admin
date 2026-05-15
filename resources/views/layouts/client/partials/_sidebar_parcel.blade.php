@@ -142,7 +142,7 @@
                                 <a class="nav-link " href="{{ route('admin.parcel.orders', ['delivered']) }}" title="{{ translate('messages.delivered_orders') }}">
                                     <span class="tio-circle nav-indicator-icon"></span>
                                     <span class="text-truncate sidebar--badge-container">
-                                        {{ translate('messages.delivered') }}
+                                        {{ translate('messages.completed') }}
                                         <span class="badge badge-soft-success badge-pill ml-1">
                                             {{ \App\Models\Order::Delivered()->ParcelOrder()->module(Config::get('module.current_module_id'))->count() }}
                                         </span>

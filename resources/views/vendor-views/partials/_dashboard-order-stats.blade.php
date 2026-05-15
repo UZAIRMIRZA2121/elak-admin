@@ -77,7 +77,7 @@
                     <h6 class="card-subtitle d-flex justify-content-between m-0 align-items-center">
                         <img src="{{ asset('/public/assets/admin/img/dashboard/statistics/1.png') }}" alt="dashboard"
                             class="oder--card-icon">
-                        <span>{{ translate('messages.delivered') }}</span>
+                        <span>{{ translate('messages.completed') }}</span>
                     </h6>
                     <span class="card-title text-success">
                         {{ $data['delivered'] }}
