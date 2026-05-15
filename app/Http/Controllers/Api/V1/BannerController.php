@@ -25,7 +25,9 @@ class BannerController extends Controller
         }
         $zone_id= $request->header('zoneId');
         $banners = BannerLogic::get_banners($zone_id, $request->query('featured'));
-         
+     
+
+
         $campaigns = [];
         if(!$request->featured)
         {

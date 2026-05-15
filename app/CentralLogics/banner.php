@@ -59,31 +59,7 @@ class BannerLogic
                 ->module($module['id']);
         }
 
-        /*
-        |--------------------------------------------------------------------------
-        | Zone Filter
-        |--------------------------------------------------------------------------
-        | Show:
-        | - store_wise banners only if zone_id matches
-        | - default banners regardless of zone
-        | - null type banners regardless of zone
-        */
-        if (!empty($zone_id)) {
-            $query->where(function ($q) use ($zone_id) {
-                $q->where(function ($sub) use ($zone_id) {
-                    $sub->where('type', 'store_wise')
-                        ->whereIn('zone_id', $zone_id);
-                })
-                    ->orWhere('type', 'default')
-                    ->orWhereNull('type');
-            });
-        } else {
-            $query->where(function ($q) {
-                $q->where('type', 'default')
-                    ->orWhereNull('type');
-            });
-        }
-
+      
         /*
         |--------------------------------------------------------------------------
         | Final Query Execution
@@ -168,7 +144,7 @@ class BannerLogic
                 ];
             }
         }
-
+        
         return $data;
     }
 }
