@@ -295,21 +295,30 @@ class CustomerController extends Controller
         return response()->json($products, 200);
     }
 
-    public function update_zone(Request $request)
-    {
-        if (!$request->hasHeader('zoneId') && is_numeric($request->header('zoneId'))) {
-            $errors = [];
-            array_push($errors, ['code' => 'zoneId', 'message' => translate('messages.zone_id_required')]);
-            return response()->json([
-                'errors' => $errors
-            ], 403);
-        }
+  public function update_zone(Request $request)
+{
+    if (!$request->hasHeader('zoneId') || !is_numeric($request->header('zoneId'))) {
+        $errors = [];
+        array_push($errors, [
+            'code' => 'zoneId',
+            'message' => translate('messages.zone_id_required')
+        ]);
 
-        $customer = $request->user();
-        $customer->zone_id = (integer)$request->header('zoneId');
-        $customer->save();
-        return response()->json([], 200);
+        return response()->json([
+            'errors' => $errors
+        ], 403);
     }
+    
+
+    
+    $customer = $request->user();
+    $customer->zone_id = (int) $request->header('zoneId');
+    $customer->save();
+        
+    return response()->json([
+        'message' => 'Zone ID updated successfully'
+    ], 200);
+}
 
     public function remove_account(Request $request)
     {

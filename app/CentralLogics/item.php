@@ -428,6 +428,7 @@ class ProductLogic
 
     public static function new_voucher_items($zone_id, $store_id = null, $limit = null, $offset = null, $type = 'all', $filter = 'all')
     {
+       
         $data = [];
         $query = Item::where('type', 'voucher')
             ->when(config('module.current_module_data'), function ($query) {
