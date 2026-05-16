@@ -28,25 +28,25 @@ class NotificationController extends Controller
                 ->active()
                 ->where('tergat', 'customer')
 
-                // ✅ Zone filter
+                // Zone filter
                 ->where(function ($q) use ($zone_id) {
                     $q->whereNull('zone_id')
                         ->orWhereIn('zone_id', $zone_id);
                 })
 
-                // ✅ Segment filter
+                // Segment filter (FIXED)
                 ->where(function ($q) use ($user) {
                     $q->whereNull('segment_id')
-                        ->orWhere('segment_id', $user->segment_id);
+                        ->orWhereRaw('FIND_IN_SET(?, segment_id)', [$user->segment_id]);
                 })
 
-                // ✅ Client filter
+                // Client filter
                 ->where(function ($q) use ($user) {
                     $q->whereNull('client_id')
                         ->orWhere('client_id', $user->client_id);
                 })
 
-                // ✅ Date filter
+                // Date filter
                 ->where('updated_at', '>=', \Carbon\Carbon::today()->subDays(15))
                 ->get();
 

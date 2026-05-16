@@ -55,7 +55,7 @@
                                             <div class="form-group mb-0">
                                                 <label class="input-label">Segments</label>
 
-                                                <select name="segment_id" id="segment_id" class="form-control">
+                                                <select name="segment_id[]" id="segment_id" class="form-control" multiple>
                                                     <option value="">Select Segment</option>
                                                 </select>
                                             </div>

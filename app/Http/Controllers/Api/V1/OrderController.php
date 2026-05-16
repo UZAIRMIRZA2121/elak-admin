@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\V1;
 use App\Models\Admin;
 use App\Models\Cart;
 use App\Models\Order;
+use App\Models\PaymentRequest;
 use App\Models\Store;
 use App\Models\Refund;
 use App\Mail\PlaceOrder;
@@ -97,7 +98,7 @@ class OrderController extends Controller
             })
 
             ->Notpos()->latest()->paginate($request['limit'], ['*'], 'page', $request['offset']);
-            $orders = array_map(function ($data) {
+        $orders = array_map(function ($data) {
 
             $data['delivery_address'] = $data['delivery_address'] ? json_decode($data['delivery_address']) : $data['delivery_address'];
             $data['store'] = $data['store'] ? Helpers::store_data_formatting($data['store']) : $data['store'];
@@ -265,6 +266,83 @@ class OrderController extends Controller
         ], 403);
     }
 
+    public function delete_order(Request $request)
+    {
+        $pr = PaymentRequest::where('id', $request->payment_id)->first();
+
+        if (!$pr) {
+            return response()->json([
+                'errors' => [
+                    ['code' => 'payment', 'message' => 'Payment request not found']
+                ]
+            ], 403);
+        }
+
+        $order = Order::where('id', $pr->attribute_id)
+            ->when(isset($request->user), function ($query) {
+                $query->where('is_guest', 0);
+            })
+            ->Notpos()
+            ->first();
+
+        if (!$order) {
+            return response()->json([
+                'errors' => [
+                    ['code' => 'order', 'message' => translate('messages.not_found')]
+                ]
+            ], 403);
+        }
+
+        if ($order->payment_status != 'unpaid') {
+            return response()->json([
+                'errors' => [
+                    ['code' => 'order', 'message' => translate('messages.you_can_not_cancel_after_confirm')]
+                ]
+            ], 403);
+        }
+
+        DB::beginTransaction();
+
+        try {
+            // restore stock
+            if (config('module.' . $order->module->module_type)['stock']) {
+                foreach ($order->details as $detail) {
+                    $variant = json_decode($detail['variation'], true);
+                    $item = $detail->campaign ? $detail->campaign : $detail->item;
+
+                    ProductLogic::update_stock(
+                        $item,
+                        -$detail->quantity,
+                        count($variant) ? $variant[0]['type'] : null
+                    )->save();
+                }
+            }
+
+            // delete order details
+            $order->details()->delete();
+
+            // delete order
+            $order->delete();
+
+            // delete payment request
+            $pr->delete();
+
+            DB::commit();
+
+            return response()->json([
+                'message' => 'Order deleted successfully'
+            ], 200);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            return response()->json([
+                'errors' => [
+                    ['code' => 'server', 'message' => $e->getMessage()]
+                ]
+            ], 500);
+        }
+    }
     public function refund_request(Request $request)
     {
         if (BusinessSetting::where(['key' => 'refund_active_status'])->first()->value == false) {
@@ -706,7 +784,7 @@ class OrderController extends Controller
 
     public function new_flat_request()
     {
-       
+
         $store_id = \App\CentralLogics\Helpers::get_store_id();
 
         $cart = Cart::where('status', 'pending')

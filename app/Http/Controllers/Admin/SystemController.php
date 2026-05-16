@@ -24,21 +24,22 @@ class SystemController extends Controller
         $order_data = null;
 
         // 1. Check Store Orders
-        $store_order = Order::StoreOrder()->where('checked', 0)->latest()->first();
-
+        $store_order = Order::StoreOrder()->where('checked', 0)->where('payment_status', 'paid')->latest()->first();
+           
         if ($store_order) {
+         
             $new_order = 1;
             $type = 'store_order';
             $module_id = $store_order->module_id;
             // Only attach if voucher_type is 'flat'
-            $order_data = ($store_order->voucher_type == 'flat') ? $store_order : null;
+            $order_data = ($store_order->voucher_type == 'Flat discount') ? $store_order : null;
         }
         // 2. Check Parcel Orders
         elseif ($parcel_order = Order::ParcelOrder()->where('checked', 0)->latest()->first()) {
             $new_order = 1;
             $type = 'parcel';
             $module_id = $parcel_order->module_id;
-            $order_data = ($parcel_order->voucher_type == 'flat') ? $parcel_order : null;
+            $order_data = ($parcel_order->voucher_type == 'Flat discount') ? $parcel_order : null;
         }
         // 3. Check Rental/Trips
         elseif (addon_published_status('Rental') && $trip = Trips::where('checked', 0)->latest()->first()) {

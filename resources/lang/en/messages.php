@@ -8666,4 +8666,5 @@ Smartly or Earn. ',
   'commission_paid_by_store_for_all_gift_vouchers' => 'Commission paid by store for all gift vouchers',
   'failed_to_transfer' => 'Failed to transfer',
   'The selected gateway is invalid.' => 'The selected gateway is invalid.',
+  'You have new order, Check Please.1111111111111111' => 'You have new order, Check Please.1111111111111111',
 );

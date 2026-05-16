@@ -15,36 +15,12 @@ class NotificationService
 
     public function getAddData(object $request): array
     {
-
-    
-        // $voucher = Item::find($request->voucher_id);
-        if ($request->has('image')) {
+        if ($request->hasFile('image')) {
             $imageName = $this->upload('notification/', 'png', $request->file('image'));
-        } 
-        // elseif ($voucher && $voucher->image) {
-
-        //     // old path (disk ke andar ka path, NOT full URL)
-        //     $oldPath = 'product/' . $voucher->image;
-
-        //     // new path
-        //     $newName = Carbon::now()->toDateString() . "-" . uniqid() . ".png";
-        //     $newPath = 'notification/' . $newName;
-
-        //     // check existence
-        //     if (Storage::disk(self::getDisk())->exists($oldPath)) {
-
-        //         Storage::disk(self::getDisk())->copy($oldPath, $newPath);
-
-        //         // save only filename OR full path (tumhari DB structure par depend karta hai)
-        //         $imageName = $newName; // recommended
-        //         // ya agar path save karte ho:
-        //         // $imageName = $newPath;
-        //     }
-        // }
-         else {
+        } else {
             $imageName = null;
         }
-
+  
         return [
             'title' => $request->notification_title,
             'description' => $request->description,
@@ -52,11 +28,13 @@ class NotificationService
             'tergat' => $request->tergat ?? 'customer',
             'status' => 1,
             'client_id' => $request->client_id ?? null,
-            'segment_id' => $request->segment_id ?? null,
+            'segment_id' => !empty($request->segment_id)
+                ? implode(',', $request->segment_id)
+                : null,
+
             'zone_id' => $request->zone == 'all' ? null : $request->zone,
             'notification_link' => $request->notification_link ?? null,
             'voucher_id' => $request->voucher_id ?? null,
-
         ];
     }
     public function getUpdateData(object $request, object $notification): array
@@ -95,4 +73,20 @@ class NotificationService
     }
 
 
+    public function getsegments(object $request): array
+    {
+        $segments = [];
+
+        // If segment selected, use segment topics
+        if (!empty($request->segment_id)) {
+            foreach ($request->segment_id as $segmentId) {
+                $segments[] = 'segment_' . $segmentId . '_' . $request->tergat;
+            }
+
+            return $segments;
+        }
+
+        // Otherwise fallback to all
+        return ['all_segment_' . $request->tergat];
+    }
 }

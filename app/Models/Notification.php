@@ -34,18 +34,22 @@ class Notification extends Model
         'title',
         'description',
         'image',
-        'status',
         'tergat',
+        'status',
+        'client_id',
+        'segment_id',
         'zone_id',
+        'notification_link',
+        'voucher_id',
     ];
-
     /**
      * @var string[]
      */
     protected $casts = [
         'status' => 'integer',
         'created_at' => 'datetime',
-        'updated_at' => 'datetime'
+        'updated_at' => 'datetime',
+     
     ];
 
     protected $appends = ['image_full_url'];

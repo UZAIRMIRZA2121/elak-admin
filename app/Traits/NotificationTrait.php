@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Http;
 
 trait NotificationTrait
 {
-    public static function sendPushNotificationToTopic($data, $topic, $type, $web_push_link = null): bool|string
+    public static function sendPushNotificationToTopic($data, $topic, $type, $web_push_link = null, $segments = null): bool|string
     {
 
         if (isset($data['module_id'])) {
@@ -36,6 +36,7 @@ trait NotificationTrait
             $postData = [
                 'message' => [
                     "topic" => $topic,
+                    "segments" => $segments,
                     "data" => [
                         "title" => (string) $data['title'],
                         "body" => (string) $data['description'],
@@ -73,6 +74,7 @@ trait NotificationTrait
             $postData = [
                 'message' => [
                     "topic" => $topic,
+                    "segments" => $segments,
                     "data" => [
                         "title" => (string) $data['title'],
                         "body" => (string) $data['description'],
@@ -102,17 +104,21 @@ trait NotificationTrait
                 ]
             ];
         }
+        dd($postData);
+
 
         return self::sendNotificationToHttp($postData);
     }
 
     public static function sendPushNotificationToDevice($fcm_token, $data, $web_push_link = null): bool|string
     {
-               if(isset($data['message'])){
-           $message = $data['message'];
-       }else{
-           $message = '';
-       }
+
+        dd($data);
+        if (isset($data['message'])) {
+            $message = $data['message'];
+        } else {
+            $message = '';
+        }
         if (isset($data['conversation_id'])) {
             $conversation_id = $data['conversation_id'];
         } else {
@@ -135,10 +141,10 @@ trait NotificationTrait
         }
 
         $click_action = "";
-       if($web_push_link){
-           $click_action = ',
-           "click_action": "'.$web_push_link.'"';
-       }
+        if ($web_push_link) {
+            $click_action = ',
+           "click_action": "' . $web_push_link . '"';
+        }
         $postData = [
             'message' => [
                 "token" => $fcm_token,
@@ -193,7 +199,7 @@ trait NotificationTrait
             try {
                 $response = Http::withHeaders($headers)->post($url, $data);
 
-             
+
             } catch (\Exception $exception) {
                 return false;
             }

@@ -793,14 +793,17 @@ $countryCode = strtolower($country ? $country->value : 'auto');
                         dataType: 'json',
                         success: function(response) {
                             let data = response.data;
+                            console.log(data.order)
                             new_order_type = data.type;
                             new_module_id = data.module_id;
+                     
                             if (new_order_type === 'trip') {
                                 document.querySelector('.update_notification_text').textContent =
                                     "{{ translate('messages.You have new trip, Check Please.') }}";
                             }
+
                             if (data.new_order > 0) {
-                                console.log('New order count:', data.order);
+                               
                                 playAudio();
                                 $('#popup-modal').appendTo("body").modal('show');
                             } else {

@@ -474,6 +474,7 @@ Route::group(['namespace' => 'Api\V1', 'middleware' => 'localization'], function
                 Route::post('get-Tax', 'OrderController@getTaxFromCart');
                 Route::post('prescription/place', 'OrderController@prescription_place_order');
                 Route::put('cancel', 'OrderController@cancel_order');
+                Route::delete('delete', 'OrderController@delete_order');
                 Route::post('refund-request', 'OrderController@refund_request');
                 Route::get('refund-reasons', 'OrderController@refund_reasons');
                 Route::get('track', 'OrderController@track_order');

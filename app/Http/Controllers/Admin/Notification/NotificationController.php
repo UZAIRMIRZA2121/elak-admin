@@ -55,7 +55,7 @@ class NotificationController extends BaseController
         $clients = Client::all();
         $stores = Store::all();
 
-        return view(NotificationViewPath::INDEX[VIEW], compact('notifications', 'zones',  'clients', 'stores'));
+        return view(NotificationViewPath::INDEX[VIEW], compact('notifications', 'zones', 'clients', 'stores'));
     }
 
     public function add(NotificationAddRequest $request): JsonResponse
@@ -63,15 +63,16 @@ class NotificationController extends BaseController
 
         $notification = $this->notificationRepo->add(data: $this->notificationService->getAddData(request: $request));
         $topic = $this->notificationService->getTopic(request: $request);
+
+        $segments = $this->notificationService->getsegments(request: $request);
+
+        $notification = $this->notificationRepo->getFirstWhere(params: ['id' => $notification->id]);
         $notification->image = $notification->image ? $notification->toArray()['image_full_url'] : '';
 
-        try {
-            $this->sendPushNotificationToTopic($notification, $topic, 'push_notification');
 
-        } catch (Exception) {
+        $this->sendPushNotificationToTopic($notification, $topic, 'push_notification', null, $segments);
 
-            Toastr::warning(translate('messages.push_notification_failed'));
-        }
+        dd($notification);
 
         return response()->json();
     }
