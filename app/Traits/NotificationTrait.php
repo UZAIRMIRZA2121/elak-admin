@@ -3,34 +3,10 @@
 namespace App\Traits;
 
 use App\Models\BusinessSetting;
-use App\Models\User;
 use Illuminate\Support\Facades\Http;
 
 trait NotificationTrait
 {
-
-    public static function sendPushNotificationToSegment($data, $segments, $type)
-    {
-        $users = User::whereIn('segment_id', $segments)
-            ->whereNotNull('cm_firebase_token')
-            ->get();
-
-        foreach ($users as $user) {
-
-            self::sendPushNotificationToDevice(
-                $user->cm_firebase_token,
-                [
-                    'title' => $data['title'],
-                    'description' => $data['description'],
-                    'image' => $data['image'] ?? '',
-                    'order_id' => $data['order_id'] ?? '',
-                    'type' => $type,
-                ]
-            );
-        }
-
-        return true;
-    }
     public static function sendPushNotificationToTopic($data, $topic, $type, $web_push_link = null, $segments = null): bool|string
     {
 
@@ -60,7 +36,7 @@ trait NotificationTrait
             $postData = [
                 'message' => [
                     "topic" => $topic,
-
+                    "segments" => $segments,
                     "data" => [
                         "title" => (string) $data['title'],
                         "body" => (string) $data['description'],
@@ -98,7 +74,7 @@ trait NotificationTrait
             $postData = [
                 'message' => [
                     "topic" => $topic,
-
+                    "segments" => $segments,
                     "data" => [
                         "title" => (string) $data['title'],
                         "body" => (string) $data['description'],
@@ -128,7 +104,7 @@ trait NotificationTrait
                 ]
             ];
         }
-
+        dd($postData);
 
 
         return self::sendNotificationToHttp($postData);
@@ -137,7 +113,7 @@ trait NotificationTrait
     public static function sendPushNotificationToDevice($fcm_token, $data, $web_push_link = null): bool|string
     {
 
-
+        dd($data);
         if (isset($data['message'])) {
             $message = $data['message'];
         } else {
