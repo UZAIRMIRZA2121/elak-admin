@@ -73,7 +73,7 @@ class NotificationController extends BaseController
         $this->sendPushNotificationToTopic($notification, $topic, 'push_notification', null, $segments);
 
         
-
+        dd(123);
         return response()->json();
     }
 

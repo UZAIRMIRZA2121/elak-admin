@@ -33,6 +33,27 @@ use App\Http\Controllers\CybersourcePaymentController;
 |
 */
 
+use App\Traits\NotificationTrait;
+
+
+Route::get('/test-segment-notification', function () {
+
+    $data = [
+        'title' => 'Test Notification',
+        'description' => 'Segment notification testing',
+        'image' => '',
+        'type' => 'test'
+    ];
+
+    NotificationTrait::sendPushNotificationToSegment(
+        $data,
+        [8, 9],
+        'test'
+    );
+
+    return 'Notification sent successfully';
+});
+
 Route::get('/cybersource-form', [CyberSourceController::class, 'form']);
 Route::post('/cybersource-pay', [CyberSourceController::class, 'testPayment']);
 Route::get('/cybersource-logs', [CyberSourceController::class, 'logs']);
