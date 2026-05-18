@@ -104,7 +104,7 @@ trait NotificationTrait
                 ]
             ];
         }
-    
+     
 
 
         return self::sendNotificationToHttp($postData);
@@ -113,7 +113,7 @@ trait NotificationTrait
     public static function sendPushNotificationToDevice($fcm_token, $data, $web_push_link = null): bool|string
     {
 
-     
+      
         if (isset($data['message'])) {
             $message = $data['message'];
         } else {
